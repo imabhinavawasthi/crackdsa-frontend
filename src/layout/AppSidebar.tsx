@@ -5,76 +5,87 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import {
-  BoxCubeIcon,
-  CalenderIcon,
-  ChevronDownIcon,
-  GridIcon,
-  HorizontaLDots,
-  ListIcon,
-  PageIcon,
-  PieChartIcon,
-  PlugInIcon,
-  TableIcon,
-  UserCircleIcon,
-} from "../icons/index";
+  LayoutDashboard,
+  Route,
+  Table,
+  Calendar,
+  CircleUser,
+  PieChart,
+  Box,
+  Plug,
+  MoreHorizontal,
+  ChevronDown,
+  Sparkles,
+} from "lucide-react";
 import SidebarWidget from "./SidebarWidget";
 
 type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  color?: string;
+  subItems?: { name: string; path: string; pro?: boolean; new?: boolean; icon?: React.ReactNode }[];
+};
+
+const iconColorMap: Record<string, { bg: string; bgActive: string; text: string; textActive: string }> = {
+  blue:    { bg: "bg-blue-50 dark:bg-blue-500/10",     bgActive: "bg-blue-100 dark:bg-blue-500/20",     text: "text-blue-500 dark:text-blue-400",     textActive: "text-blue-600 dark:text-blue-300" },
+  purple:  { bg: "bg-purple-50 dark:bg-purple-500/10",   bgActive: "bg-purple-100 dark:bg-purple-500/20",   text: "text-purple-500 dark:text-purple-400",   textActive: "text-purple-600 dark:text-purple-300" },
+  emerald: { bg: "bg-emerald-50 dark:bg-emerald-500/10", bgActive: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-500 dark:text-emerald-400", textActive: "text-emerald-600 dark:text-emerald-300" },
+  amber:   { bg: "bg-amber-50 dark:bg-amber-500/10",     bgActive: "bg-amber-100 dark:bg-amber-500/20",     text: "text-amber-500 dark:text-amber-400",     textActive: "text-amber-600 dark:text-amber-300" },
+  rose:    { bg: "bg-rose-50 dark:bg-rose-500/10",       bgActive: "bg-rose-100 dark:bg-rose-500/20",       text: "text-rose-500 dark:text-rose-400",       textActive: "text-rose-600 dark:text-rose-300" },
+  cyan:    { bg: "bg-cyan-50 dark:bg-cyan-500/10",       bgActive: "bg-cyan-100 dark:bg-cyan-500/20",       text: "text-cyan-500 dark:text-cyan-400",       textActive: "text-cyan-600 dark:text-cyan-300" },
+  orange:  { bg: "bg-orange-50 dark:bg-orange-500/10",   bgActive: "bg-orange-100 dark:bg-orange-500/20",   text: "text-orange-500 dark:text-orange-400",   textActive: "text-orange-600 dark:text-orange-300" },
+  indigo:  { bg: "bg-indigo-50 dark:bg-indigo-500/10",   bgActive: "bg-indigo-100 dark:bg-indigo-500/20",   text: "text-indigo-500 dark:text-indigo-400",   textActive: "text-indigo-600 dark:text-indigo-300" },
 };
 
 const navItems: NavItem[] = [
   {
-    icon: <GridIcon />,
+    icon: <LayoutDashboard size={20} />,
     name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    path: "/dashboard",
+    color: "blue",
+    subItems: [{ name: "Pro", path: "/pro", pro: true, icon: <Sparkles size={16} /> }],
   },
   {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
+    icon: <Route size={20} />,
+    name: "My Roadmap",
+    path: "/roadmap",
+    color: "purple",
   },
   {
-    icon: <UserCircleIcon />,
-    name: "User Profile",
+    icon: <Table size={20} />,
+    name: "Practice",
+    path: "/practice",
+    color: "emerald",
+  },
+  {
+    icon: <Calendar size={20} />,
+    name: "Progress",
+    path: "/progress",
+    color: "amber",
+  },
+  {
+    icon: <CircleUser size={20} />,
+    name: "Profile",
     path: "/profile",
-  },
-
-  {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-  },
-  {
-    name: "Tables",
-    icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-  },
-  {
-    name: "Pages",
-    icon: <PageIcon />,
-    subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
+    color: "rose",
   },
 ];
 
 const othersItems: NavItem[] = [
   {
-    icon: <PieChartIcon />,
+    icon: <PieChart size={20} />,
     name: "Charts",
+    color: "cyan",
     subItems: [
       { name: "Line Chart", path: "/line-chart", pro: false },
       { name: "Bar Chart", path: "/bar-chart", pro: false },
     ],
   },
   {
-    icon: <BoxCubeIcon />,
+    icon: <Box size={20} />,
     name: "UI Elements",
+    color: "orange",
     subItems: [
       { name: "Alerts", path: "/alerts", pro: false },
       { name: "Avatar", path: "/avatars", pro: false },
@@ -85,8 +96,9 @@ const othersItems: NavItem[] = [
     ],
   },
   {
-    icon: <PlugInIcon />,
+    icon: <Plug size={20} />,
     name: "Authentication",
+    color: "indigo",
     subItems: [
       { name: "Sign In", path: "/signin", pro: false },
       { name: "Sign Up", path: "/signup", pro: false },
@@ -118,20 +130,31 @@ const AppSidebar: React.FC = () => {
                   : "lg:justify-start"
               }`}
             >
-              <span
-                className={` ${
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? "menu-item-icon-active"
-                    : "menu-item-icon-inactive"
-                }`}
-              >
-                {nav.icon}
-              </span>
+              {(() => {
+                const colors = nav.color ? iconColorMap[nav.color] : null;
+                const isItemActive = openSubmenu?.type === menuType && openSubmenu?.index === index;
+                if (colors) {
+                  return (
+                    <span className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 ${
+                      isItemActive
+                        ? `${colors.bgActive} ${colors.textActive}`
+                        : `${colors.bg} ${colors.text}`
+                    }`}>
+                      {nav.icon}
+                    </span>
+                  );
+                }
+                return (
+                  <span className={isItemActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}>
+                    {nav.icon}
+                  </span>
+                );
+              })()}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <span className={`menu-item-text`}>{nav.name}</span>
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDownIcon
+                <ChevronDown
                   className={`ml-auto w-5 h-5 transition-transform duration-200  ${
                     openSubmenu?.type === menuType &&
                     openSubmenu?.index === index
@@ -149,15 +172,26 @@ const AppSidebar: React.FC = () => {
                   isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
                 }`}
               >
-                <span
-                  className={`${
-                    isActive(nav.path)
-                      ? "menu-item-icon-active"
-                      : "menu-item-icon-inactive"
-                  }`}
-                >
-                  {nav.icon}
-                </span>
+                {(() => {
+                  const colors = nav.color ? iconColorMap[nav.color] : null;
+                  const itemActive = isActive(nav.path!);
+                  if (colors) {
+                    return (
+                      <span className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 ${
+                        itemActive
+                          ? `${colors.bgActive} ${colors.textActive}`
+                          : `${colors.bg} ${colors.text}`
+                      }`}>
+                        {nav.icon}
+                      </span>
+                    );
+                  }
+                  return (
+                    <span className={itemActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}>
+                      {nav.icon}
+                    </span>
+                  );
+                })()}
                 {(isExpanded || isHovered || isMobileOpen) && (
                   <span className={`menu-item-text`}>{nav.name}</span>
                 )}
@@ -188,6 +222,17 @@ const AppSidebar: React.FC = () => {
                           : "menu-dropdown-item-inactive"
                       }`}
                     >
+                      {subItem.icon && (
+                        <span
+                          className={`shrink-0 ${
+                            isActive(subItem.path)
+                              ? "menu-item-icon-active"
+                              : "menu-item-icon-inactive"
+                          }`}
+                        >
+                          {subItem.icon}
+                        </span>
+                      )}
                       {subItem.name}
                       <span className="flex items-center gap-1 ml-auto">
                         {subItem.new && (
@@ -348,9 +393,9 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Menu"
+                  "Learning"
                 ) : (
-                  <HorizontaLDots />
+                  <MoreHorizontal size={20} />
                 )}
               </h2>
               {renderMenuItems(navItems, "main")}
@@ -365,9 +410,9 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
+                  "Practice"
                 ) : (
-                  <HorizontaLDots />
+                  <MoreHorizontal size={20} />
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}
