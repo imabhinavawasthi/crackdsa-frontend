@@ -1,65 +1,103 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { motion } from "framer-motion";
+import Button from "@/components/ui/button/Button";
+
+export default function LandingPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="relative min-h-screen overflow-hidden bg-black text-white flex flex-col items-center justify-center px-4 sm:px-6 py-10">
+
+      {/* Animated Blue Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-indigo-500/10 blur-3xl" />
+
+      {/* Grid Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]" />
+
+      <div className="relative z-10 flex flex-col items-center">
+
+        {/* Heading */}
+        <motion.h1
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-3xl sm:text-5xl md:text-7xl leading-tight font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-300"
+        >
+          CrackDSA is Rebuilding
+        </motion.h1>
+
+        {/* Subheading */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+          className="text-base sm:text-lg md:text-xl text-gray-400 text-center max-w-2xl mb-10"
+        >
+          Not another DSA platform.
+          <br />
+          Something fundamentally different is coming.
+        </motion.p>
+
+        {/* Gym + Shoe Analogy Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-5 sm:p-8 max-w-xl sm:max-w-2xl text-center mb-10 shadow-2xl"
+        >
+          <p className="text-gray-300 text-base sm:text-lg">
+            Imagine going to the gym...
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+          <p className="text-gray-500 mt-2 text-sm sm:text-base">
+            A beginner, a marathon runner, and someone trying to bulk — all following the same plan.
+          </p>
+          <p className="text-gray-400 mt-3 text-sm sm:text-base">
+            Or wearing the same shoe size.
+          </p>
+          <p className="text-blue-300 mt-4 font-semibold text-base sm:text-lg">
+            Sounds wrong, right?
+          </p>
+        </motion.div>
+
+        {/* Hint Line */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="text-gray-500 mb-8 sm:mb-10 text-center text-sm sm:text-base px-2"
+        >
+          We're quietly building something that changes this.
+        </motion.p>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="flex flex-col items-center w-full max-w-sm"
+        >
+          <p className="text-gray-500 mb-4">Be early. Shape what we build.</p>
+
           <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            href="https://wa.me/919999999999?text=Hi%2C%20I%20found%20CrackDSA.%20I%20have%20a%20few%20suggestions%20that%20could%20help%20shape%20it."
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+            <Button className="w-full rounded-2xl px-6 py-3 text-base sm:text-lg bg-blue-500 text-white hover:bg-blue-400 transition-all duration-300 shadow-lg shadow-blue-500/20">
+              Have suggestions? 💡
+            </Button>
           </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        </motion.div>
+
+        {/* Footer Hint */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 1 }}
+          className="mt-12 sm:mt-16 text-xs sm:text-sm text-gray-600 text-center px-2"
+        >
+          Coming sooner than you think.
+        </motion.p>
+      </div>
     </div>
   );
 }
