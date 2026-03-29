@@ -16,6 +16,12 @@ import {
   MoreHorizontal,
   ChevronDown,
   Sparkles,
+  Sheet,
+  Dumbbell,
+  BookOpen,
+  FileText,
+  Layers,
+  Building2,
 } from "lucide-react";
 import SidebarWidget from "./SidebarWidget";
 
@@ -23,98 +29,114 @@ type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  color?: string;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean; icon?: React.ReactNode }[];
 };
 
-const iconColorMap: Record<string, { bg: string; bgActive: string; text: string; textActive: string }> = {
-  blue:    { bg: "bg-blue-50 dark:bg-blue-500/10",     bgActive: "bg-blue-100 dark:bg-blue-500/20",     text: "text-blue-500 dark:text-blue-400",     textActive: "text-blue-600 dark:text-blue-300" },
-  purple:  { bg: "bg-purple-50 dark:bg-purple-500/10",   bgActive: "bg-purple-100 dark:bg-purple-500/20",   text: "text-purple-500 dark:text-purple-400",   textActive: "text-purple-600 dark:text-purple-300" },
-  emerald: { bg: "bg-emerald-50 dark:bg-emerald-500/10", bgActive: "bg-emerald-100 dark:bg-emerald-500/20", text: "text-emerald-500 dark:text-emerald-400", textActive: "text-emerald-600 dark:text-emerald-300" },
-  amber:   { bg: "bg-amber-50 dark:bg-amber-500/10",     bgActive: "bg-amber-100 dark:bg-amber-500/20",     text: "text-amber-500 dark:text-amber-400",     textActive: "text-amber-600 dark:text-amber-300" },
-  rose:    { bg: "bg-rose-50 dark:bg-rose-500/10",       bgActive: "bg-rose-100 dark:bg-rose-500/20",       text: "text-rose-500 dark:text-rose-400",       textActive: "text-rose-600 dark:text-rose-300" },
-  cyan:    { bg: "bg-cyan-50 dark:bg-cyan-500/10",       bgActive: "bg-cyan-100 dark:bg-cyan-500/20",       text: "text-cyan-500 dark:text-cyan-400",       textActive: "text-cyan-600 dark:text-cyan-300" },
-  orange:  { bg: "bg-orange-50 dark:bg-orange-500/10",   bgActive: "bg-orange-100 dark:bg-orange-500/20",   text: "text-orange-500 dark:text-orange-400",   textActive: "text-orange-600 dark:text-orange-300" },
-  indigo:  { bg: "bg-indigo-50 dark:bg-indigo-500/10",   bgActive: "bg-indigo-100 dark:bg-indigo-500/20",   text: "text-indigo-500 dark:text-indigo-400",   textActive: "text-indigo-600 dark:text-indigo-300" },
-};
-
 const navItems: NavItem[] = [
+  // 🔥 LEARNING
   {
     icon: <LayoutDashboard size={20} />,
     name: "Dashboard",
     path: "/dashboard",
-    color: "blue",
-    subItems: [{ name: "Pro", path: "/pro", pro: true, icon: <Sparkles size={16} /> }],
   },
   {
     icon: <Route size={20} />,
     name: "My Roadmap",
     path: "/roadmap",
-    color: "purple",
   },
   {
-    icon: <Table size={20} />,
-    name: "Practice",
-    path: "/practice",
-    color: "emerald",
+    icon: <Sheet size={20} />,
+    name: "DSA Sheets",
+    path: "/dsa-sheet",
+    subItems: [
+      {
+        name: "DSA Kickstart",
+        path: "/dsa-sheet/kickstart",
+        icon: <Dumbbell size={16} />,
+      },
+      {
+        name: "Pattern Mastery",
+        path: "/dsa-sheet/pattern-mastery",
+      },
+      {
+        name: "CrackDSA 75",
+        path: "/dsa-sheet/crackdsa-75",
+        new: true,
+      },
+      {
+        name: "30-Day Sprint",
+        path: "/dsa-sheet/30-day-sprint",
+      },
+    ],
   },
   {
-    icon: <Calendar size={20} />,
-    name: "Progress",
-    path: "/progress",
-    color: "amber",
+    icon: <BookOpen size={20} />,
+    name: "Masterclasses",
+    path: "/masterclasses",
   },
   {
-    icon: <CircleUser size={20} />,
-    name: "Profile",
-    path: "/profile",
-    color: "rose",
+    icon: <Sparkles size={20} />,
+    name: "Personalized",
+    path: "/personalized",
+  },
+  {
+    icon: <FileText size={20} />,
+    name: "Resume",
+    path: "/resume",
   },
 ];
 
 const othersItems: NavItem[] = [
   {
-    icon: <PieChart size={20} />,
-    name: "Charts",
-    color: "cyan",
+    icon: <Table size={20} />,
+    name: "Practice",
+    path: "/practice",
+  },
+  {
+    icon: <Layers size={20} />,
+    name: "Topics",
+    path: "/practice/topics",
     subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
+      { name: "All Topics", path: "/practice/topics/all" },
+      { name: "Arrays", path: "/practice/topics/arrays" },
+      { name: "Strings", path: "/practice/topics/strings" },
+      { name: "Binary Search", path: "/practice/topics/binary-search" },
+      { name: "Dynamic Programming", path: "/practice/topics/dp" },
+      { name: "Graphs", path: "/practice/topics/graph" }, 
     ],
   },
   {
-    icon: <Box size={20} />,
-    name: "UI Elements",
-    color: "orange",
+    icon: <Building2 size={20} />,
+    name: "Companies",
+    path: "/practice/companies",
     subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
+      { name: "Google", path: "/practice/companies/google" },
+      { name: "Amazon", path: "/practice/companies/amazon" },
+      { name: "Zeta", path: "/practice/companies/zeta" },
     ],
   },
   {
-    icon: <Plug size={20} />,
-    name: "Authentication",
-    color: "indigo",
-    subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
-    ],
-  },
+    icon: <Calendar size={20} />,
+    name: "Progress",
+    path: "/progress",
+  }
 ];
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, setIsMobileOpen } = useSidebar();
   const pathname = usePathname();
+
+  const closeSidebarOnMobile = () => {
+    if (window.innerWidth < 1024) {
+      setIsMobileOpen(false);
+    }
+  };
 
   const renderMenuItems = (
     navItems: NavItem[],
     menuType: "main" | "others"
   ) => (
-    <ul className="flex flex-col gap-4">
+    <ul className="flex flex-col gap-1">
       {navItems.map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
@@ -131,24 +153,16 @@ const AppSidebar: React.FC = () => {
               }`}
             >
               {(() => {
-                const colors = nav.color ? iconColorMap[nav.color] : null;
-                const isItemActive = openSubmenu?.type === menuType && openSubmenu?.index === index;
-                if (colors) {
-                  return (
-                    <span className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 ${
-                      isItemActive
-                        ? `${colors.bgActive} ${colors.textActive}`
-                        : `${colors.bg} ${colors.text}`
-                    }`}>
-                      {nav.icon}
-                    </span>
-                  );
-                }
+                const isActive = openSubmenu?.type === menuType && openSubmenu?.index === index;
                 return (
-                  <span className={isItemActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}>
+                  <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 ${
+                    isActive
+                      ? "bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
+                      : "bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10"
+                  }`}>
                     {nav.icon}
                   </span>
-                );
+                )
               })()}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <span className={`menu-item-text`}>{nav.name}</span>
@@ -168,29 +182,22 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 href={nav.path}
+                onClick={closeSidebarOnMobile}
                 className={`menu-item group ${
                   isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
                 }`}
               >
                 {(() => {
-                  const colors = nav.color ? iconColorMap[nav.color] : null;
                   const itemActive = isActive(nav.path!);
-                  if (colors) {
-                    return (
-                      <span className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-200 ${
-                        itemActive
-                          ? `${colors.bgActive} ${colors.textActive}`
-                          : `${colors.bg} ${colors.text}`
-                      }`}>
-                        {nav.icon}
-                      </span>
-                    );
-                  }
                   return (
-                    <span className={itemActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}>
+                    <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 ${
+                      itemActive
+                        ? "bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
+                        : "bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10"
+                    }`}>
                       {nav.icon}
                     </span>
-                  );
+                  )
                 })()}
                 {(isExpanded || isHovered || isMobileOpen) && (
                   <span className={`menu-item-text`}>{nav.name}</span>
@@ -211,11 +218,12 @@ const AppSidebar: React.FC = () => {
                     : "0px",
               }}
             >
-              <ul className="mt-2 space-y-1 ml-9">
+              <ul className="mt-1 space-y-0.5 ml-8">
                 {nav.subItems.map((subItem) => (
                   <li key={subItem.name}>
                     <Link
                       href={subItem.path}
+                      onClick={closeSidebarOnMobile}
                       className={`menu-dropdown-item ${
                         isActive(subItem.path)
                           ? "menu-dropdown-item-active"
@@ -335,13 +343,13 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed pt-[74px] flex flex-col lg:pt-0 top-0 px-4 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
         ${
           isExpanded || isMobileOpen
-            ? "w-[290px]"
+            ? "w-[260px]"
             : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
+            ? "w-[260px]"
+            : "w-[72px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
@@ -349,7 +357,7 @@ const AppSidebar: React.FC = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex  ${
+        className={`py-4 hidden lg:flex ${
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
@@ -381,12 +389,12 @@ const AppSidebar: React.FC = () => {
           )}
         </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar text-[14px]">
         <nav className="mb-6">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-2 text-xs uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
@@ -403,7 +411,7 @@ const AppSidebar: React.FC = () => {
 
             <div className="">
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-2 text-xs uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
@@ -419,7 +427,7 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
+        {/* {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null} */}
       </div>
     </aside>
   );

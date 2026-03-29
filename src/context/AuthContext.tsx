@@ -47,6 +47,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     loadUser();
+
+    // ─── Polling (Every 2 Minutes) ───────────────────────────────────────────
+    const interval = setInterval(() => {
+      loadUser();
+    }, 120000); // 120,000ms = 2 minutes
+
+    return () => clearInterval(interval);
   }, [loadUser]);
 
   const logout = useCallback(async () => {

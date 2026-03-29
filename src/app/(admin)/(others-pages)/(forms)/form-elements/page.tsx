@@ -13,9 +13,9 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js Form Elements | crackDSA - Next.js Dashboard Template",
+  title: "Next.js Form Elements | CrackDSA",
   description:
-    "This is Next.js Form Elements page for crackDSA - Next.js Tailwind CSS Admin Dashboard Template",
+    "This is Next.js Form Elements page for CrackDSA - Ultimate DSA Preparation",
 };
 
 export default function FormElements() {

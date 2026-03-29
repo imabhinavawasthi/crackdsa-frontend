@@ -6,9 +6,9 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js Buttons | crackDSA - Next.js Dashboard Template",
+  title: "Next.js Buttons | CrackDSA",
   description:
-    "This is Next.js Buttons page for crackDSA - Next.js Tailwind CSS Admin Dashboard Template",
+    "This is Next.js Buttons page for CrackDSA - Ultimate DSA Preparation",
 };
 
 export default function Buttons() {
