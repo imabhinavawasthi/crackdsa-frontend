@@ -1,16 +1,15 @@
 "use client";
-import { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setStoredToken } from "@/functions/auth";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
 
 /**
- * Auth Callback Page
- * Handles redirection from Supabase/Backend to capture the access_token.
- * Uses localStorage to persistent the 'return path' from where login was initiated.
+ * Auth Callback Page Content
+ * Handles the actual logic of capturing the token.
  */
-export default function AuthCallbackPage() {
+function AuthCallbackPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refetch } = useAuth();
@@ -61,5 +60,21 @@ export default function AuthCallbackPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+/**
+ * Main Auth Callback Page
+ * Wraps Content in Suspense as required by Next.js for useSearchParams().
+ */
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-10 w-10 text-brand-500 animate-spin" />
+      </div>
+    }>
+      <AuthCallbackPageContent />
+    </Suspense>
   );
 }
