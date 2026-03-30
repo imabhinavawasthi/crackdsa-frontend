@@ -113,6 +113,21 @@ export async function logout(): Promise<void> {
  * Get the Google Auth URL from the backend.
  */
 export function getGoogleAuthUrl(redirectTo?: string): string {
-  // Use the specific Google Auth URL from environment variables
-  return process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL ?? "";
+  const baseUrl = process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL;
+  if (!baseUrl) return "";
+
+  if (typeof window !== "undefined") {
+    try {
+      const url = new URL(baseUrl);
+      const origin = window.location.origin;
+      const finalRedirect = redirectTo || `${origin}/login/callback`;
+      url.searchParams.set("redirect_to", finalRedirect);
+      return url.toString();
+    } catch (error) {
+      console.error("Invalid NEXT_PUBLIC_GOOGLE_AUTH_URL", error);
+      return baseUrl;
+    }
+  }
+
+  return baseUrl;
 }

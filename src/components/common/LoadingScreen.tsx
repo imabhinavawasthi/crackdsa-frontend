@@ -31,7 +31,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="relative w-72 h-20"
+              className="relative w-48 h-12 sm:w-64 sm:h-16 md:w-72 md:h-20"
             >
               <Image
                 src="/images/logo/logo-dark.svg"
@@ -51,7 +51,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-blue-500 blur-3xl -z-10 rounded-full scale-150"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 bg-blue-500 blur-3xl -z-10 rounded-full scale-150"
             />
           </div>
 
@@ -60,9 +60,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="absolute bottom-12"
+            className="absolute bottom-8 md:bottom-12 w-full px-4 text-center"
           >
-            <p className="text-gray-400 text-sm font-medium tracking-widest uppercase">
+            <p className="text-gray-400 text-xs sm:text-sm font-medium tracking-widest uppercase">
               Welcome to your personalised DSA Learning
             </p>
           </motion.div>
