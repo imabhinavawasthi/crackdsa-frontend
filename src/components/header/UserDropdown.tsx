@@ -105,15 +105,6 @@ export default function UserDropdown() {
                   <DropdownItem
                     onItemClick={closeDropdown}
                     tag="a"
-                    href="/"
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
-                  >
-                    <LayoutDashboard size={18} className="text-gray-400 group-hover:text-brand-500" />
-                    Dashboard
-                  </DropdownItem>
-                  <DropdownItem
-                    onItemClick={closeDropdown}
-                    tag="a"
                     href="/profile"
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
                   >

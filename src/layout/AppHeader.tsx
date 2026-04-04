@@ -103,7 +103,7 @@ const AppHeader: React.FC = () => {
             <div className="h-4 w-px bg-gray-200 dark:bg-gray-800 hidden lg:block mx-1" />
             
             <ThemeToggleButton />
-            {isLoggedIn && <NotificationDropdown />}
+            {/* {isLoggedIn && <NotificationDropdown />} */}
           </div>
 
           {/* User Area — conditional on auth state */}
