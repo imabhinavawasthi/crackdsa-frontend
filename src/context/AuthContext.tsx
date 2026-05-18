@@ -17,6 +17,8 @@ type AuthState = {
   isLoggedIn: boolean;
   logout: () => Promise<void>;
   refetch: () => Promise<void>;
+  sessionExpired: boolean;
+  dismissSessionExpired: () => void;
 };
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -34,8 +36,10 @@ export function useAuth(): AuthState {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
-  const loadUser = useCallback(async () => {
+  // Initial load — shows loading spinner
+  const initialLoad = useCallback(async () => {
     setIsLoading(true);
     try {
       const u = await fetchCurrentUser();
@@ -45,20 +49,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Silent poll — no loading state, only reacts if user was logged in but session died
+  const silentPoll = useCallback(async () => {
+    try {
+      const u = await fetchCurrentUser();
+      if (u) {
+        // Still logged in — update user silently (in case profile changed)
+        setUser(u);
+        setSessionExpired(false);
+      } else {
+        // Server returned null — only flag session expired if user WAS logged in
+        setUser((prev) => {
+          if (prev !== null) {
+            setSessionExpired(true);
+          }
+          return null;
+        });
+      }
+    } catch {
+      // Network error — don't flash UI, just silently skip
+    }
+  }, []);
+
   useEffect(() => {
-    loadUser();
+    initialLoad();
 
-    // ─── Polling (Every 2 Minutes) ───────────────────────────────────────────
-    const interval = setInterval(() => {
-      loadUser();
-    }, 120000); // 120,000ms = 2 minutes
-
+    // Poll silently every 2 minutes
+    const interval = setInterval(silentPoll, 120_000);
     return () => clearInterval(interval);
-  }, [loadUser]);
+  }, [initialLoad, silentPoll]);
 
   const logout = useCallback(async () => {
     await logoutApi();
     setUser(null);
+    setSessionExpired(false);
+  }, []);
+
+  const dismissSessionExpired = useCallback(() => {
+    setSessionExpired(false);
   }, []);
 
   return (
@@ -68,7 +96,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isLoggedIn: user !== null,
         logout,
-        refetch: loadUser,
+        refetch: initialLoad,
+        sessionExpired,
+        dismissSessionExpired,
       }}
     >
       {children}

@@ -4,6 +4,7 @@ import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
+import SessionExpiredBanner from "@/components/auth/SessionExpiredBanner";
 import React from "react";
 
 export default function RoutesLayout({
@@ -21,6 +22,7 @@ export default function RoutesLayout({
 
   return (
     <div className="min-h-screen xl:flex">
+      <SessionExpiredBanner />
       <AppSidebar />
       <Backdrop />
       <div

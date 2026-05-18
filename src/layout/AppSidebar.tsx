@@ -50,8 +50,8 @@ const navItems: NavItem[] = [
     path: "/dsa-sheet",
     subItems: [
       {
-        name: "DSA Kickstart",
-        path: "/dsa-sheet/kickstart",
+        name: "Blind 75",
+        path: "/dsa-sheet/blind-75",
         icon: <Dumbbell size={16} />,
       },
       {
