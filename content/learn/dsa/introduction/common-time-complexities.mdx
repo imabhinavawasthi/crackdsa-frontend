@@ -1,0 +1,155 @@
+---
+title: "Common Time Complexities"
+category: "Complexity Analysis"
+readTime: "8 min read"
+lastUpdated: "May 30, 2026"
+whatYouWillLearn:
+  - "The standard complexity classes (Constant, Logarithmic, Linear, Quadratic, Exponential, Factorial)."
+  - "Real-world algorithmic examples for each complexity level."
+  - "How to compare the efficiency of different complexity tiers at infinity."
+  - "Visualizing the runtime difference between polynomial and exponential growth."
+summary: "Algorithms belong to distinct mathematical complexity classes. Understanding these standard tiers—from the lightning-fast O(log N) to the computationally prohibitive O(2^N)—is essential for choosing the right approach."
+---
+
+# Theory & Concepts
+To analyze software effectively, you must become familiar with the standard **Complexity Classes**. These classes classify algorithms by how they scale as inputs grow. Below is the standard classification, ordered from most efficient to least efficient.
+
+---
+
+### 1. Constant Time: `O(1)`
+The runtime does not depend on the input size `N`. The code executes the exact same number of steps regardless of dataset scale.
+*   **Examples:** Array index access (`arr[3]`), pushing to a stack, inserting into a hash map (average).
+*   **Scale:** Instantaneous.
+
+### 2. Logarithmic Time: `O(log N)`
+The algorithm reduces the problem size in half at each successive step.
+*   **Examples:** Binary Search in a sorted array, finding items in a balanced Binary Search Tree.
+*   **Scale:** Extremely fast. Even if `N` is one billion, `log2(N)` is only ~30 operations!
+
+### 3. Linear Time: `O(N)`
+The runtime scales proportionally with the size of the input.
+*   **Examples:** Traversing an array, finding the maximum element, counting occurrences.
+*   **Scale:** Very fast and highly reliable for standard workloads up to `N = 10^7` operations.
+
+### 4. Linearithmic Time: `O(N log N)`
+Slightly slower than linear time. It usually represents a divide-and-conquer strategy where each divide split does linear reconstruction work.
+*   **Examples:** Merge Sort, Quick Sort (average case), Heap Sort.
+*   **Scale:** Excellent scaling choice for sorting large datasets.
+
+### 5. Quadratic Time: `O(N^2)`
+The runtime scales quadratically. Double the input size, and the step count quadruples.
+*   **Examples:** Nested loops comparing all pairs (Bubble Sort, Selection Sort, Insertion Sort).
+*   **Scale:** Sluggish. Tends to hang when input size `N` exceeds `10,000`.
+
+### 6. Exponential Time: `O(2^N)`
+The step count doubles with every single increment of input size `N`.
+*   **Examples:** Recursive Fibonacci computation without memoization, generating all subsets of a set.
+*   **Scale:** Prohibitive. Even for `N = 40`, the step count exceeds one trillion operations!
+
+### 7. Factorial Time: `O(N!)`
+The worst possible complexity class. The runtime grows at an astronomical rate.
+*   **Examples:** Solving the Traveling Salesperson Problem via brute force, generating all permutations of an array.
+*   **Scale:** Unusable. Even for `N = 15`, operations exceed one trillion!
+
+# Visual Representation
+```
+Complexity Scale Chart:
+---------------------------------------------------------------------
+Class      | Term          | Operations for N=1,000 | Speed
+---------------------------------------------------------------------
+O(1)       | Constant      | 1                      | Instant
+O(log N)   | Logarithmic   | ~10                    | Instant
+O(N)       | Linear        | 1,000                  | Instant
+O(N log N) | Linearithmic  | ~10,000                | Instant
+O(N^2)     | Quadratic     | 1,000,000              | Milliseconds
+O(2^N)     | Exponential   | 10^301                 | Heat death of Universe!
+```
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++: Demonstrating Constant O(1) vs. Logarithmic O(log N) operations
+#include <iostream>
+#include <vector>
+
+// Constant Time: O(1)
+int getFirstElement(const std::vector<int>& arr) {
+    if (arr.empty()) return -1;
+    return arr[0]; // Exactly one memory look up step
+}
+
+// Logarithmic Time: O(log N)
+int binarySearch(const std::vector<int>& arr, int target) {
+    int low = 0, high = arr.size() - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2; // Split search space in half
+        if (arr[mid] == target) return mid;
+        else if (arr[mid] < target) low = mid + 1;
+        else high = mid - 1;
+    }
+    return -1;
+}"
+  java="// Java: Illustrating constant access versus logarithmic division
+import java.util.List;
+
+public class ComplexityClasses {
+    // Constant Time: O(1)
+    public static int getFirst(List<Integer> list) {
+        return list.isEmpty() ? -1 : list.get(0);
+    }
+
+    // Logarithmic Time: O(log N)
+    public static int binarySearch(int[] arr, int target) {
+        int low = 0, high = arr.length - 1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            if (arr[mid] == target) return mid;
+            if (arr[mid] < target) low = mid + 1;
+            else high = mid - 1;
+        }
+        return -1;
+    }
+}"
+  python="# Python: Constant O(1) access and Logarithmic O(log N) search demo
+# Constant Time: O(1)
+def get_first_element(arr):
+    return arr[0] if arr else None
+
+# Logarithmic Time: O(log N)
+def logarithmic_split(arr, target):
+    low, high = 0, len(arr) - 1
+    while low <= high:
+        mid = (low + high) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return -1
+"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(log N)"
+  worst="O(N log N)"
+  space="O(1)"
+  description="Understanding the standard scaling tiers allows engineers to quickly match algorithm choice with problem size requirements."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Assuming Logarithmic is Linear:** Confusing `O(log N)` with `O(N)`. Logarithmic is significantly faster.
+- **Rushing to O(N^2) bubble logic:** Defaulting to nested-loop compares when a simple HashMap precomputation could solve it in O(N) linear time.
+- **Overlooking Exponential Scaling:** Attempting to write recursive backtracking without memoization on problems where input size N exceeds 30.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "Memorize the relative speeds: O(1) < O(log N) < O(N) < O(N log N) < O(N^2) < O(2^N) < O(N!). Be ready to list them in order.",
+    "If you propose an O(N log N) solution, explain that it comes from performing binary splits (like MergeSort) paired with linear-time merges at each level.",
+    "Always reference the problem constraints to guess the intended complexity class."
+  ]}
+/>

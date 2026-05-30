@@ -1,0 +1,113 @@
+---
+title: "Flowcharts and Pseudocode"
+category: "Introduction"
+readTime: "6 min read"
+lastUpdated: "May 30, 2026"
+whatYouWillLearn:
+  - "The role of structured logical planning before writing programming syntax."
+  - "Standard flowchart symbols (Terminal, Input/Output, Process, Decision) and layout designs."
+  - "How to write clean, language-agnostic pseudocode that is easy to translate."
+  - "Step-by-step techniques to map conceptual designs into production-ready code."
+summary: "Flowcharts and pseudocode bridge the gap between human thought and machine code. Master these planning tools to organize your logic, prevent endless debugging cycles, and communicate your ideas clearly in interviews."
+---
+
+# Theory & Concepts
+Before building a house, an architect drafts a blueprint. Similarly, before writing complex algorithms, a software engineer creates a logical blueprint. **Flowcharts** and **Pseudocode** are the two primary tools used to plan, communicate, and structure computational logic before writing concrete code.
+
+### 1. Algorithmic Thinking
+Algorithmic thinking is the process of defining a clear sequence of steps to solve a problem. It requires:
+1.  **Decomposition:** Breaking a task down into smaller, sequential steps.
+2.  **Control Flow:** Deciding when to execute a step (sequence), when to choose between alternatives (selection/conditionals), and when to repeat a step (iteration/loops).
+
+### 2. What is a Flowchart?
+A flowchart is a visual representation of an algorithm. It uses standard geometric shapes connected by arrows to show the flow of control:
+*   **Oval (Terminal):** Represents the `Start` and `End` of the algorithm.
+*   **Parallelogram (Input/Output):** Represents reading input data or printing output results.
+*   **Rectangle (Process):** Represents mathematical operations, assignments, or computations (e.g., `sum = a + b`).
+*   **Diamond (Decision):** Represents conditional branches (e.g., `Is x > 0?`). It always has at least two exit paths (`Yes` and `No`).
+
+### 3. What is Pseudocode?
+Pseudocode is a detailed, informal description of an algorithm written in plain English, structured like code. It has no strict syntax rules, making it language-agnostic:
+*   Use indentation to show scope (e.g., inside loops or conditional blocks).
+*   Use descriptive action verbs like `Read`, `Compute`, `Initialize`, `Loop`, `If`, `Else`, and `Return`.
+*   Avoid language-specific constructs like pointers or system calls.
+
+# Visual Representation
+```
+                          [ START ]  (Oval)
+                              |
+                              v
+                      [ Read Number N ]  (Parallelogram)
+                              |
+                              v
+                    { Is N % 2 == 0? }  (Diamond / Decision)
+                         /       \
+                    (Yes)        (No)
+                     /               \
+         [ Print "Even" ]         [ Print "Odd" ]  (Parallelograms)
+                     \               /
+                      v             v
+                           [ END ]  (Oval)
+```
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++: Translating the Even/Odd Decision Flowchart into C++ code
+#include <iostream>
+#include <string>
+
+std::string checkEvenOdd(int n) {
+    // Decision point translated to 'if-else'
+    if (n % 2 == 0) {
+        return \"Even\";
+    } else {
+        return \"Odd\";
+    }
+}"
+  java="// Java: Translating the Even/Odd Decision Flowchart into Java code
+public class FlowchartTranslator {
+    public static String checkEvenOdd(int n) {
+        // Decision point translated to 'if-else'
+        if (n % 2 == 0) {
+            return \"Even\";
+        } else {
+            return \"Odd\";
+        }
+    }
+}"
+  python="# Python: Highly readable translation of the Even/Odd Decision Flowchart
+def check_even_odd(n):
+    # Decision point translated to 'if-else'
+    if n % 2 == 0:
+        return \"Even\"
+    else:
+        return \"Odd\"
+"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
+  space="O(1)"
+  description="Translating simple conditionals and process steps to code yields constant O(1) time and space complexity, as there are no loop iterations."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Writing Language-Specific Pseudocode:** Including language-specific keywords like `std::vector<int>` or `ArrayList` in pseudocode. Keep it clean and language-agnostic!
+- **Infinite Loops:** Designing a loop in a flowchart or pseudocode without a clear termination condition. Always ensure your loops eventually exit.
+- **Vague Steps:** Writing steps like 'Solve the subproblem' without explaining *how*. Every step must be precise and executable.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If you find yourself struggling to code an algorithm in an interview, stop writing code and write 3-4 lines of high-level pseudocode first. This keeps you organized and shows the interviewer you have a plan.",
+    "Practice translating your pseudocode into code systematically. Each indented block in your pseudocode should map directly to a block in your code.",
+    "Make sure your flowcharts have a single start point and a clear exit path. This is a simple but important detail that shows logical rigor."
+  ]}
+/>
+
+

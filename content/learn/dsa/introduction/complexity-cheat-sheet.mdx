@@ -1,0 +1,152 @@
+---
+title: "Complexity Analysis Cheat Sheet"
+category: "Complexity Analysis"
+readTime: "5 min read"
+lastUpdated: "May 30, 2026"
+whatYouWillLearn:
+  - "The absolute complexities of common data structure operations."
+  - "Comparing sorting algorithms time and space boundaries in all cases."
+  - "Mathematical scaling behaviors of different complexity tiers."
+  - "Industrial SDE guidelines for selecting the optimal structure."
+summary: "An essential, high-density handbook comparing data structure access, search, insertion, and deletion speeds, alongside standard sorting algorithms. Keep this cheat sheet bookmarked for quick interview preparation."
+---
+
+# Theory & Concepts
+To design scalable software, you must know the complexities of standard data layouts and algorithms. Below is a high-density reference sheet detailing the time and space complexities of core data structures, common operations, and sorting algorithms.
+
+---
+
+### 1. Data Structure Complexities
+This table compares the average and worst-case time complexities of fundamental data structures:
+
+```
++------------------+-------------------------+-------------------------+
+| Data Structure   | Access / Search Time    | Insertion / Deletion    |
++------------------+-------------------------+-------------------------+
+| Array / Vector   | O(1)   / O(N)           | O(N)   / O(N)           |
+| Linked List      | O(N)   / O(N)           | O(1)   / O(1)           |
+| Hash Map / Set   | O(1)   / O(1)  [Avg]    | O(1)   / O(1)  [Avg]    |
+| Stack / Queue    | O(N)   / O(N)           | O(1)   / O(1)           |
+| Binary Srch Tree | O(log N)/ O(log N)[Avg] | O(log N)/ O(log N)[Avg] |
++------------------+-------------------------+-------------------------+
+```
+
+*   **Note on Hash Maps:** Worst-case lookup can degrade to `O(N)` if many hash collisions occur, but it averages `O(1)` under standard load factor management.
+*   **Note on Trees:** Worst-case lookup in a standard Binary Search Tree can degrade to `O(N)` if the tree becomes completely unbalanced (skewed). Balanced trees (like AVL or Red-Black Trees) guarantee `O(log N)` search time.
+
+---
+
+### 2. Sorting Algorithm Complexities
+This table compares standard sorting algorithms:
+
+```
++------------------+------------------+------------------+------------------+
+| Sorting Algo     | Best Time        | Average Time     | Worst Time       |
++------------------+------------------+------------------+------------------+
+| Merge Sort       | O(N log N)       | O(N log N)       | O(N log N)       |
+| Quick Sort       | O(N log N)       | O(N log N)       | O(N^2)           |
+| Heap Sort        | O(N log N)       | O(N log N)       | O(N log N)       |
+| Bubble Sort      | O(N)             | O(N^2)           | O(N^2)           |
+| Insertion Sort   | O(N)             | O(N^2)           | O(N^2)           |
++------------------+------------------+------------------+------------------+
+```
+
+*   **Space footprints:**
+    *   **Merge Sort:** `O(N)` (requires extra memory to merge arrays).
+    *   **Quick Sort:** `O(log N)` (due to recursive call stack depth).
+    *   **Heap Sort / Bubble / Insertion:** `O(1)` (sorts in-place, highly space-efficient).
+
+# Visual Representation
+```
+Complexity Scaling Curve Visual Guide:
+  Excellent  : O(1) > O(log N)
+  Good       : O(N)
+  Fair       : O(N log N)
+  Sluggish   : O(N^2)
+  Prohibitive: O(2^N) > O(N!)
+```
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++: Direct code mappings showing relative complexities of operations
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <list>
+
+void demonstrateComplexity() {
+    // 1. Array index access: O(1)
+    std::vector<int> arr = {1, 2, 3, 4, 5};
+    int val = arr[2]; // O(1)
+
+    // 2. Hash Map lookup: O(1) average
+    std::unordered_map<std::string, int> dict;
+    dict[\"Abhinav\"] = 100;
+    int score = dict[\"Abhinav\"]; // O(1)
+
+    // 3. Linked List search: O(N)
+    std::list<int> doublyList = {1, 2, 3};
+    // Finding an element requires traversing from node to node: O(N)
+}"
+  java="// Java: Direct collections code showcasing operational complexity
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+
+public class CheatSheetDemo {
+    public static void demonstrate() {
+        // ArrayList Access: O(1)
+        ArrayList<Integer> arr = new ArrayList<>();
+        arr.add(10);
+        int val = arr.get(0); // O(1)
+
+        // HashMap Search: O(1) average
+        HashMap<String, Integer> map = new HashMap<>();
+        map.put(\"Rahul\", 95);
+        int score = map.get(\"Rahul\"); // O(1)
+
+        // LinkedList Search: O(N)
+        LinkedList<Integer> list = new LinkedList<>();
+        list.add(1);
+        boolean hasElement = list.contains(1); // O(N) traversal
+    }
+}"
+  python="# Python: Standard collection operational complexities
+def demonstrate_ops():
+    # List Index Access: O(1)
+    nums = [10, 20, 30]
+    val = nums[1] # O(1)
+    
+    # Dictionary lookup: O(1) average
+    lookup = {\"key\": \"value\"}
+    res = lookup[\"key\"] # O(1)
+    
+    # List search (traversal): O(N)
+    has_element = 30 in nums # O(N) scan
+"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(log N)"
+  worst="O(N log N)"
+  space="O(1)"
+  description="Understanding operational complexity bounds across data structures is essential for passing SDE placements."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Assuming Linked List search is O(1):** Linked list *insertion* at a known node pointer is O(1), but *finding* that node requires a linear O(N) search from the head.
+- **Relying on QuickSort Worst-Case:** Stating that QuickSort is always O(N log N). It degrades to O(N^2) if the pivot is chosen poorly (e.g. sorted arrays without randomized pivots).
+- **Ignoring HeapSort Space Optimization:** Overlooking HeapSort's O(1) space advantage over MergeSort's O(N) space when working on memory-constrained systems.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "Recruiters love evaluating tradeoffs. Be ready to explain why you would choose MergeSort (stable, O(N log N) guaranteed) over QuickSort (unstable, O(N^2) worst case but faster average runtime).",
+    "Explain that HashMaps provide excellent O(1) average lookup, but we must account for O(N) worst-case scaling in security-critical code to prevent Hash Collision denial-of-service attacks.",
+    "Always state both the average and worst-case complexities of your proposed sorting algorithms."
+  ]}
+/>

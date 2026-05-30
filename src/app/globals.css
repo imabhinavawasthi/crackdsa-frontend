@@ -4,7 +4,7 @@
 
 @theme {
   --font-*: initial;
-  --font-outfit: Outfit, sans-serif;
+  --font-inter: Inter, sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -188,7 +188,7 @@
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal font-inter z-1 bg-gray-50;
   }
 }
 
@@ -772,7 +772,7 @@ span.flatpickr-weekday,
 
 .ql-container.ql-snow {
   border: none !important;
-  font-family: var(--font-outfit), sans-serif !important;
+  font-family: var(--font-inter), sans-serif !important;
   background-color: transparent !important;
 }
 

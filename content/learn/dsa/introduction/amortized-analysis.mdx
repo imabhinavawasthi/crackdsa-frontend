@@ -1,0 +1,169 @@
+---
+title: "Amortized Analysis"
+category: "Complexity Analysis"
+readTime: "7 min read"
+lastUpdated: "May 30, 2026"
+whatYouWillLearn:
+  - "The definition and purpose of Amortized Analysis."
+  - "How dynamic arrays (std::vector / ArrayList) handle memory allocation."
+  - "Why doubling array size occasionally yields O(1) amortized insertion time."
+  - "The mathematical explanation of how rare, expensive steps average out."
+summary: "Amortized analysis is a technique used to find the average cost of an operation over a sequence of steps. It shows that even if an operation is occasionally very slow (like resizing a dynamic array), its average cost over time is highly efficient."
+---
+
+# Theory & Concepts
+In standard complexity analysis, we focus on the worst-case scenario. However, sometimes a worst-case analysis is overly pessimistic. Some operations are occasionally very slow, but because they are followed by many very fast operations, the **average cost** over a long sequence remains extremely low. 
+
+To evaluate these structures, we use **Amortized Analysis**—a mathematical technique that averages the total work done over a sequence of operations.
+
+---
+
+### 1. The Classic Example: Dynamic Arrays
+When you instantiate a dynamic array (like `std::vector` in C++, `ArrayList` in Java, or a list in Python), the computer allocates a contiguous block of memory with a specific **initial capacity** (e.g., space for 4 items).
+1.  **Standard Insertion:** Pushing an item into the array when there is free space.
+    *   **Work:** Write to memory index and increment size.
+    *   **Time:** `O(1)` constant time.
+2.  **The Resizing Trigger:** Pushing an item when the array is completely full.
+    *   **The Action:** The system allocates a new block of memory, typically **double** the current capacity, copies all `N` existing elements to the new block, and then inserts the new item.
+    *   **Work:** `N` copies + 1 write.
+    *   **Time:** `O(N)` linear time (worst-case).
+
+---
+
+### 2. The Amortized Mathematics (Why it averages out)
+If insertion is occasionally `O(N)`, why is pushing to a dynamic array considered `O(1)`?
+Let's trace pushing `N` elements into a dynamic array starting from capacity 1, using size doubling:
+*   Insert 1: Write (Cost: 1)
+*   Insert 2: Resize & Copy 1 + Write (Cost: 1 + 1 = 2)
+*   Insert 3: Resize & Copy 2 + Write (Cost: 2 + 1 = 3)
+*   Insert 4: Write (Cost: 1)
+*   Insert 5: Resize & Copy 4 + Write (Cost: 4 + 1 = 5)
+*   Insert 6 to 8: Write (Cost: 1 each)
+*   Insert 9: Resize & Copy 8 + Write (Cost: 8 + 1 = 9)
+
+**Summing the Total Costs:**
+*   Total copy steps for `N` insertions: `1 + 2 + 4 + 8 + ... + N/2 = N - 1` copies.
+*   Total write steps for `N` insertions: `N` writes.
+*   **Total Work for N insertions:** `(N - 1) + N = 2N - 1` operations.
+
+To find the average cost per operation, we divide total work by the number of operations:
+*   `Average Cost = (2N - 1) / N ≈ 2` operations.
+
+Since `2` is a constant number that does not grow as `N` scales, the **Amortized Time Complexity** of dynamic array insertion is **`O(1)`**!
+
+# Visual Representation
+```
+DYNAMIC ARRAY RESIZING TIMELINE (Doubling Capacity):
+Capacity: [ x ]  (Full!)
+Push!   ==> Allocate double capacity, copy old elements, insert new element
+Result:   [ x ] [ ]  =>  [ x ] [ x ] (Full!)
+Push!   ==> Allocate double capacity, copy old elements, insert new element
+Result:   [ x ] [ x ] [ ] [ ]  =>  [ x ] [ x ] [ x ] [ ]
+```
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++: Simulating a custom dynamic array resizing step to trace amortized cost
+#include <iostream>
+#include <vector>
+
+class SimpleDynamicArray {
+private:
+    int* data;
+    int capacity;
+    int size;
+
+public:
+    SimpleDynamicArray() {
+        capacity = 1;
+        size = 0;
+        data = new int[capacity];
+    }
+
+    void push(int val) {
+        if (size == capacity) {
+            // Trigger O(N) resize doubling
+            capacity *= 2;
+            int* newData = new int[capacity];
+            for (int i = 0; i < size; i++) {
+                newData[i] = data[i]; // Copy elements
+            }
+            delete[] data;
+            data = newData;
+        }
+        data[size] = val; // O(1) insertion step
+        size++;
+    }
+};"
+  java="// Java: Simulating a custom ArrayList to trace copying steps
+public class SimpleArrayList {
+    private int[] data;
+    private int capacity;
+    private int size;
+
+    public SimpleArrayList() {
+        capacity = 1;
+        size = 0;
+        data = new int[capacity];
+    }
+
+    public void add(int val) {
+        if (size == capacity) {
+            // Trigger O(N) array resize doubling
+            capacity *= 2;
+            int[] newData = new int[capacity];
+            System.arraycopy(data, 0, newData, 0, size);
+            data = newData;
+        }
+        data[size] = val; // O(1) constant insertion
+        size++;
+    }
+}"
+  python="# Python: Simulating dynamic array doubling to count operations
+class CustomDynamicArray:
+    def __init__(self):
+        self.capacity = 1
+        self.size = 0
+        self.data = [None] * self.capacity
+
+    def push(self, val):
+        cost = 1 # Constant write cost
+        if self.size == self.capacity:
+            # Trigger N copies
+            cost += self.size
+            self.capacity *= 2
+            new_data = [None] * self.capacity
+            for i in range(self.size):
+                new_data[i] = self.data[i]
+            self.data = new_data
+            
+        self.data[self.size] = val
+        self.size += 1
+        return cost # Returns operations cost for tracking
+"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(1)"
+  worst="O(N)"
+  space="O(N)"
+  description="Insertion into a dynamic array is O(N) in the worst case (when resizing is triggered), but its amortized cost over a sequence of push operations is O(1)."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Confusing Amortized with Average Case:** Assuming amortized represents random inputs. Amortized analysis guarantees efficiency over a *sequence* of operations, even in the worst case.
+- **Resizing by Constant Additions:** Increasing array capacity by a constant amount (e.g., `capacity += 100`) instead of multiplying (e.g., `capacity *= 2`). Constant increments degrade the amortized insertion complexity to a slow `O(N)`!
+- **Overlooking Memory Re-allocations:** Underestimating the space footprint, which momentarily requires `3N` space during the resize and copy phase.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If an interviewer asks: 'What is the time complexity of vector push_back?', answer: 'The worst-case is O(N) due to occasional resizing, but the amortized complexity is O(1) constant time.'",
+    "Explain that doubling the array size during resizing is critical. If we resize by adding a constant factor (e.g., +10), the amortized cost degrades to O(N).",
+    "Be ready to explain the accounting or potential method at a high level if asked to prove the mathematical bounds."
+  ]}
+/>

@@ -1,0 +1,155 @@
+---
+title: "Problem Solving Fundamentals"
+category: "Introduction"
+readTime: "7 min read"
+lastUpdated: "May 30, 2026"
+whatYouWillLearn:
+  - "How to analyze a problem statement systematically before writing any code."
+  - "The critical importance of input/output boundaries and constraints analysis."
+  - "How to perform a rigorous dry run of variables using tracking tables."
+  - "Techniques for breaking down massive problems into smaller, manageable subproblems."
+summary: "Jumping directly into writing code is a common mistake that often leads to logical dead-ends. Mastering the fundamentals of problem solving—input analysis, variable tracking, and decomposition—guarantees robust solutions."
+---
+
+# Theory & Concepts
+Writing code is the easy part; the real challenge is **problem solving**. A master software engineer spends 80% of their time understanding the problem, analyzing constraints, designing an algorithm, and dry-running edge cases, and only 20% writing actual syntax. 
+
+### 1. Analyzing the Problem Statement
+Never assume you understand a problem after reading it once. Underline key terms and look for hidden assumptions:
+*   **Sorted vs. Unsorted:** If an array is sorted, think about Binary Search or Two Pointers.
+*   **Duplicate Elements:** Can the input contain duplicates? Does the order of the output matter?
+*   **Data Types:** Could the result overflow a standard 32-bit integer? (If so, use 64-bit `long long` in C++ or `long` in Java).
+
+### 2. Constraints Analysis (The Golden Secret)
+The constraints section of a problem statement tells you the maximum size of the input (N). This is a direct hint for the required time complexity:
+*   If **N <= 10 or 12:** An exponential O(2^N) backtracking solution is acceptable.
+*   If **N <= 10^2:** A cubic O(N^3) or quadratic O(N^2) solution will pass.
+*   If **N <= 10^5:** You need an O(N log N) or O(N) linear solution.
+*   If **N >= 10^6:** You must design an O(log N) or O(1) solution.
+
+### 3. Decomposing the Problem (Divide & Conquer)
+When faced with a complex problem, break it down:
+1.  **Solve a Simplest Case:** How would you solve this if N was 1 or 2?
+2.  **State the Brute-Force Solution:** Describe the most obvious, unoptimized solution. This establishes a baseline for correctness.
+3.  **Identify Bottlenecks:** Where is the brute-force solution slow? Are you doing repetitive scans? Can you use a HashMap or precomputation to speed it up?
+4.  **Dry Run:** Track your variables in a table step-by-step using a small test case to verify your logic before writing code.
+
+# Visual Representation
+```
+                    +------------------------------------+
+                    |       COMPLEX PROBLEM RECEIVED      |
+                    +------------------------------------+
+                                      |
+                     [ DECOMPOSE INTO SMALLER SUB-TASKS ]
+                                      |
+         +----------------------------+----------------------------+
+         |                            |                            |
+  [ SUB-TASK 1 ]               [ SUB-TASK 2 ]               [ SUB-TASK 3 ]
+  Parse & validate input       Compute prefix arrays        Perform binary split
+```
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++: Showing a systematic decomposition of a complex operation (Chunking & Validation)
+#include <iostream>
+#include <vector>
+#include <numeric>
+
+// Sub-task 1: Input Validation
+bool isValidInput(const std::vector<int>& arr) {
+    return !arr.empty();
+}
+
+// Sub-task 2: Core Algorithmic Logic (Finding split point with equal sums)
+int findSplitPoint(const std::vector<int>& arr) {
+    if (!isValidInput(arr)) return -1;
+    
+    long long totalSum = std::accumulate(arr.begin(), arr.end(), 0LL);
+    long long leftSum = 0;
+    
+    for (size_t i = 0; i < arr.size(); i++) {
+        totalSum -= arr[i]; // totalSum is now rightSum
+        if (leftSum == totalSum) {
+            return i;
+        }
+        leftSum += arr[i];
+    }
+    return -1;
+}"
+  java="// Java: Systematic decomposition of array partitioning
+import java.util.Arrays;
+
+public class PartitionFinder {
+    // Sub-task 1: Input Validation
+    public static boolean isValid(int[] arr) {
+        return arr != null && arr.length > 0;
+    }
+
+    // Sub-task 2: Compute Prefix Boundary Match
+    public static int findSplitPoint(int[] arr) {
+        if (!isValid(arr)) return -1;
+
+        long totalSum = 0;
+        for (int x : arr) totalSum += x;
+
+        long leftSum = 0;
+        for (int i = 0; i < arr.length; i++) {
+            totalSum -= arr[i]; // totalSum is now rightSum
+            if (leftSum == totalSum) {
+                return i;
+            }
+            leftSum += arr[i];
+        }
+        return -1;
+    }
+}"
+  python="# Python: Clean breakdown of partition split logic
+def is_valid_input(arr):
+    return arr is not None and len(arr) > 0
+
+def find_split_point(arr):
+    \"\"\"
+    Decomposes the problem of finding an equal sum split point in O(N).
+    \"\"\"
+    if not is_valid_input(arr):
+        return -1
+        
+    total_sum = sum(arr)
+    left_sum = 0
+    
+    for idx, num in enumerate(arr):
+        total_sum -= num # total_sum becomes right_sum
+        if left_sum == total_sum:
+            return idx
+        left_sum += num
+        
+    return -1
+"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(1)"
+  description="By breaking the problem down and using a total sum precomputation, we avoid a nested-loop approach, reducing the runtime complexity from O(N^2) to O(N)."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Ignoring Boundary Conditions:** Failing to test what happens when the array is empty, contains only one element, has negative values, or contains duplicates.
+- **Complexity Mismatch:** Proposing a quadratic O(N^2) solution when the constraint N is 10^5. This will guarantee a Time Limit Exceeded (TLE) error.
+- **Skipping the Dry Run:** Writing code without walking through the logic on paper first. This often leads to frustrating off-by-one errors.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "Before writing any code, state your test cases clearly: 'I will test my solution with a normal array, an array with a single element, and an array with negative numbers.' This shows outstanding engineering maturity.",
+    "If you find yourself stuck, go back to the constraints. If N is very small, it's a hint that a recursive backtracking solution is expected.",
+    "Draw a variable tracking table on the whiteboard. Label the columns with your variable names (e.g., 'leftSum', 'rightSum', 'idx') and update their values step-by-step as you trace a small test case."
+  ]}
+/>
+
+

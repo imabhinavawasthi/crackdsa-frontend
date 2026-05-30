@@ -1,0 +1,154 @@
+---
+title: "Analyzing Loops"
+category: "Complexity Analysis"
+readTime: "7 min read"
+lastUpdated: "May 30, 2026"
+whatYouWillLearn:
+  - "How to analyze single loops and determine their Big O footprint."
+  - "The multiplicative rule behind nested loops complexity."
+  - "The additive rule behind consecutive sequential loops."
+  - "Analyzing non-trivial loops that multiply or divide loop indices (logarithmic patterns)."
+summary: "Loops are the primary source of time complexity in software algorithms. Knowing how to systematically analyze single, consecutive, nested, and index-halving loops is a critical SDE skill."
+---
+
+# Theory & Concepts
+To evaluate code efficiency, you must analyze its loop structures. Loops control how many times computational instructions execute. Below are the four essential loop patterns you will encounter.
+
+---
+
+### 1. Single Loops: `O(N)`
+If a loop iterates from `0` to `N` with constant increments, it executes `N` times, resulting in a linear **`O(N)`** time complexity.
+```cpp
+for (int i = 0; i < n; i++) {
+    // Constant O(1) operations
+}
+```
+
+### 2. Nested Loops: `O(N^2)`
+When a loop is placed inside another loop, the total number of operations is the **product** of the iterations of both loops. If the outer loop runs `N` times and the inner loop runs `N` times, the complexity is `N * N = O(N^2)`.
+```cpp
+for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+        // O(1) operations run N * N times
+    }
+}
+```
+*   **The Triangular Variant:** What if the inner loop depends on the outer loop index? (e.g., `for (int j = 0; j < i; j++)`).
+    *   The total iterations are `1 + 2 + 3 + ... + N = N(N + 1)/2`.
+    *   Asymptotically, this simplifies to **`O(N^2)`** because we drop the constant division `/2` and focus on the dominant term.
+
+### 3. Multiple Sequential Loops: `O(N + M)`
+If loops run one after another, their complexities are **added**. It is a common beginner mistake to multiply these.
+```cpp
+for (int i = 0; i < n; i++) { /* O(N) work */ }
+for (int j = 0; j < m; j++) { /* O(M) work */ }
+```
+*   The total time complexity is **`O(N + M)`** (or simply `O(N)` if `N == M`).
+
+### 4. Index Multiplication/Division Loops: `O(log N)`
+If a loop index is multiplied or divided by a factor in each step, the search space is cut proportionally, leading to a logarithmic **`O(log N)`** complexity.
+```cpp
+for (int i = 1; i < n; i = i * 2) {
+    // Runs log2(N) times
+}
+```
+
+# Visual Representation
+```
+SINGLE LOOP O(N):
+  i = 0 -> 1 -> 2 -> 3 -> ... -> N-1  (Linear progression)
+
+NESTED LOOP O(N^2):
+  i = 0  =>  j = 0, 1, 2, ..., N-1
+  i = 1  =>  j = 0, 1, 2, ..., N-1   (Square grid pattern)
+  i = N-1 =>  j = 0, 1, 2, ..., N-1
+
+LOGARITHMIC LOOP O(log N):
+  i = 1 -> 2 -> 4 -> 8 -> 16 -> 32 -> ... -> N (Doubling step)
+```
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++: Practical demonstration of various loop structures
+#include <iostream>
+
+// Sequential Loops: O(A + B)
+void runSequentialLoops(int a, int b) {
+    int count = 0;
+    for (int i = 0; i < a; i++) count++; // A steps
+    for (int j = 0; j < b; j++) count++; // B steps
+    std::cout << \"Sequential total: \" << count << std::endl;
+}
+
+// Logarithmic Loop: O(log N)
+void runLogarithmicLoop(int n) {
+    int iterations = 0;
+    for (int i = 1; i < n; i = i * 2) { // Index doubles each iteration
+        iterations++;
+    }
+    std::cout << \"Logarithmic iterations: \" << iterations << std::endl;
+}"
+  java="// Java: Practical demonstration of loop patterns
+public class LoopAnalyzer {
+    // Sequential loops: O(A + B)
+    public static void runSequential(int a, int b) {
+        int steps = 0;
+        for (int i = 0; i < a; i++) steps++;
+        for (int j = 0; j < b; j++) steps++;
+        System.out.println(\"Total: \" + steps);
+    }
+
+    // Logarithmic Loop: O(log N)
+    public static void runLogarithmic(int n) {
+        int iterations = 0;
+        for (int i = 1; i < n; i = i * 2) {
+            iterations++;
+        }
+        System.out.println(\"Iterations: \" + iterations);
+    }
+}"
+  python="# Python: Practical comparison of loop designs
+def sequential_loops(a, b):
+    # Runs in O(A + B) time
+    steps = 0
+    for i in range(a):
+        steps += 1
+    for j in range(b):
+        steps += 1
+    return steps
+
+def logarithmic_loop(n):
+    # Index doubles: O(log N) time
+    steps = 0
+    i = 1
+    while i < n:
+        steps += 1
+        i = i * 2
+    return steps
+"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(log N)"
+  average="O(N)"
+  worst="O(N^2)"
+  space="O(1)"
+  description="Time complexity is determined by the multiplicative rule for nested loops, the additive rule for consecutive loops, and division patterns for logarithmic loops."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Multiplying Sequential Loops:** Confusing sequential loops with nested loops and stating the complexity is `O(N * M)` instead of `O(N + M)`.
+- **Misidentifying Logarithmic Loops:** Assuming that any loop incrementing by 2 (e.g., `i = i + 2`) is logarithmic. This is still linear `O(N)`. Logarithmic loops must scale *multiplicatively* or *divisively* (e.g., `i = i * 2` or `i = i / 2`).
+- **Ignoring Inner Method Complexity:** Assuming an inner function call is O(1) when it secretly contains its own linear scan, making the overall complexity O(N^2) instead of O(N).
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If you show sequential loops, state: 'These loops are consecutive, not nested, so we add their complexities to get O(N + M) time.'",
+    "Be ready to analyze a triangular nested loop (e.g., the inner loop runs up to 'i'). Explain that the sum is mathematical: N(N+1)/2, which simplifies to O(N^2).",
+    "Always look at how the loop variable is incremented. If it multiplies or divides, immediately think O(log N)."
+  ]}
+/>

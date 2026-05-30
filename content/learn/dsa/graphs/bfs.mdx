@@ -1,0 +1,145 @@
+---
+title: "BFS"
+category: "Graphs"
+readTime: "9 min read"
+lastUpdated: "May 30, 2026"
+whatYouWillLearn:
+  - "How BFS searches graph layouts in concentric layers."
+  - "The role of the First-In-First-Out (FIFO) Queue in managing BFS frontiers."
+  - "Why BFS guarantees finding the absolute shortest path in unweighted graphs."
+  - "Standard template code for graph adjacencies list traversals."
+summary: "BFS traverses graphs in circular wave-fronts. Supported by a FIFO queue and a visited boundary list, it is the ultimate standard for pathfinding in unweighted networks."
+---
+
+# Theory & Concepts
+Breadth First Search (BFS) is a fundamental graph traversal algorithm. It starts exploring from a designated source node and visits all its immediate neighbors first (Layer 1), then explores all neighbors of those nodes (Layer 2), and so on. It spreads outward in concentric wave-like structures.
+
+### The Core FIFO Queue Mechanics
+To implement BFS, we use a FIFO Queue to track which nodes are waiting to be explored, along with a `visited` boolean set to ensure we never process a single graph node twice:
+
+1.  Enqueue the source node and mark it as visited.
+2.  While the Queue is not empty:
+    - Dequeue the front node `u`.
+    - For each unvisited neighbor `v` of `u`:
+        - Mark `v` as visited.
+        - Enqueue `v` into the queue.
+
+# Visual Representation
+```
+Graph Structure:
+     (1) ------- (2)
+      |           |
+      |           |
+     (3) ------- (4)
+
+BFS Layer Exploration from Source (1):
+Queue: [ 1 ]         -> Dequeue 1. Enqueue neighbors: 2, 3. Visited: {1, 2, 3}
+Queue: [ 2, 3 ]      -> Dequeue 2. Enqueue unvisited neighbor: 4. Visited: {1, 2, 3, 4}
+Queue: [ 3, 4 ]      -> Dequeue 3. Has no unvisited neighbors.
+Queue: [ 4 ]         -> Dequeue 4. Queue is empty. BFS Complete!
+Concentric Order: 1 -> 2 -> 3 -> 4
+```
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ Adjacency List BFS implementation
+#include <iostream>
+#include <vector>
+#include <queue>
+
+void performBfs(int start, std::vector<std::vector<int>>& adj) {
+    int V = adj.size();
+    std::vector<bool> visited(V, false);
+    std::queue<int> q;
+    
+    visited[start] = true;
+    q.push(start);
+    
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        std::cout << u << &quot; &quot;;
+        
+        for (int v : adj[u]) {
+            if (!visited[v]) {
+                visited[v] = true;
+                q.push(v);
+            }
+        }
+    }
+}"
+  java="// Java BFS queue traversal
+import java.util.*;
+
+public class GraphBfs {
+    public void bfs(int start, List<List<Integer>> adj) {
+        boolean[] visited = new boolean[adj.size()];
+        Queue<Integer> q = new LinkedList<>();
+        
+        visited[start] = true;
+        q.add(start);
+        
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            System.out.print(u + &quot; &quot;);
+            
+            for (int v : adj.get(u)) {
+                if (!visited[v]) {
+                    visited[v] = true;
+                    q.add(v);
+                }
+            }
+        }
+    }
+}"
+  python="# Python BFS using collections.deque
+from collections import deque
+
+def bfs_traversal(start_node, adj_list):
+    visited = [False] * len(adj_list)
+    queue = deque([start_node])
+    visited[start_node] = True
+    
+    bfs_order = []
+    while queue:
+        u = queue.popleft() # Dequeue front
+        bfs_order.append(u)
+        
+        for v in adj_list[u]:
+            if not visited[v]:
+                visited[v] = True
+                queue.append(v)
+    return bfs_order
+"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(V + E)"
+  average="O(V + E)"
+  worst="O(V + E)"
+  space="O(V)"
+  description="Visiting each vertex V and traversing all adjacency edge nodes E exactly once yields O(V + E) complexity."
+/>
+
+# Common Pitfalls
+<Warning>
+- Forgetting to mark a node as visited at the exact moment it is enqueued. If you mark it visited only when dequeued, the same node will be enqueued multiple times!
+- Using BFS for weighted shortest paths. BFS only guarantees shortest path when all edges have an identical weight of 1.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If you are asked to find the shortest path in an unweighted grid or network, immediately state: 'Because this is an unweighted graph, BFS is mathematically guaranteed to find the shortest path in concentric layers.'",
+    "Be prepared to explain how BFS can be used to perform level-order tree traversal, since trees are simply acyclic directed graphs."
+  ]}
+/>
+
+# Practice Challenges
+<PracticeProblems
+  problems={[
+    { "name": "Rotting Oranges", "difficulty": "Medium", "url": "https://leetcode.com/problems/rotting-oranges/" },
+    { "name": "Shortest Path in Binary Matrix", "difficulty": "Medium", "url": "https://leetcode.com/problems/shortest-path-in-binary-matrix/" }
+  ]}
+/>

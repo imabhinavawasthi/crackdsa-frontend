@@ -1,0 +1,120 @@
+---
+title: "How Coding Interviews Work"
+category: "Introduction"
+readTime: "7 min read"
+lastUpdated: "May 30, 2026"
+whatYouWillLearn:
+  - "The standard stages of an SDE hiring loop (OA, Technical Rounds, System Design)."
+  - "What happens during a 45-minute virtual technical coding interview."
+  - "The core metrics interviewers use to grade your performance (beyond just correctness)."
+  - "How to structure your communication to secure a 'Strong Hire' recommendation."
+summary: "Understanding the grading rubric and structure of coding interviews is half the battle. This guide maps out the timeline of technical rounds and explains how to present your algorithmic reasoning to interviewers."
+---
+
+# Theory & Concepts
+To pass SDE loops, you must think of a technical interview not as an exam, but as a collaborative debugging session between two engineers. The interviewer wants to see how you think, how you handle ambiguity, and how you write clean, production-ready code under pressure.
+
+### 1. The SDE Recruitment Funnel
+A standard recruitment process for a mid-to-large product company consists of three main phases:
+1.  **Online Assessment (OA):** 60 to 90 minutes. You must solve 2 to 3 algorithmic problems on a platform like HackerRank or Codesignal. These tests are automatically graded, with strict CPU/memory limits.
+2.  **Technical Coding Rounds (1 to 3 rounds):** 45 to 60 minutes each. You pair-program with an engineer on a shared virtual editor (like CoderPad) or whiteboard.
+3.  **System Design / Behavioral Rounds:** Evaluating your high-level architectural thinking and alignment with the company's culture.
+
+### 2. The Timeline of a 45-Minute Coding Round
+A typical virtual coding interview is tightly scheduled. Managing your time is crucial:
+*   **00:00 - 05:00 | Introductions:** A brief handshake and background summary.
+*   **05:00 - 15:00 | Discussion & Algorithm Design:** The interviewer presents the problem. You ask clarifying questions, dry-run edge cases, state a brute-force approach, and then pitch an optimized O(N) or O(log N) algorithm. **Do not write code yet!**
+*   **15:00 - 35:00 | Coding:** Translate your agreed-upon algorithm into clean, modular, syntax-error-free code.
+*   **35:00 - 40:00 | Dry Run & Edge Case Checks:** Walk through your code line-by-line using a sample input. Fix any indexing or boundary bugs.
+*   **40:00 - 45:00 | Q&A:** Ask thoughtful questions about the team, culture, or technology.
+
+### 3. What Interviewers Actually Evaluate
+Your final scorecard is graded on four core pillars:
+1.  **Problem Solving:** Can you conceptualize a solution for a vague question, or do you get stuck? Do you notice patterns and optimize naturally?
+2.  **Coding Quality:** Is your code modular, dry, and well-structured, with sensible variable names? Do you handle exceptions and pointer bounds safely?
+3.  **Communication:** Do you talk through your thought process clearly, or do you code in silence for 20 minutes?
+4.  **Verification:** Do you identify bugs on your own using test cases, or do you rely on the interviewer to find them for you?
+
+# Visual Representation
+```
++----------------------------------------------------------------------------+
+|             THE 45-MINUTE TECHNICAL INTERVIEW TIMELINE                    |
++----------------------------------------------------------------------------+
+ [ 0-5 mins ]   ->   [ 5-15 mins ]     ->   [ 15-35 mins ]  ->  [ 35-45 mins ]
+  Warm Intro          Discuss & Align        Write Code         Dry-Run & QA
+  & Rapport           Brute-Force to         Modular, Clean,    Verify Edges,
+  Building            Optimized Design       Syntax-Safe        Ask Qs
+```
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++: Modeling an automated candidate interview evaluation checklist
+#include <iostream>
+#include <string>
+#include <vector>
+
+struct CandidateScore {
+    std::string name;
+    int problemSolving; // 1-5 scale
+    int codeQuality;    // 1-5 scale
+    int communication;  // 1-5 scale
+    bool correctComplexityStated;
+    
+    bool isHire() const {
+        return (problemSolving >= 4 && codeQuality >= 4 && communication >= 3 && correctComplexityStated);
+    }
+};"
+  java="// Java: Representing interview feedback checklist and hiring decision logic
+public class InterviewFeedback {
+    public String candidateName;
+    public int problemSolving; // Scale 1 to 5
+    public int codeQuality;    // Scale 1 to 5
+    public int communication;  // Scale 1 to 5
+    public boolean correctComplexityStated;
+
+    public boolean getHiringDecision() {
+        return problemSolving >= 4 && codeQuality >= 4 && communication >= 3 && correctComplexityStated;
+    }
+}"
+  python="# Python: Simple dictionary evaluate checklist
+def evaluate_candidate(candidate_data):
+    \"\"\"
+    Simulates the decision matrix for an SDE recruiter.
+    Evaluates communication, coding standards, and conceptual correctness.
+    \"\"\"
+    score_sum = candidate_data.get(\"problem_solving\", 0) + candidate_data.get(\"code_quality\", 0)
+    has_good_comm = candidate_data.get(\"communication\", 0) >= 3
+    knows_tradeoffs = candidate_data.get(\"correct_complexity\", False)
+    
+    if score_sum >= 8 and has_good_comm and knows_tradeoffs:
+        return \"Strong Hire\"
+    return \"No Hire / Keep Searching\"
+"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
+  space="O(1)"
+  description="Interview timeline complexity: The 45-minute window is fixed. Keep your thought process structured to maximize communication efficiency within this constant time ceiling."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Coding Immediately:** Jumping straight into writing code the moment the problem is presented. This is the easiest way to fail. If you code the wrong algorithm, you will run out of time to fix it.
+- **Silent Coding:** Sitting in silence while coding. The interviewer cannot read your mind and will assume you are struggling.
+- **Defensiveness:** Getting defensive or arguing when the interviewer points out a bug. Treat the hint as a cooperative cue and debug gracefully.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If you get stuck, explain exactly what you are stuck on: 'I have an O(N) solution that uses extra memory, but I am trying to think of a way to optimize this to O(1) space by rearranging pointers.' The interviewer will often give you a helpful hint.",
+    "Always state the constraints clearly. If the input array size N can be up to 10^5, you know an O(N^2) solution will time out, which tells you that you need an O(N) or O(N log N) approach.",
+    "Make sure your code has high readability. Use helper methods for repetitive operations, and use expressive variable names like 'leftPtr' instead of 'i' and 'j'."
+  ]}
+/>
+
+

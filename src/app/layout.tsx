@@ -1,6 +1,6 @@
 "use client"
 
-import { Outfit } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import "flatpickr/dist/flatpickr.css";
 import NextTopLoader from 'nextjs-toploader';
@@ -9,9 +9,10 @@ import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import LoadingScreen from '@/components/common/LoadingScreen';
 
-const outfit = Outfit({
+const inter = Inter({
   subsets: ["latin"],
 });
+
 
 // This script will run as early as possible to prevent theme flicker
 const ThemeScript = () => {
@@ -60,7 +61,7 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`${outfit.className} dark:bg-gray-900 transition-colors duration-300`}>
+      <body className={`${inter.className} dark:bg-gray-900 transition-colors duration-300`}>
         <NextTopLoader color="#465FFF" showSpinner={false} zIndex={100000} />
         <ThemeProvider>
           <AuthProvider>

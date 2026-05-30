@@ -25,6 +25,7 @@ import {
   GraduationCap,
   ChevronLeft,
   Video,
+  Compass,
 } from "lucide-react";
 import SidebarWidget from "./SidebarWidget";
 
@@ -46,6 +47,11 @@ const navItems: NavItem[] = [
     icon: <GraduationCap size={20} />,
     name: "Courses",
     path: "/courses",
+  },
+  {
+    icon: <Compass size={20} />,
+    name: "Learn",
+    path: "/learn",
   },
   {
     icon: <Route size={20} />,

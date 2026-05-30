@@ -1,0 +1,131 @@
+{
+  "title": "Data Structures & Algorithms",
+  "description": "Conquer programming challenges by learning standard data layouts, structural traversals, and algorithmic precomputation patterns. Everything is mapped from absolute basics to advanced recruiter expectations.",
+  "categories": [
+    {
+      "id": "introduction",
+      "title": "Introduction to DSA",
+      "description": "Establish a strong foundational understanding of computational layouts, runtime complexities, and scaling metrics.",
+      "sections": [
+        {
+          "title": "Foundations",
+          "items": [
+            {
+              "slug": "what-is-dsa",
+              "title": "What is DSA"
+            },
+            {
+              "slug": "why-learn-dsa",
+              "title": "Why Learn DSA"
+            },
+            {
+              "slug": "dsa-roadmap",
+              "title": "DSA Roadmap"
+            },
+            {
+              "slug": "coding-interviews",
+              "title": "How Coding Interviews Work"
+            },
+            {
+              "slug": "how-to-study-dsa",
+              "title": "How to Study DSA Effectively"
+            },
+            {
+              "slug": "problem-solving-fundamentals",
+              "title": "Problem Solving Fundamentals"
+            },
+            {
+              "slug": "flowcharts-and-pseudocode",
+              "title": "Flowcharts and Pseudocode"
+            }
+          ]
+        },
+        {
+          "title": "Complexity Analysis",
+          "items": [
+            {
+              "slug": "why-efficiency-matters",
+              "title": "Why Efficiency Matters"
+            },
+            {
+              "slug": "understanding-performance",
+              "title": "Understanding Algorithm Performance"
+            },
+            {
+              "slug": "introduction-to-time-complexity",
+              "title": "Introduction to Time Complexity"
+            },
+            {
+              "slug": "big-o-notation",
+              "title": "Big O Notation"
+            },
+            {
+              "slug": "common-time-complexities",
+              "title": "Common Time Complexities"
+            },
+            {
+              "slug": "analyzing-loops",
+              "title": "Analyzing Loops"
+            },
+            {
+              "slug": "recursive-complexity",
+              "title": "Complexity of Recursive Algorithms"
+            },
+            {
+              "slug": "introduction-to-space-complexity",
+              "title": "Introduction to Space Complexity"
+            },
+            {
+              "slug": "time-space-tradeoffs",
+              "title": "Time vs Space Tradeoffs"
+            },
+            {
+              "slug": "amortized-analysis",
+              "title": "Amortized Analysis"
+            },
+            {
+              "slug": "complexity-cheat-sheet",
+              "title": "Complexity Analysis Cheat Sheet"
+            },
+            {
+              "slug": "complexity-interview-questions",
+              "title": "Complexity Questions in Interviews"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arrays",
+      "title": "Arrays & Precomputation",
+      "description": "Master contiguous memory arrays, prefix sum precomputations, and search boundary algorithms.",
+      "sections": [
+        {
+          "title": "Array Patterns",
+          "items": [
+            {
+              "slug": "prefix-sum",
+              "title": "Prefix Sum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "graphs",
+      "title": "Graph Algorithms",
+      "description": "Navigate complex multi-node networks, cyclic layouts, and concentric wave explorations.",
+      "sections": [
+        {
+          "title": "Graph Traversals",
+          "items": [
+            {
+              "slug": "bfs",
+              "title": "Breadth First Search (BFS)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

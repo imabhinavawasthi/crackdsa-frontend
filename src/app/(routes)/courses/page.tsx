@@ -16,6 +16,7 @@ import {
   PlayCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 type Instructor = {
   name: string;
@@ -124,7 +125,7 @@ export default function CoursesPage() {
           <div className="flex w-14 h-14 mx-auto items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/10 mb-4">
             <AlertTriangle size={26} />
           </div>
-          <h3 className="text-lg font-black text-gray-900 dark:text-white">API Connection Failure</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">API Connection Failure</h3>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
             We had difficulty loading available academy courses. The backend server might be offline or currently undergoing updates.
           </p>
@@ -149,22 +150,22 @@ export default function CoursesPage() {
               {/* Badge Header Row */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-800/60 pb-5">
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-brand-500 text-white shadow-sm shadow-brand-500/10">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-brand-500 text-white shadow-sm shadow-brand-500/10">
                     <Zap size={12} />
                     Best Seller
                   </span>
-                  <span className="rounded-lg bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 border border-orange-500/10">
+                  <span className="rounded-lg bg-orange-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 border border-orange-500/10">
                     50+ recordings
                   </span>
                 </div>
-                <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   {course.difficulty}
                 </span>
               </div>
 
               {/* Course Title and Description */}
               <div className="space-y-3">
-                <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight">
                   {course.title}
                 </h2>
                 <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
@@ -228,7 +229,7 @@ export default function CoursesPage() {
                       <ul className="px-6 py-5 space-y-3.5">
                         {course.syllabus.map((item, idx) => (
                           <li key={idx} className="flex items-start gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-[10px] font-black mt-0.5">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-[10px] font-bold mt-0.5">
                               {idx + 1}
                             </span>
                             <span>{item}</span>
@@ -245,11 +246,11 @@ export default function CoursesPage() {
                 
                 {/* Mentor Spotlight & Avatar */}
                 <div className="flex items-center gap-3">
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${course.instructor.color} text-white font-black text-sm shadow-sm`}>
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${course.instructor.color} text-white font-bold text-sm shadow-sm`}>
                     {course.instructor.name.split(" ").map(w => w[0]).join("")}
                   </div>
                   <div>
-                    <h4 className="text-xs sm:text-sm font-black text-gray-900 dark:text-white leading-none">
+                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-none">
                       {course.instructor.name}
                     </h4>
                     <p className="text-[10px] sm:text-xs font-bold text-brand-500 dark:text-brand-400 mt-1.5 flex items-center gap-1.5">
@@ -264,17 +265,18 @@ export default function CoursesPage() {
                   <div className="flex flex-col text-right sm:text-right">
                     <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Sell Price</span>
                     <div className="flex items-baseline gap-1.5 mt-0.5">
-                      <span className="text-2xl font-black text-gray-900 dark:text-white">₹{course.price}</span>
+                      <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{course.price}</span>
                       <span className="text-xs text-gray-400 dark:text-gray-500 line-through font-bold">₹{course.original_price}</span>
                     </div>
                   </div>
 
-                  <button
+                  <Link
+                    href={`/courses/${course.id}/learn`}
                     className="flex items-center justify-center gap-2 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-4 text-sm font-bold shadow-md shadow-brand-500/15 hover:shadow-lg hover:shadow-brand-500/20 transition-all group/btn"
                   >
-                    <span>Get Lifetime Access</span>
+                    <span>Enter Student Classroom</span>
                     <ArrowRight size={16} className="transition-transform group-hover/btn:translate-x-0.5" />
-                  </button>
+                  </Link>
                 </div>
 
               </div>
@@ -291,15 +293,15 @@ export default function CoursesPage() {
       <div className="rounded-3xl bg-gradient-to-br from-brand-500/5 via-blue-light-500/5 to-transparent border border-gray-200 dark:border-gray-800 p-8">
         <div className="grid grid-cols-3 gap-6 text-center">
           <div className="flex flex-col items-center">
-            <span className="text-2xl sm:text-3xl font-black text-brand-500 dark:text-brand-400">100%</span>
+            <span className="text-2xl sm:text-3xl font-bold text-brand-500 dark:text-brand-400">100%</span>
             <span className="text-[9px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Ex-FAANG Faculty</span>
           </div>
           <div className="flex flex-col items-center border-x border-gray-200 dark:border-gray-800/80 px-2">
-            <span className="text-2xl sm:text-3xl font-black text-brand-500 dark:text-brand-400">50+</span>
+            <span className="text-2xl sm:text-3xl font-bold text-brand-500 dark:text-brand-400">50+</span>
             <span className="text-[9px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Class Lectures</span>
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-2xl sm:text-3xl font-black text-brand-500 dark:text-brand-400">₹999</span>
+            <span className="text-2xl sm:text-3xl font-bold text-brand-500 dark:text-brand-400">₹999</span>
             <span className="text-[9px] sm:text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Affordable SDE Price</span>
           </div>
         </div>

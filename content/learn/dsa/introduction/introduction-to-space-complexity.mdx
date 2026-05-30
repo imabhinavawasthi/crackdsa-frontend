@@ -1,0 +1,136 @@
+---
+title: "Introduction to Space Complexity"
+category: "Complexity Analysis"
+readTime: "6 min read"
+lastUpdated: "May 30, 2026"
+whatYouWillLearn:
+  - "The precise definition of Space Complexity in computer systems."
+  - "The difference between Total Space and Auxiliary Space."
+  - "How memory allocations (variables, dynamic arrays, vectors) scale."
+  - "Analyzing the hidden space footprint of the recursive call stack."
+summary: "Space complexity measures the growth of memory allocated by an algorithm relative to input size. Knowing how to differentiate between input storage and auxiliary memory is a key SDE concept."
+---
+
+# Theory & Concepts
+When designing software, execution speed is only half the battle. High-performance systems are also bounded by **Memory (RAM)**. **Space Complexity** is the mathematical representation of how the total memory allocated by an algorithm grows as the input size `N` scales to infinity.
+
+---
+
+### 1. Total Space vs. Auxiliary Space
+It is critical to distinguish between these two terms:
+1.  **Total Space Complexity:** The entire memory footprint of the program, which includes the memory used to store the input data itself, plus any extra space declared.
+2.  **Auxiliary Space Complexity:** The **extra or temporary memory** allocated by the algorithm to solve the problem, excluding the input data.
+
+*   **SDE Standard:** In interviews, when asked for 'Space Complexity', recruiters are almost always looking for **Auxiliary Space Complexity**. They want to know how much *extra* memory your specific algorithm demands beyond the inputs it was given.
+
+---
+
+### 2. Common Space Complexity Tiers
+*   **Constant Space: `O(1)`**
+    *   The algorithm only allocates a few primitive variables (e.g., counters, indexes, temp sums) that do not depend on the input size `N`.
+    *   *Example:* Iterative linear search, swapping two numbers.
+*   **Linear Space: `O(N)`**
+    *   The algorithm allocates a data structure (like an array, list, set, or map) that grows proportionally to the input size `N`.
+    *   *Example:* Creating a duplicate array, copying elements to a Hash Set for O(1) lookup.
+*   **Quadratic Space: `O(N^2)`**
+    *   The algorithm allocates a two-dimensional grid or matrix of size `N * N`.
+    *   *Example:* Declaring an adjacency matrix to model a graph of `N` nodes.
+
+# Visual Representation
+```
+MEMORY ALLOCATION COMPARISONS:
+---------------------------------------------------------------------
+Complexity | Extra Memory Variables Declared             | Scale
+---------------------------------------------------------------------
+O(1)       | int temp = 0; int i = 0;                     | Zero growth
+O(N)       | vector<int> copy(N);                         | Linear growth
+O(N^2)     | int grid[N][N];                              | Square growth
+```
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++: Demonstrating the difference between O(1) and O(N) space allocations
+#include <iostream>
+#include <vector>
+
+// O(1) Auxiliary Space: No new data structures declared
+int findSumIterative(const std::vector<int>& arr) {
+    int sum = 0; // O(1) memory
+    for (int num : arr) {
+        sum += num;
+    }
+    return sum;
+}
+
+// O(N) Auxiliary Space: Allocates a new array to store output
+std::vector<int> doubleElements(const std::vector<int>& arr) {
+    std::vector<int> result; // O(N) memory allocation
+    for (int num : arr) {
+        result.push_back(num * 2);
+    }
+    return result;
+}"
+  java="// Java: Illustrating Constant O(1) vs. Linear O(N) space complexities
+import java.util.ArrayList;
+import java.util.List;
+
+public class SpaceComplexityBasics {
+    // O(1) Auxiliary Space
+    public static int getSum(int[] arr) {
+        int sum = 0; // Constant variable allocation
+        for (int x : arr) {
+            sum += x;
+        }
+        return sum;
+    }
+
+    // O(N) Auxiliary Space
+    public static List<Integer> getDoubled(int[] arr) {
+        List<Integer> result = new ArrayList<>(); // Grows linearly with arr.length
+        for (int x : arr) {
+            result.add(x * 2);
+        }
+        return result;
+    }
+}"
+  python="# Python: Practical comparisons of constant vs linear space growth
+# O(1) Auxiliary Space
+def calculate_sum(nums):
+    total = 0  # Constant variable
+    for num in nums:
+        total += num
+    return total
+
+# O(N) Auxiliary Space
+def generate_doubled_list(nums):
+    result = []  # List size scales linearly with input
+    for num in nums:
+        result.append(num * 2)
+    return result
+"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(1)"
+  worst="O(N)"
+  space="O(N)"
+  description="Allocating a new collection matching the input size results in a linear space complexity, O(N). Avoiding new allocations keeps space constant, O(1)."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Confusing Total Space with Auxiliary Space:** Stating that a function takes O(N) space because the input array has size N. Remember, auxiliary space only counts the *extra* memory allocated by your algorithm.
+- **Forgetting Call Stack Overhead:** Neglecting the stack frame memory of recursive calls. If your recursion goes N levels deep, your space complexity is O(N), not O(1)!
+- **Ignoring String Operations:** Assuming string modifications are O(1). In many languages (like Java and Python), strings are immutable. Any modification (like appending inside a loop) creates a brand new string in memory, consuming linear space!
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If asked for space complexity, clarify: 'The auxiliary space complexity is O(1) since we only declare a few scalar index variables.'",
+    "Explain the tradeoff: 'We can optimize this to O(1) space by modifying the input array in-place, but this comes at the cost of destroying the original input data.'",
+    "Always count stack frame depth when analyzing recursive functions to avoid missing call stack memory overhead."
+  ]}
+/>
