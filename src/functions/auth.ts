@@ -7,7 +7,11 @@ export type User = {
   avatar_url?: string;
   provider?: string;
   email_verified?: boolean;
+  phone?: string;
   roles?: string[];
+  created_at?: string;
+  last_sign_in_at?: string;
+  updated_at?: string;
 };
 
 // ─── Base URL ─────────────────────────────────────────────────────────────────

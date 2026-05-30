@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
@@ -18,17 +18,19 @@ export default function AdminLayout({
   const { user, isLoading: authLoading, isLoggedIn } = useAuth();
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
   const router = useRouter();
+  const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith("/admin");
 
   // Centralized security guard redirects
   useEffect(() => {
     if (!authLoading) {
       if (!isLoggedIn) {
         router.push("/login");
-      } else if (!user?.roles?.includes("admin")) {
+      } else if (isAdminRoute && !user?.roles?.includes("admin")) {
         router.push("/");
       }
     }
-  }, [authLoading, isLoggedIn, user, router]);
+  }, [authLoading, isLoggedIn, user, router, isAdminRoute]);
 
   // Dynamic class for main content margin based on sidebar state
   const mainContentMargin = isMobileOpen
@@ -37,8 +39,8 @@ export default function AdminLayout({
     ? "lg:ml-[260px]"
     : "lg:ml-[72px]";
 
-  // Prevent flashing of admin interface during verification or redirection phase
-  if (authLoading || !isLoggedIn || !user?.roles?.includes("admin")) {
+  // Prevent flashing during verification or redirection phase
+  if (authLoading || !isLoggedIn || (isAdminRoute && !user?.roles?.includes("admin"))) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center space-y-4 bg-gray-50 dark:bg-gray-900">
         <Loader2 size={36} className="animate-spin text-brand-500" />
