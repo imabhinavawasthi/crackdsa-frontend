@@ -7,6 +7,7 @@ export type User = {
   avatar_url?: string;
   provider?: string;
   email_verified?: boolean;
+  roles?: string[];
 };
 
 // ─── Base URL ─────────────────────────────────────────────────────────────────
@@ -30,23 +31,6 @@ export function clearStoredToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-// ─── Mock flag (flip to false when real backend is ready) ────────────────────
-
-const USE_MOCK = false;
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-// Set MOCK_LOGGED_IN to `true` to simulate a logged-in user,
-// or `false` to simulate a logged-out / guest session.
-
-const MOCK_LOGGED_IN = true;
-
-const MOCK_USER: User = {
-  id: "usr_001",
-  full_name: "Abhinav Awasthi",
-  email: "abhinav@crackdsa.com",
-  avatar_url: "/images/user/owner1.jpg",
-};
-
 // ─── Auth API functions ───────────────────────────────────────────────────────
 
 /**
@@ -54,11 +38,6 @@ const MOCK_USER: User = {
  * Returns null if the user is not logged in (401 / no session).
  */
 export async function fetchCurrentUser(): Promise<User | null> {
-  if (USE_MOCK) {
-    await new Promise((res) => setTimeout(res, 300));
-    return MOCK_LOGGED_IN ? MOCK_USER : null;
-  }
-
   const token = getStoredToken();
   if (!token) return null;
 
@@ -85,12 +64,6 @@ export async function fetchCurrentUser(): Promise<User | null> {
  * Log the current user out.
  */
 export async function logout(): Promise<void> {
-  if (USE_MOCK) {
-    await new Promise((res) => setTimeout(res, 200));
-    clearStoredToken();
-    return;
-  }
-  
   const token = getStoredToken();
   if (token) {
     try {

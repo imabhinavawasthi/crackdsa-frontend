@@ -22,6 +22,9 @@ import {
   FileText,
   Layers,
   Building2,
+  GraduationCap,
+  ChevronLeft,
+  Video,
 } from "lucide-react";
 import SidebarWidget from "./SidebarWidget";
 
@@ -38,6 +41,11 @@ const navItems: NavItem[] = [
     icon: <LayoutDashboard size={20} />,
     name: "Dashboard",
     path: "/dashboard",
+  },
+  {
+    icon: <GraduationCap size={20} />,
+    name: "Courses",
+    path: "/courses",
   },
   {
     icon: <Route size={20} />,
@@ -119,6 +127,37 @@ const othersItems: NavItem[] = [
     icon: <Calendar size={20} />,
     name: "Progress",
     path: "/progress",
+  }
+];
+
+const adminNavItems: NavItem[] = [
+  {
+    icon: <LayoutDashboard size={20} />,
+    name: "Admin Home",
+    path: "/admin",
+  },
+  {
+    icon: <Video size={20} />,
+    name: "Video Lectures",
+    path: "/admin/videos",
+  },
+  {
+    icon: <Table size={20} />,
+    name: "Practice Problems",
+    path: "/admin/problems",
+  },
+  {
+    icon: <FileText size={20} />,
+    name: "Articles / Blogs",
+    path: "/admin/blogs",
+  },
+];
+
+const adminOthersItems: NavItem[] = [
+  {
+    icon: <ChevronLeft size={20} />,
+    name: "Exit Panel",
+    path: "/dashboard",
   }
 ];
 
@@ -401,12 +440,12 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Learning"
+                  pathname.startsWith("/admin") ? "Admin Panel" : "Learning"
                 ) : (
                   <MoreHorizontal size={20} />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {renderMenuItems(pathname.startsWith("/admin") ? adminNavItems : navItems, "main")}
             </div>
 
             <div className="">
@@ -418,12 +457,12 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Practice"
+                  pathname.startsWith("/admin") ? "Exit Panel" : "Practice"
                 ) : (
                   <MoreHorizontal size={20} />
                 )}
               </h2>
-              {renderMenuItems(othersItems, "others")}
+              {renderMenuItems(pathname.startsWith("/admin") ? adminOthersItems : othersItems, "others")}
             </div>
           </div>
         </nav>

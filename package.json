@@ -26,6 +26,7 @@
     "lucide-react": "^1.7.0",
     "next": "^16.1.6",
     "nextjs-toploader": "^3.9.17",
+    "quill": "^2.0.3",
     "react": "^19.2.0",
     "react-apexcharts": "^1.8.0",
     "react-dnd": "^16.0.1",

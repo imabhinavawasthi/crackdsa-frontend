@@ -1,17 +1,34 @@
 "use client";
 
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
-import React from "react";
+import NextTopLoader from "nextjs-toploader";
+import { Loader2 } from "lucide-react";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user, isLoading: authLoading, isLoggedIn } = useAuth();
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const router = useRouter();
+
+  // Centralized security guard redirects
+  useEffect(() => {
+    if (!authLoading) {
+      if (!isLoggedIn) {
+        router.push("/login");
+      } else if (!user?.roles?.includes("admin")) {
+        router.push("/");
+      }
+    }
+  }, [authLoading, isLoggedIn, user, router]);
 
   // Dynamic class for main content margin based on sidebar state
   const mainContentMargin = isMobileOpen
@@ -20,14 +37,27 @@ export default function AdminLayout({
     ? "lg:ml-[260px]"
     : "lg:ml-[72px]";
 
+  // Prevent flashing of admin interface during verification or redirection phase
+  if (authLoading || !isLoggedIn || !user?.roles?.includes("admin")) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center space-y-4 bg-gray-50 dark:bg-gray-900">
+        <Loader2 size={36} className="animate-spin text-brand-500" />
+        <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold tracking-wide animate-pulse">
+          Verifying secure access parameters...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen xl:flex">
+      <NextTopLoader color="#465FFF" showSpinner={false} zIndex={100000} />
       {/* Sidebar and Backdrop */}
       <AppSidebar />
       <Backdrop />
       {/* Main Content Area */}
       <div
-        className={`flex-1 transition-all  duration-300 ease-in-out ${mainContentMargin}`}
+        className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
       >
         {/* Header */}
         <AppHeader />
