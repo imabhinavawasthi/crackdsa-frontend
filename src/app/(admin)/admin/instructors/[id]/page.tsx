@@ -78,7 +78,7 @@ export default function InstructorDetailPage() {
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`${backendUrl}/api/v1/instructors/${id}`, {
+      const res = await fetch(`${backendUrl}/api/v1/admin/instructors/${id}`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -181,8 +181,8 @@ export default function InstructorDetailPage() {
         is_active: editIsActive
       };
 
-      const res = await fetch(`${backendUrl}/api/v1/instructors/${id}`, {
-        method: "PATCH",
+      const res = await fetch(`${backendUrl}/api/v1/admin/instructors/${id}`, {
+        method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
@@ -221,7 +221,7 @@ export default function InstructorDetailPage() {
     if (!token) return;
 
     try {
-      const res = await fetch(`${backendUrl}/api/v1/instructors/${id}?hard_delete=true`, {
+      const res = await fetch(`${backendUrl}/api/v1/admin/instructors/${id}?hard_delete=true`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`

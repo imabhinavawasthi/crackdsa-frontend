@@ -1,22 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
-  ChevronRight, 
   Calendar, 
   Clock, 
-  ChevronLeft,
-  XCircle,
   Share2,
   Check
 } from "lucide-react";
 import DsaDocsTOC, { TOCHeading } from "@/components/learn/DsaDocsTOC";
 import { 
-  Note, 
   Warning, 
   Tip, 
-  Info, 
   CodeBlock, 
   ComplexityTable, 
   PracticeProblems, 
@@ -99,7 +94,7 @@ export default function DsaArticleReaderClient({
           <span className="text-gray-300 dark:text-gray-800">/</span>
           <Link href="/learn/dsa" className="hover:text-brand-500 transition-colors">DSA</Link>
           <span className="text-gray-300 dark:text-gray-800">/</span>
-          <span className="truncate max-w-[120px] text-gray-500 dark:text-gray-400">{article.category}</span>
+          <span className="truncate max-w-30 text-gray-500 dark:text-gray-400">{article.category}</span>
         </nav>
 
         {/* 2. Article Header Title Block */}
@@ -126,7 +121,7 @@ export default function DsaArticleReaderClient({
               className="flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-500/10 hover:bg-brand-500/15 border border-brand-500/15 hover:border-brand-500/30 px-2.5 py-1 rounded-md select-none uppercase tracking-wider transition-all cursor-pointer shadow-sm hover:shadow active:scale-95 active:bg-brand-500/20 w-fit"
               title="Copy article URL link to share"
             >
-              {copied ? <Check size={10} className="text-emerald-500 dark:text-emerald-400 stroke-[3]" /> : <Share2 size={10} className="stroke-[2.5]" />}
+              {copied ? <Check size={10} className="text-emerald-500 dark:text-emerald-400 stroke-3" /> : <Share2 size={10} className="stroke-[2.5]" />}
               <span>{copied ? "Copied!" : "Share Link"}</span>
             </button>
           </div>

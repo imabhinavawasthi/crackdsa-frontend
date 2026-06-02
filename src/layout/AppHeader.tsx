@@ -1,14 +1,17 @@
+"use client";
+
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
-import NotificationDropdown from "@/components/header/NotificationDropdown";
+import ReferEarnButton from "@/components/common/ReferEarnButton";
+import LoginButton from "@/components/common/LoginButton";
 import UserDropdown from "@/components/header/UserDropdown";
+import Separator from "@/components/ui/separator/separator";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
-import { LogIn, Gift, Compass, BookOpen, Users, PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import { Compass, BookOpen, Users, PanelLeftOpen, PanelLeftClose } from "lucide-react";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -85,37 +88,17 @@ const AppHeader: React.FC = () => {
 
         <div className={`${isApplicationMenuOpen ? "flex" : "hidden"} items-center justify-between w-full gap-3 px-5 py-2 lg:flex lg:justify-end lg:px-0 lg:shadow-none`}>
           <div className="flex items-center gap-2.5">
-            {/* Refer & Earn - Visual Polish */}
-            <motion.button 
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 dark:bg-brand-500/5 border border-brand-200 dark:border-brand-500/10 text-brand-600 dark:text-brand-400 text-[11px] font-bold transition-all hover:bg-brand-100 dark:hover:bg-brand-500/10"
-            >
-              <Gift size={14} />
-              <span>Refer & Earn</span>
-            </motion.button>
-            
-            <div className="h-4 w-px bg-gray-200 dark:bg-gray-800 hidden lg:block mx-1" />
-            
+            <ReferEarnButton />
+            <Separator />
             <ThemeToggleButton />
-            {/* {isLoggedIn && <NotificationDropdown />} */}
           </div>
 
-          {/* User Area — conditional on auth state */}
           {isLoading ? (
             <div className="h-7 w-20 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
           ) : isLoggedIn ? (
             <UserDropdown />
           ) : (
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Link
-                href={`/login?redirect_to=${pathname}`}
-                className="group relative flex items-center justify-center gap-1.5 overflow-hidden rounded-full bg-gray-900 px-4 py-1.5 text-[13px] font-bold text-white shadow-sm transition-all hover:shadow-gray-900/10 dark:bg-white dark:text-gray-900"
-              >
-                <span>Login</span>
-                <LogIn size={18} className="transition-transform group-hover:translate-x-1" />
-              </Link>
-            </motion.div>
+            <LoginButton />
           )}
         </div>
       </div>

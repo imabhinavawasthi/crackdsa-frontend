@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { useEffect } from "react";
@@ -30,7 +29,7 @@ export default function LoginForm() {
   // ─── Prevent Flicker: Only show login if fully verified as logged out ───
   if (isLoading || isLoggedIn) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
+      <div className="flex min-h-100 items-center justify-center">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MessageSquare, Send, CheckCircle2, Award, User, Search } from "lucide-react";
+import { MessageSquare, Send, Award, User, Search } from "lucide-react";
 
 interface Reply {
   id: string;
@@ -91,13 +91,20 @@ const DiscussionTab: React.FC<DiscussionTabProps> = ({
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
-        setThreads(JSON.parse(saved));
+        const timeoutId = window.setTimeout(() => {
+          setThreads(JSON.parse(saved));
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
       } catch (e) {
         console.error("Failed to load threads:", e);
       }
     } else {
-      // Load seeded defaults or empty
-      setThreads(DEFAULT_THREADS[itemId] || []);
+       const timeoutId = window.setTimeout(() => {
+          setThreads(DEFAULT_THREADS[itemId] || []);
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
     }
   }, [storageKey, itemId]);
 
@@ -159,10 +166,10 @@ const DiscussionTab: React.FC<DiscussionTabProps> = ({
 
   return (
     <div className="space-y-6">
-      
+
       {/* Search and Ask Button Row */}
       <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
-        
+
         {/* Search input */}
         <div className="relative flex-1 max-w-md">
           <Search size={16} className="absolute left-4 top-3.5 text-gray-400 dark:text-gray-600" />
@@ -187,7 +194,7 @@ const DiscussionTab: React.FC<DiscussionTabProps> = ({
       {showForm && (
         <form onSubmit={handleCreateThread} className="space-y-4 bg-gray-50 dark:bg-gray-800/10 rounded-2xl p-5 border border-gray-200/60 dark:border-gray-800 animate-fadeIn">
           <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">New Forum Topic</h4>
-          
+
           <div className="space-y-3">
             <input
               type="text"
@@ -232,7 +239,7 @@ const DiscussionTab: React.FC<DiscussionTabProps> = ({
         ) : (
           <div className="flex flex-col gap-4">
             {filteredThreads.map((thread) => (
-              <div 
+              <div
                 key={thread.id}
                 className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-all p-5 space-y-4"
               >
@@ -271,11 +278,10 @@ const DiscussionTab: React.FC<DiscussionTabProps> = ({
                     {thread.replies.map((rep) => (
                       <div key={rep.id} className="pt-3.5 first:pt-0">
                         <div className="flex items-center gap-3.5 mb-2.5">
-                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-bold text-xs ${
-                            rep.isInstructor 
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-bold text-xs ${rep.isInstructor
                               ? "bg-brand-500 text-white shadow-sm"
                               : "bg-gray-200 dark:bg-gray-800 text-gray-500"
-                          }`}>
+                            }`}>
                             {rep.isInstructor ? "AA" : <User size={13} />}
                           </div>
                           <div>
@@ -317,7 +323,7 @@ const DiscussionTab: React.FC<DiscussionTabProps> = ({
 // Thread Reply helper subcomponent
 const ThreadReplyForm: React.FC<{ onSubmit: (text: string) => void }> = ({ onSubmit }) => {
   const [replyText, setReplyText] = useState("");
-  
+
   const handleReplySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyText.trim()) return;

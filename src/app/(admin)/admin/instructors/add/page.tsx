@@ -100,7 +100,7 @@ export default function AddInstructorPage() {
         metadata: metadata
       };
 
-      const res = await fetch(`${backendUrl}/api/v1/instructors`, {
+      const res = await fetch(`${backendUrl}/api/v1/admin/instructors/`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

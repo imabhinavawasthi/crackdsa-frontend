@@ -1,19 +1,12 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
 import React, { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  User, 
-  Settings, 
-  HelpCircle, 
-  LogOut, 
-  ChevronDown,
-  LayoutDashboard
-} from "lucide-react";
+import { LogOut, ChevronDown } from "lucide-react";
+import { userMenuItems } from "@/config/sidebar";
 
 export default function UserDropdown() {
   const { user, logout } = useAuth();
@@ -35,7 +28,7 @@ export default function UserDropdown() {
         className="group flex items-center gap-3 rounded-xl p-1.5 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-white/5 dropdown-toggle"
       >
         {/* Avatar with Premium Ring & Presence */}
-        <div className="relative h-10 w-10 flex-shrink-0">
+        <div className="relative h-10 w-10 shrink-0">
           <div className="absolute -inset-0.5 animate-pulse bg-linear-to-tr from-brand-500 to-indigo-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100 rounded-full blur-[2px]" />
           <div className="relative h-full w-full overflow-hidden rounded-full ring-2 ring-gray-100 transition-all duration-300 group-hover:ring-brand-500/30 dark:ring-gray-800">
             <Image
@@ -54,7 +47,7 @@ export default function UserDropdown() {
         <div className="hidden flex-col items-start lg:flex text-left">
           <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Welcome,</p>
           <div className="flex items-center gap-1">
-            <span className="max-w-[100px] truncate text-sm font-bold text-gray-900 dark:text-white">
+            <span className="max-w-25 truncate text-sm font-bold text-gray-900 dark:text-white">
               {user?.full_name?.split(" ")[0] ?? "Explorer"}
             </span>
             <ChevronDown 
@@ -102,33 +95,18 @@ export default function UserDropdown() {
                 </div>
 
                 <div className="space-y-1">
-                  <DropdownItem
-                    onItemClick={closeDropdown}
-                    tag="a"
-                    href="/profile"
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
-                  >
-                    <User size={18} className="text-gray-400 group-hover:text-brand-500" />
-                    My Profile
-                  </DropdownItem>
-                  <DropdownItem
-                    onItemClick={closeDropdown}
-                    tag="a"
-                    href="/settings"
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
-                  >
-                    <Settings size={18} className="text-gray-400 group-hover:text-brand-500" />
-                    Account Settings
-                  </DropdownItem>
-                  <DropdownItem
-                    onItemClick={closeDropdown}
-                    tag="a"
-                    href="/support"
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
-                  >
-                    <HelpCircle size={18} className="text-gray-400 group-hover:text-brand-500" />
-                    Help & Support
-                  </DropdownItem>
+                  {userMenuItems.map((item) => (
+                    <DropdownItem
+                      key={item.path}
+                      onItemClick={closeDropdown}
+                      tag="a"
+                      href={item.path}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-brand-600 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
+                    >
+                      {item.icon}
+                      {item.name}
+                    </DropdownItem>
+                  ))}
                 </div>
 
                 {/* Footer / Logout */}

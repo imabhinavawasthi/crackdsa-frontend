@@ -6,19 +6,17 @@ import {
   Info as InfoIcon, 
   AlertTriangle, 
   Lightbulb, 
-  CheckCircle2, 
   Copy, 
   Check, 
   ArrowRight, 
   ArrowLeft,
   ExternalLink,
-  Zap,
-  FolderOpen
+  Zap
 } from "lucide-react";
 
 // 1. Note Component
 export const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex gap-3 p-4 rounded-xl bg-blue-500/[0.02] border-l-2 border-blue-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
+  <div className="flex gap-3 p-4 rounded-xl bg-blue-500/2 border-l-2 border-blue-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
     <span className="p-1 rounded-md bg-blue-500/10 text-blue-500 h-fit shrink-0">
       <InfoIcon size={12} />
     </span>
@@ -31,7 +29,7 @@ export const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 // 2. Warning Component
 export const Warning: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/[0.02] border-l-2 border-amber-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
+  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/2 border-l-2 border-amber-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
     <span className="p-1 rounded-md bg-amber-500/10 text-amber-500 h-fit shrink-0">
       <AlertTriangle size={12} />
     </span>
@@ -44,7 +42,7 @@ export const Warning: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 // 3. Tip Component
 export const Tip: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex gap-3 p-4 rounded-xl bg-emerald-500/[0.02] border-l-2 border-emerald-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
+  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/2 border-l-2 border-emerald-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
     <span className="p-1 rounded-md bg-emerald-500/10 text-emerald-500 h-fit shrink-0">
       <Lightbulb size={12} />
     </span>
@@ -57,7 +55,7 @@ export const Tip: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 // 4. Info Component
 export const Info: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex gap-3 p-4 rounded-xl bg-indigo-500/[0.02] border-l-2 border-indigo-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
+  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/2 border-l-2 border-indigo-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
     <span className="p-1 rounded-md bg-indigo-500/10 text-indigo-500 h-fit shrink-0">
       <InfoIcon size={12} />
     </span>
@@ -136,7 +134,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ cpp, java, python }) => {
       </div>
 
       {/* Code Area */}
-      <pre className="p-5 overflow-x-auto text-xs sm:text-[13.5px] font-mono text-gray-700 dark:text-gray-300 leading-relaxed custom-scrollbar max-h-[350px] bg-white dark:bg-gray-900/40">
+      <pre className="p-5 overflow-x-auto text-xs sm:text-[13.5px] font-mono text-gray-700 dark:text-gray-300 leading-relaxed custom-scrollbar max-h-87.5 bg-white dark:bg-gray-900/40">
         <code>{getActiveCode()}</code>
       </pre>
     </div>
@@ -243,7 +241,7 @@ export const PracticeProblems: React.FC<{ problems: Problem[] }> = ({ problems }
 
 // 8. InterviewTips Component
 export const InterviewTips: React.FC<{ tips: string[] }> = ({ tips }) => (
-  <div className="p-5 rounded-2xl bg-amber-500/[0.03] border border-amber-500/20 text-gray-700 dark:text-gray-300 my-6 shadow-sm space-y-4">
+  <div className="p-5 rounded-2xl bg-amber-500/3 border border-amber-500/20 text-gray-700 dark:text-gray-300 my-6 shadow-sm space-y-4">
     <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500">
       <Lightbulb size={16} />
       <h4 className="text-sm font-bold uppercase tracking-wider">

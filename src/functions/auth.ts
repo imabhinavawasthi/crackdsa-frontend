@@ -12,6 +12,21 @@ export type User = {
   created_at?: string;
   last_sign_in_at?: string;
   updated_at?: string;
+  college?: string;
+  graduation_year?: string;
+  branch?: string;
+  codeforces_handle?: string;
+  social_links?: {
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+  };
+  metadata?: Record<string, any>;
+  pro_subscription?: {
+    is_pro?: boolean;
+    expires_at?: string;
+  };
+  purchased_courses?: Record<string, any>;
 };
 
 // ─── Base URL ─────────────────────────────────────────────────────────────────
@@ -40,28 +55,35 @@ export function clearStoredToken(): void {
 /**
  * Fetch the currently authenticated user from the backend.
  * Returns null if the user is not logged in (401 / no session).
+ * Throws an error for network errors or transient server errors to prevent false-positive logouts.
  */
 export async function fetchCurrentUser(): Promise<User | null> {
   const token = getStoredToken();
   if (!token) return null;
 
+  let res: Response;
   try {
-    const res = await fetch(`${BACKEND_URL}/api/v1/auth/me`, {
+    res = await fetch(`${BACKEND_URL}/api/v1/auth/me`, {
       headers: {
         "Authorization": `Bearer ${token}`,
       },
     });
-    if (res.status === 401 || res.status === 403) {
-       clearStoredToken(); // Invalidate local token if server rejects it
-       return null;
-    }
-    if (!res.ok) throw new Error(`Unexpected status ${res.status}`);
-    const data = await res.json();
-    return data as User;
   } catch (err) {
-    console.error("[fetchCurrentUser] error:", err);
-    return null;
+    console.error("[fetchCurrentUser] network error:", err);
+    throw err; // Rethrow network errors so the app knows it is a connection issue, not a logout
   }
+
+  if (res.status === 401 || res.status === 403) {
+     clearStoredToken(); // Invalidate local token if server rejects it
+     return null;
+  }
+
+  if (!res.ok) {
+     throw new Error(`Server returned status ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data as User;
 }
 
 /**
@@ -107,4 +129,40 @@ export function getGoogleAuthUrl(redirectTo?: string): string {
   }
 
   return baseUrl;
+}
+
+/**
+ * Update the user's profile details.
+ */
+export async function updateUserProfile(profileData: {
+  full_name?: string;
+  college?: string;
+  graduation_year?: string;
+  branch?: string;
+  codeforces_handle?: string;
+  social_links?: {
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+  };
+  metadata?: Record<string, any>;
+}): Promise<User> {
+  const token = getStoredToken();
+  if (!token) throw new Error("No authentication token found");
+
+  const res = await fetch(`${BACKEND_URL}/api/v1/auth/profile`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(profileData),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: "Failed to update profile" }));
+    throw new Error(errorData.detail || "Failed to update profile");
+  }
+
+  return res.json() as Promise<User>;
 }

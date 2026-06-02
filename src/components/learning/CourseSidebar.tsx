@@ -1,20 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   PlayCircle, 
   Code2, 
   FileText, 
   ChevronDown, 
-  ChevronUp, 
   ChevronLeft,
   CheckCircle2, 
   Circle,
-  Award,
-  Zap,
-  Lock,
-  Search
+  Search,
+  RotateCcw,
+  Bookmark
 } from "lucide-react";
 
 export interface CourseSectionItem {
@@ -45,6 +43,9 @@ interface CourseSidebarProps {
   sections: CourseSection[];
   activeItemId: string;
   completedItemIds: string[];
+  revisionItemIds?: string[];
+  bookmarkedItemIds?: string[];
+  isLoggedIn?: boolean;
   onSelectItem: (item: CourseSectionItem) => void;
   onToggleComplete: (itemId: string) => void;
   onCloseSidebar?: () => void;
@@ -104,6 +105,9 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   sections,
   activeItemId,
   completedItemIds,
+  revisionItemIds = [],
+  bookmarkedItemIds = [],
+  isLoggedIn = false,
   onSelectItem,
   onToggleComplete,
   onCloseSidebar
@@ -116,7 +120,11 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
 
   // Track mount for progress ring animation
   useEffect(() => {
-    setHasMounted(true);
+    const timeoutId = window.setTimeout(() => {
+      setHasMounted(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   // Global search keyboard shortcut (⌘K / Ctrl+K)
@@ -166,14 +174,22 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
     }));
   };
 
-  const getItemTypeIcon = (type: "video" | "problem" | "article") => {
+  const getItemTypeIcon = (type: "video" | "problem" | "article", isCompleted = false) => {
+    const colorClass = isCompleted 
+      ? "text-gray-300 dark:text-gray-700" 
+      : type === "video" 
+      ? "text-brand-500" 
+      : type === "problem" 
+      ? "text-emerald-500" 
+      : "text-purple-500";
+
     switch (type) {
       case "video":
-        return <PlayCircle size={15} className="shrink-0 text-brand-500" />;
+        return <PlayCircle size={15} className={`shrink-0 ${colorClass}`} />;
       case "problem":
-        return <Code2 size={15} className="shrink-0 text-emerald-500" />;
+        return <Code2 size={15} className={`shrink-0 ${colorClass}`} />;
       case "article":
-        return <FileText size={15} className="shrink-0 text-purple-500" />;
+        return <FileText size={15} className={`shrink-0 ${colorClass}`} />;
     }
   };
 
@@ -209,6 +225,8 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   const renderItemRow = (item: CourseSectionItem, index: number) => {
     const isActive = item.id === activeItemId;
     const isCompleted = completedItemIds.includes(item.id);
+    const isRevision = revisionItemIds.includes(item.id);
+    const isBookmarked = bookmarkedItemIds.includes(item.id);
 
     return (
       <motion.div
@@ -228,45 +246,75 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
         <motion.button
           onClick={(e) => {
             e.stopPropagation();
-            onToggleComplete(item.id);
+            if (isLoggedIn) {
+              onToggleComplete(item.id);
+            }
           }}
           className={`shrink-0 mt-0.5 transition-colors focus:outline-none ${
-            isCompleted 
+            !isLoggedIn
+              ? "text-gray-250 dark:text-gray-700 cursor-not-allowed"
+              : isCompleted 
               ? "text-emerald-500 dark:text-emerald-400" 
+              : isRevision
+              ? "text-amber-500 dark:text-amber-400"
               : "text-gray-300 dark:text-gray-600 hover:text-gray-400"
           }`}
-          title={isCompleted ? "Mark Uncompleted" : "Mark Completed"}
+          title={
+            !isLoggedIn 
+              ? "Log in to track progress" 
+              : isCompleted 
+              ? "Mark Uncompleted" 
+              : isRevision
+              ? "Mark Completed (Currently: Revision)"
+              : "Mark Completed"
+          }
           variants={checkBounceVariants}
           animate={isCompleted ? "checked" : "unchecked"}
-          whileTap={{ scale: 0.85 }}
+          whileTap={isLoggedIn ? { scale: 0.85 } : {}}
+          disabled={!isLoggedIn}
         >
           {isCompleted ? (
-            <CheckCircle2 size={16} fill="currentColor" className="text-white dark:text-gray-900" />
+            <CheckCircle2 size={16} className="text-emerald-500 dark:text-emerald-400 fill-emerald-500/15 dark:fill-emerald-500/10 stroke-[2.5]" />
+          ) : isRevision ? (
+            <RotateCcw size={16} className="stroke-[2.5]" />
           ) : (
             <Circle size={16} />
           )}
         </motion.button>
 
         {/* Title and details */}
-        <div 
-          onClick={() => onSelectItem(item)}
-          className="flex-1 space-y-1 text-left select-none"
-        >
-          <span className={`text-xs font-bold leading-relaxed block ${
-            isActive 
-              ? "text-brand-600 dark:text-brand-400 font-extrabold" 
-              : "text-gray-700 dark:text-gray-300"
-          }`}>
-            {item.title}
-          </span>
-          
-          <div className="flex items-center gap-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest pt-0.5">
-            {getItemTypeIcon(item.type)}
-            <span>{item.type}</span>
-            <span>•</span>
-            <span>{item.duration_label}</span>
+          <div 
+            onClick={() => onSelectItem(item)}
+            className="flex-1 space-y-1 text-left select-none"
+          >
+            <span className={`text-xs leading-relaxed block ${
+              isActive 
+                ? "text-brand-600 dark:text-brand-400 font-extrabold" 
+                : isCompleted
+                ? "text-gray-400 dark:text-gray-500 font-medium"
+                : "text-gray-700 dark:text-gray-350 font-bold"
+            }`}>
+              {item.title}
+            </span>
+            
+            <div className={`flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest pt-0.5 ${
+              isCompleted ? "text-gray-300 dark:text-gray-700" : "text-gray-400"
+            }`}>
+              {getItemTypeIcon(item.type, isCompleted)}
+              <span>{item.type}</span>
+              <span>•</span>
+              <span>{item.duration_label}</span>
+              {isBookmarked && (
+                <>
+                  <span>•</span>
+                  <span className="text-amber-500 flex items-center gap-0.5">
+                    <Bookmark size={10} className="fill-amber-500" />
+                    Bookmarked
+                  </span>
+                </>
+              )}
+            </div>
           </div>
-        </div>
       </motion.div>
     );
   };

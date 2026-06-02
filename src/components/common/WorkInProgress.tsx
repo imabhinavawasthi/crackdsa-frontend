@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
 import { motion } from "framer-motion";
-import { Hammer, Sparkles, MoveRight, LayoutDashboard, Construction } from "lucide-react";
+import { Sparkles, MoveRight, LayoutDashboard, Construction } from "lucide-react";
 import Link from "next/link";
 
 interface WorkInProgressProps {
@@ -34,9 +33,9 @@ export default function WorkInProgress({ title }: WorkInProgressProps) {
               repeat: Infinity,
               ease: "easeInOut" 
             }}
-            className="w-24 h-24 sm:w-28 sm:h-28 bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-200 dark:border-gray-700 shadow-2xl shadow-brand-500/10 flex items-center justify-center relative overflow-hidden group"
+            className="w-24 h-24 sm:w-28 sm:h-28 bg-white dark:bg-gray-800 rounded-4xl border border-gray-200 dark:border-gray-700 shadow-2xl shadow-brand-500/10 flex items-center justify-center relative overflow-hidden group"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-br from-brand-500/5 to-transparent pointer-events-none" />
             <Construction className="w-10 h-10 sm:w-12 sm:h-12 text-brand-500" />
             
             {/* Corner Sparkles */}
@@ -63,7 +62,7 @@ export default function WorkInProgress({ title }: WorkInProgressProps) {
         {/* Text Content */}
         <div className="space-y-4">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-            Developing <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-400">{title}</span>
+            Developing <span className="text-transparent bg-clip-text bg-linear-to-r from-brand-600 to-brand-400">{title}</span>
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg max-w-md mx-auto leading-relaxed">
             We&apos;re currently crafting this experience to be perfect for your DSA journey. Stay tuned for something amazing!

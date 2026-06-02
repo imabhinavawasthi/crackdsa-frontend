@@ -55,7 +55,7 @@ export default function AdminInstructorsPage() {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(`${backendUrl}/api/v1/instructors/admin/all`, {
+      const res = await fetch(`${backendUrl}/api/v1/admin/instructors/`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -96,7 +96,7 @@ export default function AdminInstructorsPage() {
     if (!token) return;
 
     try {
-      const res = await fetch(`${backendUrl}/api/v1/instructors/${id}`, {
+      const res = await fetch(`${backendUrl}/api/v1/admin/instructors/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`

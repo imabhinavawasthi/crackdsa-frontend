@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Activity,
   Table,
-  FileText
+  FileText,
+  BookOpen
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -246,6 +247,24 @@ export default function AdminDashboardPage() {
         <h3 className="text-xs font-black uppercase text-gray-400 tracking-wider">Management Directories</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
+          {/* Courses Manager Direct Card */}
+          <Link href="/admin/courses" className="group block bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800/60 rounded-3xl p-6.5 hover:border-brand-500/40 dark:hover:border-brand-400/40 hover:shadow-lg transition-all space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="p-3 bg-brand-500/10 text-brand-500 dark:text-brand-400 border border-brand-500/10 rounded-2xl">
+                <BookOpen size={22} />
+              </div>
+              <span className="text-xs font-bold text-brand-500 flex items-center gap-1 group-hover:translate-x-1.5 transition-transform">
+                Enter Directory <ArrowRight size={13} />
+              </span>
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-black text-base text-gray-900 dark:text-white leading-tight">Courses & Syllabus</h4>
+              <p className="text-xs text-gray-500 leading-relaxed font-semibold">
+                Create new academy courses, allocate co-instructors, update pricing tags, and construct detailed curriculum syllabus outlines.
+              </p>
+            </div>
+          </Link>
+
           {/* Videos Manager Direct Card */}
           <Link href="/admin/videos" className="group block bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800/60 rounded-3xl p-6.5 hover:border-brand-500/40 dark:hover:border-brand-400/40 hover:shadow-lg transition-all space-y-4">
             <div className="flex items-center justify-between">

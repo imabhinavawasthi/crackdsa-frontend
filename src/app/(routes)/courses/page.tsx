@@ -25,8 +25,33 @@ type Instructor = {
   color: string;
 };
 
+type CourseSectionItem = {
+  id: string;
+  title: string;
+  type: string;
+  asset_id: string;
+  is_free: boolean;
+  duration_label?: string | null;
+};
+
+type CourseSubsection = {
+  id: string;
+  title: string;
+  description?: string | null;
+  items: CourseSectionItem[];
+};
+
+type CourseSection = {
+  id: string;
+  title: string;
+  description?: string | null;
+  items?: CourseSectionItem[] | null;
+  subsections?: CourseSubsection[] | null;
+};
+
 type Course = {
   id: string;
+  slug: string;
   title: string;
   description: string;
   category: string;
@@ -34,9 +59,10 @@ type Course = {
   duration_weeks: number;
   total_problems: number;
   total_projects: number;
-  instructor: Instructor;
+  instructors: Instructor[];
   tags: string[];
-  syllabus: string[];
+  syllabus?: string[];
+  curriculum?: CourseSection[];
   is_pro: boolean;
   is_popular: boolean;
   status: string;
@@ -227,7 +253,10 @@ export default function CoursesPage() {
                       className="overflow-hidden border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900"
                     >
                       <ul className="px-6 py-5 space-y-3.5">
-                        {course.syllabus.map((item, idx) => (
+                        {((course.curriculum && course.curriculum.length > 0)
+                          ? course.curriculum.map(sec => sec.title)
+                          : (course.syllabus || [])
+                        ).map((item, idx) => (
                           <li key={idx} className="flex items-start gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
                             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-[10px] font-bold mt-0.5">
                               {idx + 1}
@@ -245,20 +274,42 @@ export default function CoursesPage() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-6 border-t border-gray-100 dark:border-gray-800/60 pt-6">
                 
                 {/* Mentor Spotlight & Avatar */}
-                <div className="flex items-center gap-3">
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${course.instructor.color} text-white font-bold text-sm shadow-sm`}>
-                    {course.instructor.name.split(" ").map(w => w[0]).join("")}
+                {course.instructors && course.instructors.length > 0 ? (
+                  (() => {
+                    const primaryInstructor = course.instructors[0];
+                    return (
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${primaryInstructor.color || "from-brand-500 to-blue-500"} text-white font-bold text-sm shadow-sm`}>
+                          {primaryInstructor.name.split(" ").map(w => w[0]).join("")}
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-none">
+                            {primaryInstructor.name}
+                          </h4>
+                          <p className="text-[10px] sm:text-xs font-bold text-brand-500 dark:text-brand-400 mt-1.5 flex items-center gap-1.5">
+                            <Building2 size={11} />
+                            <span>{primaryInstructor.company}</span>
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 text-white font-bold text-sm shadow-sm">
+                      CD
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-none">
+                        CrackDSA Mentor
+                      </h4>
+                      <p className="text-[10px] sm:text-xs font-bold text-brand-500 dark:text-brand-400 mt-1.5 flex items-center gap-1.5">
+                        <Building2 size={11} />
+                        <span>CrackDSA Faculty</span>
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-none">
-                      {course.instructor.name}
-                    </h4>
-                    <p className="text-[10px] sm:text-xs font-bold text-brand-500 dark:text-brand-400 mt-1.5 flex items-center gap-1.5">
-                      <Building2 size={11} />
-                      <span>{course.instructor.company}</span>
-                    </p>
-                  </div>
-                </div>
+                )}
 
                 {/* Price tag + Call To Action */}
                 <div className="flex items-center justify-between sm:justify-end gap-6">
@@ -271,7 +322,7 @@ export default function CoursesPage() {
                   </div>
 
                   <Link
-                    href={`/courses/${course.id}/learn`}
+                    href={`/courses/${course.slug}/learn`}
                     className="flex items-center justify-center gap-2 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-4 text-sm font-bold shadow-md shadow-brand-500/15 hover:shadow-lg hover:shadow-brand-500/20 transition-all group/btn"
                   >
                     <span>Enter Student Classroom</span>

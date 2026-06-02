@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Star, TrendingUp, Users, Target } from "lucide-react";
@@ -39,11 +38,11 @@ export default function AuthImpact() {
         transition={{ delay: 0.2, duration: 0.6 }}
         className="text-center mb-6"
       >
-        <h2 className="text-2xl font-extrabold mb-2 leading-tight sm:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-blue-100 to-blue-300">
+        <h2 className="text-2xl font-extrabold mb-2 leading-tight sm:text-3xl text-transparent bg-clip-text bg-linear-to-r from-blue-100 to-blue-300">
           Crack Your Dream <br /> Tech Career.
         </h2>
         <p className="text-sm text-blue-100/70 max-w-sm mx-auto">
-          The last platform you'll ever need to master DSA and land high-paying offers.
+          The last platform you&apos;ll ever need to master DSA and land high-paying offers.
         </p>
       </motion.div>
 
@@ -76,7 +75,7 @@ export default function AuthImpact() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.8, duration: 0.6 }}
-        className="relative bg-gradient-to-br from-blue-600/20 to-brand-500/10 border border-brand-500/10 p-4 rounded-xl"
+        className="relative bg-linear-to-br from-blue-600/20 to-brand-500/10 border border-brand-500/10 p-4 rounded-xl"
       >
         <div className="flex gap-1 mb-2">
           {[...Array(5)].map((_, i) => (
@@ -84,11 +83,11 @@ export default function AuthImpact() {
           ))}
         </div>
         <p className="italic text-blue-50 text-[11px] leading-relaxed mb-3">
-          "The personalized roadmap helped me solve LeetCode Hard problems in record time. Highly recommended!"
+          The personalized roadmap helped me solve LeetCode Hard problems in record time. Highly recommended!
         </p>
         <div className="flex items-center gap-2">
-          <div className="h-5 w-5 rounded-full bg-gradient-to-br from-brand-400 to-blue-600 border border-white/20" />
-          <p className="text-[9px] font-bold text-white uppercase tracking-wider">Rahul Sharma — SDE @ Google</p>
+          <div className="h-5 w-5 rounded-full bg-linear-to-br from-brand-400 to-blue-600 border border-white/20" />
+          <p className="text-[9px] font-bold text-white uppercase tracking-wider">Abhinav Awasthi — SDE @ Zeta</p>
         </div>
       </motion.div>
     </div>

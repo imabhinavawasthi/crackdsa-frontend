@@ -1,175 +1,31 @@
 "use client";
-import React, { useEffect, useRef, useState,useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import { MoreHorizontal, ChevronDown } from "lucide-react";
 import {
-  LayoutDashboard,
-  Route,
-  Table,
-  Calendar,
-  CircleUser,
-  PieChart,
-  Box,
-  Plug,
-  MoreHorizontal,
-  ChevronDown,
-  Sparkles,
-  Sheet,
-  Dumbbell,
-  BookOpen,
-  FileText,
-  Layers,
-  Building2,
-  GraduationCap,
-  ChevronLeft,
-  Video,
-  Compass,
-} from "lucide-react";
+  NavItem,
+  navItems,
+  othersItems,
+  adminNavItems,
+  adminOthersItems,
+} from "@/config/sidebar";
 import SidebarWidget from "./SidebarWidget";
-
-type NavItem = {
-  name: string;
-  icon: React.ReactNode;
-  path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean; icon?: React.ReactNode }[];
-};
-
-const navItems: NavItem[] = [
-  // 🔥 LEARNING
-  {
-    icon: <LayoutDashboard size={20} />,
-    name: "Dashboard",
-    path: "/dashboard",
-  },
-  {
-    icon: <GraduationCap size={20} />,
-    name: "Courses",
-    path: "/courses",
-  },
-  {
-    icon: <Compass size={20} />,
-    name: "Learn",
-    path: "/learn",
-  },
-  {
-    icon: <Route size={20} />,
-    name: "My Roadmap",
-    path: "/roadmap",
-  },
-  {
-    icon: <Sheet size={20} />,
-    name: "DSA Sheets",
-    path: "/dsa-sheet",
-    subItems: [
-      {
-        name: "Blind 75",
-        path: "/dsa-sheet/blind-75",
-        icon: <Dumbbell size={16} />,
-      },
-      {
-        name: "Pattern Mastery",
-        path: "/dsa-sheet/pattern-mastery",
-      },
-      {
-        name: "CrackDSA 75",
-        path: "/dsa-sheet/crackdsa-75",
-        new: true,
-      },
-      {
-        name: "30-Day Sprint",
-        path: "/dsa-sheet/30-day-sprint",
-      },
-    ],
-  },
-  {
-    icon: <BookOpen size={20} />,
-    name: "Masterclasses",
-    path: "/masterclasses",
-  },
-  {
-    icon: <Sparkles size={20} />,
-    name: "Personalized",
-    path: "/personalized",
-  },
-  {
-    icon: <FileText size={20} />,
-    name: "Resume",
-    path: "/resume",
-  },
-];
-
-const othersItems: NavItem[] = [
-  {
-    icon: <Table size={20} />,
-    name: "Practice",
-    path: "/practice",
-  },
-  {
-    icon: <Layers size={20} />,
-    name: "Topics",
-    path: "/practice/topics",
-    subItems: [
-      { name: "All Topics", path: "/practice/topics/all" },
-      { name: "Arrays", path: "/practice/topics/arrays" },
-      { name: "Strings", path: "/practice/topics/strings" },
-      { name: "Binary Search", path: "/practice/topics/binary-search" },
-      { name: "Dynamic Programming", path: "/practice/topics/dp" },
-      { name: "Graphs", path: "/practice/topics/graph" }, 
-    ],
-  },
-  {
-    icon: <Building2 size={20} />,
-    name: "Companies",
-    path: "/practice/companies",
-    subItems: [
-      { name: "Google", path: "/practice/companies/google" },
-      { name: "Amazon", path: "/practice/companies/amazon" },
-      { name: "Zeta", path: "/practice/companies/zeta" },
-    ],
-  },
-  {
-    icon: <Calendar size={20} />,
-    name: "Progress",
-    path: "/progress",
-  }
-];
-
-const adminNavItems: NavItem[] = [
-  {
-    icon: <LayoutDashboard size={20} />,
-    name: "Admin Home",
-    path: "/admin",
-  },
-  {
-    icon: <Video size={20} />,
-    name: "Video Lectures",
-    path: "/admin/videos",
-  },
-  {
-    icon: <Table size={20} />,
-    name: "Practice Problems",
-    path: "/admin/problems",
-  },
-  {
-    icon: <FileText size={20} />,
-    name: "Articles / Blogs",
-    path: "/admin/blogs",
-  },
-];
-
-const adminOthersItems: NavItem[] = [
-  {
-    icon: <ChevronLeft size={20} />,
-    name: "Exit Panel",
-    path: "/dashboard",
-  }
-];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered, setIsMobileOpen } = useSidebar();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setMounted(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const closeSidebarOnMobile = () => {
     if (window.innerWidth < 1024) {
@@ -321,7 +177,7 @@ const AppSidebar: React.FC = () => {
       ))}
     </ul>
   );
-
+  
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
     index: number;
@@ -356,7 +212,11 @@ const AppSidebar: React.FC = () => {
 
     // If no submenu item matches, close the open submenu
     if (!submenuMatched) {
+      const timeoutId = window.setTimeout(() => {
       setOpenSubmenu(null);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
     }
   }, [pathname,isActive]);
 
@@ -386,15 +246,34 @@ const AppSidebar: React.FC = () => {
     });
   };
 
+  if (!mounted) {
+    return (
+      <aside
+        className="fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-4 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen border-r border-gray-200 w-18 lg:translate-x-0"
+      >
+        <div className="py-4 hidden lg:flex lg:justify-center">
+          <Link href="/">
+            <Image
+              src="/images/logo/logo-icon.svg"
+              alt="Logo"
+              width={32}
+              height={32}
+            />
+          </Link>
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside
-      className={`fixed pt-[74px] flex flex-col lg:pt-0 top-0 px-4 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-4 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
         ${
           isExpanded || isMobileOpen
-            ? "w-[260px]"
+            ? "w-65"
             : isHovered
-            ? "w-[260px]"
-            : "w-[72px]"
+            ? "w-65"
+            : "w-18"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
@@ -439,7 +318,7 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-5">
             <div>
               <h2
-                className={`mb-2 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
                   !isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
@@ -456,7 +335,7 @@ const AppSidebar: React.FC = () => {
 
             <div className="">
               <h2
-                className={`mb-2 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
                   !isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
@@ -472,7 +351,7 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {/* {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null} */}
+        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
       </div>
     </aside>
   );

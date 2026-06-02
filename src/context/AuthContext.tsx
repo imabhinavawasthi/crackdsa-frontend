@@ -44,6 +44,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const u = await fetchCurrentUser();
       setUser(u);
+    } catch (e) {
+      console.error("[initialLoad] authentication error:", e);
+      // General network error — do not force a logout if token exists
     } finally {
       setIsLoading(false);
     }
@@ -54,9 +57,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const u = await fetchCurrentUser();
       if (u) {
-        // Still logged in — update user silently (in case profile changed)
-        setUser(u);
-        setSessionExpired(false);
       } else {
         // Server returned null — only flag session expired if user WAS logged in
         setUser((prev) => {
@@ -66,16 +66,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return null;
         });
       }
-    } catch {
-      // Network error — don't flash UI, just silently skip
+    } catch (err) {
+      // Network error / 500 server error — don't log out, keep active session, silently skip
+      console.warn("[silentPoll] skipped due to connection or server issue:", err);
     }
   }, []);
 
   useEffect(() => {
     initialLoad();
 
-    // Poll silently every 2 minutes
-    const interval = setInterval(silentPoll, 120_000);
+    // Poll silently every 15 minutes
+    const interval = setInterval(silentPoll, 900_000);
     return () => clearInterval(interval);
   }, [initialLoad, silentPoll]);
 
