@@ -13,6 +13,9 @@ interface Note {
 interface NotesTabProps {
   courseId: string;
   itemId: string;
+  notes?: Note[];
+  onNotesChange?: (notes: Note[]) => void;
+  isLoggedIn?: boolean;
 }
 
 const containerVariants = {
@@ -55,25 +58,33 @@ const floatingVariants = {
 
 const NotesTab: React.FC<NotesTabProps> = ({
   courseId,
-  itemId
+  itemId,
+  notes: propNotes,
+  onNotesChange,
+  isLoggedIn = false
 }) => {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [localNotes, setLocalNotes] = useState<Note[]>([]);
   const [newNoteText, setNewNoteText] = useState("");
   const storageKey = `notes-${courseId}-${itemId}`;
 
-  // Load notes from localStorage on item mount
+  // Determine if this component is controlled from the parent
+  const isControlled = propNotes !== undefined && onNotesChange !== undefined;
+  const notes = isControlled ? propNotes! : localNotes;
+
+  // Load notes from localStorage on item mount (only if not controlled)
   useEffect(() => {
+    if (isControlled) return;
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
-        setNotes(JSON.parse(saved));
+        setLocalNotes(JSON.parse(saved));
       } catch (e) {
         console.error("Failed to parse notes:", e);
       }
     } else {
-      setNotes([]);
+      setLocalNotes([]);
     }
-  }, [storageKey]);
+  }, [storageKey, isControlled]);
 
   // --- DATABASE INTEGRATION PATHWAY ---
   // To connect these lecture notes to your persistent backend database,
@@ -100,9 +111,13 @@ const NotesTab: React.FC<NotesTabProps> = ({
   */
 
   const persistNotes = async (updatedNotes: Note[], targetNote?: Note, actionType?: "add" | "delete") => {
-    // 1. Optimistic UI update for instantaneous client feedback
-    setNotes(updatedNotes);
-    localStorage.setItem(storageKey, JSON.stringify(updatedNotes));
+    // 1. Update notes state (optimistic)
+    if (isControlled) {
+      onNotesChange!(updatedNotes);
+    } else {
+      setLocalNotes(updatedNotes);
+      localStorage.setItem(storageKey, JSON.stringify(updatedNotes));
+    }
 
     // 2. Database hook - triggers only when adding or deleting individual notes
     if (targetNote && actionType) {
@@ -160,7 +175,9 @@ const NotesTab: React.FC<NotesTabProps> = ({
             <span className="h-2 w-2 rounded-full bg-brand-500 animate-pulse" />
             <span>Personal Notepad</span>
           </span>
-          <span className="text-[10px] text-gray-400 font-bold">Instantly saved to browser storage</span>
+          <span className="text-[10px] text-gray-400 font-bold">
+            {isControlled && isLoggedIn ? "Synced to your profile" : "Instantly saved to browser storage"}
+          </span>
         </div>
 
         <textarea

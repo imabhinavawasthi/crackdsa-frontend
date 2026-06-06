@@ -20,7 +20,15 @@ import {
   Trash2,
   Code as CodeIcon,
   Lock,
-  CheckCircle2
+  CheckCircle2,
+  X,
+  Video,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  Lightbulb,
+  Sparkles,
+  Link as LinkIcon
 } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "@/components/ui/editor/RichTextEditor";
@@ -30,52 +38,51 @@ const problemSchema = z.object({
   slug: z.string().min(1, "Slug is required"),
   difficulty: z.enum(["Easy", "Medium", "Hard"]),
   platform: z.string().min(1, "Platform is required"),
-  problem_url: z.string().nullable().optional(),
-  difficulty_level: z.number().min(1).max(10),
-  pattern: z.string().nullable().optional(),
+  problem_url: z.string().url("Must be a valid URL").or(z.literal("")).nullable().optional(),
   tags: z.string().nullable().optional(),
+  company_tags: z.string().nullable().optional(),
+  is_active: z.boolean(),
 });
 
 type ProblemFormValues = z.infer<typeof problemSchema>;
 
-type SolutionRow = {
-  language: string;
+type LanguageSolution = {
+  enabled: boolean;
   code: string;
   explanation: string;
   timeComplexity: string;
   spaceComplexity: string;
 };
 
-type CustomResourceRow = {
-  key: string;
-  value: string;
-};
+function detectPlatformFromUrl(url: string): string | null {
+  if (!url) return null;
+  const lower = url.toLowerCase();
+  if (lower.includes("leetcode.com")) return "LeetCode";
+  if (lower.includes("geeksforgeeks.org") || lower.includes("gfg.org")) return "GeeksforGeeks";
+  if (lower.includes("codeforces.com")) return "Codeforces";
+  if (lower.includes("codechef.com")) return "CodeChef";
+  if (lower.includes("hackerrank.com")) return "HackerRank";
+  if (lower.includes("interviewbit.com")) return "InterviewBit";
+  if (lower.includes("cses.fi")) return "CSES";
+  if (lower.includes("atcoder.jp")) return "AtCoder";
+  if (lower.includes("lintcode.com")) return "LintCode";
+  if (lower.includes("hackerearth.com")) return "HackerEarth";
+  return null;
+}
+
+const LANGUAGES = [
+  { key: "cpp", label: "C++" },
+  { key: "python", label: "Python" },
+  { key: "java", label: "Java" },
+  { key: "javascript", label: "JavaScript" }
+];
 
 export default function AddPracticeProblemPage() {
   const { user, isLoading: authLoading, isLoggedIn } = useAuth();
   const router = useRouter();
-
-  // HTML content for description (handled outside react-hook-form for RichText compatibility)
-  const [description, setDescription] = useState("");
-
-  // Dynamic Solutions state
-  const [solutions, setSolutions] = useState<SolutionRow[]>([
-    { language: "cpp", code: "", explanation: "", timeComplexity: "O(N)", spaceComplexity: "O(1)" }
-  ]);
-
-  // Primary resource inputs state
-  const [videoLecturesStr, setVideoLecturesStr] = useState("");
-  const [officialEditorialUrl, setOfficialEditorialUrl] = useState("");
-  const [customResources, setCustomResources] = useState<CustomResourceRow[]>([]);
-
-  // Custom attributes json
-  const [customJsonStr, setCustomJsonStr] = useState("{\n  \"importance_score\": 8,\n  \"frequency_score\": 8.0,\n  \"company_tags\": [\"Google\", \"Meta\"]\n}");
-  const [isJsonValid, setIsJsonValid] = useState(true);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+  // Form setup
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ProblemFormValues>({
     resolver: zodResolver(problemSchema),
     defaultValues: {
@@ -84,66 +91,113 @@ export default function AddPracticeProblemPage() {
       difficulty: "Easy",
       platform: "Internal",
       problem_url: "",
-      difficulty_level: 5,
-      pattern: "",
-      tags: ""
+      tags: "",
+      company_tags: "",
+      is_active: true
     }
   });
 
+  // Watch variables for slug generation & platform auto-detection
   const titleWatch = watch("title");
-  const slugWatch = watch("slug");
+  const urlWatch = watch("problem_url");
+
+  // State management
+  const [slugSync, setSlugSync] = useState(true);
+  const [description, setDescription] = useState("");
+  const [isPlatformManuallyChanged, setIsPlatformManuallyChanged] = useState(false);
+
+  // Solutions Accordion State
+  const [solutionsState, setSolutionsState] = useState<Record<string, LanguageSolution>>({
+    cpp: { enabled: true, code: "", explanation: "", timeComplexity: "O(N)", spaceComplexity: "O(1)" },
+    python: { enabled: false, code: "", explanation: "", timeComplexity: "O(N)", spaceComplexity: "O(1)" },
+    java: { enabled: false, code: "", explanation: "", timeComplexity: "O(N)", spaceComplexity: "O(1)" },
+    javascript: { enabled: false, code: "", explanation: "", timeComplexity: "O(N)", spaceComplexity: "O(1)" }
+  });
+  const [activeAccordion, setActiveAccordion] = useState<string>("cpp");
+
+  // Hints State
+  const [hints, setHints] = useState<string[]>([]);
+
+  // Resources Assets States
+  const [availableVideos, setAvailableVideos] = useState<any[]>([]);
+  const [availableArticles, setAvailableArticles] = useState<any[]>([]);
+  const [loadingAssets, setLoadingAssets] = useState(false);
+  const [selectedVideoIds, setSelectedVideoIds] = useState<string[]>([]);
+  const [selectedArticleIds, setSelectedArticleIds] = useState<string[]>([]);
+
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // Auto-generate slug from title
   useEffect(() => {
-    if (titleWatch && !slugWatch) {
-      const autoSlug = titleWatch
+    if (slugSync && titleWatch) {
+      const cleanSlug = titleWatch
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)+/g, "");
-      setValue("slug", autoSlug);
+      setValue("slug", cleanSlug, { shouldValidate: true });
     }
-  }, [titleWatch, slugWatch, setValue]);
+  }, [titleWatch, slugSync, setValue]);
 
-  // Validate JSON string on change
+  // Auto-detect platform from problem URL
   useEffect(() => {
-    if (!customJsonStr.trim()) {
-      setIsJsonValid(true);
-      return;
+    if (!isPlatformManuallyChanged && urlWatch) {
+      const detected = detectPlatformFromUrl(urlWatch);
+      if (detected) {
+        setValue("platform", detected);
+      }
     }
-    try {
-      JSON.parse(customJsonStr);
-      setIsJsonValid(true);
-    } catch {
-      setIsJsonValid(false);
+  }, [urlWatch, isPlatformManuallyChanged, setValue]);
+
+  // Fetch Videos and Articles catalog for dropdowns
+  useEffect(() => {
+    const fetchAssets = async () => {
+      const token = getStoredToken();
+      const headers = token ? { "Authorization": `Bearer ${token}` } : undefined;
+      setLoadingAssets(true);
+      try {
+        const [videosRes, articlesRes] = await Promise.all([
+          fetch(`${backendUrl}/api/v1/admin/video-lectures`, { headers }),
+          fetch(`${backendUrl}/api/v1/admin/articles`, { headers })
+        ]);
+        if (videosRes.ok) {
+          const vData = await videosRes.json();
+          setAvailableVideos(vData || []);
+        }
+        if (articlesRes.ok) {
+          const aData = await articlesRes.json();
+          setAvailableArticles(aData || []);
+        }
+      } catch (err) {
+        console.error("Failed to load assets catalog:", err);
+      } finally {
+        setLoadingAssets(false);
+      }
+    };
+
+    if (isLoggedIn && user?.roles?.includes("admin")) {
+      fetchAssets();
     }
-  }, [customJsonStr]);
+  }, [isLoggedIn, user, backendUrl]);
 
-  const addSolutionRow = () => {
-    setSolutions([...solutions, { language: "cpp", code: "", explanation: "", timeComplexity: "", spaceComplexity: "" }]);
+  // Solutions Accordion handlers
+  const handleSolutionFieldChange = (lang: string, field: keyof LanguageSolution, val: any) => {
+    setSolutionsState(prev => ({
+      ...prev,
+      [lang]: {
+        ...prev[lang],
+        [field]: val
+      }
+    }));
   };
 
-  const removeSolutionRow = (index: number) => {
-    setSolutions(solutions.filter((_, i) => i !== index));
-  };
-
-  const handleSolutionChange = (index: number, field: keyof SolutionRow, val: string) => {
-    const updated = [...solutions];
-    updated[index][field] = val;
-    setSolutions(updated);
-  };
-
-  const addCustomResourceRow = () => {
-    setCustomResources([...customResources, { key: "", value: "" }]);
-  };
-
-  const removeCustomResourceRow = (index: number) => {
-    setCustomResources(customResources.filter((_, i) => i !== index));
-  };
-
-  const handleCustomResourceChange = (index: number, field: "key" | "value", val: string) => {
-    const updated = [...customResources];
-    updated[index][field] = val;
-    setCustomResources(updated);
+  // Hints Handlers
+  const handleAddHint = () => setHints(prev => [...prev, ""]);
+  const handleRemoveHint = (index: number) => setHints(prev => prev.filter((_, i) => i !== index));
+  const handleHintChange = (index: number, val: string) => {
+    const updated = [...hints];
+    updated[index] = val;
+    setHints(updated);
   };
 
   const onSubmit = async (values: ProblemFormValues) => {
@@ -151,60 +205,40 @@ export default function AddPracticeProblemPage() {
     const token = getStoredToken();
     if (!token) return;
 
-    if (!isJsonValid) {
-      setSubmitError("Please correct the invalid Custom JSON Attributes syntax before saving.");
-      return;
-    }
-
-    // 1. Build solutions payload mapping language key to solution details
-    const solutionsPayload: Record<string, unknown> = {};
-    solutions.forEach((sol) => {
-      const cleanLang = sol.language.trim().toLowerCase();
-      if (cleanLang && sol.code.trim()) {
-        solutionsPayload[cleanLang] = {
-          code: sol.code.trim(),
-          explanation: sol.explanation.trim() || null,
-          time_complexity: sol.timeComplexity.trim() || null,
-          space_complexity: sol.spaceComplexity.trim() || null
+    // 1. Build solutions payload
+    const solutionsPayload: Record<string, any> = {};
+    Object.entries(solutionsState).forEach(([lang, data]) => {
+      if (data.enabled && data.code.trim()) {
+        solutionsPayload[lang] = {
+          code: data.code.trim(),
+          explanation: data.explanation.trim() || null,
+          time_complexity: data.timeComplexity.trim() || null,
+          space_complexity: data.spaceComplexity.trim() || null
         };
       }
     });
 
     // 2. Build resources payload
-    const video_lectures = videoLecturesStr.split(",").map(s => s.trim()).filter(Boolean);
-    const resourcesPayload: Record<string, unknown> = {
-      video_lectures,
-      official_editorial_url: officialEditorialUrl.trim() || null
+    const related_articles = selectedArticleIds.map(artId => {
+      const art = availableArticles.find(a => a.id === artId);
+      return art ? { id: art.id, title: art.title, slug: art.slug } : null;
+    }).filter(Boolean);
+
+    const resourcesPayload = {
+      video_lectures: selectedVideoIds,
+      related_articles: related_articles
     };
 
-    customResources.forEach((row) => {
-      const cleanKey = row.key.trim();
-      if (cleanKey) {
-        const valArray = row.value.split(",").map(s => s.trim()).filter(Boolean);
-        resourcesPayload[cleanKey] = valArray;
-      }
-    });
-
     // 3. Build attributes payload
-    let parsedAttributes: Record<string, unknown> = {};
-    if (customJsonStr.trim()) {
-      try {
-        parsedAttributes = JSON.parse(customJsonStr);
-      } catch {
-        setSubmitError("Invalid JSON structure detected in Custom Attributes.");
-        return;
-      }
-    }
-
-    parsedAttributes.difficulty_level = Number(values.difficulty_level) || 5;
-    if (values.pattern?.trim()) {
-      parsedAttributes.pattern = values.pattern.trim();
-    }
-    
     const tagsArray = values.tags ? values.tags.split(",").map(s => s.trim()).filter(Boolean) : [];
-    if (tagsArray.length > 0) {
-      parsedAttributes.tags = tagsArray;
-    }
+    const companyTagsArray = values.company_tags ? values.company_tags.split(",").map(s => s.trim()).filter(Boolean) : [];
+    const filteredHints = hints.map(h => h.trim()).filter(Boolean);
+
+    const attributesPayload = {
+      tags: tagsArray,
+      company_tags: companyTagsArray,
+      hints: filteredHints
+    };
 
     const payload = {
       title: values.title.trim(),
@@ -215,12 +249,12 @@ export default function AddPracticeProblemPage() {
       problem_url: values.problem_url || null,
       solutions: solutionsPayload,
       resources: resourcesPayload,
-      attributes: parsedAttributes
+      attributes: attributesPayload,
+      is_active: values.is_active
     };
 
     try {
       setSubmitSuccess(false);
-
       const res = await fetch(`${backendUrl}/api/v1/admin/practice-problems`, {
         method: "POST",
         headers: {
@@ -239,7 +273,6 @@ export default function AddPracticeProblemPage() {
       setTimeout(() => {
         router.push("/admin/problems");
       }, 1500);
-
     } catch (err: unknown) {
       console.error("Submission failed:", err);
       const errMessage = err instanceof Error ? err.message : String(err);
@@ -251,7 +284,7 @@ export default function AddPracticeProblemPage() {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 size={32} className="animate-spin text-brand-500" />
-        <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold">Verifying secure admin parameters...</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Verifying secure admin parameters...</p>
       </div>
     );
   }
@@ -264,8 +297,8 @@ export default function AddPracticeProblemPage() {
             <Lock size={30} />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-black text-gray-950 dark:text-white tracking-tight">Access Prohibited</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">Access Prohibited</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-450 leading-relaxed font-medium">
               This environment is strictly reserved for CrackDSA Administrators.
             </p>
           </div>
@@ -274,24 +307,28 @@ export default function AddPracticeProblemPage() {
     );
   }
 
+  // Multi-select helpers
+  const unselectedVideos = availableVideos.filter(v => !selectedVideoIds.includes(v.id));
+  const unselectedArticles = availableArticles.filter(a => !selectedArticleIds.includes(a.id));
+
   return (
-    <div className="max-w-4xl mx-auto pb-24 px-4">
-      {/* Header back button */}
-      <div className="mb-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-5">
-        <div className="flex items-center gap-3">
+    <div className="max-w-5xl mx-auto pb-24 px-4 select-none">
+      {/* Top Breadcrumb Header */}
+      <div className="mb-8 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-5">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-150 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-55 dark:hover:bg-gray-800 transition-all shadow-sm"
             title="Go Back"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={16} className="stroke-[2.5]" />
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-gray-950 dark:text-white tracking-tight">
-              Add Practice Problem
+            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+              Create Practice Problem
             </h1>
-            <p className="text-xs text-gray-500 font-semibold mt-0.5">
-              Register a new student coding challenge with solution details.
+            <p className="text-xs text-gray-450 dark:text-gray-500 font-medium mt-0.5">
+              Add a student coding challenge with custom solutions and resource links.
             </p>
           </div>
         </div>
@@ -299,240 +336,501 @@ export default function AddPracticeProblemPage() {
 
       {/* State Alerts */}
       {submitError && (
-        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 flex items-start gap-2.5 mb-6">
-          <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
-          <div className="text-xs font-semibold text-red-500 leading-normal">
+        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 flex items-start gap-3 mb-6">
+          <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+          <div className="text-xs font-medium text-red-650 leading-relaxed">
             {submitError}
           </div>
         </div>
       )}
 
       {submitSuccess && (
-        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-start gap-2.5 mb-6">
-          <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-          <div className="text-xs font-bold text-emerald-600">
+        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-start gap-3 mb-6">
+          <CheckCircle2 size={18} className="text-emerald-500 shrink-0 mt-0.5" />
+          <div className="text-xs font-semibold text-emerald-650">
             Practice Problem registered successfully! Redirecting...
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>1. Primary Specifications</CardTitle>
-            <CardDescription>Setup basic challenge descriptions, platforms, and metadata.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <Label htmlFor="title">Problem Title *</Label>
-                <Input id="title" {...register("title")} />
-                {errors.title && (
-                  <p className="text-xs text-red-500 font-semibold">{errors.title.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="slug">Slug Handle *</Label>
-                <Input id="slug" {...register("slug")} />
-                {errors.slug && (
-                  <p className="text-xs text-red-500 font-semibold">{errors.slug.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              <div className="space-y-2">
-                <Label htmlFor="difficulty">Difficulty *</Label>
-                <Select id="difficulty" {...register("difficulty")}>
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="platform">Platform *</Label>
-                <Select id="platform" {...register("platform")}>
-                  <option value="Internal">Internal</option>
-                  <option value="LeetCode">LeetCode</option>
-                  <option value="Codeforces">Codeforces</option>
-                  <option value="HackerRank">HackerRank</option>
-                  <option value="GeeksforGeeks">GeeksforGeeks</option>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="problem_url">Problem URL</Label>
-                <Input id="problem_url" type="url" {...register("problem_url")} />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <div className="border border-gray-250 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-gray-900">
-                <RichTextEditor value={description} onChange={setDescription} />
-              </div>
-            </div>
-
-          </CardContent>
-        </Card>
-
-        {/* SECTION 2: Dynamic Solutions */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>2. Code Solutions</CardTitle>
-                <CardDescription>Configure language solutions, complexity metrics, and explanation logs.</CardDescription>
-              </div>
-              <button 
-                type="button" 
-                onClick={addSolutionRow}
-                className="inline-flex items-center gap-1 text-xs font-bold text-gray-700 hover:text-gray-950 dark:text-gray-300 dark:hover:text-white transition-colors cursor-pointer"
-              >
-                <Plus size={14} />
-                Add Solution
-              </button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {solutions.map((sol, index) => (
-              <div key={index} className="border border-gray-200 dark:border-gray-800 p-5 rounded-xl bg-gray-50/30 dark:bg-gray-900/30 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <CodeIcon size={14} className="text-gray-400" />
-                    Solution #{index + 1}
-                  </span>
-                  {solutions.length > 1 && (
-                    <button 
-                      type="button" 
-                      onClick={() => removeSolutionRow(index)}
-                      className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 cursor-pointer"
-                    >
-                      <Trash2 size={13} /> Remove
-                    </button>
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-8">
+        
+        {/* Left Column: Primary Specifications */}
+        <div className="lg:col-span-2 space-y-8">
+          
+          <Card className="border border-gray-205 dark:border-gray-800 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="border-b border-gray-100 dark:border-gray-850 bg-gray-50/20 dark:bg-gray-900/10 py-5">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wider text-gray-850 dark:text-gray-300">
+                1. Core Specifications
+              </CardTitle>
+              <CardDescription className="text-xs font-medium text-gray-450 dark:text-gray-500">
+                Setup titles, slugs, and the challenge statement.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-xs font-medium text-gray-700 dark:text-gray-300">Problem Title *</Label>
+                  <Input 
+                    id="title" 
+                    placeholder="e.g. Valid Palindrome" 
+                    className="h-10 text-xs font-medium rounded-xl border-gray-200 dark:border-gray-800 focus:ring-brand-500 focus:border-brand-500" 
+                    {...register("title")} 
+                  />
+                  {errors.title && (
+                    <p className="text-xs text-red-500 font-medium mt-1">{errors.title.message}</p>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Language</Label>
-                    <Select value={sol.language} onChange={(e) => handleSolutionChange(index, "language", e.target.value)}>
-                      <option value="cpp">C++</option>
-                      <option value="python">Python</option>
-                      <option value="java">Java</option>
-                      <option value="javascript">JavaScript</option>
-                    </Select>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="slug" className="text-xs font-medium text-gray-700 dark:text-gray-300">URL Slug *</Label>
+                    <button
+                      type="button"
+                      onClick={() => setSlugSync(prev => !prev)}
+                      className={`text-[9px] font-medium px-2 py-0.5 rounded-full border transition-all ${
+                        slugSync 
+                          ? "bg-brand-500/10 text-brand-500 border-brand-500/10" 
+                          : "bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
+                      }`}
+                    >
+                      {slugSync ? "Auto-Sync" : "Manual Edit"}
+                    </button>
                   </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Time Complexity</Label>
-                    <Input placeholder="e.g. O(N)" value={sol.timeComplexity} onChange={(e) => handleSolutionChange(index, "timeComplexity", e.target.value)} />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Space Complexity</Label>
-                    <Input placeholder="e.g. O(1)" value={sol.spaceComplexity} onChange={(e) => handleSolutionChange(index, "spaceComplexity", e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Code Implementation</Label>
-                  <Textarea rows={6} className="font-mono text-xs" placeholder="// Write code..." value={sol.code} onChange={(e) => handleSolutionChange(index, "code", e.target.value)} />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Explanation</Label>
-                  <Textarea rows={2} placeholder="Explain the dynamic details of this solution..." value={sol.explanation} onChange={(e) => handleSolutionChange(index, "explanation", e.target.value)} />
+                  <Input 
+                    id="slug" 
+                    placeholder="e.g. valid-palindrome" 
+                    className="h-10 text-xs font-medium rounded-xl border-gray-200 dark:border-gray-800 focus:ring-brand-500 focus:border-brand-500" 
+                    {...register("slug")} 
+                    readOnly={slugSync}
+                  />
+                  {errors.slug && (
+                    <p className="text-xs text-red-500 font-medium mt-1">{errors.slug.message}</p>
+                  )}
                 </div>
               </div>
-            ))}
-          </CardContent>
-        </Card>
 
-        {/* SECTION 3: Resources & Attributes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>3. Resources & Advanced Metadata</CardTitle>
-            <CardDescription>Setup tags, patterns, videos connection, and custom JSON fields.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <Label htmlFor="video_lectures">Video Lectures UUIDs (Comma separated)</Label>
-                <Input id="video_lectures" placeholder="e.g. uuid-1, uuid-2" value={videoLecturesStr} onChange={(e) => setVideoLecturesStr(e.target.value)} />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div className="space-y-2 sm:col-span-2">
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="problem_url" className="text-xs font-medium text-gray-700 dark:text-gray-300">Problem URL</Label>
+                    <Sparkles size={11} className="text-brand-500" />
+                    <span className="text-[9px] font-medium text-brand-500 dark:text-brand-400 uppercase tracking-widest">Platform Auto-Detects</span>
+                  </div>
+                  <div className="relative">
+                    <Input 
+                      id="problem_url" 
+                      type="url"
+                      placeholder="https://leetcode.com/problems/valid-palindrome/" 
+                      className="h-10 text-xs font-medium rounded-xl pl-8 border-gray-200 dark:border-gray-800 focus:ring-brand-500 focus:border-brand-500" 
+                      {...register("problem_url")} 
+                    />
+                    <LinkIcon size={12} className="absolute left-3 top-3.5 text-gray-400" />
+                  </div>
+                  {errors.problem_url && (
+                    <p className="text-xs text-red-500 font-medium mt-1">{errors.problem_url.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="platform" className="text-xs font-medium text-gray-700 dark:text-gray-300">Platform *</Label>
+                  <Select 
+                    id="platform" 
+                    className="h-10 text-xs font-medium rounded-xl"
+                    {...register("platform", {
+                      onChange: () => setIsPlatformManuallyChanged(true)
+                    })}
+                  >
+                    <option value="Internal">Internal</option>
+                    <option value="LeetCode">LeetCode</option>
+                    <option value="GeeksforGeeks">GeeksforGeeks</option>
+                    <option value="Codeforces">Codeforces</option>
+                    <option value="CodeChef">CodeChef</option>
+                    <option value="HackerRank">HackerRank</option>
+                    <option value="InterviewBit">InterviewBit</option>
+                    <option value="CSES">CSES</option>
+                    <option value="AtCoder">AtCoder</option>
+                    <option value="LintCode">LintCode</option>
+                    <option value="HackerEarth">HackerEarth</option>
+                    <option value="Other">Other</option>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="editorial">Official Editorial URL</Label>
-                <Input id="editorial" type="url" placeholder="https://example.com/editorial" value={officialEditorialUrl} onChange={(e) => setOfficialEditorialUrl(e.target.value)} />
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Description</Label>
+                <div className="border border-gray-250 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+                  <RichTextEditor value={description} onChange={setDescription} />
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            </CardContent>
+          </Card>
+
+          {/* Solutions Accordion Section */}
+          <Card className="border border-gray-205 dark:border-gray-800 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="border-b border-gray-100 dark:border-gray-850 bg-gray-50/20 dark:bg-gray-900/10 py-5">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wider text-gray-850 dark:text-gray-300">
+                2. Programmatic Solutions
+              </CardTitle>
+              <CardDescription className="text-xs font-medium text-gray-450 dark:text-gray-500">
+                Setup clean, language-specific code templates and time/space complexity metadata.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              
+              {LANGUAGES.map((lang) => {
+                const solution = solutionsState[lang.key];
+                const isOpen = activeAccordion === lang.key;
+                
+                return (
+                  <div 
+                    key={lang.key} 
+                    className={`border rounded-xl overflow-hidden transition-all ${
+                      solution.enabled 
+                        ? "border-brand-500/20 bg-brand-500/[0.01]" 
+                        : "border-gray-250 dark:border-gray-800"
+                    }`}
+                  >
+                    {/* Accordion Trigger Header */}
+                    <div 
+                      onClick={() => setActiveAccordion(isOpen ? "" : lang.key)}
+                      className="flex items-center justify-between px-4 py-3 bg-gray-55/40 dark:bg-gray-905/30 hover:bg-gray-55 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={solution.enabled}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleSolutionFieldChange(lang.key, "enabled", e.target.checked);
+                          }}
+                          className="h-3.5 w-3.5 rounded border-gray-200 dark:border-gray-700 text-brand-500 focus:ring-brand-500"
+                        />
+                        <span className={`text-xs font-medium tracking-wide ${solution.enabled ? "text-gray-800 dark:text-white" : "text-gray-400"}`}>
+                          {lang.label} Solution
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {solution.enabled && (
+                          <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/10">
+                            Active
+                          </span>
+                        )}
+                        {isOpen ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+                      </div>
+                    </div>
+
+                    {/* Accordion Expandable Content */}
+                    {isOpen && (
+                      <div className="p-4 border-t border-gray-100 dark:border-gray-855 space-y-4 bg-white dark:bg-gray-900/20">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <Label className="text-[10px] font-medium text-gray-405 dark:text-gray-500">Time Complexity</Label>
+                            <Input 
+                              placeholder="e.g. O(N)" 
+                              value={solution.timeComplexity}
+                              onChange={(e) => handleSolutionFieldChange(lang.key, "timeComplexity", e.target.value)}
+                              className="h-9 text-xs font-medium rounded-lg"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] font-medium text-gray-405 dark:text-gray-500">Space Complexity</Label>
+                            <Input 
+                              placeholder="e.g. O(1)" 
+                              value={solution.spaceComplexity}
+                              onChange={(e) => handleSolutionFieldChange(lang.key, "spaceComplexity", e.target.value)}
+                              className="h-9 text-xs font-medium rounded-lg"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-medium text-gray-405 dark:text-gray-500 font-mono">Code Implementation</Label>
+                          <Textarea 
+                            rows={8} 
+                            placeholder={`// Write clean ${lang.label} solution code...`}
+                            value={solution.code}
+                            onChange={(e) => handleSolutionFieldChange(lang.key, "code", e.target.value)}
+                            className="font-mono text-xs p-3 rounded-lg border-gray-250 dark:border-gray-800 bg-gray-950 text-gray-200"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-medium text-gray-405 dark:text-gray-500">Explanation</Label>
+                          <Textarea 
+                            rows={3} 
+                            placeholder="Explain the intuition, algorithms, and key steps..."
+                            value={solution.explanation}
+                            onChange={(e) => handleSolutionFieldChange(lang.key, "explanation", e.target.value)}
+                            className="text-xs font-medium rounded-lg"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+            </CardContent>
+          </Card>
+
+        </div>
+
+        {/* Right Column: Difficulty, Metadata & Resources */}
+        <div className="space-y-8">
+          
+          {/* Difficulty & Attributes Card */}
+          <Card className="border border-gray-205 dark:border-gray-800 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="border-b border-gray-100 dark:border-gray-855 bg-gray-50/20 dark:bg-gray-900/10 py-5">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wider text-gray-850 dark:text-gray-300">
+                3. Metadata & Tags
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-5">
+              
               <div className="space-y-2">
-                <Label htmlFor="difficulty_level">Difficulty Weight (1-10)</Label>
-                <Input id="difficulty_level" type="number" min={1} max={10} {...register("difficulty_level", { valueAsNumber: true })} />
+                <Label htmlFor="difficulty" className="text-xs font-medium text-gray-700 dark:text-gray-300">Difficulty Level *</Label>
+                <Select id="difficulty" className="h-10 text-xs font-medium rounded-xl" {...register("difficulty")}>
+                  <option value="Easy">🟢 Easy</option>
+                  <option value="Medium">🟡 Medium</option>
+                  <option value="Hard">🔴 Hard</option>
+                </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="pattern">Pattern Category</Label>
-                <Input id="pattern" placeholder="e.g. Sliding Window" {...register("pattern")} />
+                <Label htmlFor="tags" className="text-xs font-medium text-gray-700 dark:text-gray-300">Topic Tags (Comma separated)</Label>
+                <Input 
+                  id="tags" 
+                  placeholder="e.g. Arrays, Two Pointers, Hashing" 
+                  className="h-10 text-xs font-medium rounded-xl"
+                  {...register("tags")} 
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tags">Tags (Comma separated)</Label>
-                <Input id="tags" placeholder="e.g. Arrays, Sorting" {...register("tags")} />
+                <Label htmlFor="company_tags" className="text-xs font-medium text-gray-700 dark:text-gray-300">Company Tags (Comma separated)</Label>
+                <Input 
+                  id="company_tags" 
+                  placeholder="e.g. Google, Amazon, Facebook" 
+                  className="h-10 text-xs font-medium rounded-xl"
+                  {...register("company_tags")} 
+                />
               </div>
-            </div>
 
-            {/* Custom attributes */}
-            <div className="space-y-2">
+              {/* is_active checkbox */}
+              <div className="flex items-center gap-2.5 bg-gray-50/40 dark:bg-gray-900/10 p-3 rounded-xl border border-gray-100 dark:border-gray-855">
+                <input
+                  id="is_active"
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-gray-200 dark:border-gray-700 text-brand-500 focus:ring-brand-500"
+                  {...register("is_active")}
+                />
+                <div>
+                  <Label htmlFor="is_active" className="text-xs font-medium text-gray-800 dark:text-gray-200 cursor-pointer">
+                    Publish Problem
+                  </Label>
+                  <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                    Make this problem immediately visible to students.
+                  </p>
+                </div>
+              </div>
+
+            </CardContent>
+          </Card>
+
+          {/* Interactive Hints Card */}
+          <Card className="border border-gray-205 dark:border-gray-800 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="border-b border-gray-100 dark:border-gray-855 bg-gray-50/20 dark:bg-gray-900/10 py-5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="custom_json">Custom JSON Attributes Bucket</Label>
-                <span className={`text-[10px] font-bold uppercase ${isJsonValid ? "text-emerald-500" : "text-rose-500 animate-pulse"}`}>
-                  {isJsonValid ? "Syntax Valid" : "Syntax Invalid"}
-                </span>
+                <div>
+                  <CardTitle className="text-xs font-semibold uppercase tracking-wider text-gray-850 dark:text-gray-300">
+                    4. Hints & Clues
+                  </CardTitle>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddHint}
+                  className="inline-flex items-center gap-1 text-[10px] font-medium uppercase px-2.5 py-1 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  <Plus size={12} />
+                  Add Hint
+                </button>
               </div>
-              <Textarea 
-                id="custom_json"
-                rows={5}
-                value={customJsonStr}
-                onChange={(e) => setCustomJsonStr(e.target.value)}
-                className={`font-mono text-xs ${!isJsonValid && "border-red-500 bg-red-50/10 focus-visible:ring-red-500"}`}
-              />
-            </div>
+            </CardHeader>
+            <CardContent className="p-5 space-y-4">
+              
+              {hints.map((hint, index) => (
+                <div key={index} className="flex gap-2 items-start bg-gray-50/30 dark:bg-gray-900/10 border border-gray-100 dark:border-gray-800 p-3 rounded-xl relative">
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-[9px] font-medium text-gray-400 uppercase tracking-widest">
+                      Hint #{index + 1}
+                    </Label>
+                    <Textarea
+                      rows={2}
+                      placeholder="e.g. Try sorting the array first..."
+                      value={hint}
+                      onChange={(e) => handleHintChange(index, e.target.value)}
+                      className="text-xs font-medium rounded-lg"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveHint(index)}
+                    className="text-gray-400 hover:text-red-500 p-1.5 transition-colors shrink-0 mt-3"
+                    title="Remove Hint"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              ))}
 
-            {/* Save Buttons */}
-            <div className="flex items-center gap-3 border-t border-gray-200 dark:border-gray-800 pt-6 justify-end">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || !isJsonValid}
-                className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 dark:text-gray-900 rounded-lg shadow-sm disabled:opacity-50 transition-colors cursor-pointer"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 size={13} className="animate-spin mr-1.5" />
-                    Saving...
-                  </>
-                ) : (
-                  "Create Problem"
-                )}
-              </button>
-            </div>
+              {hints.length === 0 && (
+                <div className="text-center py-6 border-2 border-dashed border-gray-200 dark:border-gray-855 rounded-xl">
+                  <Lightbulb size={22} className="text-gray-300 dark:text-gray-650 mx-auto mb-1.5" />
+                  <p className="text-xs text-gray-400 font-medium">No Hints configured</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Click "Add Hint" to provide hints for students.</p>
+                </div>
+              )}
 
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Connected Resources Card */}
+          <Card className="border border-gray-205 dark:border-gray-800 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="border-b border-gray-100 dark:border-gray-855 bg-gray-50/20 dark:bg-gray-900/10 py-5">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wider text-gray-850 dark:text-gray-300">
+                5. Related Assets
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-6">
+              
+              {/* Videos select */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Link Video Lectures</Label>
+                <Select
+                  value=""
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) {
+                      setSelectedVideoIds(prev => [...prev, val]);
+                    }
+                  }}
+                  className="h-10 text-xs font-medium rounded-xl"
+                  disabled={loadingAssets}
+                >
+                  <option value="">-- Choose video lectures --</option>
+                  {unselectedVideos.map(v => (
+                    <option key={v.id} value={v.id}>🎥 {v.title}</option>
+                  ))}
+                </Select>
+
+                {/* Video list */}
+                <div className="space-y-2 mt-3">
+                  {selectedVideoIds.map(id => {
+                    const video = availableVideos.find(v => v.id === id);
+                    if (!video) return null;
+                    return (
+                      <div key={id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-2.5 rounded-xl text-xs font-semibold">
+                        <div className="flex items-center gap-2 text-gray-800 dark:text-gray-200 truncate pr-2">
+                          <Video size={13} className="text-brand-500 shrink-0" />
+                          <span className="truncate">{video.title}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedVideoIds(prev => prev.filter(vid => vid !== id))}
+                          className="text-gray-400 hover:text-red-500 transition-colors p-1 shrink-0"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {selectedVideoIds.length === 0 && (
+                    <p className="text-[10px] text-gray-450 italic font-semibold">No video lectures linked.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Articles select */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">Link Editorials & Articles</Label>
+                <Select
+                  value=""
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) {
+                      setSelectedArticleIds(prev => [...prev, val]);
+                    }
+                  }}
+                  className="h-10 text-xs font-medium rounded-xl"
+                  disabled={loadingAssets}
+                >
+                  <option value="">-- Choose related articles --</option>
+                  {unselectedArticles.map(a => (
+                    <option key={a.id} value={a.id}>📄 {a.title}</option>
+                  ))}
+                </Select>
+
+                {/* Articles list */}
+                <div className="space-y-2 mt-3">
+                  {selectedArticleIds.map(id => {
+                    const article = availableArticles.find(a => a.id === id);
+                    if (!article) return null;
+                    return (
+                      <div key={id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-2.5 rounded-xl text-xs font-semibold">
+                        <div className="flex items-center gap-2 text-gray-800 dark:text-gray-200 truncate pr-2">
+                          <FileText size={13} className="text-orange-500 shrink-0" />
+                          <span className="truncate">{article.title}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedArticleIds(prev => prev.filter(artId => artId !== id))}
+                          className="text-gray-400 hover:text-red-500 transition-colors p-1 shrink-0"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {selectedArticleIds.length === 0 && (
+                    <p className="text-[10px] text-gray-450 italic font-semibold">No conceptual articles linked.</p>
+                  )}
+                </div>
+              </div>
+
+            </CardContent>
+          </Card>
+
+          {/* Form Action buttons */}
+          <div className="flex items-center gap-3 pt-2 justify-end">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex-1 px-4 py-2.5 text-xs font-medium text-gray-705 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-55 dark:hover:bg-gray-900 rounded-xl transition-all shadow-sm cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 inline-flex items-center justify-center px-4 py-2.5 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 dark:text-gray-900 rounded-xl shadow-md disabled:opacity-50 transition-all cursor-pointer"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={13} className="animate-spin mr-1.5" />
+                  Creating...
+                </>
+              ) : (
+                "Create Problem"
+              )}
+            </button>
+          </div>
+
+        </div>
+
       </form>
     </div>
   );

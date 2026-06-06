@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import PageHeader from "@/components/common/PageHeader";
 
 export default function DSASheetsPage() {
   const categories = [
@@ -89,39 +90,40 @@ export default function DSASheetsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-12 pb-20">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
-        <div className="max-w-2xl">
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 text-brand-500 font-bold text-sm tracking-wider uppercase mb-3"
-          >
-            <BookOpen size={16} />
-            <span>Learning Collections</span>
-          </motion.div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-            DSA Sheets <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-400">Library</span>
-          </h1>
-          <p className="mt-4 text-gray-500 dark:text-gray-400 text-lg leading-relaxed">
-            Choose from our highly curated problem sets designed to help you master patterns and crack tech interviews.
-          </p>
-        </div>
-
-        {/* Search/Filter Bar */}
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search sheets..."
-              className="h-11 w-64 rounded-xl border border-gray-200 bg-white pl-10 pr-4 text-sm transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900/50 dark:text-white"
-            />
+      <PageHeader
+        badge="Learning Collections"
+        badgeIcon={BookOpen}
+        title={
+          <>
+            DSA Sheets{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-400">
+              Library
+            </span>
+          </>
+        }
+        subtitle="Choose from our highly curated problem sets designed to help you master patterns and crack tech interviews."
+        accent="violet"
+        rotatorItems={["CrackDSA 75", "Strivers A2Z", "Love Babbar 450", "Pattern Mastery", "30-Day Sprint", "DSA Kickstart"]}
+        rotatorPrefix="Prepare with popular collections like "
+        rotatorSuffix="."
+        tickerItems={["Arrays", "Strings", "Linked Lists", "Stacks & Queues", "Binary Trees", "Graphs", "DP", "Greedy", "Backtracking", "Bit Manipulation"]}
+        tickerLabel="Core DSA sheet topics:"
+        rightSlot={
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search sheets..."
+                className="h-11 w-64 rounded-xl border border-gray-200 bg-white dark:bg-gray-900/50 pl-10 pr-4 text-sm transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 dark:border-gray-800 dark:text-white"
+              />
+            </div>
+            <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-400">
+              <Filter size={18} />
+            </button>
           </div>
-          <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-400">
-            <Filter size={18} />
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Categories */}
       {categories.map((category, catIdx) => (

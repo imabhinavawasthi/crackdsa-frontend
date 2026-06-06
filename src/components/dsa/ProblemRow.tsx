@@ -45,11 +45,11 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem, index }) => {
 
   return (
     <motion.a
-      href={`/practice/${problem.problem_id}`}
+      href={`/problem/${problem.problem_id}`}
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03, duration: 0.25 }}
-      className="group flex items-center justify-between py-2.5 px-3 -mx-1 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-all duration-150 cursor-pointer"
+      className="group flex items-center justify-between py-2.5 px-3 -mx-1 rounded-lg hover:bg-gray-50/45 dark:hover:bg-white/[0.03] transition-all duration-150 cursor-pointer"
     >
       <div className="flex items-center gap-3 min-w-0">
         {/* Problem number */}

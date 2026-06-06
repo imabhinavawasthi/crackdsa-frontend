@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import { Zap, Code2, Clipboard, Check, Terminal, ExternalLink, Lightbulb, HelpCircle, Video, FileText } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Zap, Code2, Clipboard, Check, Terminal, ExternalLink, Lightbulb, HelpCircle, Video, FileText, Bookmark, ChevronDown } from "lucide-react";
+import Link from "next/link";
 import NotesTab from "./NotesTab";
+import { formatTag, slugify } from "@/utils/string";
+import { useAuth } from "@/context/AuthContext";
+import { getStoredToken } from "@/functions/auth";
 
 interface SolutionItem {
   code: string;
@@ -417,13 +421,136 @@ const highlightCode = (code: string, lang: string): string => {
 interface ProblemViewerProps {
   slug: string;
   problemData?: any;
+  onStateChange?: (updates: {
+    status?: "pending" | "done" | "revision";
+    is_bookmarked?: boolean;
+    notes?: any[];
+  }) => void;
 }
 
-const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
+const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData, onStateChange }) => {
+  const { isLoggedIn } = useAuth();
   const [activeTab, setActiveTab] = useState<"statement" | "solutions" | "editorial" | "notes">("statement");
   const [activeLang, setActiveLang] = useState<"cpp" | "python" | "java" | "javascript">("cpp");
   const [copied, setCopied] = useState(false);
   const [expandedHints, setExpandedHints] = useState<Record<string, boolean>>({});
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+
+  // Sync state with backend user_asset_states or localStorage
+  const [status, setStatus] = useState<"pending" | "done" | "revision">("pending");
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [notes, setNotes] = useState<any[]>([]);
+  const [loadingState, setLoadingState] = useState(false);
+
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
+  // Load from DB (if logged in)
+  useEffect(() => {
+    const fetchState = async () => {
+      if (!isLoggedIn || !problemData?.id) return;
+      try {
+        setLoadingState(true);
+        const token = getStoredToken();
+        const res = await fetch(`${backendUrl}/api/v1/user/assets/states`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const currentState = data.find((state: any) => state.asset_id === problemData.id && state.asset_type === "problem");
+          if (currentState) {
+            setStatus(currentState.status || "pending");
+            setIsBookmarked(!!currentState.is_bookmarked);
+            setNotes(currentState.notes || []);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch problem state:", err);
+      } finally {
+        setLoadingState(false);
+      }
+    };
+    fetchState();
+  }, [isLoggedIn, problemData?.id, backendUrl]);
+
+  // Load from localStorage (if guest)
+  useEffect(() => {
+    if (!isLoggedIn && problemData?.slug) {
+      try {
+        const storageKey = `problem-state-${problemData.slug}`;
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const localData = JSON.parse(saved);
+          setStatus(localData.status || "pending");
+          setIsBookmarked(!!localData.is_bookmarked);
+          setNotes(localData.notes || []);
+        } else {
+          setStatus("pending");
+          setIsBookmarked(false);
+          setNotes([]);
+        }
+      } catch (e) {
+        console.error("Failed to load state from local storage:", e);
+      }
+    }
+  }, [isLoggedIn, problemData?.slug]);
+
+  const updateState = async (updates: {
+    status?: "pending" | "done" | "revision";
+    is_bookmarked?: boolean;
+    notes?: any[];
+  }) => {
+    // Optimistic UI updates
+    if (updates.status !== undefined) setStatus(updates.status);
+    if (updates.is_bookmarked !== undefined) setIsBookmarked(updates.is_bookmarked);
+    if (updates.notes !== undefined) setNotes(updates.notes);
+
+    if (onStateChange) {
+      onStateChange(updates);
+    }
+
+    if (isLoggedIn && problemData?.id) {
+      const token = getStoredToken();
+      if (!token) return;
+      try {
+        const payload: any = {};
+        if (updates.status !== undefined) payload.status = updates.status;
+        if (updates.is_bookmarked !== undefined) payload.is_bookmarked = updates.is_bookmarked;
+        if (updates.notes !== undefined) payload.notes = updates.notes;
+
+        const res = await fetch(`${backendUrl}/api/v1/user/assets/states/problem/${problemData.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setStatus(data.status || "pending");
+          setIsBookmarked(!!data.is_bookmarked);
+          setNotes(data.notes || []);
+        }
+      } catch (err) {
+        console.error("Failed to save problem state:", err);
+      }
+    } else if (problemData?.slug) {
+      // Guest fallback to localStorage
+      try {
+        const storageKey = `problem-state-${problemData.slug}`;
+        const localData = {
+          status: updates.status !== undefined ? updates.status : status,
+          is_bookmarked: updates.is_bookmarked !== undefined ? updates.is_bookmarked : isBookmarked,
+          notes: updates.notes !== undefined ? updates.notes : notes
+        };
+        localStorage.setItem(storageKey, JSON.stringify(localData));
+      } catch (e) {
+        console.error("Failed to write state to local storage:", e);
+      }
+    }
+  };
 
   // If problemData is missing, render error layout (No Mock Data Fallback!)
   if (!problemData) {
@@ -502,29 +629,92 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
     <div className="w-full flex flex-col gap-6 select-none">
       
       {/* 1. LeetCode-Style Top Navigation Bar */}
-      <div className="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/40 p-1.5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm shrink-0">
-        {([
-          { id: "statement", label: "Problem Statement", icon: <HelpCircle size={14} /> },
-          { id: "solutions", label: "Solutions & Code", icon: <Code2 size={14} /> },
-          { id: "editorial", label: "Video Editorial", icon: <Video size={14} /> },
-          { id: "notes", label: "Notes & Discussion", icon: <FileText size={14} /> }
-        ] as const).map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
+        <div className="flex flex-1 border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/40 p-1.5 rounded-2xl shadow-sm">
+          {([
+            { id: "statement", label: "Problem Statement", icon: <HelpCircle size={14} /> },
+            { id: "solutions", label: "Solutions & Code", icon: <Code2 size={14} /> },
+            { id: "editorial", label: "Video Editorial", icon: <Video size={14} /> },
+            { id: "notes", label: "Notes & Discussion", icon: <FileText size={14} /> }
+          ] as const).map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                  isActive 
+                    ? "bg-brand-500 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
+              >
+                {tab.icon}
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* User Progress Controls */}
+        <div className="flex items-center gap-3 self-end md:self-auto">
+          {/* Status Dropdown */}
+          <div className="relative">
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                isActive 
-                  ? "bg-brand-500 text-white shadow-sm"
-                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
+              onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+              className="h-10 px-4.5 rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/40 text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-2.5 transition-all shadow-sm cursor-pointer animate-in duration-200"
             >
-              {tab.icon}
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span className={`w-2 h-2 rounded-full ${
+                status === "done" ? "bg-emerald-500 animate-pulse" :
+                status === "revision" ? "bg-amber-500 animate-pulse" : "bg-gray-400 dark:bg-gray-500"
+              }`} />
+              <span>Status: {status}</span>
+              <ChevronDown size={12} className={`text-gray-400 transition-transform duration-200 ${statusDropdownOpen ? "rotate-180" : ""}`} />
             </button>
-          );
-        })}
+
+            {statusDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setStatusDropdownOpen(false)} />
+                <div className="absolute right-0 mt-2 w-36 rounded-2xl border border-gray-200 dark:border-gray-850 bg-white dark:bg-gray-950 shadow-xl p-1.5 z-20 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                  {([
+                    { id: "pending", label: "Pending", colorClass: "text-gray-500 dark:text-gray-400 hover:bg-gray-55 dark:hover:bg-gray-900/60" },
+                    { id: "revision", label: "Revision", colorClass: "text-amber-500 hover:bg-amber-500/10" },
+                    { id: "done", label: "Done", colorClass: "text-emerald-500 hover:bg-emerald-500/10" }
+                  ] as const).map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => {
+                        updateState({ status: opt.id });
+                        setStatusDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${opt.colorClass} ${
+                        status === opt.id ? "bg-gray-100 dark:bg-gray-900" : ""
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${
+                        opt.id === "done" ? "bg-emerald-500" :
+                        opt.id === "revision" ? "bg-amber-500" : "bg-gray-400"
+                      }`} />
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Bookmark Button */}
+          <button
+            onClick={() => updateState({ is_bookmarked: !isBookmarked })}
+            className={`p-2 h-10 w-10 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center justify-center ${
+              isBookmarked 
+                ? "bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500/20 shadow-sm scale-105"
+                : "bg-gray-50/50 dark:bg-gray-900/40 border-gray-200 dark:border-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            }`}
+            title={isBookmarked ? "Remove Bookmark" : "Bookmark Problem"}
+          >
+            <Bookmark size={14} className={isBookmarked ? "fill-amber-500 text-amber-500" : ""} />
+          </button>
+        </div>
       </div>
 
       {/* 2. Tab Contents Stage Area */}
@@ -532,13 +722,13 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
         
         {/* TAB: Problem Statement */}
         {activeTab === "statement" && (
-          <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 sm:p-8 flex flex-col justify-between shadow-sm max-w-4xl mx-auto w-full space-y-6">
+          <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 sm:p-8 flex flex-col justify-between shadow-sm w-full space-y-6">
             
             {/* Header section with re-positioned solve button */}
             <div className="flex items-start justify-between flex-wrap gap-4 border-b border-gray-100 dark:border-gray-800 pb-5">
               <div className="space-y-3 flex-1 min-w-[200px]">
                 <div className="flex items-center gap-2.5">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wider border ${
                     problem.difficulty === "Easy" 
                       ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/10"
                       : problem.difficulty === "Medium"
@@ -549,12 +739,12 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
                     <span>{problem.difficulty}</span>
                   </span>
 
-                  <span className="rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-1 text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest border border-gray-200 dark:border-gray-700">
+                  <span className="rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-widest border border-gray-200 dark:border-gray-700">
                     {problem.platform}
                   </span>
                 </div>
 
-                <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-snug">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight leading-snug">
                   {problem.title}
                 </h2>
               </div>
@@ -564,7 +754,7 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
                 href={problem.problemUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 px-4.5 text-xs shadow-md shadow-brand-500/15 hover:shadow-lg transition-all active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 px-4.5 text-xs shadow-md shadow-brand-500/15 hover:shadow-lg transition-all active:scale-[0.98]"
               >
                 <span>Solve on {problem.platform}</span>
                 <ExternalLink size={12} className="stroke-[2.5]" />
@@ -573,7 +763,7 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
 
             {/* Problem Description HTML Area */}
             <div 
-              className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-semibold leading-relaxed max-h-[350px] overflow-y-auto no-scrollbar pr-1"
+              className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-normal leading-relaxed"
               dangerouslySetInnerHTML={{ __html: problem.description }}
             />
 
@@ -584,12 +774,16 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
               <div className="flex flex-wrap gap-6">
                 {problem.topicTags && problem.topicTags.length > 0 && (
                   <div className="space-y-2 flex-1 min-w-[200px]">
-                    <h4 className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">Topic Tags</h4>
+                    <h4 className="text-[9px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">Topic Tags</h4>
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {problem.topicTags.map((tag) => (
-                        <span key={tag} className="px-2.5 py-1 rounded-lg bg-blue-500/5 text-blue-600 dark:text-blue-400 text-[10px] font-bold border border-blue-500/10">
-                          {tag}
-                        </span>
+                        <Link 
+                          key={tag} 
+                          href={`/practice/topics/${slugify(tag)}`}
+                          className="px-2.5 py-1 rounded-lg bg-blue-500/5 hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-medium border border-blue-500/10 transition-colors cursor-pointer"
+                        >
+                          {formatTag(tag)}
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -597,12 +791,16 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
 
                 {problem.companyTags && problem.companyTags.length > 0 && (
                   <div className="space-y-2 flex-1 min-w-[200px]">
-                    <h4 className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">Company Tags</h4>
+                    <h4 className="text-[9px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">Company Tags</h4>
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {problem.companyTags.map((tag) => (
-                        <span key={tag} className="px-2.5 py-1 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-450 text-[10px] font-bold border border-gray-200 dark:border-gray-700">
-                          {tag}
-                        </span>
+                        <Link 
+                          key={tag} 
+                          href={`/practice/company/${slugify(tag)}`}
+                          className="px-2.5 py-1 rounded-lg bg-gray-55 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 text-gray-650 dark:text-gray-400 text-[10px] font-medium border border-gray-200 dark:border-gray-700 transition-colors cursor-pointer"
+                        >
+                          {formatTag(tag)}
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -612,7 +810,7 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
               {/* LeetCode style step-by-step interview hints */}
               {problem.hints && problem.hints.length > 0 && (
                 <div className="space-y-3 pt-2">
-                  <h4 className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">Problem Interview Hints</h4>
+                  <h4 className="text-[9px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">Problem Interview Hints</h4>
                   <div className="space-y-2.5 pt-1">
                     {problem.hints.map((hint, index) => {
                       const hintKey = `${slug}-hint-${index}`;
@@ -621,13 +819,13 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
                         <div key={index} className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-gray-50/20 dark:bg-gray-900/10">
                           <button
                             onClick={() => toggleHint(hintKey)}
-                            className="w-full flex items-center justify-between px-4.5 py-3 text-[11px] font-bold text-gray-600 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-all text-left cursor-pointer"
+                            className="w-full flex items-center justify-between px-4.5 py-3 text-[11px] font-semibold text-gray-600 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 hover:bg-gray-55 dark:hover:bg-gray-800/30 transition-all text-left cursor-pointer"
                           >
                             <span>Hint {index + 1}</span>
-                            <span className="text-[10px] font-bold text-brand-500 dark:text-brand-400">{isExpanded ? "Hide" : "Show"}</span>
+                            <span className="text-[10px] font-semibold text-brand-500 dark:text-brand-400">{isExpanded ? "Hide" : "Show"}</span>
                           </button>
                           {isExpanded && (
-                            <div className="px-4.5 pb-4 pt-2 text-xs text-gray-500 dark:text-gray-405 leading-relaxed font-semibold border-t border-gray-100 dark:border-gray-800">
+                            <div className="px-4.5 pb-4 pt-2 text-xs text-gray-500 dark:text-gray-405 leading-relaxed font-normal border-t border-gray-100 dark:border-gray-800">
                               {hint}
                             </div>
                           )}
@@ -645,7 +843,7 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
 
         {/* TAB: Solutions & Code */}
         {activeTab === "solutions" && (
-          <div className="rounded-3xl bg-gray-950 border border-gray-800 flex flex-col overflow-hidden shadow-xl text-gray-200 max-w-4xl mx-auto w-full">
+          <div className="rounded-3xl bg-gray-950 border border-gray-800 flex flex-col overflow-hidden shadow-xl text-gray-200 w-full">
             
             {/* Languages Selection Menu */}
             <div className="flex items-center justify-between px-4.5 py-3 bg-gray-900/60 border-b border-gray-800 select-none">
@@ -732,7 +930,7 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
         {/* TAB: Video Editorial */}
         {activeTab === "editorial" && (
           editorial ? (
-            <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 sm:p-8 space-y-6 max-w-4xl mx-auto w-full shadow-sm">
+            <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 sm:p-8 space-y-6 w-full shadow-sm">
               <div className="space-y-2">
                 <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
                   <Video size={16} className="text-brand-500" />
@@ -754,7 +952,7 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
               </div>
             </div>
           ) : (
-            <div className="text-center py-16 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl max-w-4xl mx-auto w-full shadow-sm">
+            <div className="text-center py-16 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl w-full shadow-sm">
               <p className="text-xs sm:text-sm text-gray-405 dark:text-gray-500 font-medium">Video Editorial explanation is currently under edit. Check back soon!</p>
             </div>
           )
@@ -762,10 +960,13 @@ const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
 
         {/* TAB: Notes & Discussion */}
         {activeTab === "notes" && (
-          <div className="max-w-4xl mx-auto w-full">
+          <div className="w-full">
             <NotesTab
               courseId="dsa-bootcamp-recordings"
               itemId={`problem-${slug}`}
+              notes={notes}
+              onNotesChange={(newNotes) => updateState({ notes: newNotes })}
+              isLoggedIn={isLoggedIn}
             />
           </div>
         )}
