@@ -107,7 +107,7 @@ export default function DashboardPage() {
       { label: "Problems Solved", value: "0", sub: "Start your first today", icon: CheckCircle2, tone: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
       { label: "Active Streak", value: "0", sub: "Days in a row", icon: Flame, tone: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" },
       { label: "Hours Practiced", value: "0.0", sub: "This week", icon: Timer, tone: "text-sky-400", bg: "bg-sky-500/10 border-sky-500/20" },
-      { label: "Readiness", value: "—", sub: "Complete roadmap to unlock", icon: TrendingUp, tone: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
+      { label: "Readiness", value: "-", sub: "Complete roadmap to unlock", icon: TrendingUp, tone: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
     ],
     []
   );
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                 </span>
               </h1>
               <p className="max-w-xl text-sm font-medium leading-relaxed text-gray-400 sm:text-base">
-                Your interview prep hub is online. Pick up where you left off or launch a focused session — every problem solved moves the needle.
+                Your interview prep hub is online. Pick up where you left off or launch a focused session - every problem solved moves the needle.
               </p>
             </div>
 

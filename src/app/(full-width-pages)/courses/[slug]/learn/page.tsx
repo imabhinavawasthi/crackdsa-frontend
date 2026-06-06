@@ -121,10 +121,11 @@ export default function LearnPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "notes" | "discussion" | "resources">("overview");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
-  const [resolvedAsset, setResolvedAsset] = useState<{ urlOrSlug: string; loading: boolean; error: boolean }>({
+  const [resolvedAsset, setResolvedAsset] = useState<{ urlOrSlug: string; loading: boolean; error: boolean; data?: any }>({
     urlOrSlug: "",
     loading: false,
-    error: false
+    error: false,
+    data: undefined
   });
 
   // Up Next Overlay States
@@ -283,16 +284,16 @@ export default function LearnPage() {
     // Check if assetId matches UUID regex
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(assetId);
 
-    if (!isUuid) {
-      // It's a legacy direct URL or slug, resolve instantly
-      setResolvedAsset({ urlOrSlug: assetId, loading: false, error: false });
+    // For video, only fetch if it's a UUID (video-lectures API requires UUID)
+    if (type === "video" && !isUuid) {
+      setResolvedAsset({ urlOrSlug: assetId, loading: false, error: false, data: undefined });
       return;
     }
 
-    // It's a database UUID! Query the corresponding endpoint
+    // It's either a UUID, or it's a slug for a problem/article (both endpoints support slug/id)
     let active = true;
     const resolveUuid = async () => {
-      setResolvedAsset({ urlOrSlug: "", loading: true, error: false });
+      setResolvedAsset({ urlOrSlug: "", loading: true, error: false, data: undefined });
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
         let endpoint = "";
@@ -318,13 +319,12 @@ export default function LearnPage() {
         }
 
         if (active) {
-          setResolvedAsset({ urlOrSlug, loading: false, error: false });
+          setResolvedAsset({ urlOrSlug, loading: false, error: false, data });
         }
       } catch (err) {
         console.error("Failed to dynamically resolve curriculum asset UUID:", err);
         if (active) {
-          // Graceful fallback to UUID itself as final safety valve
-          setResolvedAsset({ urlOrSlug: assetId, loading: false, error: true });
+          setResolvedAsset({ urlOrSlug: "", loading: false, error: true, data: undefined });
         }
       }
     };
@@ -1220,6 +1220,7 @@ export default function LearnPage() {
                       <VideoPlayer
                         url={resolvedAsset.urlOrSlug}
                         title={activeItem.title}
+                        thumbnailUrl={resolvedAsset.data?.thumbnail_url || resolvedAsset.data?.thumbnailUrl}
                         onTimeUpdate={setCurrentTime}
                         onPlayerRefReady={setPlayerRef}
                         onEnded={handleVideoEnded}
@@ -1286,10 +1287,10 @@ export default function LearnPage() {
                     </div>
                   )}
                   {activeItem?.type === "problem" && (
-                    <ProblemViewer slug={resolvedAsset.urlOrSlug} />
+                    <ProblemViewer slug={resolvedAsset.urlOrSlug} problemData={resolvedAsset.data} />
                   )}
                   {activeItem?.type === "article" && (
-                    <ArticleReader slug={resolvedAsset.urlOrSlug} />
+                    <ArticleReader slug={resolvedAsset.urlOrSlug} articleData={resolvedAsset.data} />
                   )}
                 </>
               )}
@@ -1352,9 +1353,7 @@ export default function LearnPage() {
                           <div className="space-y-2.5">
                             <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight">About this Session</h3>
                             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
-                              {activeItem && LECTURE_SUMMARIES[activeItem.id] 
-                                ? LECTURE_SUMMARIES[activeItem.id] 
-                                : course.description}
+                              {resolvedAsset.data?.description || "No description available for this lecture."}
                             </p>
                           </div>
 
@@ -1431,7 +1430,7 @@ export default function LearnPage() {
                           exit={{ opacity: 0, y: -8 }}
                           transition={{ duration: 0.25, ease: "easeInOut" }}
                         >
-                          <ResourcesTab itemId={activeItem?.id || "general"} />
+                           <ResourcesTab itemId={activeItem?.id || "general"} backendResources={resolvedAsset.data?.resources} />
                         </motion.div>
                       )}
                     </AnimatePresence>

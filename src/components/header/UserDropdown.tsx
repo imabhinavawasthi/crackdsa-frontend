@@ -86,10 +86,10 @@ export default function UserDropdown() {
                   </div>
                   <div className="flex flex-col overflow-hidden">
                     <span className="truncate text-sm font-bold text-gray-900 dark:text-white">
-                      {user?.full_name ?? "—"}
+                      {user?.full_name ?? "-"}
                     </span>
                     <span className="truncate text-[10px] text-gray-500 dark:text-gray-400">
-                      {user?.email ?? "—"}
+                      {user?.email ?? "-"}
                     </span>
                   </div>
                 </div>

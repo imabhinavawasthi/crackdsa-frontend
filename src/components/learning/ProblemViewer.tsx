@@ -416,29 +416,68 @@ const highlightCode = (code: string, lang: string): string => {
 
 interface ProblemViewerProps {
   slug: string;
+  problemData?: any;
 }
 
-const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug }) => {
+const ProblemViewer: React.FC<ProblemViewerProps> = ({ slug, problemData }) => {
   const [activeTab, setActiveTab] = useState<"statement" | "solutions" | "editorial" | "notes">("statement");
   const [activeLang, setActiveLang] = useState<"cpp" | "python" | "java" | "javascript">("cpp");
   const [copied, setCopied] = useState(false);
   const [expandedHints, setExpandedHints] = useState<Record<string, boolean>>({});
 
-  // Fallback details if slug isn't found
-  const problem = PROBLEM_DATABASE[slug] || {
-    title: "Practice Problem Details",
-    difficulty: "Medium" as const,
-    platform: "CrackDSA",
-    problemUrl: "https://leetcode.com",
-    description: `
-      <p class="mb-4">Standard interview practice problem. Solve on external platform to check all testcases.</p>
-    `,
+  // If problemData is missing, render error layout (No Mock Data Fallback!)
+  if (!problemData) {
+    return (
+      <div className="w-full min-h-[350px] rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center p-8 space-y-4 text-center">
+        <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/10">
+          <HelpCircle size={20} />
+        </div>
+        <div>
+          <h4 className="text-sm font-black text-red-600">Practice Problem Not Found</h4>
+          <p className="text-xs text-red-500/80 mt-1 font-semibold max-w-md">
+            The specifications for this coding problem are not available in the database. Check your syllabus details or try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Construct problem details from dynamic data
+  const problem: ProblemDetail = {
+    title: problemData.title || "Untitled Problem",
+    difficulty: (problemData.difficulty || "Medium") as "Easy" | "Medium" | "Hard",
+    platform: problemData.platform || "Internal",
+    problemUrl: problemData.problem_url || problemData.problemUrl || "",
+    description: problemData.description || "",
     solutions: {
-      cpp: { code: "// Solution code is available in syllabus playlist\n// Check active live recording video", timeComplexity: "O(N)", spaceComplexity: "O(1)", explanation: "Watch lecture recording for line-by-line tracing." },
-      python: { code: "# Solution code is available in syllabus playlist", timeComplexity: "O(N)", spaceComplexity: "O(1)", explanation: "Watch lecture recording for details." },
-      java: { code: "// Solution code is available in syllabus playlist", timeComplexity: "O(N)", spaceComplexity: "O(1)", explanation: "Watch lecture recording for details." },
-      javascript: { code: "// Solution code is available in syllabus playlist", timeComplexity: "O(N)", spaceComplexity: "O(1)", explanation: "Watch lecture recording for details." }
-    }
+      cpp: {
+        code: problemData.solutions?.cpp?.code || (typeof problemData.solutions?.cpp === "string" ? problemData.solutions.cpp : "") || "// C++ Solution is not provided",
+        timeComplexity: problemData.solutions?.cpp?.time_complexity || problemData.solutions?.cpp?.timeComplexity || "",
+        spaceComplexity: problemData.solutions?.cpp?.space_complexity || problemData.solutions?.cpp?.spaceComplexity || "",
+        explanation: problemData.solutions?.cpp?.explanation || ""
+      },
+      python: {
+        code: problemData.solutions?.python?.code || (typeof problemData.solutions?.python === "string" ? problemData.solutions.python : "") || "# Python Solution is not provided",
+        timeComplexity: problemData.solutions?.python?.time_complexity || problemData.solutions?.python?.timeComplexity || "",
+        spaceComplexity: problemData.solutions?.python?.space_complexity || problemData.solutions?.python?.spaceComplexity || "",
+        explanation: problemData.solutions?.python?.explanation || ""
+      },
+      java: {
+        code: problemData.solutions?.java?.code || (typeof problemData.solutions?.java === "string" ? problemData.solutions.java : "") || "// Java Solution is not provided",
+        timeComplexity: problemData.solutions?.java?.time_complexity || problemData.solutions?.java?.timeComplexity || "",
+        spaceComplexity: problemData.solutions?.java?.space_complexity || problemData.solutions?.java?.spaceComplexity || "",
+        explanation: problemData.solutions?.java?.explanation || ""
+      },
+      javascript: {
+        code: problemData.solutions?.javascript?.code || (typeof problemData.solutions?.javascript === "string" ? problemData.solutions.javascript : "") || "// JavaScript Solution is not provided",
+        timeComplexity: problemData.solutions?.javascript?.time_complexity || problemData.solutions?.javascript?.timeComplexity || "",
+        spaceComplexity: problemData.solutions?.javascript?.space_complexity || problemData.solutions?.javascript?.spaceComplexity || "",
+        explanation: problemData.solutions?.javascript?.explanation || ""
+      }
+    },
+    companyTags: problemData.attributes?.company_tags || problemData.attributes?.companyTags || [],
+    topicTags: problemData.attributes?.tags || problemData.attributes?.topicTags || [],
+    hints: problemData.attributes?.hints || []
   };
 
   const activeSolution = problem.solutions[activeLang];

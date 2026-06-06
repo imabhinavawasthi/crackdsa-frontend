@@ -87,7 +87,7 @@ export default function AuthImpact() {
         </p>
         <div className="flex items-center gap-2">
           <div className="h-5 w-5 rounded-full bg-linear-to-br from-brand-400 to-blue-600 border border-white/20" />
-          <p className="text-[9px] font-bold text-white uppercase tracking-wider">Abhinav Awasthi — SDE @ Zeta</p>
+          <p className="text-[9px] font-bold text-white uppercase tracking-wider">Abhinav Awasthi - SDE @ Zeta</p>
         </div>
       </motion.div>
     </div>

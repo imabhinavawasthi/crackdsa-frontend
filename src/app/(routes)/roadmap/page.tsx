@@ -653,7 +653,7 @@ export default function RoadmapPage() {
                 Now Studying
               </p>
               <p className="text-sm font-semibold text-gray-800 dark:text-white mt-0.5 truncate">
-                {currentTopic?.title ?? "—"}
+                {currentTopic?.title ?? "-"}
               </p>
               <p className="text-xs text-brand-500 dark:text-brand-400 mt-0.5">
                 {currentTopic

@@ -4,23 +4,39 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getStoredToken } from "@/functions/auth";
-import Button from "@/components/ui/button/Button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { 
   ArrowLeft, 
   Plus, 
-  HelpCircle,
-  FileText,
-  Link as LinkIcon,
   Loader2,
-  Sparkles,
+  AlertCircle,
   Trash2,
   Code as CodeIcon,
-  Tag,
-  BookOpen
+  Lock,
+  CheckCircle2
 } from "lucide-react";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import RichTextEditor from "@/components/ui/editor/RichTextEditor";
+
+const problemSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
+  difficulty: z.enum(["Easy", "Medium", "Hard"]),
+  platform: z.string().min(1, "Platform is required"),
+  problem_url: z.string().nullable().optional(),
+  difficulty_level: z.number().min(1).max(10),
+  pattern: z.string().nullable().optional(),
+  tags: z.string().nullable().optional(),
+});
+
+type ProblemFormValues = z.infer<typeof problemSchema>;
 
 type SolutionRow = {
   language: string;
@@ -39,17 +55,8 @@ export default function AddPracticeProblemPage() {
   const { user, isLoading: authLoading, isLoggedIn } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    document.title = "Add Practice Problem | CrackDSA";
-  }, []);
-
-  // Primary form inputs state
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
+  // HTML content for description (handled outside react-hook-form for RichText compatibility)
   const [description, setDescription] = useState("");
-  const [difficulty, setDifficulty] = useState<"Easy" | "Medium" | "Hard">("Easy");
-  const [platform, setPlatform] = useState("Internal");
-  const [problemUrl, setProblemUrl] = useState("");
 
   // Dynamic Solutions state
   const [solutions, setSolutions] = useState<SolutionRow[]>([
@@ -61,29 +68,41 @@ export default function AddPracticeProblemPage() {
   const [officialEditorialUrl, setOfficialEditorialUrl] = useState("");
   const [customResources, setCustomResources] = useState<CustomResourceRow[]>([]);
 
-  // Attributes / Metadata state
-  const [difficultyLevel, setDifficultyLevel] = useState<number>(5);
-  const [pattern, setPattern] = useState("");
-  const [tagsStr, setTagsStr] = useState("");
+  // Custom attributes json
   const [customJsonStr, setCustomJsonStr] = useState("{\n  \"importance_score\": 8,\n  \"frequency_score\": 8.0,\n  \"company_tags\": [\"Google\", \"Meta\"]\n}");
   const [isJsonValid, setIsJsonValid] = useState(true);
-
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ProblemFormValues>({
+    resolver: zodResolver(problemSchema),
+    defaultValues: {
+      title: "",
+      slug: "",
+      difficulty: "Easy",
+      platform: "Internal",
+      problem_url: "",
+      difficulty_level: 5,
+      pattern: "",
+      tags: ""
+    }
+  });
+
+  const titleWatch = watch("title");
+  const slugWatch = watch("slug");
+
   // Auto-generate slug from title
   useEffect(() => {
-    if (title && !slug) {
-      const autoSlug = title
+    if (titleWatch && !slugWatch) {
+      const autoSlug = titleWatch
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)+/g, "");
-      setSlug(autoSlug);
+      setValue("slug", autoSlug);
     }
-  }, [title, slug]);
+  }, [titleWatch, slugWatch, setValue]);
 
   // Validate JSON string on change
   useEffect(() => {
@@ -99,50 +118,38 @@ export default function AddPracticeProblemPage() {
     }
   }, [customJsonStr]);
 
-  // Handle adding solution row
   const addSolutionRow = () => {
     setSolutions([...solutions, { language: "cpp", code: "", explanation: "", timeComplexity: "", spaceComplexity: "" }]);
   };
 
-  // Handle removing solution row
   const removeSolutionRow = (index: number) => {
     setSolutions(solutions.filter((_, i) => i !== index));
   };
 
-  // Handle changing solution row field
   const handleSolutionChange = (index: number, field: keyof SolutionRow, val: string) => {
     const updated = [...solutions];
     updated[index][field] = val;
     setSolutions(updated);
   };
 
-  // Handle adding custom resource row
   const addCustomResourceRow = () => {
     setCustomResources([...customResources, { key: "", value: "" }]);
   };
 
-  // Handle removing custom resource row
   const removeCustomResourceRow = (index: number) => {
     setCustomResources(customResources.filter((_, i) => i !== index));
   };
 
-  // Handle changing custom resource row
   const handleCustomResourceChange = (index: number, field: "key" | "value", val: string) => {
     const updated = [...customResources];
     updated[index][field] = val;
     setCustomResources(updated);
   };
 
-  // Handle Save submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: ProblemFormValues) => {
+    setSubmitError(null);
     const token = getStoredToken();
     if (!token) return;
-
-    if (!title.trim() || !slug.trim()) {
-      setSubmitError("Title and URL Slug are required fields.");
-      return;
-    }
 
     if (!isJsonValid) {
       setSubmitError("Please correct the invalid Custom JSON Attributes syntax before saving.");
@@ -170,7 +177,6 @@ export default function AddPracticeProblemPage() {
       official_editorial_url: officialEditorialUrl.trim() || null
     };
 
-    // Append dynamic custom resources
     customResources.forEach((row) => {
       const cleanKey = row.key.trim();
       if (cleanKey) {
@@ -179,7 +185,7 @@ export default function AddPracticeProblemPage() {
       }
     });
 
-    // 3. Build attributes payload: combine tags, pattern, difficulty level, and parsed custom JSON
+    // 3. Build attributes payload
     let parsedAttributes: Record<string, unknown> = {};
     if (customJsonStr.trim()) {
       try {
@@ -190,32 +196,29 @@ export default function AddPracticeProblemPage() {
       }
     }
 
-    // Inject core metadata fields
-    parsedAttributes.difficulty_level = Number(difficultyLevel) || 5;
-    if (pattern.trim()) {
-      parsedAttributes.pattern = pattern.trim();
+    parsedAttributes.difficulty_level = Number(values.difficulty_level) || 5;
+    if (values.pattern?.trim()) {
+      parsedAttributes.pattern = values.pattern.trim();
     }
     
-    const tags = tagsStr.split(",").map(s => s.trim()).filter(Boolean);
-    if (tags.length > 0) {
-      parsedAttributes.tags = tags;
+    const tagsArray = values.tags ? values.tags.split(",").map(s => s.trim()).filter(Boolean) : [];
+    if (tagsArray.length > 0) {
+      parsedAttributes.tags = tagsArray;
     }
 
     const payload = {
-      title: title.trim(),
-      slug: slug.trim(),
+      title: values.title.trim(),
+      slug: values.slug.trim(),
       description: description.trim() || null,
-      difficulty,
-      platform,
-      problem_url: problemUrl.trim() || null,
+      difficulty: values.difficulty,
+      platform: values.platform,
+      problem_url: values.problem_url || null,
       solutions: solutionsPayload,
       resources: resourcesPayload,
       attributes: parsedAttributes
     };
 
     try {
-      setSubmitting(true);
-      setSubmitError(null);
       setSubmitSuccess(false);
 
       const res = await fetch(`${backendUrl}/api/v1/admin/practice-problems`, {
@@ -241,477 +244,296 @@ export default function AddPracticeProblemPage() {
       console.error("Submission failed:", err);
       const errMessage = err instanceof Error ? err.message : String(err);
       setSubmitError(errMessage || "An unexpected error occurred while saving.");
-    } finally {
-      setSubmitting(false);
     }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto pb-24 px-4">
-      {/* Top Navigation */}
-      <div className="mb-6 flex items-center justify-between">
-        <Link 
-          href="/admin/problems"
-          className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white uppercase tracking-wider transition-colors"
-        >
-          <ArrowLeft size={14} />
-          Back to Problems List
-        </Link>
+  if (authLoading) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
+        <Loader2 size={32} className="animate-spin text-brand-500" />
+        <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold">Verifying secure admin parameters...</p>
       </div>
+    );
+  }
 
-      {/* Main Card container */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800/80 rounded-3xl p-6 sm:p-8 shadow-theme-xs space-y-8">
-        
-        {/* Title bar info */}
-        <div className="border-b border-gray-100 dark:border-gray-800 pb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-500 border border-brand-500/10 flex items-center justify-center">
-              <Sparkles size={20} className="animate-pulse" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-gray-950 dark:text-white tracking-tight">
-                Add Practice Problem
-              </h1>
-              <p className="text-xs text-gray-400 font-semibold mt-0.5">
-                Register a new student coding challenge with rich descriptions, verified solution logs, and classification.
-              </p>
-            </div>
+  if (!isLoggedIn || !user?.roles?.includes("admin")) {
+    return (
+      <div className="min-h-[75vh] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-lg text-center space-y-6">
+          <div className="w-16 h-16 bg-red-500/10 text-red-500 border border-red-500/10 rounded-2xl flex items-center justify-center mx-auto">
+            <Lock size={30} />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black text-gray-950 dark:text-white tracking-tight">Access Prohibited</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+              This environment is strictly reserved for CrackDSA Administrators.
+            </p>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          
-          {/* SECTION 1: Primary Parameters */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-              Primary Specifications
-            </h3>
+  return (
+    <div className="max-w-4xl mx-auto pb-24 px-4">
+      {/* Header back button */}
+      <div className="mb-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-5">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-150 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+            title="Go Back"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-gray-950 dark:text-white tracking-tight">
+              Add Practice Problem
+            </h1>
+            <p className="text-xs text-gray-500 font-semibold mt-0.5">
+              Register a new student coding challenge with solution details.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* State Alerts */}
+      {submitError && (
+        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 flex items-start gap-2.5 mb-6">
+          <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+          <div className="text-xs font-semibold text-red-500 leading-normal">
+            {submitError}
+          </div>
+        </div>
+      )}
+
+      {submitSuccess && (
+        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-start gap-2.5 mb-6">
+          <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+          <div className="text-xs font-bold text-emerald-600">
+            Practice Problem registered successfully! Redirecting...
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>1. Primary Specifications</CardTitle>
+            <CardDescription>Setup basic challenge descriptions, platforms, and metadata.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Problem Title <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="text"
-                  required
-                  placeholder="e.g. Valid Palindrome"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="title">Problem Title *</Label>
+                <Input id="title" {...register("title")} />
+                {errors.title && (
+                  <p className="text-xs text-red-500 font-semibold">{errors.title.message}</p>
+                )}
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  URL Slug Handle <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="text"
-                  required
-                  placeholder="e.g. valid-palindrome"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"))}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="slug">Slug Handle *</Label>
+                <Input id="slug" {...register("slug")} />
+                {errors.slug && (
+                  <p className="text-xs text-red-500 font-semibold">{errors.slug.message}</p>
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4.5">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Difficulty Level <span className="text-red-500">*</span>
-                </label>
-                <select 
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value as "Easy" | "Medium" | "Hard")}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                >
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="difficulty">Difficulty *</Label>
+                <Select id="difficulty" {...register("difficulty")}>
                   <option value="Easy">Easy</option>
                   <option value="Medium">Medium</option>
                   <option value="Hard">Hard</option>
-                </select>
+                </Select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Platform <span className="text-red-500">*</span>
-                </label>
-                <select 
-                  value={platform}
-                  onChange={(e) => setPlatform(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                >
+              <div className="space-y-2">
+                <Label htmlFor="platform">Platform *</Label>
+                <Select id="platform" {...register("platform")}>
                   <option value="Internal">Internal</option>
                   <option value="LeetCode">LeetCode</option>
                   <option value="Codeforces">Codeforces</option>
                   <option value="HackerRank">HackerRank</option>
                   <option value="GeeksforGeeks">GeeksforGeeks</option>
-                </select>
+                </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="problem_url">Problem URL</Label>
+                <Input id="problem_url" type="url" {...register("problem_url")} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <div className="border border-gray-250 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+                <RichTextEditor value={description} onChange={setDescription} />
+              </div>
+            </div>
+
+          </CardContent>
+        </Card>
+
+        {/* SECTION 2: Dynamic Solutions */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  External URL Link
-                </label>
-                <input 
-                  type="url"
-                  placeholder="e.g. https://leetcode.com/problems/..."
-                  value={problemUrl}
-                  onChange={(e) => setProblemUrl(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
+                <CardTitle>2. Code Solutions</CardTitle>
+                <CardDescription>Configure language solutions, complexity metrics, and explanation logs.</CardDescription>
               </div>
-            </div>
-          </div>
-
-          {/* SECTION 2: Description text editor */}
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-                Problem Description & Constraints
-              </label>
-              <p className="text-[11px] text-gray-400 font-semibold mt-1 mb-2">
-                Draft a beautiful problem description detailing formatting constraints, expected input-output cases, and time limits.
-              </p>
-            </div>
-            
-            <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-gray-50/20 dark:bg-gray-900/50">
-              <RichTextEditor 
-                value={description}
-                onChange={setDescription}
-                placeholder="Write clear constraints, sample input/output examples, and algorithmic guidelines..."
-              />
-            </div>
-          </div>
-
-          {/* SECTION 3: Code Solutions */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-150 dark:border-gray-800 pb-2">
-              <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-                Coding Solutions
-              </h3>
               <button 
-                type="button"
+                type="button" 
                 onClick={addSolutionRow}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-500 hover:text-brand-600 transition-colors uppercase tracking-wider"
+                className="inline-flex items-center gap-1 text-xs font-bold text-gray-700 hover:text-gray-950 dark:text-gray-300 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <Plus size={14} />
-                Add Language
+                Add Solution
               </button>
             </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {solutions.map((sol, index) => (
+              <div key={index} className="border border-gray-200 dark:border-gray-800 p-5 rounded-xl bg-gray-50/30 dark:bg-gray-900/30 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <CodeIcon size={14} className="text-gray-400" />
+                    Solution #{index + 1}
+                  </span>
+                  {solutions.length > 1 && (
+                    <button 
+                      type="button" 
+                      onClick={() => removeSolutionRow(index)}
+                      className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 cursor-pointer"
+                    >
+                      <Trash2 size={13} /> Remove
+                    </button>
+                  )}
+                </div>
 
-            <div className="space-y-4">
-              {solutions.map((sol, index) => (
-                <div 
-                  key={index}
-                  className="border border-gray-150 dark:border-gray-800 p-4.5 rounded-2xl bg-gray-50/20 dark:bg-gray-800/10 space-y-4.5 relative"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1">
-                      <CodeIcon size={14} className="text-brand-500" />
-                      Solution #{index + 1}
-                    </span>
-                    {solutions.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeSolutionRow(index)}
-                        className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 uppercase tracking-wider transition-colors"
-                      >
-                        <Trash2 size={13} />
-                        Remove
-                      </button>
-                    )}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Language</Label>
+                    <Select value={sol.language} onChange={(e) => handleSolutionChange(index, "language", e.target.value)}>
+                      <option value="cpp">C++</option>
+                      <option value="python">Python</option>
+                      <option value="java">Java</option>
+                      <option value="javascript">JavaScript</option>
+                    </Select>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                        Language Selector
-                      </label>
-                      <select 
-                        value={sol.language}
-                        onChange={(e) => handleSolutionChange(index, "language", e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-xs text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                      >
-                        <option value="cpp">C++ (GCC)</option>
-                        <option value="python">Python 3</option>
-                        <option value="java">Java (JDK)</option>
-                        <option value="javascript">JavaScript (Node)</option>
-                        <option value="typescript">TypeScript</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                        Time Complexity
-                      </label>
-                      <input 
-                        type="text"
-                        placeholder="e.g. O(N log N)"
-                        value={sol.timeComplexity}
-                        onChange={(e) => handleSolutionChange(index, "timeComplexity", e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-xs text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                        Space Complexity
-                      </label>
-                      <input 
-                        type="text"
-                        placeholder="e.g. O(1)"
-                        value={sol.spaceComplexity}
-                        onChange={(e) => handleSolutionChange(index, "spaceComplexity", e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-xs text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Time Complexity</Label>
+                    <Input placeholder="e.g. O(N)" value={sol.timeComplexity} onChange={(e) => handleSolutionChange(index, "timeComplexity", e.target.value)} />
                   </div>
 
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                      Code Implementation
-                    </label>
-                    <textarea 
-                      rows={6}
-                      placeholder="// Write code here..."
-                      value={sol.code}
-                      onChange={(e) => handleSolutionChange(index, "code", e.target.value)}
-                      className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-xs text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                      Solution Explanation
-                    </label>
-                    <textarea 
-                      rows={2}
-                      placeholder="Briefly describe the algorithmic core of this solution..."
-                      value={sol.explanation}
-                      onChange={(e) => handleSolutionChange(index, "explanation", e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-xs text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                    />
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Space Complexity</Label>
+                    <Input placeholder="e.g. O(1)" value={sol.spaceComplexity} onChange={(e) => handleSolutionChange(index, "spaceComplexity", e.target.value)} />
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* SECTION 4: Linked Resources */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-              Connected Learning Resources
-            </h3>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Code Implementation</Label>
+                  <Textarea rows={6} className="font-mono text-xs" placeholder="// Write code..." value={sol.code} onChange={(e) => handleSolutionChange(index, "code", e.target.value)} />
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide flex items-center gap-1">
-                  Video Lectures References
-                  <span title="Comma-separated UUID keys of platform video lectures">
-                    <HelpCircle size={12} className="text-gray-400 cursor-help" />
-                  </span>
-                </label>
-                <input 
-                  type="text"
-                  placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000, ..."
-                  value={videoLecturesStr}
-                  onChange={(e) => setVideoLecturesStr(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                />
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Explanation</Label>
+                  <Textarea rows={2} placeholder="Explain the dynamic details of this solution..." value={sol.explanation} onChange={(e) => handleSolutionChange(index, "explanation", e.target.value)} />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* SECTION 3: Resources & Attributes */}
+        <Card>
+          <CardHeader>
+            <CardTitle>3. Resources & Advanced Metadata</CardTitle>
+            <CardDescription>Setup tags, patterns, videos connection, and custom JSON fields.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="video_lectures">Video Lectures UUIDs (Comma separated)</Label>
+                <Input id="video_lectures" placeholder="e.g. uuid-1, uuid-2" value={videoLecturesStr} onChange={(e) => setVideoLecturesStr(e.target.value)} />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Official Editorial URL
-                </label>
-                <input 
-                  type="url"
-                  placeholder="e.g. https://leetcode.com/problems/.../editorial/"
-                  value={officialEditorialUrl}
-                  onChange={(e) => setOfficialEditorialUrl(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="editorial">Official Editorial URL</Label>
+                <Input id="editorial" type="url" placeholder="https://example.com/editorial" value={officialEditorialUrl} onChange={(e) => setOfficialEditorialUrl(e.target.value)} />
               </div>
             </div>
 
-            {/* Dynamic Custom Resources Key-Value rows */}
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="difficulty_level">Difficulty Weight (1-10)</Label>
+                <Input id="difficulty_level" type="number" min={1} max={10} {...register("difficulty_level", { valueAsNumber: true })} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pattern">Pattern Category</Label>
+                <Input id="pattern" placeholder="e.g. Sliding Window" {...register("pattern")} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tags">Tags (Comma separated)</Label>
+                <Input id="tags" placeholder="e.g. Arrays, Sorting" {...register("tags")} />
+              </div>
+            </div>
+
+            {/* Custom attributes */}
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1">
-                  Custom Platform Links
-                  <span title="Link blogs, cheatsheets, or external worksheets dynamically">
-                    <HelpCircle size={12} className="text-gray-400 cursor-help" />
-                  </span>
-                </label>
-                <button 
-                  type="button"
-                  onClick={addCustomResourceRow}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-500 hover:text-brand-600 transition-colors"
-                >
-                  <Plus size={12} />
-                  Add Field
-                </button>
+                <Label htmlFor="custom_json">Custom JSON Attributes Bucket</Label>
+                <span className={`text-[10px] font-bold uppercase ${isJsonValid ? "text-emerald-500" : "text-rose-500 animate-pulse"}`}>
+                  {isJsonValid ? "Syntax Valid" : "Syntax Invalid"}
+                </span>
               </div>
-
-              {customResources.length > 0 && (
-                <div className="space-y-3 p-3 rounded-2xl border border-gray-150 dark:border-gray-800/80 bg-gray-50/10">
-                  {customResources.map((row, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input 
-                        type="text"
-                        placeholder="Key (e.g. blogs)"
-                        required
-                        value={row.key}
-                        onChange={(e) => handleCustomResourceChange(index, "key", e.target.value)}
-                        className="w-1/3 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-850 bg-white dark:bg-gray-900 text-xs text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                      />
-                      <input 
-                        type="text"
-                        placeholder="Comma-separated URLs"
-                        required
-                        value={row.value}
-                        onChange={(e) => handleCustomResourceChange(index, "value", e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-850 bg-white dark:bg-gray-900 text-xs text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
-                      />
-                      <button 
-                        type="button" 
-                        onClick={() => removeCustomResourceRow(index)}
-                        className="p-2 text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* SECTION 5: Attributes and Metadata */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-              Advanced Attributes & Sorting Metadata
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4.5">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Difficulty Level Weight (1-10)
-                </label>
-                <input 
-                  type="number"
-                  min={1}
-                  max={10}
-                  required
-                  value={difficultyLevel}
-                  onChange={(e) => setDifficultyLevel(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Pattern Classification
-                </label>
-                <input 
-                  type="text"
-                  placeholder="e.g. Two Pointers"
-                  value={pattern}
-                  onChange={(e) => setPattern(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide flex items-center gap-1">
-                  Tag Classification
-                  <span title="Comma-separated categorization tags">
-                    <HelpCircle size={12} className="text-gray-400 cursor-help" />
-                  </span>
-                </label>
-                <input 
-                  type="text"
-                  placeholder="e.g. Two Pointers, Strings, Arrays"
-                  value={tagsStr}
-                  onChange={(e) => setTagsStr(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
-              </div>
-            </div>
-
-            {/* Custom JSON editor for remaining metadata */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
-                Custom JSON Metadata Bucket
-                {!isJsonValid ? (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-rose-500 uppercase tracking-wider animate-pulse">
-                    <Trash2 size={10} /> Invalid JSON Syntax
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center text-[10px] font-bold text-emerald-500 uppercase tracking-wider">
-                    Syntax OK
-                  </span>
-                )}
-              </label>
-              
-              <textarea 
+              <Textarea 
+                id="custom_json"
                 rows={5}
                 value={customJsonStr}
                 onChange={(e) => setCustomJsonStr(e.target.value)}
-                className={`w-full p-4 rounded-2xl border font-mono text-xs focus:outline-none focus:ring-1 transition-all ${
-                  isJsonValid 
-                    ? "border-gray-200 dark:border-gray-800 bg-transparent focus:ring-brand-500" 
-                    : "border-rose-500/50 bg-rose-500/5 text-rose-600 focus:ring-rose-500"
-                }`}
+                className={`font-mono text-xs ${!isJsonValid && "border-red-500 bg-red-50/10 focus-visible:ring-red-500"}`}
               />
             </div>
-          </div>
 
-          {/* Submission and error overlays */}
-          {submitError && (
-            <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4.5 flex items-start gap-2.5">
-              <Trash2 size={16} className="text-red-500 shrink-0 mt-0.5" />
-              <div className="text-xs font-semibold text-red-500 leading-normal">
-                {submitError}
-              </div>
+            {/* Save Buttons */}
+            <div className="flex items-center gap-3 border-t border-gray-200 dark:border-gray-800 pt-6 justify-end">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !isJsonValid}
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 dark:text-gray-900 rounded-lg shadow-sm disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin mr-1.5" />
+                    Saving...
+                  </>
+                ) : (
+                  "Create Problem"
+                )}
+              </button>
             </div>
-          )}
 
-          {submitSuccess && (
-            <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4.5 flex items-start gap-2.5">
-              <Sparkles size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-              <div className="text-xs font-bold text-emerald-600">
-                Practice Problem registered successfully! Redirecting back to catalog catalog...
-              </div>
-            </div>
-          )}
-
-          {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3.5 border-t border-gray-100 dark:border-gray-800 pt-5">
-            <Button 
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => router.push("/admin/problems")}
-              disabled={submitting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={submitting || !isJsonValid}
-              startIcon={submitting ? <Loader2 size={14} className="animate-spin" /> : undefined}
-            >
-              {submitting ? "Saving Problem..." : "Save Problem"}
-            </Button>
-          </div>
-
-        </form>
-      </div>
+          </CardContent>
+        </Card>
+      </form>
     </div>
   );
 }

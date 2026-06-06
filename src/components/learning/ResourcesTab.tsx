@@ -172,20 +172,39 @@ const cardVariants = {
 
 interface ResourcesTabProps {
   itemId: string;
+  backendResources?: any;
 }
 
-const ResourcesTab: React.FC<ResourcesTabProps> = ({ itemId }) => {
-  const resources = LECTURE_RESOURCES_DATABASE[itemId] || {
+const ResourcesTab: React.FC<ResourcesTabProps> = ({ itemId, backendResources }) => {
+  const mappedBackendResources: LectureResources | null = backendResources ? {
+    relatedProblems: (backendResources.relatedProblems || backendResources.related_problems || []).map((prob: any) => ({
+      title: prob.title || "",
+      url: prob.url || prob.problemUrl || prob.problem_url || "",
+      platform: prob.platform || "LeetCode",
+      difficulty: prob.difficulty || "Medium"
+    })),
+    relatedArticles: (backendResources.relatedArticles || backendResources.related_articles || []).map((art: any) => ({
+      title: art.title || "",
+      slug: art.slug || ""
+    })),
+    downloads: (backendResources.downloads || []).map((dl: any) => ({
+      name: dl.name || dl.title || "",
+      size: dl.size || "",
+      url: dl.url || "",
+      description: dl.description || ""
+    })),
+    codeLinks: (backendResources.codeLinks || backendResources.code_links || []).map((cl: any) => ({
+      name: cl.name || cl.title || "",
+      url: cl.url || "",
+      description: cl.description || ""
+    }))
+  } : null;
+
+  // Safe empty fallback structure if backendResources is not present
+  const resources = mappedBackendResources || {
     relatedProblems: [],
     relatedArticles: [],
-    downloads: [
-      {
-        name: "General Study Notes Handout",
-        size: "950 KB",
-        url: "#",
-        description: "Conceptual handout worksheet covering the topics taught in this syllabus section."
-      }
-    ],
+    downloads: [],
     codeLinks: []
   };
 

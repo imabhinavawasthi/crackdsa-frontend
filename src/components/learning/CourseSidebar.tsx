@@ -359,7 +359,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
       <div className="p-5 border-b border-gray-100 dark:border-gray-800/80 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* SVG Circular Progress Ring — animated on mount */}
+            {/* SVG Circular Progress Ring - animated on mount */}
             <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r={radius} fill="none" className="stroke-gray-100 dark:stroke-gray-800" strokeWidth="3" />
@@ -460,7 +460,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                   </motion.div>
                 </button>
 
-                {/* Subsections and Items list — smooth height animation */}
+                {/* Subsections and Items list - smooth height animation */}
                 <AnimatePresence initial={false}>
                   {isExpanded && (
                     <motion.div
@@ -505,7 +505,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                                 </motion.div>
                               </button>
 
-                              {/* Subsection Items — smooth height animation */}
+                              {/* Subsection Items - smooth height animation */}
                               <AnimatePresence initial={false}>
                                 {isSubExpanded && (
                                   <motion.div

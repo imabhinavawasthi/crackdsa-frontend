@@ -288,7 +288,7 @@ export default function LandingPage() {
 
       {/* ════════════════════ HERO ════════════════════ */}
       <section className="relative min-h-[100dvh] flex items-center justify-center px-5 sm:px-8 overflow-hidden">
-        {/* Minimal background — single soft gradient, no orbs */}
+        {/* Minimal background - single soft gradient, no orbs */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-brand-500/[0.07] rounded-full blur-[120px] -mt-48" />
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_70%)]" />
@@ -304,7 +304,7 @@ export default function LandingPage() {
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-[12px] font-medium text-gray-400 tracking-wide">
-              Trusted by 20,000+ SDE aspirants
+              First AI Driven DSA Platform
             </span>
           </motion.div>
 
@@ -344,7 +344,7 @@ export default function LandingPage() {
               href="/dashboard"
               className="group flex items-center gap-2.5 bg-brand-500 hover:bg-brand-400 text-white font-semibold px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30 text-[15px]"
             >
-              Start Learning — Free
+              Start Learning - Free
               <ArrowRight
                 size={16}
                 className="group-hover:translate-x-0.5 transition-transform"
@@ -405,7 +405,7 @@ export default function LandingPage() {
               Mentors & alumni from
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-              {["Google", "Amazon", "Microsoft", "Goldman Sachs", "Uber", "Adobe"].map(
+              {["Google", "Amazon", "Microsoft", "Linkedin", "Zeta", "Zomato"].map(
                 (company) => (
                   <span
                     key={company}
@@ -434,7 +434,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-gray-400 text-base sm:text-[17px] leading-relaxed">
               A beginner, a final-year student prepping for FAANG, and someone
-              switching careers — all grinding the same 450 problems. That&apos;s
+              switching careers - all grinding the same 450 problems. That&apos;s
               not learning. That&apos;s hoping.
             </p>
           </Reveal>
@@ -450,7 +450,7 @@ export default function LandingPage() {
               {
                 icon: <BarChart3 size={20} />,
                 title: "No Adaptation",
-                desc: "Same difficulty for everyone — beginners drown, advanced learners stall.",
+                desc: "Same difficulty for everyone - beginners drown, advanced learners stall.",
                 accent: "bg-amber-500/10 text-amber-400 border-amber-500/10",
               },
               {
@@ -513,13 +513,13 @@ export default function LandingPage() {
               {
                 icon: <Layers size={20} />,
                 title: "Pattern-First Curriculum",
-                desc: "Learn sliding window, two pointers, binary search — the actual patterns interviewers test, not random problems.",
+                desc: "Learn sliding window, two pointers, binary search - the actual patterns interviewers test, not random problems.",
                 accent: "text-blue-light-400",
               },
               {
                 icon: <Zap size={20} />,
                 title: "Curated DSA Sheets",
-                desc: "Blind 75, CrackDSA 75, Pattern Mastery — structured sheets with difficulty progression built in.",
+                desc: "Blind 75, CrackDSA 75, Pattern Mastery - structured sheets with difficulty progression built in.",
                 accent: "text-amber-400",
               },
               {
@@ -572,7 +572,7 @@ export default function LandingPage() {
               {
                 step: "02",
                 title: "Get your personalised roadmap",
-                desc: "Our system generates a structured path — topics sequenced by dependency, problems ordered by difficulty, patterns front and centre.",
+                desc: "Our system generates a structured path - topics sequenced by dependency, problems ordered by difficulty, patterns front and centre.",
                 icon: <BookOpen size={18} />,
               },
               {
@@ -780,7 +780,7 @@ export default function LandingPage() {
                 href="/dashboard"
                 className="group flex items-center gap-2.5 bg-brand-500 hover:bg-brand-400 text-white font-semibold text-[15px] sm:text-base px-8 py-4 rounded-xl transition-all shadow-lg shadow-brand-500/20 hover:shadow-brand-500/30"
               >
-                Get Started — It&apos;s Free
+                Get Started - It&apos;s Free
                 <ChevronRight
                   size={16}
                   className="group-hover:translate-x-0.5 transition-transform"

@@ -4,24 +4,47 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getStoredToken } from "@/functions/auth";
-import Button from "@/components/ui/button/Button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Lock, 
   ArrowLeft, 
   Loader2,
   AlertCircle,
   Edit3,
-  Save,
-  X,
   Plus,
   Trash2,
   ExternalLink,
   CheckCircle2,
-  Users,
-  Building2
+  Users
 } from "lucide-react";
-import { motion } from "framer-motion";
 import Link from "next/link";
+
+// Define Validation Schema
+const instructorSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  role: z.string().min(1, "Role is required"),
+  sub_title: z.string().nullable().optional(),
+  bio: z.string().nullable().optional(),
+  profile_image_url: z.string().nullable().optional(),
+  is_active: z.boolean(),
+});
+
+type InstructorFormValues = z.infer<typeof instructorSchema>;
 
 type Instructor = {
   id: string;
@@ -55,20 +78,18 @@ export default function InstructorDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [editSuccess, setEditSuccess] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  // Edit form state
-  const [editName, setEditName] = useState("");
-  const [editRole, setEditRole] = useState("");
-  const [editSubTitle, setEditSubTitle] = useState("");
-  const [editBio, setEditBio] = useState("");
-  const [editProfileImageUrl, setEditProfileImageUrl] = useState("");
-  const [editIsActive, setEditIsActive] = useState(true);
+  // Metadata custom fields state
   const [metadataFields, setMetadataFields] = useState<MetadataField[]>([]);
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
-  // Fetch specific instructor
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<InstructorFormValues>({
+    resolver: zodResolver(instructorSchema)
+  });
+
   const fetchInstructor = useCallback(async () => {
     if (!id) return;
     const token = getStoredToken();
@@ -88,21 +109,23 @@ export default function InstructorDetailPage() {
         if (res.status === 404) {
           throw new Error("Instructor could not be found.");
         }
-        throw new Error(`Failed to load: ${res.statusText}`);
+        throw new Error(`Failed to load instructor: ${res.statusText}`);
       }
 
       const data = await res.json();
       setInstructor(data);
 
-      // Initialize edit form with fetched data
-      setEditName(data.name);
-      setEditRole(data.role);
-      setEditSubTitle(data.sub_title || "");
-      setEditBio(data.bio || "");
-      setEditProfileImageUrl(data.profile_image_url || "");
-      setEditIsActive(data.is_active);
+      // Reset react-hook-form default values
+      reset({
+        name: data.name,
+        role: data.role,
+        sub_title: data.sub_title || "",
+        bio: data.bio || "",
+        profile_image_url: data.profile_image_url || "",
+        is_active: data.is_active,
+      });
 
-      // Convert metadata to fields
+      // Map metadata
       const fields: MetadataField[] = Object.entries(data.metadata || {}).map(([key, value]) => ({
         key,
         value: String(value)
@@ -115,7 +138,7 @@ export default function InstructorDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [id, backendUrl]);
+  }, [id, backendUrl, reset]);
 
   useEffect(() => {
     if (isLoggedIn && user?.roles?.includes("admin")) {
@@ -127,33 +150,22 @@ export default function InstructorDetailPage() {
     document.title = instructor ? `${instructor.name} | CrackDSA Admin` : "Instructor Details | CrackDSA";
   }, [instructor]);
 
-  // Handle adding new metadata field
   const addMetadataField = () => {
     setMetadataFields([...metadataFields, { key: "", value: "" }]);
   };
 
-  // Handle removing metadata field
   const removeMetadataField = (index: number) => {
     setMetadataFields(metadataFields.filter((_, i) => i !== index));
   };
 
-  // Handle metadata field change
   const updateMetadataField = (index: number, key: "key" | "value", val: string) => {
     const updated = [...metadataFields];
     updated[index][key] = val;
     setMetadataFields(updated);
   };
 
-  // Handle update
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: InstructorFormValues) => {
     setEditError(null);
-
-    if (!editName.trim() || !editRole.trim()) {
-      setEditError("Name and Role are required fields.");
-      return;
-    }
-
     const token = getStoredToken();
     if (!token) {
       setEditError("Authentication token not found.");
@@ -161,9 +173,6 @@ export default function InstructorDetailPage() {
     }
 
     try {
-      setSaving(true);
-
-      // Build metadata object
       const metadata: Record<string, string> = {};
       metadataFields.forEach((field) => {
         if (field.key.trim()) {
@@ -172,13 +181,11 @@ export default function InstructorDetailPage() {
       });
 
       const payload = {
-        name: editName.trim(),
-        role: editRole.trim(),
-        sub_title: editSubTitle.trim() || null,
-        bio: editBio.trim() || null,
-        profile_image_url: editProfileImageUrl.trim() || null,
+        ...values,
+        sub_title: values.sub_title || null,
+        bio: values.bio || null,
+        profile_image_url: values.profile_image_url || null,
         metadata: metadata,
-        is_active: editIsActive
       };
 
       const res = await fetch(`${backendUrl}/api/v1/admin/instructors/${id}`, {
@@ -206,21 +213,15 @@ export default function InstructorDetailPage() {
     } catch (err: unknown) {
       const errMessage = err instanceof Error ? err.message : String(err);
       setEditError(errMessage);
-    } finally {
-      setSaving(false);
     }
   };
 
-  // Handle delete
   const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to delete "${instructor?.name}"? This action cannot be undone.`)) {
-      return;
-    }
-
     const token = getStoredToken();
     if (!token) return;
 
     try {
+      setDeleting(true);
       const res = await fetch(`${backendUrl}/api/v1/admin/instructors/${id}?hard_delete=true`, {
         method: "DELETE",
         headers: {
@@ -232,10 +233,13 @@ export default function InstructorDetailPage() {
         throw new Error("Failed to delete instructor.");
       }
 
+      setIsDeleteDialogOpen(false);
       router.push("/admin/instructors");
     } catch (err: unknown) {
       const errMessage = err instanceof Error ? err.message : String(err);
       alert(errMessage);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -251,11 +255,7 @@ export default function InstructorDetailPage() {
   if (!isLoggedIn || !user?.roles?.includes("admin")) {
     return (
       <div className="min-h-[75vh] flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-8 shadow-lg text-center space-y-6"
-        >
+        <div className="max-w-md w-full bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-3xl p-8 shadow-lg text-center space-y-6">
           <div className="w-16 h-16 bg-red-500/10 text-red-500 border border-red-500/10 rounded-2xl flex items-center justify-center mx-auto">
             <Lock size={30} />
           </div>
@@ -265,7 +265,7 @@ export default function InstructorDetailPage() {
               This environment is strictly reserved for CrackDSA Administrators.
             </p>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -284,34 +284,29 @@ export default function InstructorDetailPage() {
       <div className="max-w-3xl mx-auto space-y-4 pb-20 px-4 py-8">
         <button
           onClick={() => router.back()}
-          className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+          className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-150 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
         >
           <ArrowLeft size={18} />
         </button>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-red-500/5 border border-red-500/10 rounded-2xl p-6 flex items-start gap-3"
-        >
+        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-6 flex items-start gap-3">
           <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
           <div>
             <h4 className="text-sm font-black text-red-600">Failed to Load Instructor</h4>
             <p className="text-xs text-red-500/80 mt-1 font-semibold">{error || "Instructor not found."}</p>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 pb-20 px-4">
-      
-      {/* Header with Back Button */}
-      <div className="flex items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800/80 pb-6">
+      {/* Header Panel */}
+      <div className="flex items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-6">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-150 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
             title="Go Back"
           >
             <ArrowLeft size={18} />
@@ -329,331 +324,312 @@ export default function InstructorDetailPage() {
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 hover:bg-brand-500/20 transition-all font-bold text-xs border border-brand-500/20"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-colors font-bold text-xs cursor-pointer"
           >
             <Edit3 size={14} />
-            Edit
+            Edit Profile
           </button>
         )}
       </div>
 
-      {/* Success Alert */}
+      {/* State Alerts */}
       {editSuccess && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-start gap-3"
-        >
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-start gap-3">
           <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
           <div>
             <h4 className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Update Successful!</h4>
-            <p className="text-xs text-emerald-500/80 mt-1">Changes have been saved.</p>
+            <p className="text-xs text-emerald-500/80 mt-1">Instructor profile changes have been synchronized.</p>
           </div>
-        </motion.div>
+        </div>
       )}
 
-      {/* Error Alert */}
       {editError && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 flex items-start gap-3"
-        >
+        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 flex items-start gap-3">
           <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
           <div>
             <h4 className="text-sm font-bold text-red-600 dark:text-red-400">Error</h4>
             <p className="text-xs text-red-500/80 mt-1">{editError}</p>
           </div>
-        </motion.div>
+        </div>
       )}
 
-      {/* Details or Edit Form */}
+      {/* View or Edit mode */}
       {isEditing ? (
-        <form onSubmit={handleUpdate} className="space-y-6 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-          
-          {/* Required Fields */}
-          <div className="space-y-5">
-            <h2 className="text-sm font-bold text-gray-950 dark:text-white uppercase tracking-wider">Required Information</h2>
-            
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 text-gray-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-sm"
-              />
-            </div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit Instructor Profile</CardTitle>
+              <CardDescription>Modify role, tagline details, and metadata.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {/* Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="name" 
+                    {...register("name")} 
+                  />
+                  {errors.name && (
+                    <p className="text-xs text-red-500 font-semibold">{errors.name.message}</p>
+                  )}
+                </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                Role <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={editRole}
-                onChange={(e) => setEditRole(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 text-gray-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Optional Fields */}
-          <div className="space-y-5 border-t border-gray-100 dark:border-gray-800 pt-6">
-            <h2 className="text-sm font-bold text-gray-950 dark:text-white uppercase tracking-wider">Optional Information</h2>
-            
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                Subtitle
-              </label>
-              <input
-                type="text"
-                value={editSubTitle}
-                onChange={(e) => setEditSubTitle(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 text-gray-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                Biography
-              </label>
-              <textarea
-                value={editBio}
-                onChange={(e) => setEditBio(e.target.value)}
-                rows={4}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 text-gray-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-sm resize-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
-                Profile Image URL
-              </label>
-              <input
-                type="url"
-                value={editProfileImageUrl}
-                onChange={(e) => setEditProfileImageUrl(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 text-gray-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={editIsActive}
-                  onChange={(e) => setEditIsActive(e.target.checked)}
-                  className="w-4 h-4 rounded border border-gray-300 dark:border-gray-700 cursor-pointer"
-                />
-                <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Active (Visible in Courses)
-                </span>
-              </label>
-            </div>
-          </div>
-
-          {/* Metadata Section */}
-          <div className="space-y-5 border-t border-gray-100 dark:border-gray-800 pt-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-950 dark:text-white uppercase tracking-wider">Custom Metadata</h2>
-              <button
-                type="button"
-                onClick={addMetadataField}
-                className="flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700"
-              >
-                <Plus size={14} />
-                Add Field
-              </button>
-            </div>
-
-            {metadataFields.length === 0 ? (
-              <p className="text-xs text-gray-400 italic">No metadata fields. You can add custom fields here.</p>
-            ) : (
-              <div className="space-y-3">
-                {metadataFields.map((field, index) => (
-                  <div key={index} className="flex gap-3 items-end">
-                    <input
-                      type="text"
-                      value={field.key}
-                      onChange={(e) => updateMetadataField(index, "key", e.target.value)}
-                      placeholder="Key"
-                      className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 text-gray-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-xs"
-                    />
-                    <input
-                      type="text"
-                      value={field.value}
-                      onChange={(e) => updateMetadataField(index, "value", e.target.value)}
-                      placeholder="Value"
-                      className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 text-gray-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 text-xs"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeMetadataField(index)}
-                      className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
+                {/* Role */}
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role / Corporate Title <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="role" 
+                    {...register("role")} 
+                  />
+                  {errors.role && (
+                    <p className="text-xs text-red-500 font-semibold">{errors.role.message}</p>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* Form Actions */}
-          <div className="flex items-center gap-3 border-t border-gray-100 dark:border-gray-800 pt-6 justify-end">
-            <button
-              type="button"
-              onClick={() => setIsEditing(false)}
-              className="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-950 dark:text-white font-bold text-xs hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
-            >
-              Cancel
-            </button>
-            <Button
-              type="submit"
-              disabled={saving}
-              variant="primary"
-              className="flex items-center gap-2"
-            >
-              {saving ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save size={14} />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </div>
+              {/* Subtitle */}
+              <div className="space-y-2">
+                <Label htmlFor="sub_title">Tagline Subtitle</Label>
+                <Input 
+                  id="sub_title" 
+                  {...register("sub_title")} 
+                />
+              </div>
+
+              {/* Biography */}
+              <div className="space-y-2">
+                <Label htmlFor="bio">Biography Resume</Label>
+                <Textarea 
+                  id="bio" 
+                  rows={4} 
+                  {...register("bio")} 
+                />
+              </div>
+
+              {/* Profile Image URL */}
+              <div className="space-y-2">
+                <Label htmlFor="profile_image_url">Avatar Image URL</Label>
+                <Input 
+                  id="profile_image_url" 
+                  type="url" 
+                  {...register("profile_image_url")} 
+                />
+              </div>
+
+              {/* Active Toggle Status */}
+              <div className="space-y-2">
+                <Label htmlFor="is_active">Visibility Status</Label>
+                <Select 
+                  id="is_active" 
+                  defaultValue={instructor.is_active ? "true" : "false"}
+                  onChange={(e) => reset({ ...instructor, is_active: e.target.value === "true" })}
+                >
+                  <option value="true">Active (Visible)</option>
+                  <option value="false">Inactive (Hidden)</option>
+                </Select>
+              </div>
+
+              {/* Metadata Fields Section */}
+              <div className="space-y-4 border-t border-gray-200 dark:border-gray-800 pt-6">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-bold uppercase tracking-wider">Custom Profile Metadata</Label>
+                  <button
+                    type="button"
+                    onClick={addMetadataField}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-gray-700 hover:text-gray-950 dark:text-gray-300 dark:hover:text-white transition-colors cursor-pointer"
+                  >
+                    <Plus size={14} />
+                    Add Property
+                  </button>
+                </div>
+
+                {metadataFields.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">No custom metadata attributes defined.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {metadataFields.map((field, idx) => (
+                      <div key={idx} className="flex gap-3 items-end">
+                        <Input
+                          placeholder="Property name"
+                          value={field.key}
+                          onChange={(e) => updateMetadataField(idx, "key", e.target.value)}
+                          className="h-9 text-xs"
+                        />
+                        <Input
+                          placeholder="Property value"
+                          value={field.value}
+                          onChange={(e) => updateMetadataField(idx, "value", e.target.value)}
+                          className="h-9 text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeMetadataField(idx)}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors shrink-0 cursor-pointer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex items-center gap-3 border-t border-gray-200 dark:border-gray-800 pt-6 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 dark:text-gray-900 rounded-lg shadow-sm disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin mr-1.5" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </button>
+              </div>
+
+            </CardContent>
+          </Card>
         </form>
       ) : (
-        <div className="space-y-6 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 sm:p-8">
-          
-          {/* View Mode - Instructor Info */}
-          <div className="space-y-5">
-            <h2 className="text-sm font-bold text-gray-950 dark:text-white uppercase tracking-wider">Profile Information</h2>
-            
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Instructor Profile Sheet</CardTitle>
+                <CardDescription>General credentials configuration parameters.</CardDescription>
+              </div>
+              <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                instructor.is_active
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/10"
+                  : "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/10"
+              }`}>
+                {instructor.is_active ? "Active" : "Inactive"}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Name
-                </label>
-                <p className="text-sm font-semibold text-gray-950 dark:text-white">{instructor.name}</p>
+                <Label className="text-gray-400 dark:text-gray-500">Name</Label>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{instructor.name}</p>
               </div>
-
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Role
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <Building2 size={14} className="text-gray-400" />
-                  <p className="text-sm font-semibold text-gray-950 dark:text-white">{instructor.role}</p>
-                </div>
+                <Label className="text-gray-400 dark:text-gray-500">Role</Label>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{instructor.role}</p>
               </div>
-
               {instructor.sub_title && (
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                    Subtitle
-                  </label>
-                  <p className="text-sm font-semibold text-gray-950 dark:text-white">{instructor.sub_title}</p>
+                <div className="sm:col-span-2">
+                  <Label className="text-gray-400 dark:text-gray-500">Subtitle</Label>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white mt-1">{instructor.sub_title}</p>
                 </div>
               )}
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Status
-                </label>
-                <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                  instructor.is_active
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/10"
-                    : "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/10"
-                }`}>
-                  {instructor.is_active ? "Active" : "Inactive"}
-                </span>
-              </div>
             </div>
 
             {instructor.bio && (
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Biography
-                </label>
-                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{instructor.bio}</p>
+              <div className="border-t border-gray-150 dark:border-gray-800 pt-4">
+                <Label className="text-gray-400 dark:text-gray-500">Biography</Label>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mt-1.5 whitespace-pre-wrap">{instructor.bio}</p>
               </div>
             )}
 
             {instructor.profile_image_url && (
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                  Profile Image
-                </label>
-                <div className="flex items-center gap-2">
+              <div className="border-t border-gray-150 dark:border-gray-800 pt-4">
+                <Label className="text-gray-400 dark:text-gray-500">Avatar Image</Label>
+                <div className="flex items-center gap-3 mt-1.5">
                   <img
                     src={instructor.profile_image_url}
                     alt={instructor.name}
-                    className="w-16 h-16 rounded-lg object-cover border border-gray-200 dark:border-gray-800"
+                    className="w-16 h-16 rounded-xl object-cover border border-gray-200 dark:border-gray-800"
                   />
                   <a
                     href={instructor.profile_image_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-brand-500 hover:underline"
                   >
-                    View Image
-                    <ExternalLink size={12} />
+                    Open Link <ExternalLink size={12} />
                   </a>
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Metadata Display */}
-          {Object.keys(instructor.metadata || {}).length > 0 && (
-            <div className="space-y-5 border-t border-gray-100 dark:border-gray-800 pt-6">
-              <h2 className="text-sm font-bold text-gray-950 dark:text-white uppercase tracking-wider">Metadata</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {Object.entries(instructor.metadata || {}).map(([key, value]) => (
-                  <div key={key} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
-                      {key}
-                    </p>
-                    <p className="text-sm text-gray-950 dark:text-white font-semibold break-words">
-                      {Array.isArray(value) ? value.join(", ") : String(value)}
-                    </p>
-                  </div>
-                ))}
+            {Object.keys(instructor.metadata || {}).length > 0 && (
+              <div className="border-t border-gray-150 dark:border-gray-800 pt-4 space-y-3">
+                <Label className="text-gray-400 dark:text-gray-500">Metadata Properties</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Object.entries(instructor.metadata || {}).map(([key, value]) => (
+                    <div key={key} className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3.5">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">{key}</span>
+                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
+            )}
+
+            <div className="border-t border-gray-150 dark:border-gray-800 pt-6 flex items-center justify-between select-none">
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wide">
+                Last Updated: {new Date(instructor.updated_at).toLocaleString()}
+              </span>
+              <button
+                onClick={() => setIsDeleteDialogOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border border-transparent transition-colors cursor-pointer"
+              >
+                <Trash2 size={14} />
+                Delete Instructor
+              </button>
             </div>
-          )}
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Timestamps */}
-          <div className="border-t border-gray-100 dark:border-gray-800 pt-6 space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              <span className="font-bold">Created:</span> {new Date(instructor.created_at).toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              <span className="font-bold">Updated:</span> {new Date(instructor.updated_at).toLocaleString()}
-            </p>
-          </div>
-
-          {/* Delete Button */}
-          <div className="border-t border-gray-100 dark:border-gray-800 pt-6 flex justify-end">
+      {/* Delete Dialog Overlay */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Instructor Deletion</DialogTitle>
+            <DialogDescription>
+              Are you absolutely sure you want to delete instructor &quot;{instructor?.name}&quot;? This action will permanently erase their details and metadata from the database.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <button
+              onClick={() => setIsDeleteDialogOpen(false)}
+              className="px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
             <button
               onClick={handleDelete}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all font-bold text-xs border border-red-500/20"
+              disabled={deleting}
+              className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white bg-red-650 hover:bg-red-700 rounded-lg disabled:opacity-50 transition-colors cursor-pointer"
             >
-              <Trash2 size={14} />
-              Delete Permanently
+              {deleting ? (
+                <>
+                  <Loader2 size={13} className="animate-spin mr-1.5" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Permanently"
+              )}
             </button>
-          </div>
-        </div>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

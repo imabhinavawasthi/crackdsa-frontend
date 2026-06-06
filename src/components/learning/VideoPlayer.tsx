@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { Play, Pause, RotateCcw, Volume2, Maximize, Settings, FastForward } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, Maximize, Settings, FastForward, AlertCircle, ExternalLink } from "lucide-react";
 
 export interface VideoSource {
-  type: "youtube" | "vimeo" | "cloudflare" | "html5";
+  type: "youtube" | "vimeo" | "cloudflare" | "gdrive" | "html5" | "mock";
   idOrUrl: string;
 }
 
 export function detectVideoSource(url: string): VideoSource {
-  if (!url) return { type: "html5", idOrUrl: "" };
+  if (!url) return { type: "mock", idOrUrl: "" };
 
   // 1. YouTube checks
   const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
@@ -18,31 +18,25 @@ export function detectVideoSource(url: string): VideoSource {
     return { type: "youtube", idOrUrl: ytMatch[1] };
   }
   
-  // If it's a known placeholder or a simple YouTube ID, support it
-  if (url === "BasicsMemoryLayoutYouTubeId") {
-    return { type: "youtube", idOrUrl: "9Hdf8_y4s_A" }; // A sample premium educational DSA video
-  }
-  if (url === "TwoPointersPatternYouTubeId") {
-    return { type: "youtube", idOrUrl: "t3W8l0N27-c" }; // A sample Two Pointers lecture
-  }
-  if (url === "BinaryTreeStrategyYouTubeId") {
-    return { type: "youtube", idOrUrl: "fAAZixBjIAI" }; // A sample Binary Tree lecture
-  }
-  if (url === "DPIntroductionYouTubeId") {
-    return { type: "youtube", idOrUrl: "oBt53YbR9K8" }; // A sample Dynamic Programming lecture
-  }
   if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
     return { type: "youtube", idOrUrl: url };
   }
 
-  // 2. Vimeo checks
+  // 2. Google Drive checks
+  const gdriveRegex = /(?:drive\.google\.com\/(?:file\/d\/|open\?id=)|docs\.google\.com\/(?:file\/d\/|open\?id=))([a-zA-Z0-9_-]+)/;
+  const gdriveMatch = url.match(gdriveRegex);
+  if (gdriveMatch) {
+    return { type: "gdrive", idOrUrl: gdriveMatch[1] };
+  }
+
+  // 3. Vimeo checks
   const vimeoRegex = /(?:vimeo\.com\/|player\.vimeo\.com\/video\/)(\d+)/;
   const vimeoMatch = url.match(vimeoRegex);
   if (vimeoMatch) {
     return { type: "vimeo", idOrUrl: vimeoMatch[1] };
   }
 
-  // 3. Cloudflare Stream checks
+  // 4. Cloudflare Stream checks
   if (url.includes("videodelivery.net") || url.includes("cloudflarestream.com")) {
     const cfRegex = /(?:videodelivery\.net|cloudflarestream\.com)\/([a-zA-Z0-9]+)/;
     const cfMatch = url.match(cfRegex);
@@ -51,13 +45,25 @@ export function detectVideoSource(url: string): VideoSource {
     }
   }
 
-  // 4. Default to HTML5 native player
-  return { type: "html5", idOrUrl: url };
+  // 5. Native HTML5 (direct video paths)
+  if (
+    url.endsWith(".mp4") || 
+    url.endsWith(".webm") || 
+    url.endsWith(".ogg") || 
+    url.startsWith("blob:") || 
+    (url.startsWith("http") && (url.includes("video") || url.includes(".mp4")))
+  ) {
+    return { type: "html5", idOrUrl: url };
+  }
+
+  // 6. Otherwise fall back to mock/unresolvable
+  return { type: "mock", idOrUrl: url };
 }
 
 interface VideoPlayerProps {
   url: string;
   title?: string;
+  thumbnailUrl?: string;
   onTimeUpdate?: (currentTime: number) => void;
   onPlayerRefReady?: (playerRef: { setCurrentTime: (time: number) => void }) => void;
   onEnded?: () => void;
@@ -66,6 +72,7 @@ interface VideoPlayerProps {
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
   url,
   title = "Lecture Video",
+  thumbnailUrl,
   onTimeUpdate,
   onPlayerRefReady,
   onEnded
@@ -73,6 +80,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const source = detectVideoSource(url);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
@@ -80,6 +88,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [volume, setVolume] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
+
+  // Reset playhead/load state when source url changes
+  useEffect(() => {
+    setHasStarted(false);
+    setIsPlaying(false);
+    setCurrentTime(0);
+  }, [url]);
 
   // Expose control API to parent component (e.g. jump to timestamp)
   useEffect(() => {
@@ -89,14 +104,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           if (source.type === "html5" && videoRef.current) {
             videoRef.current.currentTime = time;
           } else {
-            // For YouTube embeds, we can alert or log. Real control requires iframe-api, 
-            // but we can trigger a reload with start time as a robust fallback!
-            const iframe = document.querySelector("#classroom-iframe") as HTMLIFrameElement;
-            if (iframe && source.type === "youtube") {
-              iframe.src = `https://youtu.be/ejt86EZ4Y5o=`;
-            } else if (iframe && source.type === "cloudflare") {
-              iframe.src = `https://iframe.videodelivery.net/${source.idOrUrl}?autoplay=true&time=${Math.floor(time)}s`;
-            }
+            // For iframe embeds, jump behavior requires complex SDKs. 
+            // We ensure we load the video properly first.
+            setHasStarted(true);
           }
         }
       });
@@ -188,16 +198,31 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-  // Embed Renderer for YouTube / Vimeo / Cloudflare
+  // Embed Renderer for YouTube / Google Drive / Vimeo / Cloudflare
   const renderEmbed = () => {
     if (source.type === "youtube") {
       return (
         <div className="w-full h-full aspect-video">
           <iframe
             id="classroom-iframe"
-            src={`https://www.youtube.com/embed/${source.idOrUrl}?autoplay=1&rel=0&enablejsapi=1&origin=${window.location.origin}`}
+            src={`https://www.youtube.com/embed/${source.idOrUrl}?autoplay=1&rel=0&enablejsapi=1&origin=${typeof window !== "undefined" ? window.location.origin : ""}`}
             title={title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="w-full h-full border-0"
+          ></iframe>
+        </div>
+      );
+    }
+
+    if (source.type === "gdrive") {
+      return (
+        <div className="w-full h-full aspect-video">
+          <iframe
+            id="classroom-iframe"
+            src={`https://drive.google.com/file/d/${source.idOrUrl}/preview`}
+            title={title}
+            allow="autoplay; encrypted-media"
             allowFullScreen
             className="w-full h-full border-0"
           ></iframe>
@@ -238,6 +263,64 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return null;
   };
 
+  // 1. Error state (Mock or empty URL)
+  if (source.type === "mock") {
+    return (
+      <div 
+        className={`relative w-full overflow-hidden rounded-3xl bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl aspect-video flex flex-col items-center justify-center p-8 text-center space-y-4`}
+      >
+        <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/10">
+          <AlertCircle size={20} />
+        </div>
+        <div>
+          <h4 className="text-sm font-black text-red-600">Video Asset Not Available</h4>
+          <p className="text-xs text-red-500/80 mt-1 font-semibold">The specified lecture video could not be resolved or is not configured.</p>
+        </div>
+        {url && url !== "BasicsMemoryLayoutYouTubeId" && (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 transition-colors cursor-pointer"
+          >
+            <span>Open External Resource Link</span>
+            <ExternalLink size={12} />
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  // 2. Poster Preview State (if thumbnailUrl is provided and user hasn't clicked play)
+  if (thumbnailUrl && !hasStarted && source.type !== "html5") {
+    return (
+      <div 
+        className={`relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl aspect-video group/player flex items-center justify-center`}
+      >
+        <img
+          src={thumbnailUrl}
+          alt={title}
+          className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover/player:scale-105 transition-transform duration-700"
+        />
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+        
+        <button
+          onClick={() => setHasStarted(true)}
+          className="relative z-10 w-16 h-16 rounded-full bg-brand-500/90 border border-brand-400/30 text-white flex items-center justify-center shadow-lg transition-all duration-300 transform group-hover/player:scale-110 hover:bg-brand-500 hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] cursor-pointer"
+        >
+          <Play fill="white" size={26} className="ml-1 text-white" />
+        </button>
+        
+        <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between">
+          <span className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg text-[10px] font-bold text-white border border-white/10 uppercase tracking-wide">
+            Lecture Preview: {title}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. standard play mode
   return (
     <div 
       className={`relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl group/player ${
@@ -247,14 +330,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
       {source.type !== "html5" ? (
-        // Render Iframe Embed
         renderEmbed()
       ) : (
-        // Render Custom HTML5 Video Player
         <div className="w-full h-full relative flex items-center justify-center">
           <video
             ref={videoRef}
             src={source.idOrUrl}
+            poster={thumbnailUrl}
             className="w-full h-full cursor-pointer"
             onClick={handlePlayPause}
             onTimeUpdate={handleTimeUpdate}
@@ -263,7 +345,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             preload="metadata"
           />
 
-          {/* Glowing Play/Pause Indicator on Center Click */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className={`p-5 rounded-full bg-brand-500/20 backdrop-blur-md border border-brand-500/40 text-white transition-all duration-300 scale-75 opacity-0 ${
               !isPlaying && !showControls ? "scale-100 opacity-100" : ""
@@ -272,12 +353,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </div>
           </div>
 
-          {/* Custom Overlay Controls */}
           <div className={`absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col gap-3 transition-opacity duration-300 ${
             showControls ? "opacity-100" : "opacity-0"
           }`}>
             
-            {/* Scrubber Timeline */}
             <div className="flex items-center gap-3">
               <span className="text-[11px] font-bold text-white">{formatTime(currentTime)}</span>
               <input
@@ -291,10 +370,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               <span className="text-[11px] font-bold text-white/60">{formatTime(duration)}</span>
             </div>
 
-            {/* Bottom Controls Row */}
             <div className="flex items-center justify-between mt-1">
               
-              {/* Playback Trigger Buttons */}
               <div className="flex items-center gap-4">
                 <button 
                   onClick={handlePlayPause}
@@ -312,7 +389,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   <RotateCcw size={16} />
                 </button>
 
-                {/* Volume bar */}
                 <div className="flex items-center gap-2 group/volume">
                   <button onClick={toggleMute} className="text-white hover:text-brand-400 transition-colors">
                     <Volume2 size={16} className={isMuted ? "text-red-500" : ""} />
@@ -329,9 +405,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 </div>
               </div>
 
-              {/* Advanced Player Settings */}
               <div className="flex items-center gap-4.5">
-                {/* Custom Playback Speeds */}
                 <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-2.5 py-1 border border-white/5">
                   <FastForward size={12} className="text-white/60" />
                   <select 
@@ -347,7 +421,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   </select>
                 </div>
 
-                {/* Theater Mode Trigger */}
                 <button
                   onClick={() => setIsTheaterMode(!isTheaterMode)}
                   className="text-white hover:text-brand-400 transition-colors hidden sm:block"

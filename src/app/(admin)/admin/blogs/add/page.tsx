@@ -4,22 +4,45 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getStoredToken } from "@/functions/auth";
-import Button from "@/components/ui/button/Button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { 
   ArrowLeft, 
   Plus, 
+  Loader2,
+  AlertCircle,
+  Trash2,
+  Lock,
+  CheckCircle2,
+  Sparkles,
   HelpCircle,
   FileText,
-  Loader2,
-  Sparkles,
-  Trash2,
-  Tag,
-  BookOpen,
-  User,
-  Image as ImageIcon
+  Link as LinkIcon,
+  Tag
 } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "@/components/ui/editor/RichTextEditor";
+
+const articleSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
+  subtitle: z.string().nullable().optional(),
+  category: z.string().min(1, "Category is required"),
+  difficulty: z.string().nullable().optional(),
+  read_time_minutes: z.number().min(1),
+  cover_image: z.string().nullable().optional(),
+  author_name: z.string().nullable().optional(),
+  author_avatar: z.string().nullable().optional(),
+  is_published: z.boolean(),
+});
+
+type ArticleFormValues = z.infer<typeof articleSchema>;
 
 type CustomResourceRow = {
   key: string;
@@ -30,24 +53,7 @@ export default function AddArticlePage() {
   const { user, isLoading: authLoading, isLoggedIn } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    document.title = "Add Article | CrackDSA";
-  }, []);
-
-  // Primary form inputs state
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [subtitle, setSubtitle] = useState("");
-  const [category, setCategory] = useState("General");
-  const [difficulty, setDifficulty] = useState("");
-  const [readTimeMinutes, setReadTimeMinutes] = useState<number>(5);
-  const [coverImage, setCoverImage] = useState("");
-
-  // Author info
-  const [authorName, setAuthorName] = useState("");
-  const [authorAvatar, setAuthorAvatar] = useState("");
-
-  // Description / Content
+  // HTML content for description notes
   const [description, setDescription] = useState("");
 
   // Resources
@@ -62,25 +68,40 @@ export default function AddArticlePage() {
   const [customJsonStr, setCustomJsonStr] = useState("{\n  \"featured\": false\n}");
   const [isJsonValid, setIsJsonValid] = useState(true);
 
-  // Publishing
-  const [isPublished, setIsPublished] = useState(false);
-
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ArticleFormValues>({
+    resolver: zodResolver(articleSchema),
+    defaultValues: {
+      title: "",
+      slug: "",
+      subtitle: "",
+      category: "DSA Concepts",
+      difficulty: "",
+      read_time_minutes: 5,
+      cover_image: "",
+      author_name: "CrackDSA Team",
+      author_avatar: "",
+      is_published: false
+    }
+  });
+
+  const titleWatch = watch("title");
+  const slugWatch = watch("slug");
+
   // Auto-generate slug from title
   useEffect(() => {
-    if (title && !slug) {
-      const autoSlug = title
+    if (titleWatch && !slugWatch) {
+      const autoSlug = titleWatch
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)+/g, "");
-      setSlug(autoSlug);
+      setValue("slug", autoSlug);
     }
-  }, [title, slug]);
+  }, [titleWatch, slugWatch, setValue]);
 
   // Validate JSON string on change
   useEffect(() => {
@@ -114,15 +135,10 @@ export default function AddArticlePage() {
   };
 
   // Handle Save submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: ArticleFormValues) => {
+    setSubmitError(null);
     const token = getStoredToken();
     if (!token) return;
-
-    if (!title.trim() || !slug.trim()) {
-      setSubmitError("Title and URL Slug are required fields.");
-      return;
-    }
 
     if (!isJsonValid) {
       setSubmitError("Please correct the invalid Custom JSON Attributes syntax before saving.");
@@ -168,24 +184,22 @@ export default function AddArticlePage() {
     }
 
     const payload = {
-      title: title.trim(),
-      slug: slug.trim(),
-      subtitle: subtitle.trim() || null,
+      title: values.title.trim(),
+      slug: values.slug.trim(),
+      subtitle: values.subtitle?.trim() || null,
       description: description.trim() || null,
-      cover_image: coverImage.trim() || null,
-      category,
-      difficulty: difficulty || null,
-      read_time_minutes: Number(readTimeMinutes) || 5,
-      author_name: authorName.trim() || null,
-      author_avatar: authorAvatar.trim() || null,
+      cover_image: values.cover_image?.trim() || null,
+      category: values.category,
+      difficulty: values.difficulty || null,
+      read_time_minutes: Number(values.read_time_minutes) || 5,
+      author_name: values.author_name?.trim() || null,
+      author_avatar: values.author_avatar?.trim() || null,
       resources: resourcesPayload,
       attributes: parsedAttributes,
-      is_published: isPublished
+      is_published: values.is_published
     };
 
     try {
-      setSubmitting(true);
-      setSubmitError(null);
       setSubmitSuccess(false);
 
       const res = await fetch(`${backendUrl}/api/v1/admin/articles`, {
@@ -211,453 +225,325 @@ export default function AddArticlePage() {
       console.error("Submission failed:", err);
       const errMessage = err instanceof Error ? err.message : String(err);
       setSubmitError(errMessage || "An unexpected error occurred while saving.");
-    } finally {
-      setSubmitting(false);
     }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto pb-24 px-4">
-      {/* Top Navigation */}
-      <div className="mb-6 flex items-center justify-between">
-        <Link 
-          href="/admin/blogs"
-          className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white uppercase tracking-wider transition-colors"
-        >
-          <ArrowLeft size={14} />
-          Back to Articles List
-        </Link>
+  if (authLoading) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
+        <Loader2 size={32} className="animate-spin text-brand-500" />
+        <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold">Verifying secure admin parameters...</p>
       </div>
+    );
+  }
 
-      {/* Main Card container */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800/80 rounded-3xl p-6 sm:p-8 shadow-theme-xs space-y-8">
-        
-        {/* Title bar info */}
-        <div className="border-b border-gray-100 dark:border-gray-800 pb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-500 border border-brand-500/10 flex items-center justify-center">
-              <Sparkles size={20} className="animate-pulse" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-gray-950 dark:text-white tracking-tight">
-                Add Article
-              </h1>
-              <p className="text-xs text-gray-400 font-semibold mt-0.5">
-                Compose a new blog post or concept article with rich content, author info, and classification metadata.
-              </p>
-            </div>
+  if (!isLoggedIn || !user?.roles?.includes("admin")) {
+    return (
+      <div className="min-h-[75vh] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-3xl p-8 shadow-lg text-center space-y-6">
+          <div className="w-16 h-16 bg-red-500/10 text-red-500 border border-red-500/10 rounded-2xl flex items-center justify-center mx-auto">
+            <Lock size={30} />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black text-gray-955 dark:text-white tracking-tight">Access Prohibited</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+              This environment is strictly reserved for CrackDSA Administrators.
+            </p>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          
-          {/* SECTION 1: Primary Parameters */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-              Primary Specifications
-            </h3>
+  return (
+    <div className="max-w-4xl mx-auto pb-24 px-4">
+      {/* Header back button */}
+      <div className="mb-6 flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-5">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-150 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+            title="Go Back"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-gray-955 dark:text-white tracking-tight">
+              Add New Article
+            </h1>
+            <p className="text-xs text-gray-500 font-semibold mt-0.5">
+              Compose a new blog post or concept article with rich content.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* State Alerts */}
+      {submitError && (
+        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 flex items-start gap-2.5 mb-6">
+          <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+          <div className="text-xs font-semibold text-red-500 leading-normal">
+            {submitError}
+          </div>
+        </div>
+      )}
+
+      {submitSuccess && (
+        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-start gap-2.5 mb-6">
+          <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+          <div className="text-xs font-bold text-emerald-600">
+            Article created successfully! Redirecting...
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>1. Primary Specifications</CardTitle>
+            <CardDescription>Setup basic article settings, slugs, categories, and covers.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Article Title <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="text"
-                  required
-                  placeholder="e.g. Understanding Binary Search Trees"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="title">Article Title *</Label>
+                <Input id="title" {...register("title")} placeholder="e.g. Understanding Binary Search Trees" />
+                {errors.title && (
+                  <p className="text-xs text-red-500 font-semibold">{errors.title.message}</p>
+                )}
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  URL Slug Handle <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="text"
-                  required
-                  placeholder="e.g. understanding-binary-search-trees"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"))}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="slug">Slug Handle *</Label>
+                <Input id="slug" {...register("slug")} placeholder="e.g. understanding-binary-search-trees" />
+                {errors.slug && (
+                  <p className="text-xs text-red-500 font-semibold">{errors.slug.message}</p>
+                )}
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                Subtitle
-              </label>
-              <input 
-                type="text"
-                placeholder="e.g. A deep dive into BST operations and use cases"
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-              />
+            <div className="space-y-2">
+              <Label htmlFor="subtitle">Subtitle</Label>
+              <Input id="subtitle" {...register("subtitle")} placeholder="e.g. A deep dive into BST operations and complexity." />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4.5">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Category <span className="text-red-500">*</span>
-                </label>
-                <select 
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                >
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="category">Category *</Label>
+                <Select id="category" {...register("category")}>
                   <option value="General">General</option>
                   <option value="DSA Concepts">DSA Concepts</option>
                   <option value="System Design">System Design</option>
                   <option value="Company Insights">Company Insights</option>
                   <option value="Tips & Tricks">Tips & Tricks</option>
                   <option value="Announcements">Announcements</option>
-                </select>
+                </Select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Difficulty
-                </label>
-                <select 
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                >
-                  <option value="">— None —</option>
+              <div className="space-y-2">
+                <Label htmlFor="difficulty">Difficulty</Label>
+                <Select id="difficulty" {...register("difficulty")}>
+                  <option value="">- None -</option>
                   <option value="Beginner">Beginner</option>
                   <option value="Intermediate">Intermediate</option>
                   <option value="Advanced">Advanced</option>
-                </select>
+                </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="read_time_minutes">Read Time (Minutes)</Label>
+                <Input id="read_time_minutes" type="number" min={1} {...register("read_time_minutes", { valueAsNumber: true })} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cover_image">Cover Image URL</Label>
+              <Input id="cover_image" {...register("cover_image")} placeholder="e.g. https://cdn.crackdsa.com/images/..." />
+            </div>
+
+          </CardContent>
+        </Card>
+
+        {/* SECTION 2: Author info */}
+        <Card>
+          <CardHeader>
+            <CardTitle>2. Author Information</CardTitle>
+            <CardDescription>Setup author profile credentials for publication headers.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label htmlFor="author_name">Author Name</Label>
+              <Input id="author_name" {...register("author_name")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="author_avatar">Author Avatar URL</Label>
+              <Input id="author_avatar" {...register("author_avatar")} placeholder="e.g. https://cdn.crackdsa.com/avatars/..." />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* SECTION 3: Content Body */}
+        <Card>
+          <CardHeader>
+            <CardTitle>3. Article Content</CardTitle>
+            <CardDescription>Draft the full text body using rich markdown/HTML elements.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <RichTextEditor value={description} onChange={setDescription} />
+          </CardContent>
+        </Card>
+
+        {/* SECTION 4: Resources */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Read Time (minutes)
-                </label>
-                <input 
-                  type="number"
-                  min={1}
-                  max={120}
-                  value={readTimeMinutes}
-                  onChange={(e) => setReadTimeMinutes(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                />
+                <CardTitle>4. Linked Resources</CardTitle>
+                <CardDescription>Connect internal tables, problems, video arrays, or links.</CardDescription>
               </div>
+              <button
+                type="button"
+                onClick={addCustomResourceRow}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/80 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-xs font-bold transition-all cursor-pointer"
+              >
+                <Plus size={13} />
+                <span>Add Custom Key</span>
+              </button>
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                Cover Image URL
-              </label>
-              <input 
-                type="url"
-                placeholder="e.g. https://cdn.example.com/images/cover.jpg"
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-              />
-            </div>
-          </div>
-
-          {/* SECTION 2: Author Info */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-              Author Information
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Author Name
-                </label>
-                <input 
-                  type="text"
-                  placeholder="e.g. John Doe"
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Author Avatar URL
-                </label>
-                <input 
-                  type="url"
-                  placeholder="e.g. https://cdn.example.com/avatars/author.jpg"
-                  value={authorAvatar}
-                  onChange={(e) => setAuthorAvatar(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 3: Description text editor */}
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-                Article Content & Description
-              </label>
-              <p className="text-[11px] text-gray-400 font-semibold mt-1 mb-2">
-                Draft the full article body with rich formatting, embedded examples, and code snippets.
-              </p>
-            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
             
-            <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-gray-50/20 dark:bg-gray-900/50">
-              <RichTextEditor 
-                value={description}
-                onChange={setDescription}
-                placeholder="Write your article content here with rich formatting..."
-              />
-            </div>
-          </div>
-
-          {/* SECTION 4: Linked Resources */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-              Connected Resources
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide flex items-center gap-1">
-                  Related Problems
-                  <span title="Comma-separated UUID keys of related practice problems">
-                    <HelpCircle size={12} className="text-gray-400 cursor-help" />
-                  </span>
-                </label>
-                <input 
-                  type="text"
-                  placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000, ..."
-                  value={relatedProblemsStr}
-                  onChange={(e) => setRelatedProblemsStr(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <HelpCircle size={14} className="text-gray-455" />
+                  Related Coding Problems (Comma separated UUIDs)
+                </Label>
+                <Input value={relatedProblemsStr} onChange={(e) => setRelatedProblemsStr(e.target.value)} placeholder="uuid-1, uuid-2" />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide flex items-center gap-1">
-                  Related Videos
-                  <span title="Comma-separated UUID keys of related video lectures">
-                    <HelpCircle size={12} className="text-gray-400 cursor-help" />
-                  </span>
-                </label>
-                <input 
-                  type="text"
-                  placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000, ..."
-                  value={relatedVideosStr}
-                  onChange={(e) => setRelatedVideosStr(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                />
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <FileText size={14} className="text-gray-455" />
+                  Related Video Lectures (Comma separated UUIDs)
+                </Label>
+                <Input value={relatedVideosStr} onChange={(e) => setRelatedVideosStr(e.target.value)} placeholder="uuid-1, uuid-2" />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide flex items-center gap-1">
-                External Links
-                <span title="Comma-separated external reference URLs">
-                  <HelpCircle size={12} className="text-gray-400 cursor-help" />
-                </span>
-              </label>
-              <input 
-                type="text"
-                placeholder="e.g. https://example.com/ref1, https://example.com/ref2"
-                value={externalLinksStr}
-                onChange={(e) => setExternalLinksStr(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-              />
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                <LinkIcon size={14} className="text-gray-455" />
+                External Reference Links (Comma separated URLs)
+              </Label>
+              <Input value={externalLinksStr} onChange={(e) => setExternalLinksStr(e.target.value)} placeholder="https://example.com/ref1" />
             </div>
 
-            {/* Dynamic Custom Resources Key-Value rows */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1">
-                  Custom Resource Links
-                  <span title="Link additional resources dynamically">
-                    <HelpCircle size={12} className="text-gray-400 cursor-help" />
-                  </span>
-                </label>
-                <button 
-                  type="button"
-                  onClick={addCustomResourceRow}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-500 hover:text-brand-600 transition-colors"
-                >
-                  <Plus size={12} />
-                  Add Field
-                </button>
-              </div>
-
-              {customResources.length > 0 && (
-                <div className="space-y-3 p-3 rounded-2xl border border-gray-150 dark:border-gray-800/80 bg-gray-50/10">
+            {customResources.length > 0 && (
+              <div className="space-y-4 pt-4 border-t border-gray-250 dark:border-gray-850">
+                <Label className="text-xs font-bold uppercase tracking-wider block">Custom Resource Buckets</Label>
+                <div className="space-y-3">
                   {customResources.map((row, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input 
-                        type="text"
-                        placeholder="Key (e.g. cheatsheets)"
-                        required
-                        value={row.key}
-                        onChange={(e) => handleCustomResourceChange(index, "key", e.target.value)}
-                        className="w-1/3 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-850 bg-white dark:bg-gray-900 text-xs text-gray-950 dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-brand-500"
-                      />
-                      <input 
-                        type="text"
-                        placeholder="Comma-separated values"
-                        required
-                        value={row.value}
-                        onChange={(e) => handleCustomResourceChange(index, "value", e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-850 bg-white dark:bg-gray-900 text-xs text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
-                      />
-                      <button 
-                        type="button" 
+                    <div key={index} className="flex gap-3 items-end bg-gray-50/50 dark:bg-gray-900/40 p-3 rounded-xl border border-gray-200 dark:border-gray-850">
+                      <div className="flex-1 space-y-1.5">
+                        <Label className="text-[10px]">Resource Key</Label>
+                        <Input value={row.key} onChange={(e) => handleCustomResourceChange(index, "key", e.target.value)} placeholder="e.g. cheat_sheet" className="h-9 font-mono" />
+                      </div>
+                      <div className="flex-[2] space-y-1.5">
+                        <Label className="text-[10px]">Values (Comma separated)</Label>
+                        <Input value={row.value} onChange={(e) => handleCustomResourceChange(index, "value", e.target.value)} placeholder="e.g. url-1" className="h-9" />
+                      </div>
+                      <button
+                        type="button"
                         onClick={() => removeCustomResourceRow(index)}
-                        className="p-2 text-red-500 hover:bg-red-500/5 rounded-lg transition-all"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10 text-red-650 hover:bg-red-500/20 transition-colors shrink-0 cursor-pointer"
                       >
                         <Trash2 size={14} />
                       </button>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            )}
 
-          {/* SECTION 5: Attributes and Metadata */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-              Advanced Attributes & Classification
-            </h3>
+          </CardContent>
+        </Card>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4.5">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide flex items-center gap-1">
-                  Tag Classification
-                  <span title="Comma-separated categorization tags">
-                    <HelpCircle size={12} className="text-gray-400 cursor-help" />
-                  </span>
-                </label>
-                <input 
-                  type="text"
-                  placeholder="e.g. Trees, Binary Search, Algorithms"
-                  value={tagsStr}
-                  onChange={(e) => setTagsStr(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
+        {/* SECTION 5: Attributes & Metadata */}
+        <Card>
+          <CardHeader>
+            <CardTitle>5. Advanced Metadata & Settings</CardTitle>
+            <CardDescription>Setup tags, series mappings, and extra JSON metrics.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="tags">Tags (Comma separated)</Label>
+                <Input id="tags" placeholder="e.g. Trees, BST" value={tagsStr} onChange={(e) => setTagsStr(e.target.value)} />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">
-                  Series Name
-                </label>
-                <input 
-                  type="text"
-                  placeholder="e.g. DSA Deep Dives"
-                  value={seriesName}
-                  onChange={(e) => setSeriesName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm text-gray-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 font-medium"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="series">Series Name</Label>
+                <Input id="series" placeholder="e.g. BST Deep Dives" value={seriesName} onChange={(e) => setSeriesName(e.target.value)} />
               </div>
             </div>
 
-            {/* Custom JSON editor for remaining metadata */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
-                Custom JSON Metadata Bucket
-                {!isJsonValid ? (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-rose-500 uppercase tracking-wider animate-pulse">
-                    <Trash2 size={10} /> Invalid JSON Syntax
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center text-[10px] font-bold text-emerald-500 uppercase tracking-wider">
-                    Syntax OK
-                  </span>
-                )}
-              </label>
-              
-              <textarea 
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="custom_json">Custom Attributes JSON</Label>
+                <span className={`text-[10px] font-bold uppercase ${isJsonValid ? "text-emerald-500" : "text-rose-505 animate-pulse"}`}>
+                  {isJsonValid ? "Syntax Valid" : "Syntax Invalid"}
+                </span>
+              </div>
+              <Textarea 
+                id="custom_json"
                 rows={5}
                 value={customJsonStr}
                 onChange={(e) => setCustomJsonStr(e.target.value)}
-                className={`w-full p-4 rounded-2xl border font-mono text-xs focus:outline-none focus:ring-1 transition-all ${
-                  isJsonValid 
-                    ? "border-gray-200 dark:border-gray-800 bg-transparent focus:ring-brand-500" 
-                    : "border-rose-500/50 bg-rose-500/5 text-rose-600 focus:ring-rose-500"
-                }`}
+                className={`font-mono text-xs ${!isJsonValid && "border-red-500 bg-red-50/10 focus-visible:ring-red-550"}`}
               />
             </div>
-          </div>
 
-          {/* SECTION 6: Publishing Toggle */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest border-l-2 border-brand-500 pl-2">
-              Publishing Status
-            </h3>
-
-            <label className="flex items-center gap-3 cursor-pointer select-none">
+            <div className="flex items-center gap-3 select-none py-2">
               <input 
+                id="is_published"
                 type="checkbox"
-                checked={isPublished}
-                onChange={(e) => setIsPublished(e.target.checked)}
+                {...register("is_published")}
                 className="h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-brand-500 focus:ring-brand-500 focus:ring-offset-0"
               />
-              <span className="text-sm font-bold text-gray-800 dark:text-gray-200">
-                Publish immediately
-              </span>
-              <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
-                {isPublished ? "Article will be visible to readers" : "Saved as draft"}
-              </span>
-            </label>
-          </div>
-
-          {/* Submission and error overlays */}
-          {submitError && (
-            <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4.5 flex items-start gap-2.5">
-              <Trash2 size={16} className="text-red-500 shrink-0 mt-0.5" />
-              <div className="text-xs font-semibold text-red-500 leading-normal">
-                {submitError}
-              </div>
+              <Label htmlFor="is_published" className="font-bold text-gray-800 dark:text-gray-200">Publish immediately (will be visible to readers)</Label>
             </div>
-          )}
 
-          {submitSuccess && (
-            <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4.5 flex items-start gap-2.5">
-              <Sparkles size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-              <div className="text-xs font-bold text-emerald-600">
-                Article created successfully! Redirecting back to catalog...
-              </div>
+            {/* Save Buttons */}
+            <div className="flex items-center gap-3 border-t border-gray-200 dark:border-gray-800 pt-6 justify-end">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !isJsonValid}
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:hover:bg-gray-200 dark:text-gray-900 rounded-lg shadow-sm disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin mr-1.5" />
+                    Saving...
+                  </>
+                ) : (
+                  "Create Article"
+                )}
+              </button>
             </div>
-          )}
 
-          {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3.5 border-t border-gray-100 dark:border-gray-800 pt-5">
-            <Button 
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => router.push("/admin/blogs")}
-              disabled={submitting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={submitting || !isJsonValid}
-              startIcon={submitting ? <Loader2 size={14} className="animate-spin" /> : undefined}
-            >
-              {submitting ? "Saving Article..." : "Save Article"}
-            </Button>
-          </div>
-
-        </form>
-      </div>
+          </CardContent>
+        </Card>
+      </form>
     </div>
   );
 }

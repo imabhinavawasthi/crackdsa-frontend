@@ -115,7 +115,7 @@ export const SheetContentView: React.FC<SheetContentViewProps> = ({
 
   return (
     <div className="w-full pb-16">
-      {/* Hero Banner — breaks out of parent padding for edge-to-edge feel */}
+      {/* Hero Banner - breaks out of parent padding for edge-to-edge feel */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

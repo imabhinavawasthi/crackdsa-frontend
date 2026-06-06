@@ -166,6 +166,7 @@ const ARTICLE_DATABASE: Record<string, ArticleDetail> = {
 
 interface ArticleReaderProps {
   slug: string;
+  articleData?: any;
 }
 
 // Animation variants
@@ -200,7 +201,7 @@ const contentVariants = {
   },
 };
 
-const ArticleReader: React.FC<ArticleReaderProps> = ({ slug }) => {
+const ArticleReader: React.FC<ArticleReaderProps> = ({ slug, articleData }) => {
   const [readProgress, setReadProgress] = useState(0);
 
   useEffect(() => {
@@ -215,15 +216,33 @@ const ArticleReader: React.FC<ArticleReaderProps> = ({ slug }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const article = ARTICLE_DATABASE[slug] || {
-    title: "Syllabus Reading Article",
-    subtitle: "Revision handbook reading material designed to help clarify programming concepts.",
-    category: "General Learning",
-    readTime: "5 min read",
-    publishedDate: "Today",
-    content: `
-      <p class="leading-relaxed mb-6">Welcome! Read this article along with viewing your class session recording. It covers key theoretical boundaries, patterns, and SDE checklist tips.</p>
-    `
+  // If articleData is missing, render error layout (No Mock Data Fallback!)
+  if (!articleData) {
+    return (
+      <div className="w-full min-h-[350px] rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center p-8 space-y-4 text-center">
+        <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/10">
+          <BookOpen size={20} />
+        </div>
+        <div>
+          <h4 className="text-sm font-black text-red-600">Conceptual Article Not Found</h4>
+          <p className="text-xs text-red-500/80 mt-1 font-semibold max-w-md">
+            The specifications for this article are not available in the database. Check your syllabus details or try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Construct article details from dynamic data
+  const article = {
+    title: articleData.title || "Untitled Article",
+    subtitle: articleData.subtitle || "",
+    category: articleData.category || "General",
+    readTime: articleData.read_time_minutes ? `${articleData.read_time_minutes} min read` : "5 min read",
+    publishedDate: articleData.published_at 
+      ? new Date(articleData.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      : (articleData.created_at ? new Date(articleData.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recently"),
+    content: articleData.description || ""
   };
 
   return (
@@ -274,7 +293,7 @@ const ArticleReader: React.FC<ArticleReaderProps> = ({ slug }) => {
           {article.subtitle}
         </motion.p>
 
-        {/* Read times and calendar — glassmorphism pills */}
+        {/* Read times and calendar - glassmorphism pills */}
         <motion.div
           className="flex flex-wrap items-center gap-3 pt-1.5"
           variants={headerChildVariants}

@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  // Initial load — shows loading spinner
+  // Initial load - shows loading spinner
   const initialLoad = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -46,19 +46,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(u);
     } catch (e) {
       console.error("[initialLoad] authentication error:", e);
-      // General network error — do not force a logout if token exists
+      // General network error - do not force a logout if token exists
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Silent poll — no loading state, only reacts if user was logged in but session died
+  // Silent poll - no loading state, only reacts if user was logged in but session died
   const silentPoll = useCallback(async () => {
     try {
       const u = await fetchCurrentUser();
       if (u) {
       } else {
-        // Server returned null — only flag session expired if user WAS logged in
+        // Server returned null - only flag session expired if user WAS logged in
         setUser((prev) => {
           if (prev !== null) {
             setSessionExpired(true);
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
     } catch (err) {
-      // Network error / 500 server error — don't log out, keep active session, silently skip
+      // Network error / 500 server error - don't log out, keep active session, silently skip
       console.warn("[silentPoll] skipped due to connection or server issue:", err);
     }
   }, []);
