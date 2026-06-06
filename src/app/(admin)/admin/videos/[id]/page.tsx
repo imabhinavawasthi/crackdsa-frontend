@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getStoredToken } from "@/functions/auth";
-import Button from "@/components/ui/button/Button";
+
 import { 
   Lock, 
   ArrowLeft, 
@@ -155,14 +155,13 @@ export default function ViewVideoLecturePage() {
           </div>
         </div>
         {!loading && lecture && (
-          <Button 
+          <button 
             onClick={() => router.push(`/admin/videos/${lecture.id}/edit`)}
-            startIcon={<Edit3 size={15} />}
-            variant="outline"
-            size="sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-gray-750 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-55 dark:hover:bg-gray-900 rounded-xl transition-all shadow-sm cursor-pointer bg-white dark:bg-gray-950"
           >
-            Edit Lecture
-          </Button>
+            <Edit3 size={15} />
+            <span>Edit Lecture</span>
+          </button>
         )}
       </div>
 

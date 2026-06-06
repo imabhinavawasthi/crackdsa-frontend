@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getStoredToken } from "@/functions/auth";
-import Button from "@/components/ui/button/Button";
+
 import { 
   Lock, 
   ArrowLeft, 
@@ -258,15 +258,13 @@ export default function AdminCourseDetailsPage() {
         </div>
         
         {course && (
-          <Button 
+          <button 
             onClick={() => router.push(`/admin/courses/${course.id}/edit`)}
-            startIcon={<Edit3 size={15} />}
-            variant="outline"
-            size="sm"
-            className="self-start sm:self-center bg-white dark:bg-gray-900 text-gray-800 dark:text-white dark:border-gray-850 hover:bg-gray-50 dark:hover:bg-gray-850"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-gray-750 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-55 dark:hover:bg-gray-900 rounded-xl transition-all shadow-sm cursor-pointer bg-white dark:bg-gray-950"
           >
-            Edit Specifications & Syllabus
-          </Button>
+            <Edit3 size={15} />
+            <span>Edit Specifications & Syllabus</span>
+          </button>
         )}
       </div>
 
