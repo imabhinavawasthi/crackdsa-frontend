@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import ErrorState from "@/components/common/ErrorState";
 
 type Instructor = {
   name: string;
@@ -143,26 +144,12 @@ export default function CoursesPage() {
         </div>
       ) : error ? (
         // Connection Failure State
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-16 bg-white dark:bg-gray-900/50 border border-red-100 dark:border-red-950/20 rounded-3xl px-6"
-        >
-          <div className="flex w-14 h-14 mx-auto items-center justify-center rounded-2xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/10 mb-4">
-            <AlertTriangle size={26} />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">API Connection Failure</h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-            We had difficulty loading available academy courses. The backend server might be offline or currently undergoing updates.
-          </p>
-          <button 
-            onClick={fetchCourses}
-            className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-bold shadow-md shadow-brand-500/15 transition-all"
-          >
-            <RotateCcw size={16} />
-            <span>Retry Connection</span>
-          </button>
-        </motion.div>
+        <ErrorState
+          title="API Connection Failure"
+          message="We had difficulty loading available academy courses. The backend server might be offline or currently undergoing updates."
+          onRetry={fetchCourses}
+          icon={AlertTriangle}
+        />
       ) : courses.length > 0 ? (
         // Render single featured premium bootcamp course
         (() => {

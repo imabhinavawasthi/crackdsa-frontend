@@ -9,6 +9,7 @@ import {
   Check
 } from "lucide-react";
 import DsaDocsTOC, { TOCHeading } from "@/components/learn/DsaDocsTOC";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { 
   Warning, 
   Tip, 
@@ -89,13 +90,16 @@ export default function DsaArticleReaderClient({
       <div className="flex-1 max-w-3xl mx-auto px-5 sm:px-7 md:px-9 py-8 space-y-8 min-w-0">
         
         {/* 1. Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none select-none">
-          <Link href="/learn" className="hover:text-brand-500 transition-colors">Learn</Link>
-          <span className="text-gray-300 dark:text-gray-800">/</span>
-          <Link href="/learn/dsa" className="hover:text-brand-500 transition-colors">DSA</Link>
-          <span className="text-gray-300 dark:text-gray-800">/</span>
-          <span className="truncate max-w-30 text-gray-500 dark:text-gray-400">{article.category}</span>
-        </nav>
+        <Breadcrumbs
+          listClassName="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none select-none sm:gap-1.5"
+          separatorClassName="text-gray-300 dark:text-gray-800 font-normal"
+          separator="/"
+          items={[
+            { title: "Learn", href: "/learn" },
+            { title: "DSA", href: "/learn/dsa" },
+            { title: article.category },
+          ]}
+        />
 
         {/* 2. Article Header Title Block */}
         <div className="space-y-3.5 border-b border-gray-100 dark:border-gray-855 pb-6">

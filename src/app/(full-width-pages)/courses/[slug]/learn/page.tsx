@@ -23,7 +23,6 @@ import {
   HelpCircle,
   GraduationCap,
   ChevronDown,
-  Bookmark,
   Rocket
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,7 +38,9 @@ import ResourcesTab from "@/components/learning/ResourcesTab";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import UserDropdown from "@/components/header/UserDropdown";
 import { useAuth } from "@/context/AuthContext";
-import { getStoredToken } from "@/functions/auth";
+import StatusSelector from "@/components/learning/StatusSelector";
+import BookmarkButton from "@/components/learning/BookmarkButton";
+import { fetchUserAssetStates as fetchUserAssetStatesFromApi, updateUserAssetState } from "@/api/user";
 // Static high-quality summaries database for video sessions
 const LECTURE_SUMMARIES: Record<string, string> = {
   "item-1": "In this session, we deep-dive into compiler compilation models, the difference between stack and heap memory allocations, pointer reference variables in C++, and reference handles in Java. We map out memory addresses to understand dynamic resizing and stack frame execution boundaries.",
@@ -364,25 +365,14 @@ export default function LearnPage() {
     window.history.pushState({ path: newUrl }, "", newUrl);
   };
 
-  const fetchUserAssetStates = async () => {
+  const loadUserAssetStates = async () => {
     try {
-      const token = getStoredToken();
-      if (!token) return;
-      
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-      const res = await fetch(`${backendUrl}/api/v1/user/assets/states`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
+      const data = await fetchUserAssetStatesFromApi();
+      const stateMap: Record<string, any> = {};
+      data.forEach((state: any) => {
+        stateMap[state.asset_id] = state;
       });
-      if (res.ok) {
-        const data = await res.json();
-        const stateMap: Record<string, any> = {};
-        data.forEach((state: any) => {
-          stateMap[state.asset_id] = state;
-        });
-        setItemStates(stateMap);
-      }
+      setItemStates(stateMap);
     } catch (e) {
       console.error("Failed to fetch user asset states from backend:", e);
     }
@@ -390,7 +380,7 @@ export default function LearnPage() {
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetchUserAssetStates();
+      loadUserAssetStates();
     } else {
       setItemStates({});
     }
@@ -415,31 +405,14 @@ export default function LearnPage() {
     }));
 
     // 2. Persist to Backend
-    const token = getStoredToken();
-    if (token) {
-      try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-        const res = await fetch(`${backendUrl}/api/v1/user/assets/states/${assetType}/${itemId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            status: newStatus
-          })
-        });
-        if (!res.ok) {
-          throw new Error(`Failed to update state: ${res.status}`);
-        }
-        const updatedState = await res.json();
-        setItemStates((prev) => ({
-          ...prev,
-          [itemId]: updatedState
-        }));
-      } catch (err) {
-        console.error("Failed to persist user progress to backend:", err);
-      }
+    try {
+      const updatedState = await updateUserAssetState(assetType as any, itemId, { status: newStatus });
+      setItemStates((prev) => ({
+        ...prev,
+        [itemId]: updatedState
+      }));
+    } catch (err) {
+      console.error("Failed to persist user progress to backend:", err);
     }
   };
 
@@ -457,55 +430,7 @@ export default function LearnPage() {
     handleUpdateStatus(itemId, assetType, newStatus);
   };
 
-  // Toggle item bookmark state in DB
-  const handleToggleBookmark = async (itemId: string, assetType: string) => {
-    if (!isLoggedIn) return;
 
-    const isCurrentlyBookmarked = !!itemStates[itemId]?.is_bookmarked;
-    const nextBookmarkState = !isCurrentlyBookmarked;
-
-    // 1. Optimistic UI update
-    setItemStates((prev) => ({
-      ...prev,
-      [itemId]: {
-        ...(prev[itemId] || {
-          asset_id: itemId,
-          asset_type: assetType,
-          status: "pending",
-          notes: []
-        }),
-        is_bookmarked: nextBookmarkState
-      } as any
-    }));
-
-    // 2. Persist to Backend
-    const token = getStoredToken();
-    if (token) {
-      try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-        const res = await fetch(`${backendUrl}/api/v1/user/assets/states/${assetType}/${itemId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            is_bookmarked: nextBookmarkState
-          })
-        });
-        if (!res.ok) {
-          throw new Error(`Failed to toggle bookmark: ${res.status}`);
-        }
-        const updatedState = await res.json();
-        setItemStates((prev) => ({
-          ...prev,
-          [itemId]: updatedState
-        }));
-      } catch (err) {
-        console.error("Failed to persist bookmark to backend:", err);
-      }
-    }
-  };
 
   // Jump to specific time inside video player
   const handleJumpToTime = (timeInSeconds: number) => {
@@ -686,44 +611,46 @@ export default function LearnPage() {
                   </span>
                 </div>
                 
-                {/* Status Dropdown/Selector */}
-                <div className="relative">
-                  <select
-                    value={itemStates[activeItem.id]?.status || "pending"}
-                    onChange={(e) => handleUpdateStatus(activeItem.id, activeItem.type, e.target.value as "pending" | "done" | "revision")}
-                    disabled={!isLoggedIn}
-                    title={!isLoggedIn ? "Log in to track progress" : "Update status"}
-                    className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md border bg-white dark:bg-gray-900 cursor-pointer outline-none transition-all ${
-                      !isLoggedIn
-                        ? "text-gray-300 dark:text-gray-700 border-gray-100 dark:border-gray-800/80 cursor-not-allowed"
-                        : (itemStates[activeItem.id]?.status || "pending") === "done"
-                        ? "text-emerald-600 dark:text-emerald-400 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10"
-                        : (itemStates[activeItem.id]?.status || "pending") === "revision"
-                        ? "text-amber-600 dark:text-amber-400 border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10"
-                        : "text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
-                    }`}
-                  >
-                    <option value="pending" className="text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900">Pending</option>
-                    <option value="done" className="text-emerald-600 dark:text-emerald-400 bg-white dark:bg-gray-900">Done</option>
-                    <option value="revision" className="text-amber-600 dark:text-amber-400 bg-white dark:bg-gray-900">Revision</option>
-                  </select>
-                </div>
+                <StatusSelector
+                  assetId={activeItem.id}
+                  assetType={activeItem.type}
+                  onStateChange={(state) => {
+                    setItemStates((prev) => ({
+                      ...prev,
+                      [activeItem.id]: {
+                        ...(prev[activeItem.id] || {
+                          asset_id: activeItem.id,
+                          asset_type: activeItem.type,
+                          is_bookmarked: false,
+                          notes: []
+                        }),
+                        status: state.status
+                      } as any
+                    }));
+                  }}
+                  disabledTitle="Log in to track progress"
+                />
 
-                {/* Bookmark Toggle Button */}
-                <button
-                  onClick={() => handleToggleBookmark(activeItem.id, activeItem.type)}
-                  disabled={!isLoggedIn}
-                  title={!isLoggedIn ? "Log in to bookmark lessons" : itemStates[activeItem.id]?.is_bookmarked ? "Remove Bookmark" : "Bookmark Lesson"}
-                  className={`flex h-7 w-7 items-center justify-center rounded-md border transition-all cursor-pointer ${
-                    !isLoggedIn
-                      ? "text-gray-250 dark:text-gray-700 border-gray-100 dark:border-gray-800/80 cursor-not-allowed"
-                      : itemStates[activeItem.id]?.is_bookmarked
-                      ? "text-amber-500 border-amber-500/25 bg-amber-500/5 hover:bg-amber-500/10"
-                      : "text-gray-400 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  }`}
-                >
-                  <Bookmark size={14} className={itemStates[activeItem.id]?.is_bookmarked ? "fill-amber-500" : ""} />
-                </button>
+                <BookmarkButton
+                  assetId={activeItem.id}
+                  assetType={activeItem.type}
+                  onStateChange={(state) => {
+                    setItemStates((prev) => ({
+                      ...prev,
+                      [activeItem.id]: {
+                        ...(prev[activeItem.id] || {
+                          asset_id: activeItem.id,
+                          asset_type: activeItem.type,
+                          status: "pending",
+                          notes: []
+                        }),
+                        is_bookmarked: state.is_bookmarked
+                      } as any
+                    }));
+                  }}
+                  disabledTitle="Log in to bookmark lessons"
+                  title={itemStates[activeItem.id]?.is_bookmarked ? "Remove Bookmark" : "Bookmark Lesson"}
+                />
               </div>
             ) : (
               <div className="flex items-center gap-2.5">
@@ -1287,7 +1214,25 @@ export default function LearnPage() {
                     </div>
                   )}
                   {activeItem?.type === "problem" && (
-                    <ProblemViewer slug={resolvedAsset.urlOrSlug} problemData={resolvedAsset.data} />
+                    <ProblemViewer
+                      slug={resolvedAsset.urlOrSlug}
+                      problemData={resolvedAsset.data}
+                      onStateChange={(updates) => {
+                        setItemStates((prev) => ({
+                          ...prev,
+                          [activeItem.id]: {
+                            ...(prev[activeItem.id] || {
+                              asset_id: activeItem.id,
+                              asset_type: activeItem.type,
+                              is_bookmarked: false,
+                              status: "pending",
+                              notes: []
+                            }),
+                            ...updates
+                          } as any
+                        }));
+                      }}
+                    />
                   )}
                   {activeItem?.type === "article" && (
                     <ArticleReader slug={resolvedAsset.urlOrSlug} articleData={resolvedAsset.data} />
@@ -1402,6 +1347,23 @@ export default function LearnPage() {
                           <NotesTab
                             courseId={courseSlug}
                             itemId={activeItem?.id || "general"}
+                            assetType={activeItem?.type}
+                            onNotesChange={(newNotes) => {
+                              if (activeItem) {
+                                setItemStates((prev) => ({
+                                  ...prev,
+                                  [activeItem.id]: {
+                                    ...(prev[activeItem.id] || {
+                                      asset_id: activeItem.id,
+                                      asset_type: activeItem.type,
+                                      status: "pending",
+                                      is_bookmarked: false
+                                    }),
+                                    notes: newNotes
+                                  } as any
+                                }));
+                              }
+                            }}
                           />
                         </motion.div>
                       )}

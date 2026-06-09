@@ -12,6 +12,12 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Compass, BookOpen, Users, PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from "@/components/ui/navigation-menu";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -68,22 +74,26 @@ const AppHeader: React.FC = () => {
             </svg>
           </button>
 
-          <nav className="hidden lg:flex items-center gap-5 ml-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors ${
-                  pathname === link.href 
-                    ? "text-brand-500" 
-                    : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                }`}
-              >
-                <span className="text-brand-500/50">{link.icon}</span>
-                {link.name}
-              </Link>
-            ))}
-          </nav>
+          <NavigationMenu className="hidden lg:flex ml-6">
+            <NavigationMenuList className="flex items-center gap-5">
+              {navLinks.map((link) => (
+                <NavigationMenuItem key={link.name}>
+                  <Link href={link.href} passHref legacyBehavior>
+                    <NavigationMenuLink
+                      className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors bg-transparent hover:bg-transparent focus:bg-transparent ${
+                        pathname === link.href
+                          ? "text-brand-500 hover:text-brand-500"
+                          : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      }`}
+                    >
+                      <span className="text-brand-500/50">{link.icon}</span>
+                      {link.name}
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
 
         <div className={`${isApplicationMenuOpen ? "flex" : "hidden"} items-center justify-between w-full gap-3 px-5 py-2 lg:flex lg:justify-end lg:px-0 lg:shadow-none`}>

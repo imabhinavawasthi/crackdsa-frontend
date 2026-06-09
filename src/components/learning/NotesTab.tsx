@@ -3,6 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Calendar, FileEdit } from "lucide-react";
+import LoginRequired from "@/components/common/LoginRequired";
+import { useAuth } from "@/context/AuthContext";
+import { fetchUserAssetStates, updateUserAssetState } from "@/api/user";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Note {
   id: string;
@@ -13,9 +17,8 @@ interface Note {
 interface NotesTabProps {
   courseId: string;
   itemId: string;
-  notes?: Note[];
+  assetType?: "problem" | "video" | "article";
   onNotesChange?: (notes: Note[]) => void;
-  isLoggedIn?: boolean;
 }
 
 const containerVariants = {
@@ -59,71 +62,62 @@ const floatingVariants = {
 const NotesTab: React.FC<NotesTabProps> = ({
   courseId,
   itemId,
-  notes: propNotes,
+  assetType = "video",
   onNotesChange,
-  isLoggedIn = false
 }) => {
-  const [localNotes, setLocalNotes] = useState<Note[]>([]);
+  const { isLoggedIn } = useAuth();
+
+  if (!isLoggedIn) {
+    return (
+      <LoginRequired 
+        title="Personal Notes Locked"
+        description="Save formulas, complexity analysis, and study notes directly to your profile by signing in."
+      />
+    );
+  }
+
+  const [notes, setNotes] = useState<Note[]>([]);
   const [newNoteText, setNewNoteText] = useState("");
-  const storageKey = `notes-${courseId}-${itemId}`;
+  const [loading, setLoading] = useState(true);
 
-  // Determine if this component is controlled from the parent
-  const isControlled = propNotes !== undefined && onNotesChange !== undefined;
-  const notes = isControlled ? propNotes! : localNotes;
+  // Sync loading state immediately during render if itemId changes
+  const [prevItemId, setPrevItemId] = useState<string>(itemId);
+  if (itemId !== prevItemId) {
+    setPrevItemId(itemId);
+    setLoading(true);
+  }
 
-  // Load notes from localStorage on item mount (only if not controlled)
   useEffect(() => {
-    if (isControlled) return;
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
+    const fetchNotes = async () => {
+      if (!isLoggedIn || !itemId) return;
       try {
-        setLocalNotes(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse notes:", e);
+        setLoading(true);
+        const states = await fetchUserAssetStates();
+        const current = states.find((s) => s.asset_id === itemId && s.asset_type === assetType);
+        if (current && current.notes) {
+          setNotes(current.notes);
+        } else {
+          setNotes([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch notes:", err);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      setLocalNotes([]);
-    }
-  }, [storageKey, isControlled]);
+    };
+    fetchNotes();
+  }, [isLoggedIn, itemId, assetType]);
 
-  // --- DATABASE INTEGRATION PATHWAY ---
-  // To connect these lecture notes to your persistent backend database,
-  // simply uncomment this async helper and wire it to your routes:
-  /*
-  const saveNoteToDatabase = async (note: Note, action: "add" | "delete") => {
+  const persistNotes = async (updatedNotes: Note[]) => {
+    setNotes(updatedNotes);
+    if (onNotesChange) {
+      onNotesChange(updatedNotes);
+    }
+
     try {
-      const endpoint = `/api/v1/courses/${courseId}/lessons/${itemId}/notes`;
-      const response = await fetch(endpoint, {
-        method: action === "add" ? "POST" : "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          note_id: note.id,
-          text: note.text,
-          created_at: note.createdAt
-        })
-      });
-      if (!response.ok) throw new Error("Database persistence failed");
-      return await response.json();
-    } catch (e) {
-      console.error("Database save failed, falling back to LocalStorage:", e);
-    }
-  };
-  */
-
-  const persistNotes = async (updatedNotes: Note[], targetNote?: Note, actionType?: "add" | "delete") => {
-    // 1. Update notes state (optimistic)
-    if (isControlled) {
-      onNotesChange!(updatedNotes);
-    } else {
-      setLocalNotes(updatedNotes);
-      localStorage.setItem(storageKey, JSON.stringify(updatedNotes));
-    }
-
-    // 2. Database hook - triggers only when adding or deleting individual notes
-    if (targetNote && actionType) {
-      console.log(`[DB Sync Hook] Ready to persist note ${targetNote.id} (${actionType}) against lecture ${itemId}`);
-      // To activate, uncomment the database saver:
-      // await saveNoteToDatabase(targetNote, actionType);
+      await updateUserAssetState(assetType, itemId, { notes: updatedNotes });
+    } catch (err) {
+      console.error("Failed to save notes:", err);
     }
   };
 
@@ -141,15 +135,14 @@ const NotesTab: React.FC<NotesTabProps> = ({
       })
     };
 
-    const updated = [newNote, ...notes]; // Add new notes to the top of the list!
-    persistNotes(updated, newNote, "add");
+    const updated = [newNote, ...notes];
+    persistNotes(updated);
     setNewNoteText("");
   };
 
   const handleDeleteNote = (id: string) => {
-    const noteToDelete = notes.find((n) => n.id === id);
     const filtered = notes.filter((n) => n.id !== id);
-    persistNotes(filtered, noteToDelete, "delete");
+    persistNotes(filtered);
   };
 
   const hasText = newNoteText.trim().length > 0;
@@ -176,14 +169,14 @@ const NotesTab: React.FC<NotesTabProps> = ({
             <span>Personal Notepad</span>
           </span>
           <span className="text-[10px] text-gray-400 font-bold">
-            {isControlled && isLoggedIn ? "Synced to your profile" : "Instantly saved to browser storage"}
+            Synced to your profile
           </span>
         </div>
 
         <textarea
           value={newNoteText}
           onChange={(e) => setNewNoteText(e.target.value)}
-          placeholder="Type your notes or insights about this lecture session here..."
+          placeholder="Type your notes or insights about this session here..."
           rows={3}
           className="w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3.5 text-xs sm:text-sm font-medium outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:shadow-[0_0_15px_-3px_rgba(var(--color-brand-500),0.25)] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-600 resize-none transition-all duration-300"
         />
@@ -191,7 +184,7 @@ const NotesTab: React.FC<NotesTabProps> = ({
         <div className="flex justify-end">
           <motion.button
             type="submit"
-            disabled={!hasText}
+            disabled={!hasText || loading}
             className={`flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:hover:bg-brand-500 text-white px-4.5 py-2.5 text-xs font-bold shadow-md shadow-brand-500/15 hover:shadow-lg hover:shadow-brand-500/20 transition-all active:scale-[0.98] ${
               hasText ? "animate-pulse shadow-brand-500/40 shadow-lg" : ""
             }`}
@@ -213,16 +206,21 @@ const NotesTab: React.FC<NotesTabProps> = ({
           transition={{ duration: 0.35, delay: 0.15 }}
         >
           <FileEdit size={15} className="text-brand-500" />
-          <span>My Lecture Notes ({notes.length})</span>
+          <span>My Notes ({notes.length})</span>
         </motion.h3>
 
-        {notes.length === 0 ? (
+        {loading ? (
+          <div className="space-y-3.5 w-full animate-pulse">
+            <Skeleton className="h-20 w-full rounded-2xl" />
+            <Skeleton className="h-20 w-full rounded-2xl" />
+          </div>
+        ) : notes.length === 0 ? (
           <motion.div
             className="text-center py-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl"
             variants={floatingVariants}
             animate="animate"
           >
-            <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 font-medium">No notes created for this lecture yet.</p>
+            <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 font-medium">No notes created for this session yet.</p>
           </motion.div>
         ) : (
           <motion.div
@@ -244,7 +242,7 @@ const NotesTab: React.FC<NotesTabProps> = ({
                 >
                   <div className="flex items-start gap-4 flex-1">
                     <div className="space-y-1.5 mt-0.5">
-                      <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-bold whitespace-pre-wrap leading-relaxed">
+                      <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium whitespace-pre-wrap leading-relaxed">
                         {note.text}
                       </p>
                       <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-400 uppercase tracking-widest pt-1">
@@ -254,7 +252,6 @@ const NotesTab: React.FC<NotesTabProps> = ({
                     </div>
                   </div>
 
-                  {/* Delete button */}
                   <motion.button
                     onClick={() => handleDeleteNote(note.id)}
                     className="sm:opacity-0 group-hover:opacity-100 shrink-0 p-2.5 rounded-xl bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/10 transition-all duration-200 shadow-sm cursor-pointer"

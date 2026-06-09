@@ -37,7 +37,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     const raf = requestAnimationFrame(() => setIsInitialized(true));
 
     // Fade out loader after theme is applied, with a small delay for premium feel
-    const timeout = setTimeout(() => setIsLoading(false), 500);
+    const timeout = setTimeout(() => setIsLoading(false), 100);
 
     return () => {
       cancelAnimationFrame(raf);

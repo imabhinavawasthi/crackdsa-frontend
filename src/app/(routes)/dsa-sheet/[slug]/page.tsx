@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { DSASheet } from "@/types/dsa-sheet";
 import { SheetContentView } from "@/components/dsa/SheetContentView";
 import { motion } from "framer-motion";
+import ErrorState from "@/components/common/ErrorState";
 
 export default function DSASheetDynamicPage() {
   const params = useParams();
@@ -79,28 +80,12 @@ export default function DSASheetDynamicPage() {
   if (error || !sheetData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center max-w-sm"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-error-50 dark:bg-error-500/10 flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">📭</span>
-          </div>
-          <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-2">
-            Sheet Not Found
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            We couldn&apos;t load &quot;{titleFallback}&quot;. It may not exist
-            or the server might be unavailable.
-          </p>
-          <a
-            href="/dsa-sheet"
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors"
-          >
-            ← Browse Sheets
-          </a>
-        </motion.div>
+        <ErrorState
+          title="Sheet Not Found"
+          message={`We couldn't load "${titleFallback}". It may not exist or the server might be unavailable.`}
+          backLink="/dsa-sheet"
+          backLabel="Browse Sheets"
+        />
       </div>
     );
   }

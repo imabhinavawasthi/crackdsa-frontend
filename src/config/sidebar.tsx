@@ -102,7 +102,7 @@ export const navItems: NavItem[] = [
 export const othersItems: NavItem[] = [
   {
     icon: <Table size={20} />,
-    name: "Practice",
+    name: "DSA Practice",
     path: "/practice",
   },
   {
@@ -110,12 +110,12 @@ export const othersItems: NavItem[] = [
     name: "Topics",
     path: "/practice/topics",
     subItems: [
-      { name: "All Topics", path: "/practice/topics/all" },
-      { name: "Arrays", path: "/practice/topics/arrays" },
-      { name: "Strings", path: "/practice/topics/strings" },
+      { name: "All Topics", path: "/practice/topics" },
+      { name: "Array", path: "/practice/topics/array" },
+      { name: "String", path: "/practice/topics/string" },
       { name: "Binary Search", path: "/practice/topics/binary-search" },
-      { name: "Dynamic Programming", path: "/practice/topics/dp" },
-      { name: "Graphs", path: "/practice/topics/graph" },
+      { name: "Dynamic Programming", path: "/practice/topics/dynamic-programming" },
+      { name: "Graph", path: "/practice/topics/graph" },
     ],
   },
   {
@@ -123,9 +123,11 @@ export const othersItems: NavItem[] = [
     name: "Companies",
     path: "/practice/companies",
     subItems: [
+      { name: "All Companies", path: "/practice/companies" },
       { name: "Google", path: "/practice/companies/google" },
       { name: "Amazon", path: "/practice/companies/amazon" },
-      { name: "Zeta", path: "/practice/companies/zeta" },
+      { name: "Microsoft", path: "/practice/companies/microsoft" },
+      { name: "Meta", path: "/practice/companies/meta" },
     ],
   },
   {
