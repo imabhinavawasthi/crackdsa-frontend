@@ -23,6 +23,7 @@ import { Command } from "cmdk";
 import Link from "next/link";
 import { formatTag, slugify } from "@/utils/string";
 import ErrorState from "@/components/common/ErrorState";
+import { ProblemTableRow } from "@/components/common/ProblemTableRow";
 
 // ─── MultiSelectCombobox Component ───
 export function MultiSelectCombobox({
@@ -530,6 +531,7 @@ export function ProblemsTable({
   problemStatusMap,
   currentPage,
   itemsPerPage,
+  setItemsPerPage,
   totalPages,
   onPageChange,
   onToggleSolved,
@@ -546,6 +548,7 @@ export function ProblemsTable({
   problemStatusMap: Record<string, "pending" | "done" | "revision">;
   currentPage: number;
   itemsPerPage: number;
+  setItemsPerPage?: (val: number) => void;
   totalPages: number;
   onPageChange: (page: number) => void;
   onToggleSolved: (id: string, slug: string, e: React.MouseEvent) => void;
@@ -556,30 +559,6 @@ export function ProblemsTable({
   error?: string | null;
   isLoggedIn?: boolean;
 }) {
-  const getDifficultyConfig = (diff: "Easy" | "Medium" | "Hard") => {
-    switch (diff) {
-      case "Easy": return { color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/8 border-emerald-500/15", barColor: "bg-emerald-500", icon: <Target size={13} /> };
-      case "Medium": return { color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/8 border-amber-500/15", barColor: "bg-amber-500", icon: <Flame size={13} /> };
-      case "Hard": return { color: "text-rose-600 dark:text-rose-400", bg: "bg-rose-500/8 border-rose-500/15", barColor: "bg-rose-500", icon: <Sparkles size={13} /> };
-    }
-  };
-
-  const getPlatformConfig = (platform: string) => {
-    const p = platform.toLowerCase();
-    if (p.includes("leetcode")) {
-      return "bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-orange-400 border border-orange-500/15";
-    }
-    if (p.includes("geeksforgeeks") || p === "gfg") {
-      return "bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-600 dark:text-teal-400 border border-teal-500/15";
-    }
-    if (p.includes("codeforces")) {
-      return "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/15";
-    }
-    if (p.includes("codechef")) {
-      return "bg-gradient-to-r from-amber-700/10 to-yellow-600/10 text-amber-700 dark:text-amber-500 border border-amber-600/15";
-    }
-    return "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800";
-  };
 
   if (error) {
     return (
@@ -609,119 +588,19 @@ export function ProblemsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-900 bg-transparent">
-            {problems.map((prob) => {
-              const isSolved = solvedProblemIds.includes(prob.id);
-              const isBookmarked = bookmarkedProblemIds.includes(prob.id);
-              const diffConfig = getDifficultyConfig(prob.difficulty);
-              const platformClass = getPlatformConfig(prob.platform);
-              return (
-                <tr 
-                  key={prob.id}
-                  onClick={() => onOpenProblem(prob.slug)}
-                  className="group hover:bg-gray-50/45 dark:hover:bg-gray-900/30 cursor-pointer transition-all duration-200 border-l-2 border-l-transparent hover:border-l-brand-500"
-                >
-                   <td className="py-3 px-3 sm:px-5 text-center" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      onClick={(e) => isLoggedIn && onToggleSolved(prob.id, prob.slug, e)}
-                      disabled={!isLoggedIn}
-                      className={`focus:outline-none flex items-center justify-center mx-auto ${!isLoggedIn ? "opacity-50 cursor-not-allowed" : ""}`}
-                      title={!isLoggedIn ? "Log in to track progress" : problemStatusMap[prob.id] === "done" ? "Mark as unsolved" : problemStatusMap[prob.id] === "revision" ? "Revision required - click to mark as unsolved" : "Mark as solved"}
-                    >
-                      {problemStatusMap[prob.id] === "done" ? (
-                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 text-white shadow-sm shadow-emerald-500/20 scale-100 transition-all hover:scale-110 active:scale-95">
-                          <Check size={11} strokeWidth={3.5} />
-                        </div>
-                      ) : problemStatusMap[prob.id] === "revision" ? (
-                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 text-white shadow-sm shadow-amber-500/20 scale-100 transition-all hover:scale-110 active:scale-95">
-                          <Check size={11} strokeWidth={3.5} />
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-700 text-transparent transition-all hover:border-emerald-500 hover:text-emerald-500 hover:bg-emerald-500/5 hover:scale-110 active:scale-95">
-                          <Check size={9} strokeWidth={3.5} />
-                        </div>
-                      )}
-                    </button>
-                  </td>
-                  <td className="py-3 px-2 sm:px-3 text-center" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      onClick={(e) => isLoggedIn && onToggleBookmark(prob.id, prob.slug, e)}
-                      disabled={!isLoggedIn}
-                      className={`focus:outline-none flex items-center justify-center mx-auto ${!isLoggedIn ? "opacity-50 cursor-not-allowed" : ""}`}
-                      title={!isLoggedIn ? "Log in to bookmark problems" : isBookmarked ? "Remove bookmark" : "Bookmark problem"}
-                    >
-                      <Bookmark 
-                        size={14} 
-                        className={`transition-all ${
-                          !isLoggedIn
-                            ? "text-gray-300 dark:text-gray-700"
-                            : `hover:scale-125 active:scale-95 ${
-                                isBookmarked 
-                                  ? "text-amber-500 fill-amber-500" 
-                                  : "text-gray-300 dark:text-gray-700 hover:text-amber-500/80"
-                              }`
-                        }`} 
-                      />
-                    </button>
-                  </td>
-                  <td className="py-3 px-3 sm:px-5">
-                    <span className={`text-[13px] font-medium transition-colors ${
-                      isSolved 
-                        ? "text-gray-400 dark:text-gray-500 font-normal italic animate-fade-in" 
-                        : "text-gray-800 dark:text-gray-100 font-semibold group-hover:text-brand-500"
-                    }`}>
-                      {prob.title}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 sm:px-5">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold tracking-wide border uppercase ${diffConfig.bg} ${diffConfig.color}`}>
-                      {diffConfig.icon}
-                      {prob.difficulty}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 sm:px-5">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${platformClass}`}>
-                        {prob.platform}
-                      </span>
-                      {prob.problem_url && (
-                        <a
-                          href={prob.problem_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-gray-300 dark:text-gray-650 hover:text-brand-500 transition-colors"
-                          title={`Solve on ${prob.platform}`}
-                        >
-                          <ExternalLink size={11} />
-                        </a>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-3 px-3 sm:px-5">
-                    <div className="flex flex-wrap gap-1">
-                      {(prob.attributes?.tags || prob.attributes?.topicTags || []).slice(0, 3).map((t: string) => (
-                        <span key={t} className="px-2 py-0.5 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 text-[10px] font-medium border border-gray-100 dark:border-gray-800/80">
-                          {formatTag(t)}
-                        </span>
-                      ))}
-                      {(prob.attributes?.tags || prob.attributes?.topicTags || []).length > 3 && (
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold pl-1 self-center">
-                          +{(prob.attributes?.tags || prob.attributes?.topicTags || []).length - 3}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-3 px-3 sm:px-5 text-right">
-                    <ChevronRight 
-                      size={15} 
-                      className="inline-block text-gray-300 dark:text-gray-700 group-hover:text-brand-500 transform group-hover:translate-x-1 transition-all duration-300" 
-                    />
-                  </td>
-                </tr>
-              );
-            })}
+            {problems.map((prob) => (
+              <ProblemTableRow
+                key={prob.id}
+                prob={prob}
+                isSolved={solvedProblemIds.includes(prob.id)}
+                isBookmarked={bookmarkedProblemIds.includes(prob.id)}
+                status={problemStatusMap[prob.id] || "pending"}
+                isLoggedIn={isLoggedIn}
+                onToggleSolved={onToggleSolved}
+                onToggleBookmark={onToggleBookmark}
+                onOpenProblem={onOpenProblem}
+              />
+            ))}
 
             {problems.length === 0 && (
               <tr>
@@ -755,12 +634,31 @@ export function ProblemsTable({
       {/* Pagination Footer Controls */}
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/10">
-          <p className="text-xs text-gray-400">
-            Showing <span className="font-semibold text-gray-600 dark:text-gray-300">
-              {Math.min((currentPage - 1) * itemsPerPage + 1, problems.length)}-
-              {Math.min(currentPage * itemsPerPage, problems.length)}
-            </span> of <span className="font-semibold text-gray-600 dark:text-gray-300">{problems.length}</span> problems
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-xs text-gray-400">
+              Showing <span className="font-semibold text-gray-600 dark:text-gray-300">
+                {Math.min((currentPage - 1) * itemsPerPage + 1, problems.length)}-
+                {Math.min(currentPage * itemsPerPage, problems.length)}
+              </span> of <span className="font-semibold text-gray-600 dark:text-gray-300">{problems.length}</span> problems
+            </p>
+            {setItemsPerPage && (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Rows:</span>
+                <select 
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    onPageChange(1);
+                  }}
+                  className="h-7 text-xs bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-2 text-gray-600 dark:text-gray-400 outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            )}
+          </div>
           
           <div className="flex items-center gap-2">
             {/* Previous Page */}

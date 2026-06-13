@@ -4,11 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
-import { MoreHorizontal, ChevronDown } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import {
   NavItem,
   navItems,
   othersItems,
+  accountItems,
   adminNavItems,
   adminOthersItems,
 } from "@/config/sidebar";
@@ -17,6 +19,7 @@ import SidebarWidget from "./SidebarWidget";
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered, setIsMobileOpen } = useSidebar();
   const pathname = usePathname();
+  const { isLoggedIn } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -35,14 +38,22 @@ const AppSidebar: React.FC = () => {
 
   const renderMenuItems = (
     navItems: NavItem[],
-    menuType: "main" | "others"
+    menuType: "main" | "others" | "account"
   ) => (
     <ul className="flex flex-col gap-1">
       {navItems.map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
-            <button
-              onClick={() => handleSubmenuToggle(index, menuType)}
+            <Link
+              href={nav.path || "#"}
+              onClick={(e) => {
+                handleSubmenuToggle(index, menuType);
+                if (!nav.path || nav.path === "#") {
+                  e.preventDefault();
+                } else {
+                  closeSidebarOnMobile();
+                }
+              }}
               className={`menu-item group  ${
                 openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
@@ -78,7 +89,7 @@ const AppSidebar: React.FC = () => {
                   }`}
                 />
               )}
-            </button>
+            </Link>
           ) : (
             nav.path && (
               <Link
@@ -143,27 +154,15 @@ const AppSidebar: React.FC = () => {
                         </span>
                       )}
                       {subItem.name}
-                      <span className="flex items-center gap-1 ml-auto">
+                      <span className="flex items-center gap-1.5 ml-auto">
                         {subItem.new && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge `}
-                          >
-                            new
+                          <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded border bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
+                            NEW
                           </span>
                         )}
                         {subItem.pro && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge `}
-                          >
-                            pro
+                          <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded border bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">
+                            PRO
                           </span>
                         )}
                       </span>
@@ -179,7 +178,7 @@ const AppSidebar: React.FC = () => {
   );
   
   const [openSubmenu, setOpenSubmenu] = useState<{
-    type: "main" | "others";
+    type: "main" | "others" | "account";
     index: number;
   } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
@@ -191,21 +190,22 @@ const AppSidebar: React.FC = () => {
    const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   useEffect(() => {
-    // Check if the current path matches any submenu item
+    // Check if the current path matches any submenu item or its parent main path
     let submenuMatched = false;
-    ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
+    ["main", "others", "account"].forEach((menuType) => {
+      const items = menuType === "main" ? navItems : menuType === "others" ? othersItems : accountItems;
       items.forEach((nav, index) => {
         if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType as "main" | "others",
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
+          const parentMatched = nav.path && isActive(nav.path);
+          const subItemMatched = nav.subItems.some((subItem) => isActive(subItem.path));
+
+          if (parentMatched || subItemMatched) {
+            setOpenSubmenu({
+              type: menuType as "main" | "others" | "account",
+              index,
+            });
+            submenuMatched = true;
+          }
         }
       });
     });
@@ -218,7 +218,7 @@ const AppSidebar: React.FC = () => {
 
     return () => window.clearTimeout(timeoutId);
     }
-  }, [pathname,isActive]);
+  }, [pathname, isActive]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -233,7 +233,7 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
+  const handleSubmenuToggle = (index: number, menuType: "main" | "others" | "account") => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (
         prevOpenSubmenu &&
@@ -349,6 +349,46 @@ const AppSidebar: React.FC = () => {
               </h2>
               {renderMenuItems(pathname.startsWith("/admin") ? adminOthersItems : othersItems, "others")}
             </div>
+
+            {!pathname.startsWith("/admin") && (
+              <div className="">
+                <h2
+                  className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
+                    !isExpanded && !isHovered
+                      ? "lg:justify-center"
+                      : "justify-start"
+                  }`}
+                >
+                  {isExpanded || isHovered || isMobileOpen ? (
+                    "Account"
+                  ) : (
+                    <MoreHorizontal size={20} />
+                  )}
+                </h2>
+                {isLoggedIn ? (
+                  renderMenuItems(accountItems, "account")
+                ) : (
+                  <ul className="flex flex-col gap-1">
+                    <li>
+                      <Link
+                        href="/login"
+                        onClick={closeSidebarOnMobile}
+                        className={`menu-item group ${
+                          isActive("/login") ? "menu-item-active" : "menu-item-inactive"
+                        }`}
+                      >
+                        <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10`}>
+                          <User size={18} />
+                        </span>
+                        {(isExpanded || isHovered || isMobileOpen) && (
+                          <span className={`menu-item-text`}>Sign In</span>
+                        )}
+                      </Link>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         </nav>
         {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}

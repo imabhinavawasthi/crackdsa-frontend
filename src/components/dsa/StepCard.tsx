@@ -1,15 +1,21 @@
 "use client";
 
 import React from "react";
-import { Step } from "@/types/dsa-sheet";
-import { ProblemRow } from "./ProblemRow";
-import { Workflow } from "lucide-react";
+import { Step, DetailedProblem } from "@/types/dsa-sheet";
+import { ProblemTableRow } from "@/components/common/ProblemTableRow";
+import { Workflow, Bookmark } from "lucide-react";
 
 interface StepCardProps {
   step: Step;
   index: number;
   isLast?: boolean;
   colorDot?: string;
+  userProblemStates?: Record<string, string>;
+  sheetProblems?: DetailedProblem[];
+  bookmarkedProblemIds?: string[];
+  isLoggedIn?: boolean;
+  onToggleSolved?: (id: string, slug: string, e: React.MouseEvent) => void;
+  onToggleBookmark?: (id: string, slug: string, e: React.MouseEvent) => void;
 }
 
 export const StepCard: React.FC<StepCardProps> = ({
@@ -17,6 +23,12 @@ export const StepCard: React.FC<StepCardProps> = ({
   index,
   isLast,
   colorDot = "bg-brand-500",
+  userProblemStates,
+  sheetProblems = [],
+  bookmarkedProblemIds = [],
+  isLoggedIn = false,
+  onToggleSolved,
+  onToggleBookmark,
 }) => {
   // Format pattern name
   const patternName = step.pattern_id
@@ -56,11 +68,39 @@ export const StepCard: React.FC<StepCardProps> = ({
           )}
         </div>
 
-        {/* Problems grid */}
-        <div className="flex flex-col gap-1">
-          {step.problems.map((problem, i) => (
-            <ProblemRow key={problem.problem_id} problem={problem} index={i} />
-          ))}
+        {/* Problems table */}
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-950 shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-900 bg-transparent">
+                {step.problems.map((problem) => {
+                  const detailedProblem = sheetProblems.find(p => p.slug === problem.problem_id);
+                  const pData = detailedProblem || problem;
+                  const pid = detailedProblem?.id || problem.problem_id;
+                  const status = userProblemStates?.[problem.problem_id] || "pending";
+                  const isSolved = status === "done";
+                  const isBookmarked = bookmarkedProblemIds.includes(pid);
+
+                  return (
+                    <ProblemTableRow 
+                      key={problem.problem_id} 
+                      prob={pData}
+                      isSolved={isSolved}
+                      isBookmarked={isBookmarked}
+                      status={status}
+                      isLoggedIn={isLoggedIn}
+                      onToggleSolved={onToggleSolved || (() => {})}
+                      onToggleBookmark={onToggleBookmark || (() => {})}
+                      onOpenProblem={(slug) => {
+                        window.open(`/problem/${slug}`, '_blank');
+                      }}
+                      hideTopics={true}
+                    />
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

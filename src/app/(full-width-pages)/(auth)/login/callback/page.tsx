@@ -16,18 +16,24 @@ function AuthCallbackPageContent() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      // 1. Extract access_token from URL searchParams
+      // 1. Extract access_token & refresh_token from URL searchParams
       const accessToken = searchParams.get("access_token");
+      const refreshToken = searchParams.get("refresh_token");
       
       // 2. Fallback: Check if it's in the hash (Supabase sometimes puts it there)
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const tokenFromHash = hashParams.get("access_token");
+      const refreshTokenFromHash = hashParams.get("refresh_token");
       
       const finalToken = accessToken || tokenFromHash;
+      const finalRefreshToken = refreshToken || refreshTokenFromHash;
 
       if (finalToken) {
-        // 3. Store the token locally
+        // 3. Store the tokens locally
         setStoredToken(finalToken);
+        if (finalRefreshToken) {
+          localStorage.setItem("crackdsa_refresh_token", finalRefreshToken);
+        }
         
         // 4. Force a profile refetch in AuthContext
         await refetch();

@@ -47,7 +47,45 @@ export function setStoredToken(token: string): void {
 }
 
 export function clearStoredToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem("crackdsa_refresh_token");
+  }
+}
+
+/**
+ * Attempt to silently refresh the access token using the stored refresh token.
+ */
+export async function attemptTokenRefresh(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  
+  const refreshToken = localStorage.getItem("crackdsa_refresh_token");
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/v1/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.access_token) {
+        setStoredToken(data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem("crackdsa_refresh_token", data.refresh_token);
+        }
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn("[attemptTokenRefresh] Failed to refresh token:", err);
+  }
+  
+  return false;
 }
 
 // ─── Auth API functions ───────────────────────────────────────────────────────
@@ -74,8 +112,24 @@ export async function fetchCurrentUser(): Promise<User | null> {
   }
 
   if (res.status === 401 || res.status === 403) {
-     clearStoredToken(); // Invalidate local token if server rejects it
-     return null;
+     const refreshed = await attemptTokenRefresh();
+     if (refreshed) {
+       // Retry with the new token
+       const newToken = getStoredToken();
+       res = await fetch(`${BACKEND_URL}/api/v1/auth/me`, {
+         headers: {
+           "Authorization": `Bearer ${newToken}`,
+         },
+       });
+       
+       if (res.status === 401 || res.status === 403) {
+          clearStoredToken();
+          return null;
+       }
+     } else {
+       clearStoredToken(); // Invalidate local token if server rejects it & refresh fails
+       return null;
+     }
   }
 
   if (!res.ok) {
@@ -161,6 +215,25 @@ export async function updateUserProfile(profileData: {
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ detail: "Failed to update profile" }));
+    
+    if (res.status === 401 || res.status === 403) {
+       const refreshed = await attemptTokenRefresh();
+       if (refreshed) {
+         // Retry update profile
+         const newToken = getStoredToken();
+         const retryRes = await fetch(`${BACKEND_URL}/api/v1/auth/profile`, {
+           method: "PUT",
+           headers: {
+             "Content-Type": "application/json",
+             "Authorization": `Bearer ${newToken}`,
+           },
+           body: JSON.stringify(profileData),
+         });
+         if (retryRes.ok) return retryRes.json() as Promise<User>;
+       }
+       clearStoredToken();
+    }
+    
     throw new Error(errorData.detail || "Failed to update profile");
   }
 

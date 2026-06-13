@@ -5,7 +5,6 @@ import {
   Table,
   Calendar,
   CircleUser,
-  Sparkles,
   Sheet,
   Dumbbell,
   BookOpen,
@@ -19,6 +18,17 @@ import {
   User,
   Settings,
   HelpCircle,
+  Network,
+  SheetIcon,
+  Zap,
+  Bookmark,
+  SaveIcon,
+  Sparkle,
+  Sparkles,
+  Code2,
+  Activity,
+  Tag,
+  CreditCard
 } from "lucide-react";
 
 export type NavSubItem = {
@@ -48,14 +58,25 @@ export const navItems: NavItem[] = [
     path: "/courses",
   },
   {
-    icon: <Compass size={20} />,
-    name: "Learn",
-    path: "/learn",
-  },
-  {
     icon: <Route size={20} />,
     name: "My Roadmap",
     path: "/roadmap",
+  },
+  {
+    icon: <Compass size={20} />,
+    name: "Learn",
+    path: "/learn",
+    subItems: [
+      { name: "DSA", path: "/learn/dsa", icon: <Code2 size={16} />, new: true },
+    ],
+  }
+];
+
+export const othersItems: NavItem[] = [
+  {
+    icon: <Network size={20} />,
+    name: "Practice DSA",
+    path: "/practice",
   },
   {
     icon: <Sheet size={20} />,
@@ -63,54 +84,24 @@ export const navItems: NavItem[] = [
     path: "/dsa-sheet",
     subItems: [
       {
-        name: "Blind 75",
-        path: "/dsa-sheet/blind-75",
-        icon: <Dumbbell size={16} />,
-      },
-      {
-        name: "Pattern Mastery",
-        path: "/dsa-sheet/pattern-mastery",
-      },
-      {
-        name: "CrackDSA 75",
-        path: "/dsa-sheet/crackdsa-75",
+        name: "crackDSA Sprint",
+        path: "/dsa-sheet/crackdsa-revision-sprint",
+        icon: <Zap size={16} />,
         new: true,
       },
       {
-        name: "30-Day Sprint",
-        path: "/dsa-sheet/30-day-sprint",
-      },
+        name: "0 to Hero DSA",
+        path: "/dsa-sheet/0-to-hero-dsa",
+        icon: <GraduationCap size={16} />,
+        pro: true,
+      }
     ],
-  },
-  {
-    icon: <BookOpen size={20} />,
-    name: "Masterclasses",
-    path: "/masterclasses",
-  },
-  {
-    icon: <Sparkles size={20} />,
-    name: "Personalized",
-    path: "/personalized",
-  },
-  {
-    icon: <FileText size={20} />,
-    name: "Resume",
-    path: "/resume",
-  },
-];
-
-export const othersItems: NavItem[] = [
-  {
-    icon: <Table size={20} />,
-    name: "DSA Practice",
-    path: "/practice",
   },
   {
     icon: <Layers size={20} />,
     name: "Topics",
     path: "/practice/topics",
     subItems: [
-      { name: "All Topics", path: "/practice/topics" },
       { name: "Array", path: "/practice/topics/array" },
       { name: "String", path: "/practice/topics/string" },
       { name: "Binary Search", path: "/practice/topics/binary-search" },
@@ -123,18 +114,33 @@ export const othersItems: NavItem[] = [
     name: "Companies",
     path: "/practice/companies",
     subItems: [
-      { name: "All Companies", path: "/practice/companies" },
       { name: "Google", path: "/practice/companies/google" },
       { name: "Amazon", path: "/practice/companies/amazon" },
       { name: "Microsoft", path: "/practice/companies/microsoft" },
       { name: "Meta", path: "/practice/companies/meta" },
+      { name: "Apple", path: "/practice/companies/apple" },
+    ],
+  },
+];
+
+export const accountItems: NavItem[] = [
+  {
+    icon: <User size={20} />,
+    name: "Profile",
+    path: "/profile",
+    subItems: [
+      { name: "Subscription Details", path: "/profile/subscription", icon: <Sparkles size={16} /> },
     ],
   },
   {
-    icon: <Calendar size={20} />,
-    name: "Progress",
+    icon: <GraduationCap size={20} />,
+    name: "My Progress",
     path: "/progress",
-  },
+    subItems: [
+      { name: "Bookmarked Items", path: "/profile/bookmarks", icon: <Bookmark size={16} /> },
+      { name: "My Notes", path: "/profile/notes", icon: <FileText size={16} /> },
+    ],
+  }
 ];
 
 export const adminNavItems: NavItem[] = [
@@ -168,9 +174,29 @@ export const adminNavItems: NavItem[] = [
     name: "Courses",
     path: "/admin/courses",
   },
+  {
+    icon: <SheetIcon size={20} />,
+    name: "DSA Sheets",
+    path: "/admin/dsa-sheets",
+  },
+  {
+    icon: <Route size={20} />,
+    name: "Roadmaps",
+    path: "/admin/roadmaps",
+  },
 ];
 
 export const adminOthersItems: NavItem[] = [
+  {
+    icon: <Tag size={20} />,
+    name: "Coupons",
+    path: "/admin/coupons",
+  },
+  {
+    icon: <CreditCard size={20} />,
+    name: "Transactions",
+    path: "/admin/transactions",
+  },
   {
     icon: <ChevronLeft size={20} />,
     name: "Exit Panel",
@@ -189,11 +215,6 @@ export const userMenuItems: UserMenuItem[] = [
     name: "My Profile",
     path: "/profile",
     icon: <User size={18} />,
-  },
-  {
-    name: "Account Settings",
-    path: "/settings",
-    icon: <Settings size={18} />,
   },
   {
     name: "Help & Support",

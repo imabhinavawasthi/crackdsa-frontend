@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { 
@@ -10,10 +9,11 @@ import {
   Sparkles, 
   ArrowRight, 
   Lock, 
-  CheckCircle2, 
   Terminal,
-  ArrowLeft
+  Code2
 } from "lucide-react";
+import PageHeader from "@/components/common/PageHeader";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 interface Track {
   id: string;
@@ -64,6 +64,13 @@ const TRACKS: Track[] = [
     description: "Master TCP/IP handshakes, DNS routing, HTTP headers, socket connections, and encryption mechanics behind HTTPS security.",
     status: "upcoming",
     iconName: "Sparkles"
+  },
+  {
+    id: "oops",
+    title: "Object-Oriented Programming",
+    description: "Learn OOP principles, design patterns, and clean code architecture for scalable software.",
+    status: "upcoming",
+    iconName: "Code2"
   }
 ];
 
@@ -78,38 +85,38 @@ export default function LearnCatalogPage() {
         return <Compass size={22} className="text-blue-500" />;
       case "Building2":
         return <Building2 size={22} className="text-orange-500" />;
+      case "Code2":
+        return <Code2 size={22} className="text-red-500" />;
       default:
         return <Sparkles size={22} className="text-purple-500" />;
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20 pt-8 px-4 sm:px-6">
+    <div className="max-w-6xl mx-auto space-y-5 pb-12 select-none">
       
-      {/* Back Navigation Bar */}
-      <div className="flex items-center justify-between">
-        <Link 
-          href="/dashboard"
-          className="inline-flex items-center gap-2 text-[10px] font-bold text-gray-400 hover:text-brand-500 dark:text-gray-500 dark:hover:text-brand-400 transition-colors uppercase tracking-wider"
-        >
-          <ArrowLeft size={13} />
-          <span>Back to Dashboard</span>
-        </Link>
-      </div>
+      {/* Breadcrumbs */}
+      <Breadcrumbs 
+        items={[{ title: "Dashboard", href: "/dashboard" }, { title: "Learn" }]} 
+        listClassName="text-xs font-medium" 
+      />
 
       {/* Hero Header */}
-      <div className="flex flex-col gap-2 max-w-3xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/10 w-fit">
-          <Sparkles size={10} className="animate-pulse" />
-          <span>CrackDSA Learning Portal</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
-          Master Core Engineering Core Topics
-        </h1>
-        <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-medium leading-relaxed mt-2">
-          Structured developer documentations, curated coding sheets, and visual algorithm guides designed to make you an elite problem solver.
-        </p>
-      </div>
+      <PageHeader
+        title={
+          <>
+            Master Core {" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-400">
+              Engineering Topics
+            </span>
+          </>
+        }
+        subtitle="Structured developer documentations, curated coding sheets, and visual algorithm guides designed to make you an elite problem solver."
+        accent="brand"
+        rotatorItems={["Data Structures", "System Design", "Operating Systems", "DBMS Internals", "Computer Networks", "OOP Principles"]}
+        rotatorPrefix="Deep dive into "
+        rotatorSuffix=" to level up your engineering skills."
+      />
 
       {/* Tracks Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
@@ -142,7 +149,7 @@ export default function LearnCatalogPage() {
                       </span>
                     )
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-gray-400 dark:text-gray-550 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md uppercase tracking-wider">
                       <Lock size={8} />
                       <span>Coming Soon</span>
                     </span>

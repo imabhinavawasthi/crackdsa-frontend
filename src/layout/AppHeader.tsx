@@ -11,17 +11,19 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Compass, BookOpen, Users, PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import { Compass, BookOpen, Users, PanelLeftOpen, PanelLeftClose, Flame } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
+import { useActiveStreak } from "@/hooks/useActiveStreak";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
-  const { isLoggedIn, isLoading } = useAuth();
+  const { user, isLoggedIn, isLoading } = useAuth();
+  const activeStreak = useActiveStreak();
   const pathname = usePathname();
 
   const { isExpanded, isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
@@ -106,7 +108,16 @@ const AppHeader: React.FC = () => {
           {isLoading ? (
             <div className="h-7 w-20 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
           ) : isLoggedIn ? (
-            <UserDropdown />
+            <div className="flex items-center gap-2.5">
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-full text-orange-600 dark:text-orange-400 transition-transform hover:scale-105 cursor-pointer"
+                title={`${activeStreak} Day Streak`}
+              >
+                <Flame size={16} className={activeStreak > 0 ? "fill-orange-500 text-orange-500" : "text-orange-400/70"} />
+                <span className="text-sm font-bold">{activeStreak}</span>
+              </div>
+              <UserDropdown />
+            </div>
           ) : (
             <LoginButton />
           )}

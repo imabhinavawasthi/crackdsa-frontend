@@ -1,6 +1,14 @@
+export interface DetailedProblem {
+  id: string;
+  slug: string;
+  title: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  platform: string;
+  problem_url?: string;
+}
+
 export interface Problem {
   problem_id: string;
-  // We can add title, difficulty, etc. if the backend provides it, but based on the schema requested, only problem_id was provided.
   title?: string;
   difficulty?: "Easy" | "Medium" | "Hard";
 }
@@ -18,6 +26,10 @@ export interface Topic {
   steps: Step[];
 }
 
+export interface SheetJSON {
+  topics: Topic[];
+}
+
 export interface DSASheet {
   id: string;
   title: string;
@@ -30,7 +42,5 @@ export interface DSASheet {
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
-  sheet_json: {
-    topics: Topic[];
-  };
+  sheet_json: SheetJSON;
 }

@@ -7,21 +7,20 @@ import {
   ArrowRight, 
   Dumbbell, 
   Zap, 
-  Timer,
   CheckCircle2,
   ChevronRight,
   BookOpen,
   Video,
-  Award,
   Bookmark,
   Notebook,
-  Loader2,
-  AlertCircle
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { getStoredToken } from "@/functions/auth";
-import { formatTag } from "@/utils/string";
+import { calculateActiveStreak } from "@/utils/streak";
+import LoginRequired from "@/components/common/LoginRequired";
+import ActivityHeatmap from "@/components/common/ActivityHeatmap";
 
 // Normalizes a date to YYYY-MM-DD string
 const formatDateKey = (date: Date): string => {
@@ -34,6 +33,10 @@ export default function ProgressPage() {
   const [error, setError] = useState<string | null>(null);
   const [problems, setProblems] = useState<any[]>([]);
   const [userStates, setUserStates] = useState<any[]>([]);
+
+  // Heatmap State
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   const firstName = user?.full_name?.split(" ")[0] || "Learner";
@@ -48,7 +51,7 @@ export default function ProgressPage() {
         const token = getStoredToken();
         const headers = token ? { "Authorization": `Bearer ${token}` } : undefined;
 
-        // 1. Fetch practice problems (to match details, calculate total counts)
+        // 1. Fetch practice problems
         const problemsRes = await fetch(`${backendUrl}/api/v1/practice-problems`, { headers });
         let problemsList: any[] = [];
         if (problemsRes.ok) {
@@ -64,42 +67,27 @@ export default function ProgressPage() {
             setUserStates(statesData || []);
           }
         } else {
-          // Guest Fallback - Load progress from localStorage keys
+          // Guest Fallback
           const states: any[] = [];
-
-          // Solved problems key
           const storedSolved = localStorage.getItem("crackdsa_solved_problems");
           const solvedIds = storedSolved ? JSON.parse(storedSolved) : [];
-
-          // Bookmarked problems key
           const storedBookmarks = localStorage.getItem("crackdsa_bookmarked_problems");
           const bookmarkedIds = storedBookmarks ? JSON.parse(storedBookmarks) : [];
-
-          // Status map key
           const storedStatusMap = localStorage.getItem("crackdsa_problem_status_map");
           const statusMap = storedStatusMap ? JSON.parse(storedStatusMap) : {};
 
-          // Seed default statuses for solved ids
           solvedIds.forEach((id: string) => {
             if (!statusMap[id]) statusMap[id] = "done";
           });
 
-          // Compile mock asset state rows for problems present in local storage
           const todayIso = new Date().toISOString();
-          
-          // Collect all problem IDs we have interacted with
-          const interactedProblemIds = new Set([
-            ...solvedIds,
-            ...bookmarkedIds,
-            ...Object.keys(statusMap)
-          ]);
+          const interactedProblemIds = new Set([...solvedIds, ...bookmarkedIds, ...Object.keys(statusMap)]);
 
           interactedProblemIds.forEach((id) => {
             const problemObj = problemsList.find((p) => p.id === id);
             const statusVal = statusMap[id] || "pending";
             const isBookmarked = bookmarkedIds.includes(id);
 
-            // Fetch individual notes if available
             let notesArr: any[] = [];
             if (problemObj?.slug) {
               const notesKey = `notes-dsa-bootcamp-recordings-problem-${problemObj.slug}`;
@@ -139,65 +127,30 @@ export default function ProgressPage() {
 
   // Aggregate user statistics
   const stats = useMemo(() => {
-    // 1. Problems Solved
     const solvedProblemIds = userStates
       .filter(state => state.asset_type === "problem" && state.status === "done")
       .map(state => state.asset_id);
     const problemsSolved = solvedProblemIds.length;
 
-    // 2. Articles Read
     const articlesRead = userStates
       .filter(state => state.asset_type === "article" && state.status === "done")
       .length;
 
-    // 3. Lectures Completed
     const lecturesCompleted = userStates
       .filter(state => state.asset_type === "video" && state.status === "done")
       .length;
 
-    // 4. Bookmarks Count
-    const bookmarkedCount = userStates.filter(state => state.is_bookmarked).length;
+    const bookmarkedItems = userStates
+      .filter(state => state.is_bookmarked)
+      .sort((a, b) => new Date(b.updated_at || b.last_interacted_at || 0).getTime() - new Date(a.updated_at || a.last_interacted_at || 0).getTime());
+    const bookmarkedCount = bookmarkedItems.length;
 
-    // 5. XP and level calculation
-    // Solved Problem = 100 XP, Article = 50 XP, Video = 75 XP
-    const totalXP = (problemsSolved * 100) + (articlesRead * 50) + (lecturesCompleted * 75);
-    const level = Math.floor(totalXP / 1000) + 1;
-    const xpIntoLevel = totalXP % 1000;
-
-    // 6. Streak calculation
     const interactionDates = userStates
       .map(state => state.updated_at || state.last_interacted_at)
       .filter(Boolean);
 
-    let streak = 0;
-    if (interactionDates.length > 0) {
-      const uniqueDays = Array.from(new Set(
-        interactionDates.map(d => formatDateKey(new Date(d)))
-      )).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    const streak = calculateActiveStreak(interactionDates);
 
-      const today = formatDateKey(new Date());
-      const yesterday = formatDateKey(new Date(Date.now() - 86400000));
-
-      if (uniqueDays[0] === today || uniqueDays[0] === yesterday) {
-        streak = 1;
-        let activeDate = new Date(uniqueDays[0]);
-
-        for (let i = 1; i < uniqueDays.length; i++) {
-          const prevDate = new Date(uniqueDays[i]);
-          const diffTime = activeDate.getTime() - prevDate.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-          if (diffDays === 1) {
-            streak++;
-            activeDate = prevDate;
-          } else if (diffDays > 1) {
-            break;
-          }
-        }
-      }
-    }
-
-    // 7. Solved problem difficulty ratios
     const easyTotal = problems.filter(p => p.difficulty === "Easy").length;
     const easySolved = problems.filter(p => p.difficulty === "Easy" && solvedProblemIds.includes(p.id)).length;
     const mediumTotal = problems.filter(p => p.difficulty === "Medium").length;
@@ -205,23 +158,16 @@ export default function ProgressPage() {
     const hardTotal = problems.filter(p => p.difficulty === "Hard").length;
     const hardSolved = problems.filter(p => p.difficulty === "Hard" && solvedProblemIds.includes(p.id)).length;
 
-    // 8. Flat list of notes
     const allNotes: any[] = [];
     userStates.forEach(state => {
       if (state.notes && Array.isArray(state.notes)) {
         state.notes.forEach((note: any) => {
-          allNotes.push({
-            ...note,
-            asset_id: state.asset_id,
-            asset_type: state.asset_type
-          });
+          allNotes.push({ ...note, asset_id: state.asset_id, asset_type: state.asset_type });
         });
       }
     });
-    // Sort notes recent first
     allNotes.sort((a, b) => new Date(b.createdAt || b.created_at).getTime() - new Date(a.createdAt || a.created_at).getTime());
 
-    // 9. Heatmap data map (Date Key -> interaction count)
     const heatmapActivity: Record<string, number> = {};
     interactionDates.forEach(dateStr => {
       const key = formatDateKey(new Date(dateStr));
@@ -233,9 +179,7 @@ export default function ProgressPage() {
       articlesRead,
       lecturesCompleted,
       bookmarkedCount,
-      totalXP,
-      level,
-      xpIntoLevel,
+      bookmarkedItems,
       streak,
       easyTotal,
       easySolved,
@@ -248,68 +192,120 @@ export default function ProgressPage() {
     };
   }, [userStates, problems]);
 
-  // Generates past 24 weeks starting on Sunday to align calendar cells
+  // Generates days for the selected Month and Year
   const calendarDays = useMemo(() => {
     const days: Date[] = [];
-    const now = new Date();
-    
-    // Start 24 weeks (168 days) ago
-    const startDate = new Date();
-    startDate.setDate(now.getDate() - 168);
+    const startDate = new Date(selectedYear, selectedMonth, 1);
+    const endDate = new Date(selectedYear, selectedMonth + 1, 0); // last day of month
     
     // Align to the start of that week (Sunday)
     const startDay = startDate.getDay();
     startDate.setDate(startDate.getDate() - startDay);
 
+    // Align end to the following Saturday
+    const endDay = endDate.getDay();
+    endDate.setDate(endDate.getDate() + (6 - endDay));
+
     const tempDate = new Date(startDate);
-    while (tempDate <= now) {
+    while (tempDate <= endDate) {
       days.push(new Date(tempDate));
       tempDate.setDate(tempDate.getDate() + 1);
     }
     return days;
-  }, []);
+  }, [selectedYear, selectedMonth]);
 
-  // Branded Loading Skeleton
+
+
+  const getBookmarkDetails = (state: any) => {
+    if (state.asset_type === "problem") {
+      const problem = problems.find((p) => p.id === state.asset_id);
+      return {
+        title: problem?.title || "Unknown Problem",
+        subtitle: problem?.difficulty || "Problem",
+        href: problem?.slug ? `/problem/${problem.slug}` : "#",
+        icon: <Dumbbell size={12} />,
+        iconColor: "bg-brand-500/10 text-brand-500",
+        diffColor:
+          problem?.difficulty === "Easy"
+            ? "text-emerald-500"
+            : problem?.difficulty === "Hard"
+            ? "text-rose-500"
+            : "text-amber-500",
+      };
+    }
+    if (state.asset_type === "video") {
+      return {
+        title: state.asset_id || "Video Lesson",
+        subtitle: "Video",
+        href: `/profile/bookmarks`,
+        icon: <Video size={12} />,
+        iconColor: "bg-blue-500/10 text-blue-500",
+        diffColor: "text-blue-500",
+      };
+    }
+    return {
+      title: state.asset_id || "Article",
+      subtitle: "Article",
+      href: `/profile/bookmarks`,
+      icon: <BookOpen size={12} />,
+      iconColor: "bg-purple-500/10 text-purple-500",
+      diffColor: "text-purple-500",
+    };
+  };
+
+  const getNoteTargetInfo = (note: any) => {
+    if (note.asset_type === "problem") {
+      const problem = problems.find((p) => p.id === note.asset_id);
+      return {
+        title: problem?.title || "Unknown Problem",
+        type: "Problem",
+        icon: <Dumbbell size={10} className="text-brand-500" />,
+        iconBg: "bg-brand-500/10",
+      };
+    }
+    if (note.asset_type === "video") {
+      return {
+        title: note.asset_id || "Video Lesson",
+        type: "Video",
+        icon: <Video size={10} className="text-blue-500" />,
+        iconBg: "bg-blue-500/10",
+      };
+    }
+    return {
+      title: note.asset_id || "Article",
+      type: "Article",
+      icon: <BookOpen size={10} className="text-purple-500" />,
+      iconBg: "bg-purple-500/10",
+    };
+  };
+
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto space-y-10 pb-12 select-none">
-        {/* Banner Skeleton */}
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-gray-900 px-6 py-8 border border-white/5 h-64 animate-pulse flex flex-col justify-between">
-          <div className="space-y-4">
-            <div className="h-6 w-32 bg-gray-800 rounded-full" />
-            <div className="h-10 w-1/3 bg-gray-800 rounded-xl" />
-            <div className="h-4 w-1/2 bg-gray-800 rounded-lg" />
+      <div className="max-w-6xl mx-auto space-y-8 pb-12 select-none">
+        {/* Header Skeleton */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-150 dark:border-gray-850 pb-5 animate-pulse">
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded-xl" />
+            <div className="h-4 w-72 bg-gray-150 dark:bg-gray-850 rounded-lg" />
           </div>
-          <div className="h-12 w-44 bg-gray-850 rounded-2xl" />
+          <div className="h-12 w-48 bg-gray-100 dark:bg-gray-900 rounded-2xl" />
         </div>
-
-        {/* Stats Grid Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, idx) => (
-            <div key={idx} className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-5 space-y-4 animate-pulse">
-              <div className="h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800" />
-              <div className="space-y-2">
-                <div className="h-3 w-16 bg-gray-150 dark:bg-gray-850 rounded" />
-                <div className="h-6 w-24 bg-gray-200 dark:bg-gray-800 rounded-lg" />
-              </div>
-            </div>
+            <div key={idx} className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-5 h-28 animate-pulse" />
           ))}
         </div>
+      </div>
+    );
+  }
 
-        {/* Heatmap & Ratio Grid Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-6 space-y-4 animate-pulse">
-            <div className="h-4 w-40 bg-gray-200 dark:bg-gray-800 rounded" />
-            <div className="h-36 bg-gray-100 dark:bg-gray-850 rounded-2xl w-full" />
-          </div>
-          <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-6 space-y-4 animate-pulse">
-            <div className="h-4 w-28 bg-gray-200 dark:bg-gray-800 rounded" />
-            <div className="space-y-3 pt-4">
-              <div className="h-8 bg-gray-100 dark:bg-gray-850 rounded-xl" />
-              <div className="h-8 bg-gray-100 dark:bg-gray-850 rounded-xl" />
-            </div>
-          </div>
-        </div>
+  if (!isLoggedIn) {
+    return (
+      <div className="max-w-6xl mx-auto py-12 px-4">
+        <LoginRequired
+          title="Progress Tracking Requires Sign In"
+          description="Sign in to track your learning journey, view your activity heatmap, streaks, notes, and saved bookmarks."
+        />
       </div>
     );
   }
@@ -317,75 +313,35 @@ export default function ProgressPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12 select-none">
       
-      {/* 1. Premium Branded Impact Banner */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-gray-900 px-6 py-8 shadow-2xl dark:bg-black/40 border border-white/5 mx-auto">
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-brand-500/30 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-600/10 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-12 xl:col-span-7 space-y-5">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3"
-            >
-              <div className="flex h-6 items-center gap-1.5 rounded-full bg-brand-500/20 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-brand-400 border border-brand-500/20">
-                <Sparkles size={10} />
-                <span>Performance Insight</span>
-              </div>
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-500">
-                Rank: active learner
-              </span>
-            </motion.div>
-            
-            <div className="space-y-3">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-[1.1]">
-                Your Journey, <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-blue-300 to-indigo-300">{firstName}!</span>
-              </h1>
-              <p className="text-gray-400 text-sm md:text-base max-w-xl leading-relaxed font-normal">
-                You have completed <span className="text-white font-semibold">{stats.problemsSolved} practice problems</span>. <br className="hidden md:block" />
-                Keep solving and testing your skills systematically to ace tech interviews.
-              </p>
-            </div>
+      {/* 1. Sleek Compact Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-150 dark:border-gray-850 pb-5">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-brand-500/10 text-brand-500">
+              <Sparkles size={20} className="text-brand-500" />
+            </span>
+            My Progress
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+            Welcome back, <span className="text-gray-850 dark:text-gray-200 font-bold">{firstName}</span>! Tracking your study stats, heatmap activity, and personal notes.
+          </p>
+        </div>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link 
-                href="/practice"
-                className="group relative flex items-center gap-2 overflow-hidden rounded-2xl bg-white px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-gray-950 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-white/5 cursor-pointer"
-              >
-                <span>Continue Practice</span>
-                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
+        {/* Compact Solved Difficulty Pill */}
+        <div className="flex items-center gap-4 bg-gray-50/60 dark:bg-gray-900/30 border border-gray-200/60 dark:border-gray-800/50 rounded-2xl px-5 py-2.5 shadow-xs">
+          <div className="text-center">
+            <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest block">Easy</span>
+            <span className="text-sm font-black text-gray-900 dark:text-white leading-none">{stats.easySolved}</span>
           </div>
-
-          <div className="lg:col-span-12 xl:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-             {/* Gamified Level & XP Card */}
-             <motion.div whileHover={{ y: -2 }} className="group relative overflow-hidden rounded-3xl bg-white/[0.03] p-5 border border-white/5 backdrop-blur-sm">
-                <div className="flex items-center justify-between mb-3">
-                   <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400 border border-brand-500/20">
-                         <Award size={16} />
-                      </div>
-                      <span className="text-xs font-bold text-white uppercase tracking-wider">Level {stats.level}</span>
-                   </div>
-                   <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{1000 - stats.xpIntoLevel} XP to Next Level</span>
-                </div>
-                <div className="space-y-2">
-                   <div className="h-2 w-full overflow-hidden rounded-full bg-white/5 border border-white/5 p-[1px]">
-                      <motion.div 
-                        initial={{ width: 0 }} 
-                        animate={{ width: `${stats.xpIntoLevel / 10}%` }} 
-                        className="h-full rounded-full bg-gradient-to-r from-brand-500 to-indigo-400" 
-                      />
-                   </div>
-                   <div className="flex justify-between text-[9px] text-gray-500 font-bold uppercase tracking-wider">
-                     <span>{stats.xpIntoLevel} XP</span>
-                     <span>1000 XP</span>
-                   </div>
-                </div>
-             </motion.div>
+          <div className="w-px h-6 bg-gray-200 dark:bg-gray-850" />
+          <div className="text-center">
+            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block">Medium</span>
+            <span className="text-sm font-black text-gray-900 dark:text-white leading-none">{stats.mediumSolved}</span>
+          </div>
+          <div className="w-px h-6 bg-gray-200 dark:bg-gray-850" />
+          <div className="text-center">
+            <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest block">Hard</span>
+            <span className="text-sm font-black text-gray-900 dark:text-white leading-none">{stats.hardSolved}</span>
           </div>
         </div>
       </div>
@@ -411,72 +367,20 @@ export default function ProgressPage() {
       </div>
 
       {/* 3. Heatmap & Difficulty Overview Grid */}
+      {/* 3. Interactive Contribution Heatmap (Full Width) */}
+      <ActivityHeatmap
+        calendarDays={calendarDays}
+        heatmapActivity={stats.heatmapActivity}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+      />
+
+      {/* 4. Details Grid (3 columns on lg, 1 column on mobile) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left: Interactive Contribution Heatmap */}
-        <div className="lg:col-span-2 rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 flex flex-col justify-between gap-6 shadow-sm">
-          <div className="space-y-1">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
-              <Sparkles size={14} className="text-brand-500" />
-              <span>Contribution Activity Heatmap</span>
-            </h3>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Aggregate interactions over the last 6 months</p>
-          </div>
-
-          <div className="w-full overflow-x-auto no-scrollbar py-2">
-            <div className="min-w-[550px] flex flex-col gap-2">
-              {/* Heatmap Grid Cells */}
-              <div className="grid grid-rows-7 grid-flow-col gap-1">
-                {calendarDays.map((day, index) => {
-                  const key = formatDateKey(day);
-                  const count = stats.heatmapActivity[key] || 0;
-                  
-                  // Color thresholds based on activity count
-                  let colorClass = "bg-gray-100 dark:bg-gray-900 border border-gray-250/20 dark:border-gray-800/25";
-                  if (count === 1) colorClass = "bg-brand-500/20 border border-brand-500/10";
-                  else if (count === 2) colorClass = "bg-brand-500/50";
-                  else if (count >= 3) colorClass = "bg-brand-500 shadow-sm shadow-brand-500/20";
-
-                  const dateFormatted = day.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric"
-                  });
-
-                  return (
-                    <div
-                      key={index}
-                      className={`w-3.5 h-3.5 rounded-[3px] transition-colors relative group/cell cursor-pointer ${colorClass}`}
-                    >
-                      {/* Interactive CSS Tooltip */}
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover/cell:flex flex-col items-center z-30 pointer-events-none">
-                        <div className="bg-gray-950 text-white text-[9px] font-bold uppercase tracking-wider rounded-lg px-2 py-1 shadow-md whitespace-nowrap border border-gray-800">
-                          {count === 0 ? "No" : count} {count === 1 ? "activity" : "activities"} on {dateFormatted}
-                        </div>
-                        <div className="w-1.5 h-1.5 bg-gray-950 rotate-45 -mt-1 border-r border-b border-gray-800" />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Calendar Heatmap Legend */}
-          <div className="flex items-center justify-between text-[9px] font-bold text-gray-400 uppercase tracking-wider pt-2 border-t border-gray-100 dark:border-gray-900 shrink-0">
-            <span>{calendarDays[0].toLocaleDateString("en-US", { month: "short", year: "numeric" })} – Present</span>
-            <div className="flex items-center gap-1.5">
-              <span>Less</span>
-              <div className="w-3 h-3 rounded-[3px] bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800" />
-              <div className="w-3 h-3 rounded-[3px] bg-brand-500/20 border border-brand-500/10" />
-              <div className="w-3 h-3 rounded-[3px] bg-brand-500/50" />
-              <div className="w-3 h-3 rounded-[3px] bg-brand-500" />
-              <span>More</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Solved Problem Difficulty Breakdown */}
+        {/* Solved Problem Difficulty Breakdown */}
         <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 flex flex-col justify-between gap-5 shadow-sm">
           <div className="space-y-1">
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
@@ -487,45 +391,51 @@ export default function ProgressPage() {
           </div>
 
           <div className="space-y-4 py-2">
-            {/* Easy Bar */}
+            {/* Easy Category */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
                 <span className="text-emerald-500">Easy Category</span>
-                <span className="text-gray-550 dark:text-gray-400">{stats.easySolved} / {stats.easyTotal || 20}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-550 dark:text-gray-400">{stats.easySolved} / {stats.easyTotal || 20}</span>
+                  <span className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
+                    {stats.easyTotal > 0 ? Math.round((stats.easySolved / stats.easyTotal) * 100) : 0}%
+                  </span>
+                </div>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-900 h-2 rounded-full overflow-hidden border border-gray-200/50 dark:border-gray-800/50 p-[1px]">
-                <div 
-                  className="bg-emerald-500 h-full rounded-full transition-all duration-700"
-                  style={{ width: `${stats.easyTotal > 0 ? (stats.easySolved / stats.easyTotal) * 100 : 0}%` }}
-                />
+                <div className="bg-emerald-500 h-full rounded-full transition-all duration-700" style={{ width: `${stats.easyTotal > 0 ? (stats.easySolved / stats.easyTotal) * 100 : 0}%` }} />
               </div>
             </div>
 
-            {/* Medium Bar */}
+            {/* Medium Category */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
                 <span className="text-amber-500">Medium Category</span>
-                <span className="text-gray-550 dark:text-gray-400">{stats.mediumSolved} / {stats.mediumTotal || 35}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-550 dark:text-gray-400">{stats.mediumSolved} / {stats.mediumTotal || 35}</span>
+                  <span className="text-[9px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
+                    {stats.mediumTotal > 0 ? Math.round((stats.mediumSolved / stats.mediumTotal) * 100) : 0}%
+                  </span>
+                </div>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-900 h-2 rounded-full overflow-hidden border border-gray-200/50 dark:border-gray-800/50 p-[1px]">
-                <div 
-                  className="bg-amber-500 h-full rounded-full transition-all duration-700"
-                  style={{ width: `${stats.mediumTotal > 0 ? (stats.mediumSolved / stats.mediumTotal) * 100 : 0}%` }}
-                />
+                <div className="bg-amber-500 h-full rounded-full transition-all duration-700" style={{ width: `${stats.mediumTotal > 0 ? (stats.mediumSolved / stats.mediumTotal) * 100 : 0}%` }} />
               </div>
             </div>
 
-            {/* Hard Bar */}
+            {/* Hard Category */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
                 <span className="text-rose-500">Hard Category</span>
-                <span className="text-gray-550 dark:text-gray-400">{stats.hardSolved} / {stats.hardTotal || 15}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-550 dark:text-gray-400">{stats.hardSolved} / {stats.hardTotal || 15}</span>
+                  <span className="text-[9px] font-bold text-rose-600 bg-rose-500/10 px-1.5 py-0.5 rounded-md">
+                    {stats.hardTotal > 0 ? Math.round((stats.hardSolved / stats.hardTotal) * 100) : 0}%
+                  </span>
+                </div>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-900 h-2 rounded-full overflow-hidden border border-gray-200/50 dark:border-gray-800/50 p-[1px]">
-                <div 
-                  className="bg-rose-500 h-full rounded-full transition-all duration-700"
-                  style={{ width: `${stats.hardTotal > 0 ? (stats.hardSolved / stats.hardTotal) * 100 : 0}%` }}
-                />
+                <div className="bg-rose-500 h-full rounded-full transition-all duration-700" style={{ width: `${stats.hardTotal > 0 ? (stats.hardSolved / stats.hardTotal) * 100 : 0}%` }} />
               </div>
             </div>
           </div>
@@ -534,11 +444,7 @@ export default function ProgressPage() {
             Total Problems Solved: {stats.problemsSolved}
           </div>
         </div>
-      </div>
 
-      {/* 4. Bookmarks & Recent Notes Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
         {/* Bookmarked Library Panel */}
         <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 space-y-4 shadow-sm flex flex-col justify-between h-full">
           <div className="space-y-1 shrink-0">
@@ -550,29 +456,35 @@ export default function ProgressPage() {
           </div>
 
           <div className="flex-grow py-2">
-            {userStates.filter(state => state.is_bookmarked).length === 0 ? (
+            {stats.bookmarkedCount === 0 ? (
               <div className="h-full flex items-center justify-center border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl py-10 text-center">
-                <p className="text-xs text-gray-400 dark:text-gray-550 font-medium">No bookmarked items yet. Bookmark tags/problems to pin them here.</p>
+                <p className="text-xs text-gray-400 dark:text-gray-550 font-medium">No bookmarked items yet. Bookmark items to view them here.</p>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {userStates.filter(state => state.is_bookmarked).slice(0, 3).map((state) => {
-                  const matchedProblem = problems.find(p => p.id === state.asset_id);
-                  if (!matchedProblem) return null;
+                {stats.bookmarkedItems.slice(0, 3).map((state: any) => {
+                  const details = getBookmarkDetails(state);
                   return (
-                    <div key={state.asset_id} className="flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-900 bg-gray-50/50 dark:bg-gray-900/10 hover:bg-gray-100/30 dark:hover:bg-gray-900/20 transition-all select-none">
-                      <div className="space-y-1 min-w-0">
-                        <Link href={`/problem/${matchedProblem.slug}`} className="text-xs font-bold text-gray-800 dark:text-gray-200 hover:text-brand-500 truncate block cursor-pointer">
-                          {matchedProblem.title}
-                        </Link>
-                        <span className={`inline-flex items-center text-[9px] font-bold uppercase tracking-widest ${
-                          matchedProblem.difficulty === "Easy" ? "text-emerald-500" :
-                          matchedProblem.difficulty === "Hard" ? "text-rose-500" : "text-amber-500"
-                        }`}>
-                          {matchedProblem.difficulty}
-                        </span>
+                    <div key={`${state.asset_type}-${state.asset_id}`} className="group flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-900 bg-gray-50/50 dark:bg-gray-900/10 hover:bg-gray-100/30 dark:hover:bg-gray-900/20 transition-all select-none animate-fadeIn">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${details.iconColor}`}>
+                          {details.icon}
+                        </div>
+                        <div className="min-w-0 space-y-0.5">
+                          <Link href={details.href} className="text-xs font-bold text-gray-850 dark:text-gray-200 hover:text-brand-500 truncate block cursor-pointer">
+                            {details.title}
+                          </Link>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[9px] font-bold uppercase tracking-widest ${details.diffColor}`}>
+                              {details.subtitle}
+                            </span>
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 bg-gray-150 dark:bg-gray-900 px-1.5 py-0.2 rounded-md">
+                              {state.asset_type}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <Link href={`/problem/${matchedProblem.slug}`} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-500/5 transition-all cursor-pointer">
+                      <Link href={details.href} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-500/5 transition-all cursor-pointer">
                         <ChevronRight size={14} />
                       </Link>
                     </div>
@@ -583,8 +495,8 @@ export default function ProgressPage() {
           </div>
           
           <div className="shrink-0 pt-2 border-t border-gray-100 dark:border-gray-900 text-center">
-            <Link href="/practice" className="inline-flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 font-bold uppercase tracking-wider cursor-pointer">
-              <span>Go to Practice ground</span>
+            <Link href="/profile/bookmarks" className="inline-flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 font-bold uppercase tracking-wider cursor-pointer">
+              <span>View all bookmarks</span>
               <ChevronRight size={14} />
             </Link>
           </div>
@@ -595,7 +507,7 @@ export default function ProgressPage() {
           <div className="space-y-1 shrink-0">
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
               <Notebook size={14} className="text-brand-500" />
-              <span>Recent Notepad Entries ({stats.recentNotes.length ? userStates.filter(s => s.notes && s.notes.length).length : 0})</span>
+              <span>Recent Notepad Entries ({stats.recentNotes.length})</span>
             </h3>
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Overview of your comments and notations</p>
           </div>
@@ -603,17 +515,25 @@ export default function ProgressPage() {
           <div className="flex-grow py-2">
             {stats.recentNotes.length === 0 ? (
               <div className="h-full flex items-center justify-center border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl py-10 text-center">
-                <p className="text-xs text-gray-400 dark:text-gray-550 font-medium">No notebook comments recorded. Write notes inside any problem workspace to view them.</p>
+                <p className="text-xs text-gray-400 dark:text-gray-550 font-medium">No notebook comments recorded. Write notes inside workspaces to view them.</p>
               </div>
             ) : (
               <div className="space-y-2.5">
                 {stats.recentNotes.map((note) => {
-                  const matchedProblem = problems.find(p => p.id === note.asset_id);
+                  const targetInfo = getNoteTargetInfo(note);
                   return (
-                    <div key={note.id} className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-900 bg-gray-50/50 dark:bg-gray-900/10 space-y-1.5 select-none">
+                    <div key={note.id} className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-900 bg-gray-50/50 dark:bg-gray-900/10 space-y-2 select-none hover:shadow-xs transition-all animate-fadeIn">
                       <div className="flex items-center justify-between text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-                        <span className="truncate max-w-[150px]">{matchedProblem ? matchedProblem.title : "DSA Lesson"}</span>
-                        <span>{note.createdAt || note.created_at}</span>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`p-1 rounded ${targetInfo.iconBg}`}>
+                            {targetInfo.icon}
+                          </span>
+                          <span className="truncate max-w-[130px]">{targetInfo.title}</span>
+                          <span className="text-[8px] font-extrabold uppercase px-1 py-0.2 rounded-sm bg-gray-250/20 dark:bg-gray-800/40 text-gray-450 shrink-0">
+                            {targetInfo.type}
+                          </span>
+                        </div>
+                        <span className="shrink-0">{note.createdAt || note.created_at}</span>
                       </div>
                       <p className="text-xs font-semibold text-gray-750 dark:text-gray-300 line-clamp-2 leading-relaxed">
                         {note.text}
@@ -626,22 +546,10 @@ export default function ProgressPage() {
           </div>
           
           <div className="shrink-0 pt-2 border-t border-gray-100 dark:border-gray-900 text-center">
-            {stats.recentNotes.length > 0 && stats.recentNotes[0].asset_id ? (
-              (() => {
-                const recentProblem = problems.find(p => p.id === stats.recentNotes[0].asset_id);
-                if (recentProblem) {
-                  return (
-                    <Link href={`/problem/${recentProblem.slug}`} className="inline-flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 font-bold uppercase tracking-wider cursor-pointer">
-                      <span>View recent workspace notepad</span>
-                      <ChevronRight size={14} />
-                    </Link>
-                  );
-                }
-                return null;
-              })()
-            ) : (
-              <span className="text-[10px] text-gray-400 font-semibold uppercase">Notepad empty</span>
-            )}
+            <Link href="/profile/notes" className="inline-flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 font-bold uppercase tracking-wider cursor-pointer">
+              <span>View all notes</span>
+              <ChevronRight size={14} />
+            </Link>
           </div>
         </div>
 

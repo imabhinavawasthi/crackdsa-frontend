@@ -5,7 +5,7 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, ChevronDown } from "lucide-react";
+import { LogOut, ChevronDown, Crown } from "lucide-react";
 import { userMenuItems } from "@/config/sidebar";
 
 export default function UserDropdown() {
@@ -41,6 +41,12 @@ export default function UserDropdown() {
           </div>
           {/* Active Presence Dot */}
           <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-gray-900" />
+          
+          {user?.pro_subscription?.is_pro && (
+            <div className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white rounded-full p-0.5 shadow-sm border-2 border-white dark:border-gray-950">
+              <Crown size={10} strokeWidth={3} />
+            </div>
+          )}
         </div>
 
         {/* User Info Hook */}
@@ -85,8 +91,11 @@ export default function UserDropdown() {
                     />
                   </div>
                   <div className="flex flex-col overflow-hidden">
-                    <span className="truncate text-sm font-bold text-gray-900 dark:text-white">
+                    <span className="truncate text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                       {user?.full_name ?? "-"}
+                      {user?.pro_subscription?.is_pro && (
+                        <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] px-1.5 py-0.5 rounded-sm uppercase font-black tracking-widest">PRO</span>
+                      )}
                     </span>
                     <span className="truncate text-[10px] text-gray-500 dark:text-gray-400">
                       {user?.email ?? "-"}

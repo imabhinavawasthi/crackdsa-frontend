@@ -391,6 +391,46 @@ export default function AdminCourseDetailsPage() {
               </div>
             )}
 
+            {/* Stats and Feedbacks View */}
+            <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800/80 rounded-3xl p-6 space-y-6 shadow-theme-xs">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block leading-none border-b border-gray-100 dark:border-gray-850 pb-3">LANDING PAGE STATISTICS</span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Rating</p>
+                  <p className="text-xl font-black text-gray-900 dark:text-white">{course.metadata?.rating || "N/A"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Reviews</p>
+                  <p className="text-xl font-black text-gray-900 dark:text-white">{course.metadata?.reviews || 0}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Students</p>
+                  <p className="text-xl font-black text-gray-900 dark:text-white">{course.metadata?.number_of_students || 0}</p>
+                </div>
+              </div>
+
+              {course.metadata?.feedbacks && course.metadata.feedbacks.length > 0 && (
+                <div className="pt-4 border-t border-gray-100 dark:border-gray-850 space-y-4">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block leading-none">STUDENT FEEDBACKS ({course.metadata.feedbacks.length})</span>
+                  <div className="space-y-3">
+                    {course.metadata.feedbacks.map((fb: any, idx: number) => (
+                      <div key={idx} className="p-3 bg-gray-50 dark:bg-gray-950 rounded-xl border border-gray-100 dark:border-gray-800 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <img src={fb.avatar || "https://i.pravatar.cc/150"} alt={fb.name} className="w-6 h-6 rounded-full" />
+                          <div>
+                            <p className="text-xs font-bold text-gray-900 dark:text-white leading-none">{fb.name}</p>
+                            <p className="text-[9px] text-gray-400 font-semibold">{fb.role} @ {fb.company}</p>
+                          </div>
+                          <span className="ml-auto text-xs font-black text-amber-500">{fb.rating}★</span>
+                        </div>
+                        <p className="text-xs text-gray-500 italic line-clamp-2">"{fb.content}"</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
 
           {/* RIGHT PANEL: Nested Curriculum Syllabus accordion tree */}

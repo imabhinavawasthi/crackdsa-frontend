@@ -1,17 +1,25 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Topic } from "@/types/dsa-sheet";
+import { Topic, DetailedProblem } from "@/types/dsa-sheet";
 import { StepCard } from "./StepCard";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Hash, Layers } from "lucide-react";
+import { ChevronDown, Layers, CheckCircle2 } from "lucide-react";
+import { TopicIcon } from "@/components/common/TopicIcon";
 
 interface TopicSectionProps {
   topic: Topic;
   index: number;
   forceExpand?: boolean;
+  defaultExpanded?: boolean;
   expandToggleKey?: number;
   isSearching?: boolean;
+  userProblemStates?: Record<string, string>;
+  sheetProblems?: DetailedProblem[];
+  bookmarkedProblemIds?: string[];
+  isLoggedIn?: boolean;
+  onToggleSolved?: (id: string, slug: string, e: React.MouseEvent) => void;
+  onToggleBookmark?: (id: string, slug: string, e: React.MouseEvent) => void;
 }
 
 // Color palette for different topic indices
@@ -52,16 +60,29 @@ export const TopicSection: React.FC<TopicSectionProps> = ({
   topic,
   index,
   forceExpand,
+  defaultExpanded,
   expandToggleKey,
   isSearching,
+  userProblemStates,
+  sheetProblems,
+  bookmarkedProblemIds,
+  isLoggedIn,
+  onToggleSolved,
+  onToggleBookmark,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(index === 0);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded ?? index === 0);
   const color = topicColors[index % topicColors.length];
 
   const totalProblems = topic.steps.reduce(
     (acc, s) => acc + (s.problems?.length || 0),
     0
   );
+
+  const solvedProblemsCount = topic.steps.reduce((acc, step) => {
+    return acc + step.problems.filter(p => userProblemStates?.[p.problem_id] === "done").length;
+  }, 0);
+
+  const isFullySolved = totalProblems > 0 && solvedProblemsCount === totalProblems;
 
   // Respond to forceExpand/forceCollapse toggle
   useEffect(() => {
@@ -94,12 +115,20 @@ export const TopicSection: React.FC<TopicSectionProps> = ({
           <div
             className={`flex items-center justify-center h-9 w-9 rounded-lg ${color.bg} ${color.text} transition-colors`}
           >
-            <Hash size={16} strokeWidth={2.5} />
+            <TopicIcon topicName={topic.title} size={16} strokeWidth={2.5} />
           </div>
           <div className="text-left">
-            <h2 className="text-[15px] font-bold text-gray-900 dark:text-white leading-tight">
-              {topic.title}
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-[15px] font-bold text-gray-900 dark:text-white leading-tight">
+                {topic.title}
+              </h2>
+              {isFullySolved && (
+                <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-500/10 px-2 py-0.5 rounded-full border border-success-200/50 dark:border-success-500/20">
+                  <CheckCircle2 size={10} strokeWidth={3} />
+                  Solved
+                </span>
+              )}
+            </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               {topic.steps.length} step{topic.steps.length !== 1 ? "s" : ""} ·{" "}
               {totalProblems} problem{totalProblems !== 1 ? "s" : ""}
@@ -145,6 +174,12 @@ export const TopicSection: React.FC<TopicSectionProps> = ({
                     index={i}
                     isLast={i === topic.steps.length - 1}
                     colorDot={color.dot}
+                    userProblemStates={userProblemStates}
+                    sheetProblems={sheetProblems}
+                    bookmarkedProblemIds={bookmarkedProblemIds}
+                    isLoggedIn={isLoggedIn}
+                    onToggleSolved={onToggleSolved}
+                    onToggleBookmark={onToggleBookmark}
                   />
                 ))}
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
   Sparkles,
   Compass,
@@ -14,81 +14,47 @@ import {
   ArrowRight,
   Target,
   Flame,
-  Brain,
   CheckCircle2,
   Timer,
   TrendingUp,
-  Rocket,
-  ChevronRight,
+  Crown,
   PlayCircle,
+  Loader2,
+  PlusCircle,
+  Activity
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { fetchActiveRoadmapApi } from "@/api/roadmap";
+import { fetchUserAssetStates } from "@/api/user";
+import { RoadmapDBRecord } from "@/components/roadmap/types";
 
-const fadeUp = {
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
-};
-
-const resourceCategories = [
+const ecosystemCategories = [
   {
     title: "Core Learning",
-    accent: "from-blue-500/20 to-indigo-500/5",
     items: [
-      { name: "AI Roadmap", href: "/roadmap", icon: Compass, iconClass: "text-blue-400", badge: "AI Powered", pro: false },
-      { name: "DSA Sheets", href: "/dsa-sheet", icon: LayoutDashboard, iconClass: "text-brand-400", badge: "75+ Probs", pro: false },
-      { name: "Masterclasses", href: "/masterclasses", icon: BookOpen, iconClass: "text-purple-400", pro: true },
-    ],
+      { name: "AI Roadmap", href: "/roadmap", icon: Compass, badge: "Core", color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-500/10" },
+      { name: "DSA Sheets", href: "/dsa-sheet", icon: LayoutDashboard, badge: "Popular", color: "text-brand-500", bg: "bg-brand-50 dark:bg-brand-500/10" },
+      { name: "Masterclasses", href: "/masterclasses", icon: BookOpen, badge: "Pro", color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-500/10" },
+    ]
   },
   {
     title: "Practice & Mastery",
-    accent: "from-emerald-500/20 to-teal-500/5",
     items: [
-      { name: "Topic Practice", href: "/practice/topics", icon: Layers, iconClass: "text-emerald-400", pro: false },
-      { name: "Company Specific", href: "/practice/companies", icon: Building2, iconClass: "text-orange-400", pro: true },
-      { name: "Problem Arena", href: "/practice", icon: Zap, iconClass: "text-yellow-400", badge: "2k+", pro: false },
-    ],
+      { name: "Topic Practice", href: "/practice/topics", icon: Layers, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
+      { name: "Company Tags", href: "/practice/companies", icon: Building2, badge: "Pro", color: "text-orange-500", bg: "bg-orange-50 dark:bg-orange-500/10" },
+      { name: "Problem Arena", href: "/practice", icon: Zap, color: "text-yellow-500", bg: "bg-yellow-50 dark:bg-yellow-500/10" },
+    ]
   },
   {
-    title: "Career & Tools",
-    accent: "from-rose-500/20 to-pink-500/5",
+    title: "Career Tools",
     items: [
-      { name: "Resume Builder", href: "/resume", icon: FileText, iconClass: "text-rose-400", pro: false },
-      { name: "1-on-1 Mentorship", href: "/personalized", icon: Sparkles, iconClass: "text-sky-400", badge: "Premium", pro: true },
-      { name: "Community", href: "/community", icon: Users, iconClass: "text-indigo-400", pro: false },
-    ],
-  },
-];
-
-const quickLaunch = [
-  {
-    title: "AI Roadmap",
-    description: "Your personalized interview prep path, powered by adaptive sequencing.",
-    href: "/roadmap",
-    icon: Compass,
-    gradient: "from-blue-500/30 via-indigo-500/20 to-transparent",
-    glow: "shadow-blue-500/20",
-    cta: "Launch Roadmap",
-  },
-  {
-    title: "DSA Sheets",
-    description: "Curated problem sets from CrackDSA 75 to company-specific grinds.",
-    href: "/dsa-sheet",
-    icon: Target,
-    gradient: "from-brand-500/30 via-violet-500/20 to-transparent",
-    glow: "shadow-brand-500/25",
-    cta: "Open Sheets",
-  },
-  {
-    title: "Practice Arena",
-    description: "Topic drills, timed sessions, and pattern mastery in one place.",
-    href: "/practice",
-    icon: Zap,
-    gradient: "from-amber-500/30 via-orange-500/20 to-transparent",
-    glow: "shadow-amber-500/20",
-    cta: "Start Drilling",
-  },
+      { name: "Resume Builder", href: "/resume", icon: FileText, color: "text-rose-500", bg: "bg-rose-50 dark:bg-rose-500/10" },
+      { name: "1-on-1 Mentorship", href: "/personalized", icon: Sparkles, badge: "Pro", color: "text-sky-500", bg: "bg-sky-50 dark:bg-sky-500/10" },
+      { name: "Community", href: "/community", icon: Users, color: "text-indigo-500", bg: "bg-indigo-50 dark:bg-indigo-500/10" },
+    ]
+  }
 ];
 
 function getGreeting(): string {
@@ -101,294 +67,212 @@ function getGreeting(): string {
 export default function DashboardPage() {
   const { user } = useAuth();
   const firstName = user?.full_name?.split(" ")[0] || "Explorer";
+  const isPro = false; // Replace with actual user PRO check logic later
+
+  // Data States
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeRoadmap, setActiveRoadmap] = useState<RoadmapDBRecord | null>(null);
+  const [problemsSolved, setProblemsSolved] = useState(0);
+
+  useEffect(() => {
+    async function loadDashboardData() {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const [roadmap, assetStates] = await Promise.all([
+          fetchActiveRoadmapApi().catch(() => null),
+          fetchUserAssetStates().catch(() => [])
+        ]);
+        
+        setActiveRoadmap(roadmap);
+        
+        const solvedCount = assetStates.filter(
+          (asset: any) => asset.asset_type === "problem" && asset.status === "done"
+        ).length;
+        setProblemsSolved(solvedCount);
+
+      } catch (err) {
+        console.error("Dashboard data load error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadDashboardData();
+  }, [user]);
 
   const stats = useMemo(
     () => [
-      { label: "Problems Solved", value: "0", sub: "Start your first today", icon: CheckCircle2, tone: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-      { label: "Active Streak", value: "0", sub: "Days in a row", icon: Flame, tone: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" },
-      { label: "Hours Practiced", value: "0.0", sub: "This week", icon: Timer, tone: "text-sky-400", bg: "bg-sky-500/10 border-sky-500/20" },
-      { label: "Readiness", value: "-", sub: "Complete roadmap to unlock", icon: TrendingUp, tone: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
+      { label: "Solved", value: isLoading ? "-" : problemsSolved.toString(), icon: CheckCircle2, color: "text-emerald-500" },
+      { label: "Streak", value: "-", icon: Flame, color: "text-orange-500" }, // Placeholder until backend streak engine
+      { label: "Hours", value: "-", icon: Timer, color: "text-sky-500" }, // Placeholder
+      { label: "Readiness", value: "-", icon: TrendingUp, color: "text-violet-500" },
     ],
-    []
+    [isLoading, problemsSolved]
   );
 
   return (
-    <div className="relative mx-auto max-w-7xl space-y-8 overflow-hidden pb-20 pt-2">
-      {/* Ambient background */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(70,95,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(70,95,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)]" />
-        <motion.div
-          animate={{ x: [0, 24, -16, 0], y: [0, -20, 12, 0] }}
-          transition={{ repeat: Infinity, duration: 18, ease: "easeInOut" }}
-          className="absolute -left-20 top-0 h-72 w-72 rounded-full bg-brand-500/10 blur-[100px]"
-        />
-        <motion.div
-          animate={{ x: [0, -20, 24, 0], y: [0, 16, -24, 0] }}
-          transition={{ repeat: Infinity, duration: 22, ease: "easeInOut" }}
-          className="absolute -right-16 top-32 h-64 w-64 rounded-full bg-blue-light-500/10 blur-[100px]"
-        />
-      </div>
-
-      {/* Hero command center */}
-      <motion.section
-        {...fadeUp}
-        transition={{ duration: 0.5 }}
-        className="relative overflow-hidden rounded-[2rem] border border-gray-200/80 bg-gray-950 px-6 py-8 shadow-2xl shadow-brand-500/10 dark:border-white/10 sm:px-8 sm:py-10"
-      >
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-brand-600/20 via-transparent to-indigo-600/10" />
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 80, ease: "linear" }}
-          className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border border-white/[0.04]"
-        />
-        <motion.div
-          animate={{ rotate: -360 }}
-          transition={{ repeat: Infinity, duration: 55, ease: "linear" }}
-          className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full border border-dashed border-white/[0.05]"
-        />
-        <div className="pointer-events-none absolute -left-10 bottom-0 h-48 w-48 rounded-full bg-brand-500/20 blur-[80px]" />
-
-        <div className="relative z-10 grid grid-cols-1 gap-8 xl:grid-cols-12 xl:items-center">
-          <div className="space-y-5 xl:col-span-7">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-400/20 bg-brand-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-300">
-              <Sparkles size={10} />
-              Command Center
-            </span>
-
-            <div className="space-y-3">
-              <h1 className="text-3xl font-black leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]">
-                {getGreeting()},{" "}
-                <span className="bg-gradient-to-r from-brand-300 via-blue-200 to-indigo-200 bg-clip-text text-transparent">
-                  {firstName}
-                </span>
-              </h1>
-              <p className="max-w-xl text-sm font-medium leading-relaxed text-gray-400 sm:text-base">
-                Your interview prep hub is online. Pick up where you left off or launch a focused session - every problem solved moves the needle.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 pt-1">
-              <Link
-                href="/roadmap"
-                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-2xl bg-white px-6 py-3.5 text-sm font-extrabold text-gray-950 shadow-xl shadow-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-500/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                <Rocket size={16} />
-                <span>Resume My Path</span>
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-              </Link>
-              <Link
-                href="/progress"
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10"
-              >
-                <Brain size={16} className="text-brand-300" />
-                View Analytics
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:col-span-5 xl:grid-cols-1">
-            <motion.div
-              whileHover={{ y: -3 }}
-              className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-md"
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-300">
-                  Today&apos;s Focus
-                </span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-brand-400/20 bg-brand-500/15 text-brand-300">
-                  <Target size={14} />
-                </div>
-              </div>
-              <p className="text-sm font-bold text-white">Arrays & Hashing</p>
-              <p className="mt-1 text-xs text-gray-500">Recommended from your roadmap phase 1</p>
-              <Link
-                href="/roadmap"
-                className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-brand-300 transition-colors hover:text-white"
-              >
-                Start session <ChevronRight size={14} />
-              </Link>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -3 }}
-              className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-md"
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">
-                  Weekly Momentum
-                </span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/15 text-emerald-300">
-                  <TrendingUp size={14} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-end justify-between">
-                  <span className="text-2xl font-black text-white">0</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">problems this week</span>
-                </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: "8%" }}
-                    transition={{ duration: 1.2, ease: "easeOut" }}
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Stats strip */}
-      <motion.section
-        {...fadeUp}
-        transition={{ duration: 0.5, delay: 0.08 }}
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      >
-        {stats.map((stat, idx) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.12 + idx * 0.06 }}
-            whileHover={{ y: -4 }}
-            className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 transition-shadow hover:shadow-xl hover:shadow-brand-500/5 dark:border-gray-800 dark:bg-gray-900/60"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-500/[0.03] to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-            <div className="relative flex items-start justify-between">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${stat.bg}`}>
-                <stat.icon size={18} className={stat.tone} />
-              </div>
-            </div>
-            <div className="relative mt-4">
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-400">{stat.label}</p>
-              <p className="mt-1 text-2xl font-black text-gray-900 dark:text-white">{stat.value}</p>
-              <p className="mt-1 text-xs font-medium text-gray-500">{stat.sub}</p>
-            </div>
-          </motion.div>
-        ))}
-      </motion.section>
-
-      {/* Quick launch bento */}
-      <motion.section {...fadeUp} transition={{ duration: 0.5, delay: 0.14 }} className="space-y-4">
-        <div className="flex items-end justify-between px-1">
-          <div>
-            <h2 className="text-xl font-black tracking-tight text-gray-900 dark:text-white sm:text-2xl">
-              Quick Launch
-            </h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Jump straight into high-impact prep modes.
-            </p>
-          </div>
-          <Link
-            href="/courses"
-            className="hidden items-center gap-1 text-sm font-bold text-brand-500 transition-colors hover:text-brand-600 sm:inline-flex"
-          >
-            Browse courses <ChevronRight size={16} />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {quickLaunch.map((item, idx) => (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.18 + idx * 0.08 }}
-              whileHover={{ y: -6 }}
-            >
-              <Link
-                href={item.href}
-                className={`group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-gray-200 bg-gray-950 p-6 shadow-lg ${item.glow} transition-all hover:border-white/15 dark:border-gray-800`}
-              >
-                <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${item.gradient}`} />
-                <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/5 blur-2xl transition-transform group-hover:scale-125" />
-
-                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white backdrop-blur-sm">
-                  <item.icon size={22} />
-                </div>
-
-                <div className="relative z-10 mt-5 flex flex-1 flex-col">
-                  <h3 className="text-lg font-black text-white">{item.title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-gray-400">{item.description}</p>
-                  <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-white/90 transition-colors group-hover:text-brand-300">
-                    {item.cta}
-                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-1.5" />
-                  </span>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* Resource explorer */}
-      <motion.section {...fadeUp} transition={{ duration: 0.5, delay: 0.2 }} className="space-y-4">
-        <div className="px-1">
-          <h2 className="text-xl font-black tracking-tight text-gray-900 dark:text-white sm:text-2xl">
-            Explore the Ecosystem
-          </h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Every tool, sheet, and practice surface available on CrackDSA.
+    <div className="mx-auto max-w-6xl space-y-8 pb-12 pt-6 px-4">
+      
+      {/* Top Header & Compact Stats */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+            {getGreeting()}, {firstName}.
+          </h1>
+          <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+            Welcome back to your workspace.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 pt-1 lg:grid-cols-3">
-          {resourceCategories.map((category, idx) => (
-            <motion.div
-              key={category.title}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.24 + idx * 0.08 }}
-              className="relative overflow-hidden rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/70"
-            >
-              <div className={`pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b ${category.accent} to-transparent`} />
-
-              <h3 className="relative mb-5 text-lg font-black tracking-tight text-gray-900 dark:text-white">
-                {category.title}
-              </h3>
-
-              <div className="relative flex flex-col gap-2.5">
-                {category.items.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="group flex items-center justify-between rounded-2xl border border-transparent bg-gray-50/80 p-3.5 transition-all hover:border-gray-200 hover:bg-white hover:shadow-md dark:bg-gray-800/30 dark:hover:border-gray-700 dark:hover:bg-gray-800/80"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-gray-100 bg-white shadow-sm transition-transform group-hover:scale-105 dark:border-gray-700 dark:bg-gray-900">
-                        <item.icon size={18} className={item.iconClass} />
-                      </div>
-                      <span className="text-[15px] font-bold text-gray-700 transition-colors group-hover:text-brand-500 dark:text-gray-200 dark:group-hover:text-brand-400">
-                        {item.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {item.badge && (
-                        <span className="hidden rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-gray-500 sm:inline-block dark:bg-gray-800 dark:text-gray-400">
-                          {item.badge}
-                        </span>
-                      )}
-                      {item.pro && (
-                        <span className="rounded-lg bg-brand-500 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-sm shadow-brand-500/20">
-                          Pro
-                        </span>
-                      )}
-                      <PlayCircle
-                        size={16}
-                        className="text-gray-300 transition-all group-hover:text-brand-500 dark:text-gray-600"
-                      />
-                    </div>
-                  </Link>
-                ))}
+        <div className="flex gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
+          {stats.map((stat) => (
+            <div key={stat.label} className="flex min-w-[120px] items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 px-4 py-3 shadow-sm">
+              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 dark:bg-gray-800 ${stat.color}`}>
+                <stat.icon size={16} />
               </div>
-            </motion.div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{stat.label}</p>
+                <p className="text-lg font-black leading-none text-gray-900 dark:text-white mt-0.5">{stat.value}</p>
+              </div>
+            </div>
           ))}
         </div>
-      </motion.section>
+      </div>
+
+      {/* Main Action & Promo Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Primary Action (Roadmap Logic) */}
+        {isLoading ? (
+          <div className="lg:col-span-2 flex items-center justify-center rounded-[2rem] border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f1219] p-8 shadow-sm min-h-[160px]">
+            <Loader2 className="animate-spin text-brand-500" size={32} />
+          </div>
+        ) : !activeRoadmap ? (
+          <motion.div 
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="lg:col-span-2 relative overflow-hidden rounded-[2rem] border border-brand-500/20 bg-gradient-to-br from-brand-50 to-indigo-50 dark:from-brand-900/10 dark:to-indigo-900/10 p-8 sm:p-10 shadow-2xl shadow-brand-500/5 group cursor-pointer"
+          >
+            {/* Animated background glows */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-brand-500/10 dark:bg-brand-500/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 group-hover:bg-brand-500/20 transition-colors duration-700" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-[60px] translate-y-1/2 -translate-x-1/4 group-hover:bg-indigo-500/20 transition-colors duration-700" />
+            
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 h-full">
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-lg bg-white/60 dark:bg-brand-500/10 backdrop-blur-sm px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-brand-600 dark:text-brand-400 mb-4 border border-white dark:border-brand-500/20 shadow-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                  </span>
+                  No Active Path
+                </div>
+                <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Create Your Curriculum</h2>
+                <p className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400 max-w-sm leading-relaxed">
+                  Our AI will engineer a personalized roadmap tailored to your exact skills and target companies.
+                </p>
+              </div>
+              <Link
+                href="/roadmap"
+                className="group/btn relative inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-brand-500/20 transition-all hover:bg-brand-500 hover:-translate-y-1"
+              >
+                <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-0 transition-opacity group-hover/btn:opacity-100" />
+                <PlusCircle size={20} /> Generate Now
+              </Link>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="lg:col-span-2 relative overflow-hidden rounded-[2rem] bg-white dark:bg-gray-900/40 p-8 sm:p-10 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-transparent dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all group"
+          >
+            {/* Subtle glow */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/3 group-hover:bg-emerald-500/10 transition-colors duration-500" />
+            
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 h-full">
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-4 border border-emerald-100 dark:border-emerald-500/20">
+                  <Activity size={14} className="animate-pulse" /> Active Phase
+                </div>
+                {/* Dynamically extract the first phase or just show the roadmap title */}
+                <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight line-clamp-1">
+                  {activeRoadmap.structure?.phases?.[0]?.title || activeRoadmap.title}
+                </h2>
+                <p className="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400 line-clamp-2 max-w-sm leading-relaxed">
+                  {activeRoadmap.structure?.phases?.[0]?.subtitle || "Resume your personalized curriculum."}
+                </p>
+              </div>
+              <Link
+                href={`/roadmap/${activeRoadmap.id}`}
+                className="group/btn relative inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-gray-950 dark:bg-white px-8 py-4 text-base font-bold text-white dark:text-gray-950 shadow-xl transition-all hover:bg-gray-800 dark:hover:bg-gray-100 hover:-translate-y-1"
+              >
+                Resume Path <ArrowRight size={18} className="transition-transform group-hover/btn:translate-x-1" />
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
+        {/* PRO Promo Card */}
+        {!isPro && (
+          <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-[#1a1405] dark:to-[#120a00] p-6 sm:p-8 shadow-sm">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4" />
+            
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <Crown size={24} className="text-amber-500 mb-3" />
+                <h3 className="text-lg font-black text-amber-900 dark:text-amber-500">Unlock CrackDSA PRO</h3>
+                <p className="mt-1.5 text-xs font-medium text-amber-800/80 dark:text-amber-200/60 leading-relaxed mb-5">
+                  Get full access to company-specific tags, expert masterclasses, and priority mentorship.
+                </p>
+              </div>
+              <Link
+                href="/checkout/pro"
+                className="inline-flex w-full justify-center items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-amber-600 transition-colors"
+              >
+                Upgrade Now
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Ecosystem Categories */}
+      <div className="space-y-8 pt-4">
+        {ecosystemCategories.map((category) => (
+          <div key={category.title}>
+            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 px-1">{category.title}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {category.items.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="group flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/40 p-3 transition-colors hover:border-brand-500/30 hover:bg-brand-50/50 dark:hover:border-brand-500/30 dark:hover:bg-brand-500/5"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${item.bg} ${item.color}`}>
+                      <item.icon size={18} />
+                    </div>
+                    <span className="text-sm font-bold text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
+                      {item.name}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {item.badge && (
+                      <span className="rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-gray-500">
+                        {item.badge}
+                      </span>
+                    )}
+                    <PlayCircle size={14} className="text-gray-300 dark:text-gray-700 transition-colors group-hover:text-brand-500" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }

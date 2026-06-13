@@ -47,6 +47,7 @@
     "react-dom": "^19.2.0",
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.77.0",
+    "react-razorpay": "^3.0.1",
     "swiper": "^11.2.10",
     "tailwind-merge": "^2.6.0",
     "zod": "^4.4.3"

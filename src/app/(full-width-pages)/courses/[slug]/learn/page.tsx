@@ -226,28 +226,36 @@ export default function LearnPage() {
       setLoading(true);
       setError(false);
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-      const res = await fetch(`${backendUrl}/api/v1/courses/${courseSlug}`);
       
-      if (!res.ok) {
-        throw new Error(`Server returned status: ${res.status}`);
+      const [courseRes, curriculumRes] = await Promise.all([
+        fetch(`${backendUrl}/api/v1/courses/${courseSlug}`),
+        fetch(`${backendUrl}/api/v1/courses/${courseSlug}/curriculum`)
+      ]);
+      
+      if (!courseRes.ok) {
+        throw new Error(`Server returned status: ${courseRes.status} for course summary`);
+      }
+      if (!curriculumRes.ok) {
+        throw new Error(`Server returned status: ${curriculumRes.status} for curriculum`);
       }
       
-      const data = await res.json();
-      // Map API response (uses "curriculum") to internal "sections" field
+      const courseData = await courseRes.json();
+      const curriculumData = await curriculumRes.json();
+      
       setCourse({
-        id: data.id,
-        slug: data.slug,
-        title: data.title,
-        description: data.description,
-        instructors: data.instructors || [],
-        sections: data.curriculum || [],
+        id: courseData.id,
+        slug: courseData.slug,
+        title: courseData.title,
+        description: courseData.description,
+        instructors: courseData.instructors || [],
+        sections: curriculumData || [],
       });
 
       // Progress is loaded from backend database for logged-in users.
       // Guest users see everything as pending.
 
       // Identify starting item
-      const sections = data.curriculum || [];
+      const sections = curriculumData || [];
       if (sections.length > 0) {
         const queryItemId = searchParams.get("item");
         const flatItems = getFlattenedItems(sections);
