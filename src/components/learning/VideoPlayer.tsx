@@ -217,7 +217,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     if (source.type === "gdrive") {
       return (
-        <div className="w-full h-full aspect-video">
+        <div 
+          className="w-full h-full aspect-video relative"
+          onContextMenu={(e) => e.preventDefault()}
+        >
           <iframe
             id="classroom-iframe"
             src={`https://drive.google.com/file/d/${source.idOrUrl}/preview`}
@@ -226,6 +229,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             allowFullScreen
             className="w-full h-full border-0"
           ></iframe>
+          {/* Invisible overlay over the top bar to block the "Pop-out" button and title */}
+          <div 
+            className="absolute top-0 left-0 right-0 h-16 bg-transparent z-10"
+            title="Video Title"
+          />
         </div>
       );
     }

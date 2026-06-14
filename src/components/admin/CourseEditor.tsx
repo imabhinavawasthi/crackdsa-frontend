@@ -74,10 +74,12 @@ const courseSchema = z.object({
   tags: z.string().nullable().optional(),
   difficulty: z.enum(["Beginner", "Intermediate", "Advanced"]),
   duration_weeks: z.number().min(0),
+  duration_hours: z.number().min(0),
   total_projects: z.number().min(0),
   rating: z.number().min(0).max(5),
   reviews: z.number().min(0),
   number_of_students: z.number().min(0),
+  thumbnail_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
 type CourseFormValues = z.infer<typeof courseSchema>;
@@ -105,10 +107,12 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
       tags: initialData?.tags?.join(", ") || "",
       difficulty: initialData?.metadata?.difficulty || "Beginner",
       duration_weeks: initialData?.metadata?.duration_weeks || 0,
+      duration_hours: initialData?.metadata?.duration_hours || 0,
       total_projects: initialData?.metadata?.total_projects || 0,
       rating: initialData?.metadata?.rating || 5.0,
       reviews: initialData?.metadata?.reviews || 0,
       number_of_students: initialData?.metadata?.number_of_students || 0,
+      thumbnail_url: initialData?.metadata?.thumbnail_url || "",
     }
   });
 
@@ -126,7 +130,7 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
   
   const [instructorsList, setInstructorsList] = useState<Instructor[]>([]);
   const [selectedInstructorIds, setSelectedInstructorIds] = useState<string[]>(
-    initialData?.instructors?.map((i: any) => i.id) || []
+    initialData?.instructor_ids || []
   );
 
   const [curriculum, setCurriculum] = useState<CourseSection[]>(initialData?.curriculum || initialData?.sections || []);
@@ -138,6 +142,10 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (sec: string) => setExpandedSections(p => ({ ...p, [sec]: !p[sec] }));
 
   useEffect(() => {
     if (mode === "create" && titleWatch && !slugWatch) {
@@ -302,7 +310,9 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
       metadata: {
         difficulty: values.difficulty,
         duration_weeks: Number(values.duration_weeks) || 0,
+        duration_hours: Number(values.duration_hours) || 0,
         total_projects: Number(values.total_projects) || 0,
+        thumbnail_url: values.thumbnail_url?.trim() || null,
         prerequisites: prerequisites,
         learning_outcomes: learningOutcomes,
         marketing_syllabus: marketingSyllabus,
@@ -329,7 +339,13 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
         throw new Error(errData.detail || "Unable to save course.");
       }
 
-      router.push("/admin/courses");
+      const resData = await res.json();
+      setSubmitSuccess("Course saved successfully!");
+      setTimeout(() => setSubmitSuccess(null), 3000);
+      
+      if (mode === "create") {
+        router.push(`/admin/courses/${resData.id}/edit`);
+      }
     } catch (err: any) {
       setSubmitError(err.message || "An unexpected error occurred while saving.");
     } finally {
@@ -362,14 +378,27 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
       </div>
 
       {submitError && <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm font-bold text-red-600">{submitError}</div>}
+      {submitSuccess && <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-sm font-bold text-green-600 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        {submitSuccess}
+      </div>}
 
       {/* Basic Identity */}
       <Card className="border-gray-200 dark:border-gray-800 shadow-sm rounded-3xl overflow-hidden">
-        <CardHeader className="bg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+        <div onClick={() => toggleSection("identity")}><CardHeader className=" flex flex-row items-center justify-between cursor-pointer group select-nonebg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+
+            <div className="flex-1">
           <CardTitle className="text-xl font-black flex items-center gap-3"><BookOpen className="text-brand-500" size={24}/> Identity & Overview</CardTitle>
           <CardDescription className="text-sm font-semibold">Title, descriptions, and category placement.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 md:p-8 space-y-8">
+            </div>
+            <div className="shrink-0 ml-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <ChevronDown className={`transition-transform duration-300 ${expandedSections.identity ? "rotate-180" : ""}`} size={20} />
+            </div>
+
+</CardHeader></div>
+        
+{expandedSections.identity && (
+<CardContent className="p-6 md:p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="md:col-span-2 space-y-2">
               <Label className="text-sm font-black uppercase tracking-wider text-gray-700 dark:text-gray-300">Course Title</Label>
@@ -390,6 +419,21 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
                 <option value="advanced">Advanced Computer Science</option>
               </Select>
             </div>
+            <div className="md:col-span-2 space-y-3 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
+              <Label className="text-sm font-black uppercase tracking-wider text-gray-700 dark:text-gray-300">Course Thumbnail URL</Label>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 space-y-2">
+                  <Input {...register("thumbnail_url")} className="h-12 text-sm font-bold bg-white dark:bg-gray-950" placeholder="https://example.com/thumbnail.png" />
+                  {errors.thumbnail_url && <p className="text-sm font-bold text-red-500">{errors.thumbnail_url.message}</p>}
+                  <p className="text-xs text-gray-500 font-semibold">Provide a valid image URL for the course thumbnail. Recommended aspect ratio is 16:9 or 4:3.</p>
+                </div>
+                {watch("thumbnail_url") && (
+                  <div className="w-full md:w-48 h-28 shrink-0 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-950 flex items-center justify-center">
+                    <img src={watch("thumbnail_url")!} alt="Thumbnail preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="md:col-span-2 space-y-2">
               <Label className="text-sm font-black uppercase tracking-wider text-gray-700 dark:text-gray-300">Prospectus Description</Label>
               <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden min-h-[350px] shadow-inner bg-white dark:bg-gray-950">
@@ -398,15 +442,25 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
             </div>
           </div>
         </CardContent>
-      </Card>
+          )}
+        </Card>
 
       {/* Instructors */}
       <Card className="border-gray-200 dark:border-gray-800 shadow-sm rounded-3xl overflow-hidden">
-        <CardHeader className="bg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+        <div onClick={() => toggleSection("instructors")}><CardHeader className=" flex flex-row items-center justify-between cursor-pointer group select-nonebg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+
+            <div className="flex-1">
           <CardTitle className="text-xl font-black flex items-center gap-3"><Users className="text-brand-500" size={24}/> Co-Instructors</CardTitle>
           <CardDescription className="text-sm font-semibold">Select all instructors teaching this cohort.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 md:p-8">
+            </div>
+            <div className="shrink-0 ml-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <ChevronDown className={`transition-transform duration-300 ${expandedSections.instructors ? "rotate-180" : ""}`} size={20} />
+            </div>
+
+</CardHeader></div>
+        
+{expandedSections.instructors && (
+<CardContent className="p-6 md:p-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {instructorsList.map((inst) => (
               <div
@@ -433,16 +487,26 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
             {instructorsList.length === 0 && <p className="text-sm text-gray-400 col-span-full font-semibold italic">No instructors found in database. Add them in the Instructors panel.</p>}
           </div>
         </CardContent>
-      </Card>
+          )}
+        </Card>
 
       {/* Metadata & Pricing */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
         <Card className="border-gray-200 dark:border-gray-800 shadow-sm rounded-3xl overflow-hidden h-fit">
-          <CardHeader className="bg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+          <div onClick={() => toggleSection("metadata")}><CardHeader className=" flex flex-row items-center justify-between cursor-pointer group select-nonebg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+
+            <div className="flex-1">
             <CardTitle className="text-xl font-black flex items-center gap-3"><Settings className="text-brand-500" size={24}/> Metadata</CardTitle>
             <CardDescription className="text-sm font-semibold">Stats, tags, and outcomes for the landing page.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 md:p-8 space-y-8">
+            </div>
+            <div className="shrink-0 ml-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <ChevronDown className={`transition-transform duration-300 ${expandedSections.metadata ? "rotate-180" : ""}`} size={20} />
+            </div>
+
+</CardHeader></div>
+          
+{expandedSections.metadata && (
+<CardContent className="p-6 md:p-8 space-y-8">
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-black uppercase text-gray-500">Difficulty</Label>
@@ -455,6 +519,10 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
               <div className="space-y-2">
                 <Label className="text-xs font-black uppercase text-gray-500">Duration (wks)</Label>
                 <Input type="number" {...register("duration_weeks", { valueAsNumber: true })} className="h-10 font-bold" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase text-gray-500">Duration (hrs)</Label>
+                <Input type="number" {...register("duration_hours", { valueAsNumber: true })} className="h-10 font-bold" />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs font-black uppercase text-gray-500">Projects</Label>
@@ -512,14 +580,24 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
               </div>
             </div>
           </CardContent>
+          )}
         </Card>
 
         <Card className="border-gray-200 dark:border-gray-800 shadow-sm rounded-3xl overflow-hidden h-fit">
-          <CardHeader className="bg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+          <div onClick={() => toggleSection("pricing")}><CardHeader className=" flex flex-row items-center justify-between cursor-pointer group select-nonebg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+
+            <div className="flex-1">
             <CardTitle className="text-xl font-black flex items-center gap-3"><DollarSign className="text-emerald-500" size={24}/> Pricing Strategy</CardTitle>
             <CardDescription className="text-sm font-semibold">Define access and pricing rules.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 md:p-8 space-y-8">
+            </div>
+            <div className="shrink-0 ml-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <ChevronDown className={`transition-transform duration-300 ${expandedSections.pricing ? "rotate-180" : ""}`} size={20} />
+            </div>
+
+</CardHeader></div>
+          
+{expandedSections.pricing && (
+<CardContent className="p-6 md:p-8 space-y-8">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-xs font-black uppercase text-gray-500">Discounted Price (₹)</Label>
@@ -555,15 +633,25 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
               <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Separate with commas</div>
             </div>
           </CardContent>
+          )}
         </Card>
 
         {/* Statistics & Feedbacks */}
         <Card className="border-gray-200 dark:border-gray-800 shadow-sm rounded-3xl overflow-hidden h-fit md:col-span-2 xl:col-span-2">
-          <CardHeader className="bg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+          <div onClick={() => toggleSection("stats")}><CardHeader className=" flex flex-row items-center justify-between cursor-pointer group select-nonebg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6">
+
+            <div className="flex-1">
             <CardTitle className="text-xl font-black flex items-center gap-3"><TrendingUp className="text-blue-500" size={24}/> Statistics & Student Feedback</CardTitle>
             <CardDescription className="text-sm font-semibold">Dynamic metrics shown on the course landing page.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 md:p-8 space-y-8">
+            </div>
+            <div className="shrink-0 ml-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <ChevronDown className={`transition-transform duration-300 ${expandedSections.stats ? "rotate-180" : ""}`} size={20} />
+            </div>
+
+</CardHeader></div>
+          
+{expandedSections.stats && (
+<CardContent className="p-6 md:p-8 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <Label className="text-xs font-black uppercase text-gray-500 flex items-center gap-2"><Star size={14} className="text-amber-500"/> Rating (out of 5)</Label>
@@ -632,12 +720,15 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
               </div>
             </div>
           </CardContent>
+          )}
         </Card>
       </div>
 
       {/* Curriculum Builder */}
       <Card className="border-gray-200 dark:border-gray-800 shadow-sm rounded-3xl overflow-hidden">
-        <CardHeader className="bg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div onClick={() => toggleSection("curriculum")}><CardHeader className=" cursor-pointer group select-nonebg-gray-50/50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-850 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+            <div className="flex-1">
           <div>
             <CardTitle className="text-xl font-black flex items-center gap-3"><Briefcase className="text-brand-500" size={24}/> Curriculum Builder</CardTitle>
             <CardDescription className="text-sm font-semibold">Organize the entire syllabus and link database assets.</CardDescription>
@@ -645,8 +736,15 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
           <button type="button" onClick={addSection} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-black shadow-sm hover:scale-105 active:scale-95 transition-all">
             <Plus size={16} /> Add Module Section
           </button>
-        </CardHeader>
-        <CardContent className="p-6 md:p-8">
+            </div>
+            <div className="shrink-0 ml-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <ChevronDown className={`transition-transform duration-300 ${expandedSections.curriculum ? "rotate-180" : ""}`} size={20} />
+            </div>
+
+</CardHeader></div>
+        
+{expandedSections.curriculum && (
+<CardContent className="p-6 md:p-8">
           {curriculum.length === 0 ? (
             <div className="p-16 text-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-3xl bg-gray-50/50 dark:bg-gray-900/20">
               <Layers size={48} className="mx-auto text-gray-300 dark:text-gray-700 mb-4" />
@@ -767,7 +865,8 @@ export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
             </div>
           )}
         </CardContent>
-      </Card>
+          )}
+        </Card>
     </form>
   );
 }

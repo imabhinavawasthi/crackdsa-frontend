@@ -20,7 +20,12 @@ import {
 } from "@/components/ui/navigation-menu";
 import { useActiveStreak } from "@/hooks/useActiveStreak";
 
-const AppHeader: React.FC = () => {
+interface AppHeaderProps {
+  onToggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
+}
+
+const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen }) => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const { user, isLoggedIn, isLoading } = useAuth();
   const activeStreak = useActiveStreak();
@@ -29,10 +34,14 @@ const AppHeader: React.FC = () => {
   const { isExpanded, isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
   const handleToggle = () => {
-    if (window.innerWidth >= 1024) {
-      toggleSidebar();
+    if (onToggleSidebar) {
+      onToggleSidebar();
     } else {
-      toggleMobileSidebar();
+      if (window.innerWidth >= 1024) {
+        toggleSidebar();
+      } else {
+        toggleMobileSidebar();
+      }
     }
   };
 
@@ -55,7 +64,9 @@ const AppHeader: React.FC = () => {
             onClick={handleToggle}
             aria-label="Toggle Sidebar"
           >
-            {isMobileOpen || isExpanded ? (
+            {onToggleSidebar ? (
+              isSidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />
+            ) : isMobileOpen || isExpanded ? (
               <PanelLeftClose size={18} />
             ) : (
               <PanelLeftOpen size={18} />

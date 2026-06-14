@@ -7,11 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronLeft, 
   CheckCircle2, 
-  Clock, 
   BookOpen, 
   PlayCircle, 
   Trophy, 
-  ArrowRight,
   Star,
   Users,
   ShieldCheck,
@@ -21,7 +19,7 @@ import {
   Terminal,
   Cpu
 } from "lucide-react";
-import { CourseSummary } from "@/types/course";
+import { CourseSummary, Instructor } from "@/types/course";
 import { fetchCourseDetail } from "@/api/courses";
 import { CompareSection } from "@/components/common/CompareSection";
 import { ContactFooterCard } from "@/components/common/ContactFooterCard";
@@ -38,25 +36,40 @@ export default function CourseLandingPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
+  
   const [expandedSyllabus, setExpandedSyllabus] = useState<number | null>(0);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
   
   const [course, setCourse] = useState<CourseSummary | null>(null);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchCourse() {
+    async function fetchCourseData() {
       if (!slug) return;
       try {
         const data = await fetchCourseDetail(slug);
         setCourse(data);
+        
+        // Fetch instructors independently using instructor_ids
+        if (data && data.instructor_ids && data.instructor_ids.length > 0) {
+          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+          const res = await fetch(`${backendUrl}/api/v1/instructors/`);
+          if (res.ok) {
+            const result = await res.json();
+            const allInstructors = result.items || [];
+            const matchedInstructors = allInstructors.filter((i: any) => data.instructor_ids.includes(i.id));
+            setInstructors(matchedInstructors);
+          }
+        }
       } catch (err) {
-        console.error("Failed to fetch course", err);
+        console.error("Failed to fetch course data", err);
         setCourse(null);
       } finally {
         setLoading(false);
       }
     }
-    fetchCourse();
+    fetchCourseData();
   }, [slug]);
 
   if (loading) {
@@ -78,12 +91,26 @@ export default function CourseLandingPage() {
     );
   }
 
-  // Pick an icon based on ID/category for fallback thumbnail
+  // Fallback Icon
   let Icon = Code2;
   if (course.id.includes("python") || course.slug.includes("python")) Icon = Terminal;
   if (course.id.includes("os") || course.slug.includes("system-design")) Icon = Cpu;
 
-  const primaryInstructor = course.instructors[0] || { name: "CrackDSA Faculty", company: "Industry Expert", color: "from-brand-500 to-indigo-600" };
+  const primaryInstructor = instructors[0] || { name: "CrackDSA Faculty", company: "Industry Expert", color: "from-brand-500 to-indigo-600" };
+
+  // Determine Duration Text (Weeks/Hours or both)
+  const wks = course.metadata?.duration_weeks || 0;
+  const hrs = course.metadata?.duration_hours || 0;
+  let durationText = "";
+  if (wks > 0 && hrs > 0) {
+    durationText = `${wks} Wks / ${hrs} Hrs`;
+  } else if (wks > 0) {
+    durationText = `${wks} Wks`;
+  } else if (hrs > 0) {
+    durationText = `${hrs} Hrs`;
+  } else {
+    durationText = "Self-Paced";
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0B0F19] selection:bg-brand-500/30 font-sans">
@@ -95,12 +122,20 @@ export default function CourseLandingPage() {
             <ChevronLeft size={20} />
             <span className="text-sm font-bold">Back to Academy</span>
           </Link>
-          <Link
-            href={`/courses/${course.slug}/learn`}
-            className="px-5 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-full transition-colors shadow-lg shadow-brand-500/20"
-          >
-            Go to Classroom
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/checkout/course/${course.slug}`}
+              className="px-5 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-full transition-colors shadow-lg shadow-brand-500/20"
+            >
+              Enroll Now
+            </Link>
+            <Link
+              href={`/courses/${course.slug}/learn`}
+              className="hidden sm:block px-5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              Go to Classroom
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -108,68 +143,97 @@ export default function CourseLandingPage() {
         {/* Background Gradients */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[500px] bg-brand-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-        {/* --- 1. Hero Section --- */}
-        <section className="relative pt-20 pb-16 px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <motion.div initial="hidden" animate="visible" variants={fadeIn}>
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-black uppercase tracking-widest border border-brand-500/20">
-                {course.metadata?.difficulty || "Beginner"} Level
-              </span>
-            </motion.div>
+        {/* --- 1. Hero Section (2-Column Grid) --- */}
+        <section className="relative pt-16 pb-16 px-4">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            
+            {/* Left Content */}
+            <div className="space-y-8 text-center lg:text-left order-2 lg:order-1">
+              <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-black uppercase tracking-widest border border-brand-500/20">
+                  {course.metadata?.difficulty || "Beginner"} Level
+                </span>
+              </motion.div>
 
-            <motion.h1 
-              initial="hidden" animate="visible" variants={fadeIn}
-              className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-955 dark:text-white tracking-tight leading-[1.1]"
-            >
-              {course.title}
-            </motion.h1>
+              <motion.h1 
+                initial="hidden" animate="visible" variants={fadeIn}
+                className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-[1.1]"
+              >
+                {course.title}
+              </motion.h1>
 
-            <motion.p 
-              initial="hidden" animate="visible" variants={fadeIn}
-              className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed"
-            >
-              {course.description}
-            </motion.p>
+              <motion.div 
+                initial="hidden" animate="visible" variants={fadeIn}
+                className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+              >
+                {/* Render HTML course description with line clamping */}
+                <div 
+                  className={`prose dark:prose-invert prose-lg max-w-none transition-all duration-300 ${isDescExpanded ? "" : "line-clamp-3"}`}
+                  dangerouslySetInnerHTML={{ __html: course.description }}
+                />
+                
+                <button 
+                  onClick={() => setIsDescExpanded(!isDescExpanded)}
+                  className="mt-3 text-sm font-bold text-brand-500 hover:text-brand-600 transition-colors flex items-center gap-1 mx-auto lg:mx-0"
+                >
+                  {isDescExpanded ? "Show Less" : "Read More..."}
+                  {isDescExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+              </motion.div>
 
-            {/* Trust Badges */}
-            <motion.div 
-              initial="hidden" animate="visible" variants={fadeIn}
-              className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-4"
-            >
-              {(course.metadata?.number_of_students || 0) > 0 && (
+              {/* Call to Action Button */}
+              <motion.div 
+                initial="hidden" animate="visible" variants={fadeIn}
+                className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4"
+              >
+                <Link
+                  href={`/checkout/course/${course.slug}`}
+                  className="px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black text-lg transition-colors shadow-lg shadow-brand-500/30 w-full sm:w-auto flex items-center justify-center gap-2"
+                >
+                  Enroll Now - ₹{course.price}
+                </Link>
+              </motion.div>
+
+              {/* Trust Badges */}
+              <motion.div 
+                initial="hidden" animate="visible" variants={fadeIn}
+                className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-8 pt-4"
+              >
+                {(course.metadata?.number_of_students || 0) > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Users className="text-brand-500 w-5 h-5 shrink-0" />
+                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                      {course.metadata?.number_of_students?.toLocaleString()}+ Students
+                    </span>
+                  </div>
+                )}
+                {(course.metadata?.rating || 0) > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Star className="text-amber-500 w-5 h-5 shrink-0" />
+                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                      {course.metadata?.rating}/5 Rating
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
-                  <Users className="text-brand-500 w-5 h-5" />
-                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                    {course.metadata?.number_of_students?.toLocaleString()}+ Students
-                  </span>
+                  <ShieldCheck className="text-emerald-500 w-5 h-5 shrink-0" />
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Lifetime Access</span>
                 </div>
-              )}
-              {(course.metadata?.rating || 0) > 0 && (
-                <div className="flex items-center gap-2">
-                  <Star className="text-amber-500 w-5 h-5" />
-                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                    {course.metadata?.rating}/5 Rating
-                  </span>
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="text-emerald-500 w-5 h-5" />
-                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Lifetime Access</span>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
 
-            {/* Huge Hero Thumbnail */}
+            {/* Right Thumbnail */}
             <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="mt-12 w-full aspect-video md:aspect-[21/9] rounded-3xl relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden shadow-2xl shadow-brand-500/10 group"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="order-1 lg:order-2 w-full aspect-video lg:aspect-[4/3] rounded-3xl relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden shadow-2xl shadow-brand-500/10 group"
             >
               {course.metadata?.thumbnail_url ? (
                 <img 
                   src={course.metadata.thumbnail_url} 
                   alt={`${course.title} thumbnail`} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center opacity-30">
@@ -177,11 +241,12 @@ export default function CourseLandingPage() {
                 </div>
               )}
             </motion.div>
+
           </div>
         </section>
 
         {/* --- 2. Stats & Instructor Card --- */}
-        <section className="px-4 max-w-5xl mx-auto -mt-4 relative z-10">
+        <section className="px-4 max-w-6xl mx-auto pt-8 relative z-10">
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -192,7 +257,9 @@ export default function CourseLandingPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-10 w-full md:w-auto flex-1">
               <div className="space-y-1">
                 <p className="text-xs font-black uppercase text-gray-400 tracking-wider">Duration</p>
-                <p className="text-2xl font-black text-gray-900 dark:text-white">{course.metadata?.duration_weeks || 0} Wks</p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">
+                  {durationText.split(" ")[0]} <span className="text-sm text-gray-500 font-bold ml-1">{durationText.substring(durationText.indexOf(" ") + 1)}</span>
+                </p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-black uppercase text-gray-400 tracking-wider">Problems</p>
@@ -200,7 +267,7 @@ export default function CourseLandingPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-black uppercase text-gray-400 tracking-wider">Lectures</p>
-                <p className="text-2xl font-black text-gray-900 dark:text-white">{course.total_videos || "100+"}</p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">{course.total_videos || 0}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-black uppercase text-gray-400 tracking-wider">Projects</p>
@@ -209,23 +276,31 @@ export default function CourseLandingPage() {
             </div>
 
             {/* Instructor */}
-            <div className="w-full md:w-auto pl-0 md:pl-8 border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800 pt-6 md:pt-0 shrink-0">
-              <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider mb-3">Taught By</p>
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${primaryInstructor.color} flex items-center justify-center text-white font-bold text-lg shadow-inner`}>
-                  {primaryInstructor.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">{primaryInstructor.name}</p>
-                  <p className="text-xs text-brand-600 dark:text-brand-400 font-semibold">{primaryInstructor.company}</p>
+            {primaryInstructor && (
+              <div className="w-full md:w-auto pl-0 md:pl-8 border-t md:border-t-0 md:border-l border-gray-100 dark:border-gray-800 pt-6 md:pt-0 shrink-0">
+                <p className="text-[10px] font-black uppercase text-gray-400 tracking-wider mb-3">Taught By</p>
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${primaryInstructor.color} flex items-center justify-center text-white font-bold text-lg shadow-inner overflow-hidden`}>
+                    {primaryInstructor.profile_image_url ? (
+                      <img src={primaryInstructor.profile_image_url} alt={primaryInstructor.name} className="w-full h-full object-cover" />
+                    ) : (
+                      primaryInstructor.name.charAt(0)
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">{primaryInstructor.name}</p>
+                    <p className="text-xs text-brand-600 dark:text-brand-400 font-semibold">{primaryInstructor.company}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </motion.div>
         </section>
 
         {/* --- 2.5 Instructor Section --- */}
-        <InstructorSection instructors={course.instructors} />
+        {instructors.length > 0 && (
+          <InstructorSection instructors={instructors} />
+        )}
 
         {/* --- 2.7 Compare Section --- */}
         <CompareSection />

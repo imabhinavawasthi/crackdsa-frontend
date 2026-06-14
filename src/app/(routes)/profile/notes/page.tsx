@@ -32,6 +32,8 @@ export default function NotesPage() {
   const { isLoggedIn } = useAuth();
   const [loading, setLoading] = useState(true);
   const [problems, setProblems] = useState<any[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [articles, setArticles] = useState<any[]>([]);
   const [userStates, setUserStates] = useState<any[]>([]);
   const [filterType, setFilterType] = useState<AssetType>("all");
 
@@ -52,13 +54,21 @@ export default function NotesPage() {
           ? { Authorization: `Bearer ${token}` }
           : undefined;
 
-        const [problemsRes, statesRes] = await Promise.all([
+        const [problemsRes, videosRes, articlesRes, statesRes] = await Promise.all([
           fetch(`${backendUrl}/api/v1/practice-problems`, { headers }),
+          fetch(`${backendUrl}/api/v1/video-lectures`, { headers }),
+          fetch(`${backendUrl}/api/v1/articles`, { headers }),
           fetch(`${backendUrl}/api/v1/user/assets/states`, { headers }),
         ]);
 
-        if (problemsRes.ok) {
-          setProblems(await problemsRes.json());
+        if (problemsRes.ok) setProblems(await problemsRes.json());
+        if (videosRes.ok) {
+          const vData = await videosRes.json();
+          setVideos(Array.isArray(vData) ? vData : (vData.items || []));
+        }
+        if (articlesRes.ok) {
+          const aData = await articlesRes.json();
+          setArticles(Array.isArray(aData) ? aData : (aData.items || []));
         }
         if (statesRes.ok) {
           setUserStates((await statesRes.json()) || []);
@@ -122,12 +132,23 @@ export default function NotesPage() {
       };
     }
     if (note.asset_type === "video") {
+      const video = videos.find((v) => v.id === note.asset_id);
       return {
-        title: note.asset_id,
+        title: video?.title || "Unknown Video",
         href: "#",
         icon: <Video size={14} />,
         iconColor: "bg-blue-500/10 text-blue-500",
         typeLabel: "Video",
+      };
+    }
+    if (note.asset_type === "article") {
+      const article = articles.find((a) => a.id === note.asset_id);
+      return {
+        title: article?.title || "Unknown Article",
+        href: "#",
+        icon: <BookOpen size={14} />,
+        iconColor: "bg-purple-500/10 text-purple-500",
+        typeLabel: "Article",
       };
     }
     return {
@@ -135,7 +156,7 @@ export default function NotesPage() {
       href: "#",
       icon: <BookOpen size={14} />,
       iconColor: "bg-purple-500/10 text-purple-500",
-      typeLabel: "Article",
+      typeLabel: note.asset_type,
     };
   };
 

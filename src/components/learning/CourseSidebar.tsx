@@ -39,6 +39,49 @@ export interface CourseSection {
   subsections?: CourseSubsection[];
 }
 
+
+export const getSectionItemsCount = (sec: CourseSection) => {
+  let count = 0;
+  if (sec.items) count += sec.items.length;
+  if (sec.subsections) {
+    sec.subsections.forEach((sub) => {
+      count += sub.items.length;
+    });
+  }
+  return count;
+};
+
+export const getSectionCompletedCount = (sec: CourseSection, completedItemIds: string[]) => {
+  let count = 0;
+  if (sec.items) {
+    count += sec.items.filter((item) => completedItemIds.includes(item.asset_id)).length;
+  }
+  if (sec.subsections) {
+    sec.subsections.forEach((sub) => {
+      count += sub.items.filter((item) => completedItemIds.includes(item.asset_id)).length;
+    });
+  }
+  return count;
+};
+
+export const getFlattenedItems = (sections: CourseSection[]): CourseSectionItem[] => {
+  const flattened: CourseSectionItem[] = [];
+  sections.forEach((sec) => {
+    if (sec.items) {
+      flattened.push(...sec.items);
+    }
+    if (sec.subsections) {
+      sec.subsections.forEach((sub) => {
+        if (sub.items) {
+          flattened.push(...sub.items);
+        }
+      });
+    }
+  });
+  return flattened;
+};
+
+
 interface CourseSidebarProps {
   sections: CourseSection[];
   activeItemId: string;
@@ -47,7 +90,7 @@ interface CourseSidebarProps {
   bookmarkedItemIds?: string[];
   isLoggedIn?: boolean;
   onSelectItem: (item: CourseSectionItem) => void;
-  onToggleComplete: (itemId: string) => void;
+  onToggleComplete: (assetId: string, assetType: string) => void;
   onCloseSidebar?: () => void;
 }
 
@@ -193,40 +236,15 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
     }
   };
 
-  // Syllabus progress counts helpers
-  const getSectionItemsCount = (sec: CourseSection) => {
-    let count = 0;
-    if (sec.items) count += sec.items.length;
-    if (sec.subsections) {
-      sec.subsections.forEach((sub) => {
-        count += sub.items.length;
-      });
-    }
-    return count;
-  };
-
-  const getSectionCompletedCount = (sec: CourseSection) => {
-    let count = 0;
-    if (sec.items) {
-      count += sec.items.filter((item) => completedItemIds.includes(item.id)).length;
-    }
-    if (sec.subsections) {
-      sec.subsections.forEach((sub) => {
-        count += sub.items.filter((item) => completedItemIds.includes(item.id)).length;
-      });
-    }
-    return count;
-  };
-
   const totalItems = sections.reduce((acc, curr) => acc + getSectionItemsCount(curr), 0);
-  const completedCount = completedItemIds.length;
+  const completedCount = getFlattenedItems(sections).filter(it => completedItemIds.includes(it.asset_id)).length;
   const progressPercent = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
 
   const renderItemRow = (item: CourseSectionItem, index: number) => {
     const isActive = item.id === activeItemId;
-    const isCompleted = completedItemIds.includes(item.id);
-    const isRevision = revisionItemIds.includes(item.id);
-    const isBookmarked = bookmarkedItemIds.includes(item.id);
+    const isCompleted = completedItemIds.includes(item.asset_id);
+    const isRevision = revisionItemIds.includes(item.asset_id);
+    const isBookmarked = bookmarkedItemIds.includes(item.asset_id);
 
     return (
       <motion.div
@@ -247,7 +265,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           onClick={(e) => {
             e.stopPropagation();
             if (isLoggedIn) {
-              onToggleComplete(item.id);
+              onToggleComplete(item.asset_id, item.type);
             }
           }}
           className={`shrink-0 mt-0.5 transition-colors focus:outline-none ${
@@ -427,7 +445,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           {filteredSections.map((sec) => {
             const isExpanded = !!expandedSections[sec.id];
             const sectionItemsCount = getSectionItemsCount(sec);
-            const sectionCompleted = getSectionCompletedCount(sec);
+            const sectionCompleted = getSectionCompletedCount(sec, completedItemIds);
             
             return (
               <motion.div
@@ -479,7 +497,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                         {/* Subsection items list (if any) */}
                         {sec.subsections && sec.subsections.map((sub) => {
                           const isSubExpanded = !!expandedSubsections[sub.id];
-                          const subCompleted = sub.items.filter((item) => completedItemIds.includes(item.id)).length;
+                          const subCompleted = sub.items.filter((item) => completedItemIds.includes(item.asset_id)).length;
                           
                           return (
                             <div key={sub.id} className="bg-gray-50/10 dark:bg-gray-800/10 border-l-2 border-brand-500/20 dark:border-brand-500/10">

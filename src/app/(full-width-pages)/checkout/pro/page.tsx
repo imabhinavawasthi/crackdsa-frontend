@@ -381,7 +381,6 @@ export default function ProCheckoutPage() {
                 >
                   {isProcessing ? <Loader2 size={20} className="animate-spin" /> : <><CreditCard size={20} /> Proceed to Pay</>}
                 </button>
-
                 <div className="mt-5 flex items-center justify-center gap-2 text-[11px] text-gray-400 font-medium">
                   <ShieldCheck size={14} />
                   <span>Secure 256-bit SSL encryption by Razorpay</span>

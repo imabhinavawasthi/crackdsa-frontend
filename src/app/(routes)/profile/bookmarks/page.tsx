@@ -24,6 +24,8 @@ export default function BookmarksPage() {
   const { isLoggedIn, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [problems, setProblems] = useState<any[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [articles, setArticles] = useState<any[]>([]);
   const [userStates, setUserStates] = useState<any[]>([]);
   const [filterType, setFilterType] = useState<AssetType>("all");
 
@@ -41,13 +43,21 @@ export default function BookmarksPage() {
         const token = getStoredToken();
         const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-        const [problemsRes, statesRes] = await Promise.all([
+        const [problemsRes, videosRes, articlesRes, statesRes] = await Promise.all([
           fetch(`${backendUrl}/api/v1/practice-problems`, { headers }),
+          fetch(`${backendUrl}/api/v1/video-lectures`, { headers }),
+          fetch(`${backendUrl}/api/v1/articles`, { headers }),
           fetch(`${backendUrl}/api/v1/user/assets/states`, { headers }),
         ]);
 
-        if (problemsRes.ok) {
-          setProblems(await problemsRes.json());
+        if (problemsRes.ok) setProblems(await problemsRes.json());
+        if (videosRes.ok) {
+          const vData = await videosRes.json();
+          setVideos(Array.isArray(vData) ? vData : (vData.items || []));
+        }
+        if (articlesRes.ok) {
+          const aData = await articlesRes.json();
+          setArticles(Array.isArray(aData) ? aData : (aData.items || []));
         }
         if (statesRes.ok) {
           setUserStates((await statesRes.json()) || []);
@@ -100,21 +110,36 @@ export default function BookmarksPage() {
             : "text-amber-500",
         tags: problem?.tags || [],
       };
+    } else if (state.asset_type === "video") {
+      const video = videos.find((v) => v.id === state.asset_id);
+      return {
+        title: video?.title || "Unknown Video",
+        subtitle: "Video",
+        href: "#", // Can't open directly easily without course context
+        icon: <Video size={16} />,
+        iconColor: "bg-blue-500/10 text-blue-500",
+        diffColor: "text-gray-500",
+        tags: [],
+      };
+    } else if (state.asset_type === "article") {
+      const article = articles.find((a) => a.id === state.asset_id);
+      return {
+        title: article?.title || "Unknown Article",
+        subtitle: "Article",
+        href: "#", // Can't open directly easily
+        icon: <BookOpen size={16} />,
+        iconColor: "bg-purple-500/10 text-purple-500",
+        diffColor: "text-gray-500",
+        tags: [],
+      };
     }
+    
     return {
       title: state.asset_id,
       subtitle: state.asset_type,
       href: "#",
-      icon:
-        state.asset_type === "video" ? (
-          <Video size={16} />
-        ) : (
-          <BookOpen size={16} />
-        ),
-      iconColor:
-        state.asset_type === "video"
-          ? "bg-blue-500/10 text-blue-500"
-          : "bg-purple-500/10 text-purple-500",
+      icon: <BookOpen size={16} />,
+      iconColor: "bg-gray-500/10 text-gray-500",
       diffColor: "text-gray-500",
       tags: [],
     };
@@ -258,7 +283,7 @@ export default function BookmarksPage() {
                       </span>
                       {state.status === "done" && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-emerald-500">
-                          <CheckCircle2 size={10} /> Solved
+                          <CheckCircle2 size={10} /> {state.asset_type === "video" ? "Watched" : state.asset_type === "article" ? "Read" : "Solved"}
                         </span>
                       )}
                     </div>

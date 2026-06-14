@@ -423,7 +423,7 @@ export default function AdminCourseDetailsPage() {
                           </div>
                           <span className="ml-auto text-xs font-black text-amber-500">{fb.rating}★</span>
                         </div>
-                        <p className="text-xs text-gray-500 italic line-clamp-2">"{fb.content}"</p>
+                        <p className="text-xs text-gray-500 italic line-clamp-2">&quot;{fb.content}&quot;</p>
                       </div>
                     ))}
                   </div>

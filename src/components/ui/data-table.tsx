@@ -25,6 +25,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey?: string;
   searchPlaceholder?: string;
+  meta?: any;
 }
 
 export function DataTable<TData, TValue>({
@@ -32,6 +33,7 @@ export function DataTable<TData, TValue>({
   data,
   searchKey,
   searchPlaceholder = "Search...",
+  meta,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
@@ -45,6 +47,7 @@ export function DataTable<TData, TValue>({
     state: {
       columnFilters,
     },
+    meta,
   });
 
   const filterValue = (table.getColumn(searchKey || "")?.getFilterValue() as string) ?? "";

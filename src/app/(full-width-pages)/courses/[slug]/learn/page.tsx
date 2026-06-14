@@ -31,23 +31,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import VideoPlayer from "@/components/learning/VideoPlayer";
 import ProblemViewer from "@/components/learning/ProblemViewer";
 import ArticleReader from "@/components/learning/ArticleReader";
-import CourseSidebar, { CourseSectionItem, CourseSection, CourseSubsection } from "@/components/learning/CourseSidebar";
+import CourseSidebar, { CourseSectionItem, CourseSection, CourseSubsection, getFlattenedItems, getSectionItemsCount, getSectionCompletedCount } from "@/components/learning/CourseSidebar";
 import NotesTab from "@/components/learning/NotesTab";
 import DiscussionTab from "@/components/learning/DiscussionTab";
 import ResourcesTab from "@/components/learning/ResourcesTab";
-import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
-import UserDropdown from "@/components/header/UserDropdown";
+import AppHeader from "@/layout/AppHeader";
 import { useAuth } from "@/context/AuthContext";
 import StatusSelector from "@/components/learning/StatusSelector";
 import BookmarkButton from "@/components/learning/BookmarkButton";
 import { fetchUserAssetStates as fetchUserAssetStatesFromApi, updateUserAssetState } from "@/api/user";
-// Static high-quality summaries database for video sessions
-const LECTURE_SUMMARIES: Record<string, string> = {
-  "item-1": "In this session, we deep-dive into compiler compilation models, the difference between stack and heap memory allocations, pointer reference variables in C++, and reference handles in Java. We map out memory addresses to understand dynamic resizing and stack frame execution boundaries.",
-  "item-5": "This session covers the extremely popular Two-Pointer linear scan strategy. Learn how to solve array partition, in-place reverse operations, and palindrome validations. We analyze O(N) runtime scans vs O(N^2) brute-force searches.",
-  "item-9": "A comprehensive guide to tree node structures. We cover Breadth-First Search (BFS) and Depth-First Search (DFS) traversals (Pre-order, In-order, Post-order) recursively and iteratively. We analyze call stack auxiliary depths.",
-  "item-12": "Master the foundations of dynamic programming. We trace recursion trees of repetitive subproblems and optimize them using Top-Down Memoization (HashMap/Array cache) and convert them to high-performance Bottom-Up Tabulation (iterative tables)."
-};
+import ReadMoreHTML from "@/components/common/ReadMoreHTML";
+
 
 // Animation variants for curriculum accordion
 const accordionVariants = {
@@ -70,10 +64,12 @@ const accordionVariants = {
 };
 
 interface Instructor {
+  id: string;
   name: string;
   role: string;
   company: string;
-  color: string;
+  color?: string;
+  profile_image_url?: string;
 }
 
 interface CourseDetail {
@@ -89,7 +85,7 @@ export default function LearnPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const courseSlug = (params?.slug as string) || "dsa-bootcamp-recordings";
+  const courseSlug = params?.slug as string;
 
   const { user, isLoggedIn } = useAuth();
   const firstName = user?.full_name ? user.full_name.split(" ")[0] : "";
@@ -97,9 +93,11 @@ export default function LearnPage() {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [instructorsList, setInstructorsList] = useState<any[]>([]);
 
   // Classroom Player states
   const [activeItem, setActiveItem] = useState<CourseSectionItem | null>(null);
+  const [isProgressLoading, setIsProgressLoading] = useState(false);
   const [itemStates, setItemStates] = useState<Record<string, any>>({});
 
   const completedItemIds = React.useMemo(() => {
@@ -120,7 +118,21 @@ export default function LearnPage() {
       .map((state) => state.asset_id);
   }, [itemStates]);
   const [activeTab, setActiveTab] = useState<"overview" | "notes" | "discussion" | "resources">("overview");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const stored = localStorage.getItem("crackdsa_course_sidebar");
+    return stored === null ? true : stored === "open";
+  });
+
+  const handleToggleCourseSidebar = (forceState?: boolean) => {
+    setIsSidebarOpen(prev => {
+      const nextState = forceState !== undefined ? forceState : !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("crackdsa_course_sidebar", nextState ? "open" : "closed");
+      }
+      return nextState;
+    });
+  };
   const [currentTime, setCurrentTime] = useState(0);
   const [resolvedAsset, setResolvedAsset] = useState<{ urlOrSlug: string; loading: boolean; error: boolean; data?: any }>({
     urlOrSlug: "",
@@ -177,59 +189,18 @@ export default function LearnPage() {
     }
   }, [courseSlug]);
 
-  // Helper to count section items
-  const getSectionItemsCount = (sec: CourseSection) => {
-    let count = 0;
-    if (sec.items) count += sec.items.length;
-    if (sec.subsections) {
-      sec.subsections.forEach((sub) => {
-        count += sub.items.length;
-      });
-    }
-    return count;
-  };
-
-  // Helper to count completed items in a section
-  const getSectionCompletedCount = (sec: CourseSection) => {
-    let count = 0;
-    if (sec.items) {
-      count += sec.items.filter((item) => completedItemIds.includes(item.id)).length;
-    }
-    if (sec.subsections) {
-      sec.subsections.forEach((sub) => {
-        count += sub.items.filter((item) => completedItemIds.includes(item.id)).length;
-      });
-    }
-    return count;
-  };
-
-  // Helper to gather all course items in sequence
-  const getFlattenedItems = (sections: CourseSection[]): CourseSectionItem[] => {
-    const flattened: CourseSectionItem[] = [];
-    sections.forEach((sec) => {
-      if (sec.items) {
-        flattened.push(...sec.items);
-      }
-      if (sec.subsections) {
-        sec.subsections.forEach((sub) => {
-          if (sub.items) {
-            flattened.push(...sub.items);
-          }
-        });
-      }
-    });
-    return flattened;
-  };
 
   const fetchCourseDetails = async () => {
+    if (!courseSlug) return;
     try {
       setLoading(true);
       setError(false);
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
       
-      const [courseRes, curriculumRes] = await Promise.all([
+      const [courseRes, curriculumRes, instructorsRes] = await Promise.all([
         fetch(`${backendUrl}/api/v1/courses/${courseSlug}`),
-        fetch(`${backendUrl}/api/v1/courses/${courseSlug}/curriculum`)
+        fetch(`${backendUrl}/api/v1/courses/${courseSlug}/curriculum`),
+        fetch(`${backendUrl}/api/v1/instructors`)
       ]);
       
       if (!courseRes.ok) {
@@ -241,13 +212,23 @@ export default function LearnPage() {
       
       const courseData = await courseRes.json();
       const curriculumData = await curriculumRes.json();
+      let instructorsData = { items: [] };
+      if (instructorsRes.ok) {
+        instructorsData = await instructorsRes.json();
+        setInstructorsList(instructorsData.items || []);
+      }
       
+      // Map instructor IDs to objects
+      const matchedInstructors = (instructorsData.items || []).filter((i: any) => 
+        (courseData.instructor_ids || []).includes(i.id)
+      );
+
       setCourse({
         id: courseData.id,
         slug: courseData.slug,
         title: courseData.title,
         description: courseData.description,
-        instructors: courseData.instructors || [],
+        instructors: matchedInstructors,
         sections: curriculumData || [],
       });
 
@@ -277,7 +258,9 @@ export default function LearnPage() {
   };
 
   useEffect(() => {
-    fetchCourseDetails();
+    if (courseSlug) {
+      fetchCourseDetails();
+    }
   }, [courseSlug]);
 
   // Resolve asset UUIDs dynamically to their URL or Slug
@@ -374,6 +357,7 @@ export default function LearnPage() {
   };
 
   const loadUserAssetStates = async () => {
+    setIsProgressLoading(true);
     try {
       const data = await fetchUserAssetStatesFromApi();
       const stateMap: Record<string, any> = {};
@@ -383,6 +367,8 @@ export default function LearnPage() {
       setItemStates(stateMap);
     } catch (e) {
       console.error("Failed to fetch user asset states from backend:", e);
+    } finally {
+      setIsProgressLoading(false);
     }
   };
 
@@ -395,15 +381,15 @@ export default function LearnPage() {
   }, [isLoggedIn, courseSlug]);
 
   // Update item progress status in DB
-  const handleUpdateStatus = async (itemId: string, assetType: string, newStatus: "pending" | "done" | "revision") => {
+  const handleUpdateStatus = async (assetId: string, assetType: string, newStatus: "pending" | "done" | "revision") => {
     if (!isLoggedIn) return;
 
     // 1. Optimistic UI update
     setItemStates((prev) => ({
       ...prev,
-      [itemId]: {
-        ...(prev[itemId] || {
-          asset_id: itemId,
+      [assetId]: {
+        ...(prev[assetId] || {
+          asset_id: assetId,
           asset_type: assetType,
           is_bookmarked: false,
           notes: []
@@ -414,10 +400,10 @@ export default function LearnPage() {
 
     // 2. Persist to Backend
     try {
-      const updatedState = await updateUserAssetState(assetType as any, itemId, { status: newStatus });
+      const updatedState = await updateUserAssetState(assetType as any, assetId, { status: newStatus });
       setItemStates((prev) => ({
         ...prev,
-        [itemId]: updatedState
+        [assetId]: updatedState
       }));
     } catch (err) {
       console.error("Failed to persist user progress to backend:", err);
@@ -425,17 +411,12 @@ export default function LearnPage() {
   };
 
   // Toggle item completion state
-  const handleToggleComplete = (itemId: string) => {
+  const handleToggleComplete = (assetId: string, assetType: string = "video") => {
     if (!isLoggedIn) return;
-    const currentStatus = itemStates[itemId]?.status || "pending";
+    const currentStatus = itemStates[assetId]?.status || "pending";
     const newStatus = currentStatus === "done" ? "pending" : "done";
     
-    // Find item's type dynamically from syllabus sections
-    const flatItems = getFlattenedItems(course?.sections || []);
-    const targetItem = flatItems.find((it) => it.id === itemId);
-    const assetType = targetItem?.type || "video";
-    
-    handleUpdateStatus(itemId, assetType, newStatus);
+    handleUpdateStatus(assetId, assetType, newStatus);
   };
 
 
@@ -459,8 +440,8 @@ export default function LearnPage() {
     if (!course || !activeItem) return;
 
     // Toggle current item as complete automatically!
-    if (!completedItemIds.includes(activeItem.id)) {
-      handleToggleComplete(activeItem.id);
+    if (!completedItemIds.includes(activeItem.asset_id)) {
+      handleToggleComplete(activeItem.asset_id, activeItem.type);
     }
 
     const flatItems = getFlattenedItems(course.sections);
@@ -506,25 +487,26 @@ export default function LearnPage() {
 
   const flatSyllabusItems = getFlattenedItems(course.sections);
   const totalSyllabusItems = flatSyllabusItems.length;
+  const completedCourseItems = flatSyllabusItems.filter(it => completedItemIds.includes(it.asset_id)).length;
 
   // Dynamic Continue Where You Left resolver
   const getContinueLearningTarget = () => {
-    const firstUncompleted = flatSyllabusItems.find((it) => !completedItemIds.includes(it.id));
+    const firstUncompleted = flatSyllabusItems.find((it) => !completedItemIds.includes(it.asset_id));
     return firstUncompleted || (flatSyllabusItems.length > 0 ? flatSyllabusItems[0] : null);
   };
 
   const continueTarget = getContinueLearningTarget();
-  const progressPercent = totalSyllabusItems > 0 ? Math.round((completedItemIds.length / totalSyllabusItems) * 100) : 0;
+  const progressPercent = totalSyllabusItems > 0 ? Math.round((completedCourseItems / totalSyllabusItems) * 100) : 0;
 
   // Count progress for specific types
   const videoItems = flatSyllabusItems.filter((it) => it.type === "video");
-  const completedVideos = videoItems.filter((it) => completedItemIds.includes(it.id));
+  const completedVideos = videoItems.filter((it) => completedItemIds.includes(it.asset_id));
 
   const problemItems = flatSyllabusItems.filter((it) => it.type === "problem");
-  const completedProblems = problemItems.filter((it) => completedItemIds.includes(it.id));
+  const completedProblems = problemItems.filter((it) => completedItemIds.includes(it.asset_id));
 
   const articleItems = flatSyllabusItems.filter((it) => it.type === "article");
-  const completedArticles = articleItems.filter((it) => completedItemIds.includes(it.id));
+  const completedArticles = articleItems.filter((it) => completedItemIds.includes(it.asset_id));
 
   return (
     <div className="h-screen w-screen flex bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 overflow-hidden font-sans">
@@ -584,7 +566,7 @@ export default function LearnPage() {
                 isLoggedIn={isLoggedIn}
                 onSelectItem={handleSelectItem}
                 onToggleComplete={handleToggleComplete}
-                onCloseSidebar={() => setIsSidebarOpen(false)}
+                onCloseSidebar={() => handleToggleCourseSidebar(false)}
               />
             </div>
           </motion.div>
@@ -597,87 +579,13 @@ export default function LearnPage() {
         className="flex-1 h-full overflow-y-auto flex flex-col custom-scrollbar bg-gray-50 dark:bg-gray-950"
       >
         
-        {/* Distraction-Free Narrow Top Controller Header */}
-        <header className="h-14 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-between px-6 shrink-0 z-10 shadow-sm select-none">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700/80 text-gray-500 hover:text-brand-500 border border-gray-200 dark:border-gray-800 transition-colors"
-              title={isSidebarOpen ? "Minimize Syllabus" : "Expand Syllabus"}
-            >
-              <Menu size={16} />
-            </button>
-            
-            {activeItem ? (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest hidden md:inline">
-                    Active Lesson:
-                  </span>
-                  <span className="text-xs font-bold text-brand-500 dark:text-brand-400 truncate max-w-[150px] sm:max-w-[200px] md:max-w-md">
-                    {activeItem.title}
-                  </span>
-                </div>
-                
-                <StatusSelector
-                  assetId={activeItem.id}
-                  assetType={activeItem.type}
-                  onStateChange={(state) => {
-                    setItemStates((prev) => ({
-                      ...prev,
-                      [activeItem.id]: {
-                        ...(prev[activeItem.id] || {
-                          asset_id: activeItem.id,
-                          asset_type: activeItem.type,
-                          is_bookmarked: false,
-                          notes: []
-                        }),
-                        status: state.status
-                      } as any
-                    }));
-                  }}
-                  disabledTitle="Log in to track progress"
-                />
-
-                <BookmarkButton
-                  assetId={activeItem.id}
-                  assetType={activeItem.type}
-                  onStateChange={(state) => {
-                    setItemStates((prev) => ({
-                      ...prev,
-                      [activeItem.id]: {
-                        ...(prev[activeItem.id] || {
-                          asset_id: activeItem.id,
-                          asset_type: activeItem.type,
-                          status: "pending",
-                          notes: []
-                        }),
-                        is_bookmarked: state.is_bookmarked
-                      } as any
-                    }));
-                  }}
-                  disabledTitle="Log in to bookmark lessons"
-                  title={itemStates[activeItem.id]?.is_bookmarked ? "Remove Bookmark" : "Bookmark Lesson"}
-                />
-              </div>
-            ) : (
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs font-extrabold text-brand-500 dark:text-brand-400 uppercase tracking-wider">
-                  Academy Student Classroom Console
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md uppercase tracking-wider border border-emerald-500/10 hidden sm:inline-block">
-              {completedItemIds.length} / {totalSyllabusItems} Completed
-            </span>
-
-            <ThemeToggleButton />
-            <UserDropdown />
-          </div>
-        </header>
+        {/* Unified Application Header configured to toggle Course Sidebar */}
+        <div className="shrink-0 z-40 relative">
+          <AppHeader 
+            onToggleSidebar={() => handleToggleCourseSidebar()} 
+            isSidebarOpen={isSidebarOpen} 
+          />
+        </div>
 
         {/* Central Focus Stage Wrapper */}
         <main className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-6 md:p-8 space-y-8 pb-20">
@@ -698,10 +606,6 @@ export default function LearnPage() {
                 <div className="absolute bottom-0 right-1/4 w-60 h-60 bg-blue-500/10 rounded-full blur-3xl translate-y-12" />
                 
                 <div className="relative z-10 space-y-2">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-brand-400 bg-brand-500/10 border border-brand-500/20">
-                    <Sparkles size={11} className="animate-pulse" />
-                    Your Learning Workspace
-                  </div>
                   <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
                     {firstName ? `Welcome back, ${firstName}! 👋` : "Welcome to your Classroom! 🚀"}
                   </h1>
@@ -728,7 +632,7 @@ export default function LearnPage() {
                   <div>
                     <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block leading-none">Course Completed</span>
                     <span className="text-sm font-black text-white mt-1 block">
-                      {completedItemIds.length} <span className="text-xs text-slate-400 font-medium">/ {totalSyllabusItems} lessons</span>
+                      {completedCourseItems} <span className="text-xs text-slate-400 font-medium">/ {totalSyllabusItems} lessons</span>
                     </span>
                   </div>
                 </div>
@@ -845,7 +749,7 @@ export default function LearnPage() {
                     <div className="space-y-4">
                       {course.sections.map((section, sectionIndex) => {
                         const sectionItemsCount = getSectionItemsCount(section);
-                        const sectionCompleted = getSectionCompletedCount(section);
+                        const sectionCompleted = getSectionCompletedCount(section, completedItemIds);
                         const sectionProgress = sectionItemsCount > 0 ? Math.round((sectionCompleted / sectionItemsCount) * 100) : 0;
                         
                         const isExpanded = dashboardExpandedSections[section.id] ?? (
@@ -926,8 +830,8 @@ export default function LearnPage() {
                                                                  {/* Items list */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                                       {section.items?.map((item) => {
-                                        const isCompleted = completedItemIds.includes(item.id);
-                                        const isRevision = revisionItemIds.includes(item.id);
+                                        const isCompleted = completedItemIds.includes(item.asset_id);
+                                        const isRevision = revisionItemIds.includes(item.asset_id);
                                         const TypeIcon = item.type === "video" ? PlayCircle : item.type === "problem" ? Code2 : FileText;
                                         return (
                                           <button
@@ -969,8 +873,8 @@ export default function LearnPage() {
                                         </span>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                           {sub.items.map((item) => {
-                                            const isCompleted = completedItemIds.includes(item.id);
-                                            const isRevision = revisionItemIds.includes(item.id);
+                                            const isCompleted = completedItemIds.includes(item.asset_id);
+                                            const isRevision = revisionItemIds.includes(item.asset_id);
                                             const TypeIcon = item.type === "video" ? PlayCircle : item.type === "problem" ? Code2 : FileText;
                                             return (
                                               <button
@@ -1023,7 +927,7 @@ export default function LearnPage() {
                   
                   {/* Overall Statistics Breakdown Card */}
                   <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-250/70 dark:border-gray-800 p-6 space-y-6 shadow-sm">
-                    <h4 className="text-xs font-black text-gray-450 dark:text-gray-500 uppercase tracking-widest">
+                    <h4 className="text-xs font-black text-gray-450 dark:border-gray-800 uppercase tracking-widest">
                       Learning Statistics
                     </h4>
                     
@@ -1032,7 +936,7 @@ export default function LearnPage() {
                       <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-850 pb-4">
                         <span className="text-2xl font-black text-gray-950 dark:text-white">{progressPercent}%</span>
                         <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/15">
-                          {completedItemIds.length} / {totalSyllabusItems} Completed
+                          {completedCourseItems} / {totalSyllabusItems} Completed
                         </span>
                       </div>
                       
@@ -1069,61 +973,60 @@ export default function LearnPage() {
                     </div>
                   </div>
 
-                  {/* Daily Study Streak Tracker Widget */}
-                  <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-250/70 dark:border-gray-800 p-6 space-y-4 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-brand-500/5 rounded-full blur-2xl animate-pulse" />
+                  {/* Course Stats Widget */}
+                  <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-250/70 dark:border-gray-800 p-6 space-y-5 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors" />
                     
-                    <div className="flex items-center justify-between relative z-10">
-                      <h4 className="text-xs font-black text-gray-455 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                        Daily study streak
-                      </h4>
-                      <span className="text-lg tracking-wide">🔥</span>
-                    </div>
+                    <h4 className="text-xs font-black text-gray-450 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5 relative z-10">
+                      <Activity size={14} className="text-blue-500" />
+                      Course Stats
+                    </h4>
                     
-                    <div className="flex items-center gap-4 relative z-10 pt-1">
-                      <div className="h-12 w-12 rounded-2xl bg-brand-500/10 text-brand-500 dark:text-brand-400 flex items-center justify-center font-black text-xl border border-brand-500/15">
-                        {streakCount}
+                    <div className="grid grid-cols-2 gap-3 relative z-10">
+                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 flex flex-col gap-1.5 items-center justify-center text-center">
+                        <span className="text-2xl font-black text-gray-900 dark:text-white">{flatSyllabusItems.filter(i => i.type === "video").length}</span>
+                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Video Lessons</span>
                       </div>
-                      <div className="space-y-1">
-                        <div className="text-xs font-black text-gray-900 dark:text-white leading-none">
-                          {streakCount} Day Study Streak!
-                        </div>
-                        <p className="text-[10px] text-gray-450 dark:text-gray-500 font-bold uppercase tracking-wide">
-                          {streakCount > 1 ? "Keep the fire burning!" : "Start study session today!"}
-                        </p>
+                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 flex flex-col gap-1.5 items-center justify-center text-center">
+                        <span className="text-2xl font-black text-gray-900 dark:text-white">{flatSyllabusItems.filter(i => i.type === "problem").length}</span>
+                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Coding Problems</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Instructor spotlight card */}
-                  <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-250/70 dark:border-gray-800 p-6 space-y-4 shadow-sm">
-                    <h4 className="text-xs font-black text-gray-450 dark:text-gray-500 uppercase tracking-widest">
-                      Your Instructor
-                    </h4>
-                    {(() => {
-                      const primaryInstructor = course.instructors?.[0] || {
-                        name: "CrackDSA Faculty",
-                        role: "Mentor",
-                        company: "CrackDSA",
-                        color: "from-brand-500 to-blue-500"
-                      };
-                      return (
-                        <div className="flex items-center gap-4">
-                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${primaryInstructor.color || "from-brand-500 to-blue-500"} text-white font-black text-sm shadow-sm`}>
-                            {primaryInstructor.name.split(" ").map(w => w[0]).join("")}
+                  {/* Instructor Spotlight Card */}
+                  {course.instructors && course.instructors.length > 0 && (
+                    <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-250/70 dark:border-gray-800 p-6 space-y-5 shadow-sm relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full blur-2xl group-hover:bg-brand-500/10 transition-colors" />
+                      
+                      <h4 className="text-xs font-black text-gray-450 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5 relative z-10">
+                        <Award size={14} className="text-brand-500" />
+                        Instructor Spotlight
+                      </h4>
+                      
+                      <div className="space-y-4 relative z-10">
+                        {course.instructors.map(instructor => (
+                          <div key={instructor.id} className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/40 p-3 rounded-2xl border border-gray-100 dark:border-gray-800/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60 cursor-pointer">
+                            {instructor.profile_image_url ? (
+                              <img src={instructor.profile_image_url} alt={instructor.name} className="h-12 w-12 shrink-0 rounded-2xl object-cover shadow-sm border border-gray-200 dark:border-gray-700" />
+                            ) : (
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-blue-500 text-white font-black text-sm shadow-sm">
+                                {instructor.name.split(" ").map((w) => w[0]).join("").substring(0, 2)}
+                              </div>
+                            )}
+                            <div className="space-y-1">
+                              <h5 className="text-sm font-bold text-gray-900 dark:text-white leading-none">
+                                {instructor.name}
+                              </h5>
+                              <p className="text-[10px] text-brand-600 dark:text-brand-400 font-bold uppercase tracking-wider">
+                                {instructor.role} {instructor.company ? `@ ${instructor.company}` : ""}
+                              </p>
+                            </div>
                           </div>
-                          <div className="space-y-1">
-                            <h5 className="text-sm font-bold text-gray-900 dark:text-white leading-none">
-                              {primaryInstructor.name}
-                            </h5>
-                            <p className="text-[10px] text-brand-500 dark:text-brand-400 font-bold uppercase tracking-wider">
-                              {primaryInstructor.role} • {primaryInstructor.company}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                 </div>
 
@@ -1151,7 +1054,54 @@ export default function LearnPage() {
               ) : (
                 <>
                   {activeItem?.type === "video" && (
-                    <div className="relative rounded-3xl overflow-hidden bg-gray-50 dark:bg-gray-800/10 p-0 sm:p-2 border border-gray-200 dark:border-gray-800/60 shadow-inner">
+                    <div className="flex flex-col gap-4">
+{/* Video Action Bar */}
+                      <div className="flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-2xl p-4 shadow-sm z-20 relative">
+                        <div className="flex items-center gap-3">
+                          <StatusSelector
+                            assetId={activeItem.asset_id}
+                            assetType="video"
+                            onStateChange={(state) => {
+                              setItemStates((prev) => ({
+                                ...prev,
+                                [activeItem.asset_id]: {
+                                  ...(prev[activeItem.asset_id] || {
+                                    asset_id: activeItem.asset_id,
+                                    asset_type: "video",
+                                    is_bookmarked: false,
+                                    notes: []
+                                  }),
+                                  status: state.status
+                                } as any
+                              }));
+                            }}
+                            disabledTitle="Log in to track progress"
+                          />
+                          <BookmarkButton
+                            assetId={activeItem.asset_id}
+                            assetType="video"
+                            onStateChange={(state) => {
+                              setItemStates((prev) => ({
+                                ...prev,
+                                [activeItem.asset_id]: {
+                                  ...(prev[activeItem.asset_id] || {
+                                    asset_id: activeItem.asset_id,
+                                    asset_type: "video",
+                                    status: "pending",
+                                    notes: []
+                                  }),
+                                  is_bookmarked: state.is_bookmarked
+                                } as any
+                              }));
+                            }}
+                            disabledTitle="Log in to bookmark"
+                          />
+                        </div>
+                        <div className="text-xs text-gray-400 font-bold tracking-wider uppercase">
+                          {activeItem.title}
+                        </div>
+                      </div>
+<div className="relative rounded-3xl overflow-hidden bg-gray-50 dark:bg-gray-800/10 p-0 sm:p-2 border border-gray-200 dark:border-gray-800/60 shadow-inner">
                       <VideoPlayer
                         url={resolvedAsset.urlOrSlug}
                         title={activeItem.title}
@@ -1160,6 +1110,9 @@ export default function LearnPage() {
                         onPlayerRefReady={setPlayerRef}
                         onEnded={handleVideoEnded}
                       />
+
+                      
+
 
                       {/* Up Next Overlay */}
                       <AnimatePresence>
@@ -1220,6 +1173,7 @@ export default function LearnPage() {
                         )}
                       </AnimatePresence>
                     </div>
+                  </div>
                   )}
                   {activeItem?.type === "problem" && (
                     <ProblemViewer
@@ -1228,9 +1182,9 @@ export default function LearnPage() {
                       onStateChange={(updates) => {
                         setItemStates((prev) => ({
                           ...prev,
-                          [activeItem.id]: {
-                            ...(prev[activeItem.id] || {
-                              asset_id: activeItem.id,
+                          [activeItem.asset_id]: {
+                            ...(prev[activeItem.asset_id] || {
+                              asset_id: activeItem.asset_id,
                               asset_type: activeItem.type,
                               is_bookmarked: false,
                               status: "pending",
@@ -1251,6 +1205,13 @@ export default function LearnPage() {
               {/* Actionable Bottom Study Tabs Panel - Exclusively for Video sessions */}
               {activeItem?.type === "video" && (
                 <div className="space-y-6">
+                  {resolvedAsset.loading ? (
+                    <div className="w-full animate-pulse space-y-6">
+                      <div className="h-[60px] w-full bg-gray-100 dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-gray-800" />
+                      <div className="h-[300px] w-full bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800" />
+                    </div>
+                  ) : (
+                  <>
                   <div className="flex bg-gray-50/50 dark:bg-gray-900/40 p-1.5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm shrink-0 relative">
                     {([
                       { id: "overview", label: "Lecture Details", icon: <Activity size={14} />, disabled: false },
@@ -1305,42 +1266,37 @@ export default function LearnPage() {
                         >
                           <div className="space-y-2.5">
                             <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white tracking-tight">About this Session</h3>
-                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
-                              {resolvedAsset.data?.description || "No description available for this lecture."}
-                            </p>
+                            {resolvedAsset.data?.description ? (
+                              <ReadMoreHTML content={resolvedAsset.data.description} maxHeight={120} />
+                            ) : (
+                              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">No description available for this lecture.</p>
+                            )}
                           </div>
 
                           <div className="h-[1px] bg-gray-100 dark:bg-gray-800/80" />
 
                           {/* Instructor spotlight details */}
-                          <div className="space-y-4">
-                            <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Instructor Spotlight</h4>
-                            {(() => {
-                              const primaryInstructor = course.instructors?.[0] || {
-                                name: "CrackDSA Faculty",
-                                role: "Mentor",
-                                company: "CrackDSA",
-                                color: "from-brand-500 to-blue-500"
-                              };
+                          {resolvedAsset.data?.attributes?.instructor_id && instructorsList.find(i => i.id === resolvedAsset.data?.attributes?.instructor_id) && (() => {
+                              const instructor = instructorsList.find(i => i.id === resolvedAsset.data?.attributes?.instructor_id);
                               return (
-                                <div className="flex items-center gap-4">
-                                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${primaryInstructor.color || "from-brand-500 to-blue-500"} text-white font-bold text-sm shadow-sm`}>
-                                    {primaryInstructor.name.split(" ").map(w => w[0]).join("")}
-                                  </div>
-                                  <div>
-                                    <h5 className="text-sm font-bold text-gray-900 dark:text-white leading-none">
-                                      {primaryInstructor.name}
-                                    </h5>
-                                    <p className="text-xs text-brand-500 dark:text-brand-400 font-bold mt-1.5 flex items-center gap-1.5">
-                                      <span>{primaryInstructor.role}</span>
-                                      <span>•</span>
-                                      <span>{primaryInstructor.company}</span>
-                                    </p>
+                                <div className="space-y-4">
+                                  <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Instructor Spotlight</h4>
+                                  <div className="flex items-center gap-4">
+                                    {instructor.profile_image_url ? (
+                                      <img src={instructor.profile_image_url} alt={instructor.name} className="h-12 w-12 shrink-0 rounded-2xl object-cover shadow-sm border border-gray-100 dark:border-gray-800" />
+                                    ) : (
+                                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-blue-500 text-white font-bold text-sm shadow-sm">
+                                        {instructor.name.split(" ").map((w: string) => w[0]).join("").substring(0,2)}
+                                      </div>
+                                    )}
+                                    <div className="space-y-0.5">
+                                      <h5 className="text-sm font-bold text-gray-900 dark:text-white">{instructor.name}</h5>
+                                      <p className="text-xs text-gray-500 font-medium">{instructor.role} {instructor.company ? `@ ${instructor.company}` : ""}</p>
+                                    </div>
                                   </div>
                                 </div>
                               );
                             })()}
-                          </div>
                         </motion.div>
                       )}
 
@@ -1354,15 +1310,15 @@ export default function LearnPage() {
                         >
                           <NotesTab
                             courseId={courseSlug}
-                            itemId={activeItem?.id || "general"}
+                            itemId={activeItem?.asset_id || activeItem?.id || "general"}
                             assetType={activeItem?.type}
                             onNotesChange={(newNotes) => {
                               if (activeItem) {
                                 setItemStates((prev) => ({
                                   ...prev,
-                                  [activeItem.id]: {
-                                    ...(prev[activeItem.id] || {
-                                      asset_id: activeItem.id,
+                                  [activeItem.asset_id]: {
+                                    ...(prev[activeItem.asset_id] || {
+                                      asset_id: activeItem.asset_id,
                                       asset_type: activeItem.type,
                                       status: "pending",
                                       is_bookmarked: false
@@ -1405,6 +1361,8 @@ export default function LearnPage() {
                       )}
                     </AnimatePresence>
                   </div>
+                  </>
+                  )}
                 </div>
               )}
             </>
@@ -1412,6 +1370,27 @@ export default function LearnPage() {
 
         </main>
       </div>
+
+      {/* Progress Loading Toast */}
+      <AnimatePresence>
+        {isProgressLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:-translate-x-0 md:right-6 z-[100] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xl p-4 flex items-center gap-4 min-w-[280px]"
+          >
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-brand-500/10">
+              <div className="absolute h-full w-full rounded-full border-[3px] border-brand-500/30" />
+              <div className="absolute h-full w-full rounded-full border-[3px] border-brand-500 border-t-transparent animate-spin" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-gray-900 dark:text-white">Syncing Progress</h4>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Loading your course data...</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

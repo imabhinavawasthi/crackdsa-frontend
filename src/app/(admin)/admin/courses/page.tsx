@@ -54,6 +54,7 @@ export default function AdminCoursesPage() {
   const router = useRouter();
 
   const [courses, setCourses] = useState<Course[]>([]);
+  const [instructorsMap, setInstructorsMap] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,11 +68,14 @@ export default function AdminCoursesPage() {
       setLoading(true);
       setError(null);
       
-      const res = await fetch(`${backendUrl}/api/v1/admin/courses/`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
+      const [res, instRes] = await Promise.all([
+        fetch(`${backendUrl}/api/v1/admin/courses/`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        }),
+        fetch(`${backendUrl}/api/v1/instructors/`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+      ]);
 
       if (!res.ok) {
         throw new Error(`Failed to load courses: ${res.statusText}`);
@@ -79,6 +83,14 @@ export default function AdminCoursesPage() {
 
       const data = await res.json();
       setCourses(data || []);
+
+      if (instRes.ok) {
+        const instData = await instRes.json();
+        const instList = instData.items || [];
+        const map: Record<string, any> = {};
+        instList.forEach((inst: any) => { map[inst.id] = inst; });
+        setInstructorsMap(map);
+      }
     } catch (err: unknown) {
       console.error("Failed to load admin courses:", err);
       const errMessage = err instanceof Error ? err.message : String(err);
@@ -179,12 +191,19 @@ export default function AdminCoursesPage() {
     {
       id: "instructors",
       header: "Instructors",
-      cell: ({ row }) => {
+      cell: ({ row, table }) => {
         const item = row.original;
+        // The page component stores global instructors in table meta, or we can just access it from the component scope
+        // Wait, cell has access to `item.instructor_ids`
+        // Let's implement global state in the component. We can just use the component scope variables since `columns` is wrapped in `useMemo`.
+        const instructorsMap = (table.options.meta as any)?.instructorsMap || {};
+        
+        const matchedInsts = (item as any).instructor_ids?.map((id: string) => instructorsMap[id]).filter(Boolean) || [];
+
         return (
           <div className="flex flex-wrap gap-1.5 max-w-[180px]">
-            {item.instructors && item.instructors.length > 0 ? (
-              item.instructors.map((inst, index) => (
+            {matchedInsts && matchedInsts.length > 0 ? (
+              matchedInsts.map((inst: any, index: number) => (
                 <span 
                   key={index}
                   className={`inline-flex items-center px-2 py-0.75 rounded-md text-[10px] font-bold border leading-none bg-gradient-to-r ${inst.color || "from-gray-500 to-slate-500"} text-white border-transparent`}
@@ -355,6 +374,7 @@ export default function AdminCoursesPage() {
               data={courses} 
               searchKey="title" 
               searchPlaceholder="Search courses by title..." 
+              meta={{ instructorsMap }}
             />
           </CardContent>
         </Card>

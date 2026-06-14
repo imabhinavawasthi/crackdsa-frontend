@@ -17,7 +17,8 @@ import {
   AlertCircle,
   ExternalLink,
   Play,
-  CheckCircle
+  CheckCircle,
+  User
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -48,6 +49,7 @@ export default function ViewVideoLecturePage() {
   const [lecture, setLecture] = useState<VideoLecture | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [instructorsList, setInstructorsList] = useState<any[]>([]);
   
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -88,10 +90,23 @@ export default function ViewVideoLecturePage() {
   }, [backendUrl, id]);
 
   useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/api/v1/instructors/`);
+        if (res.ok) {
+          const data = await res.json();
+          setInstructorsList(data.items || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch instructors", err);
+      }
+    };
+    fetchInstructors();
+
     if (isLoggedIn && user?.roles?.includes("admin") && id) {
       fetchLecture();
     }
-  }, [isLoggedIn, user, id, fetchLecture]);
+  }, [isLoggedIn, user, id, fetchLecture, backendUrl]);
 
   useEffect(() => {
     if (lecture?.title) {
@@ -292,9 +307,21 @@ export default function ViewVideoLecturePage() {
                   </span>
                 </div>
 
+                {/* Assigned Instructor spec */}
+                {!!lecture.attributes?.instructor_id && instructorsList && (
+                  <div className="flex items-center justify-between text-xs border-b border-gray-50 dark:border-gray-800/60 pb-2.5 last:border-0 last:pb-0">
+                    <span className="text-gray-400 font-semibold flex items-center gap-1">
+                      <User size={13} /> Assigned Instructor
+                    </span>
+                    <span className="font-bold text-brand-600 dark:text-brand-400 text-right truncate">
+                      {instructorsList.find(i => i.id === lecture.attributes.instructor_id)?.name || "Unknown Instructor"}
+                    </span>
+                  </div>
+                )}
+
                 {/* Dynamic Attributes Specifications */}
                 {lecture.attributes ? (Object.entries(lecture.attributes) as [string, unknown][]).map(([key, value]) => {
-                  if (key === "tags") return null;
+                  if (key === "tags" || key === "instructor_id") return null;
 
                   const friendlyKey = key
                     .replace(/_/g, " ")
@@ -302,7 +329,7 @@ export default function ViewVideoLecturePage() {
                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(" ");
 
-                  const displayValue = typeof value === "object" ? JSON.stringify(value) : String(value);
+                  const displayValue = typeof value === "object" ? JSON.stringify(value) : String(value as any);
 
                   return (
                     <div key={key} className="flex items-center justify-between text-xs border-b border-gray-50 dark:border-gray-800/60 pb-2.5 last:border-0 last:pb-0">
@@ -319,11 +346,11 @@ export default function ViewVideoLecturePage() {
               </div>
             </div>
 
-            {lecture.attributes?.tags && Array.isArray(lecture.attributes.tags) && (lecture.attributes.tags as string[]).length > 0 ? (
+            {!!lecture.attributes?.tags && Array.isArray(lecture.attributes.tags) && (lecture.attributes.tags as string[]).length > 0 ? (
               <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800/80 rounded-3xl p-6 space-y-3 shadow-sm">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider">Classification Tags</h3>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {(lecture.attributes.tags as string[]).map((tag: string) => (
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-4">Topic Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {(lecture.attributes.tags as string[]).map((tag, idx) => (
                     <span 
                       key={tag}
                       className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/10 uppercase tracking-wider"
@@ -360,6 +387,9 @@ export default function ViewVideoLecturePage() {
                   } else if (key.toLowerCase().includes("blog") || key.toLowerCase().includes("article")) {
                     colorClass = "text-orange-500 border-orange-500/10";
                     icon = <FileText size={15} />;
+                  } else if (key === "external_links") {
+                    colorClass = "text-indigo-500 border-indigo-500/10";
+                    icon = <LinkIcon size={15} />;
                   } else if (key.toLowerCase().includes("assignment") || key.toLowerCase().includes("task")) {
                     colorClass = "text-indigo-500 border-indigo-500/10";
                     icon = <CheckCircle size={15} />;
@@ -374,6 +404,22 @@ export default function ViewVideoLecturePage() {
                       
                       <div className="space-y-2 pt-1">
                         {items.map((item, idx) => {
+                          if (key === "external_links") {
+                            const link = item as { title: string; url: string };
+                            return (
+                              <a
+                                href={link.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                key={idx}
+                                className="flex items-center justify-between p-2 rounded-lg bg-gray-50/75 dark:bg-gray-800/30 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-brand-500/5 hover:text-brand-600 dark:hover:text-brand-400 transition-colors border border-transparent dark:border-gray-800"
+                              >
+                                <span className="line-clamp-1 truncate select-all">{link.title}</span>
+                                <ExternalLink size={12} className="opacity-60" />
+                              </a>
+                            );
+                          }
+
                           const isUrl = String(item).startsWith("http://") || String(item).startsWith("https://") || String(item).includes(".com/") || String(item).includes(".org/");
                           const href = String(item).startsWith("http") ? String(item) : `https://${item}`;
 
@@ -386,7 +432,7 @@ export default function ViewVideoLecturePage() {
                                 key={idx}
                                 className="flex items-center justify-between p-2 rounded-lg bg-gray-50/75 dark:bg-gray-800/30 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-brand-500/5 hover:text-brand-600 dark:hover:text-brand-400 transition-colors border border-transparent dark:border-gray-800"
                               >
-                                <span className="line-clamp-1 truncate select-all">{item}</span>
+                                <span className="line-clamp-1 truncate select-all">{String(item)}</span>
                                 <ExternalLink size={12} className="opacity-60" />
                               </a>
                             );
@@ -397,7 +443,7 @@ export default function ViewVideoLecturePage() {
                               key={idx}
                               className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 mr-2 mb-2"
                             >
-                              {item}
+                              {String(item)}
                             </span>
                           );
                         })}

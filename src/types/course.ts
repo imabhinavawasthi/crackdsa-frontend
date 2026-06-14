@@ -1,13 +1,24 @@
 export type Instructor = {
   name: string;
   role: string;
+  sub_title?: string;
+  bio?: string;
   company: string;
   color: string;
+  profile_image_url?: string;
+  metadata?: {
+    twitter?: string;
+    linkedin?: string;
+    youtube?: string;
+    github?: string;
+    [key: string]: any;
+  };
 };
 
 export type CourseMetadata = {
   difficulty: string;
   duration_weeks: number;
+  duration_hours: number;
   total_projects: number;
   marketing_syllabus: string[];
   thumbnail_url?: string;
@@ -33,7 +44,6 @@ export type CourseSummary = {
   title: string;
   description: string;
   category: string;
-  instructors: Instructor[];
   instructor_ids: string[];
   tags: string[];
   is_pro: boolean;

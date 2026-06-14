@@ -185,6 +185,7 @@ export default function CourseCheckoutPage() {
     try {
       const order = await createOrder("course", course.id, appliedCoupon?.code);
       
+      // 2. Open Razorpay Modal
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "", 
         amount: order.amount * 100, // paise

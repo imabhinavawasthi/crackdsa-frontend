@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import RichTextEditor from "@/components/ui/editor/RichTextEditor";
+import ResourceSelector from "@/components/admin/ResourceSelector";
+import ExternalLinksEditor, { ExternalLink } from "@/components/admin/ExternalLinksEditor";
 
 const videoSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -51,7 +53,7 @@ type VideoLecture = {
   video_url: string;
   duration_seconds: number;
   thumbnail_url: string | null;
-  resources: Record<string, string[]>;
+  resources: Record<string, any>;
   attributes: Record<string, unknown>;
   is_active: boolean;
 };
@@ -71,12 +73,16 @@ export default function EditVideoLecturePage() {
   const [description, setDescription] = useState("");
 
   // Curated resource inputs state
-  const [problemsStr, setProblemsStr] = useState("");
-  const [blogsStr, setBlogsStr] = useState("");
-  const [assignmentsStr, setAssignmentsStr] = useState("");
+  const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
+  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([]);
+  const [externalLinks, setExternalLinks] = useState<ExternalLink[]>([]);
 
   // Dynamic Custom Resource Key-Value pairs
   const [customResources, setCustomResources] = useState<CustomResourceRow[]>([]);
+
+  // Instructors list
+  const [instructorsList, setInstructorsList] = useState<any[]>([]);
+  const [selectedInstructorId, setSelectedInstructorId] = useState<string>("");
 
   // Attributes / Metadata state
   const [tagsStr, setTagsStr] = useState("");
@@ -147,15 +153,15 @@ export default function EditVideoLecturePage() {
       setDescription(data.description || "");
       
       // Populate resource categories
-      setProblemsStr(data.resources?.problems?.join(", ") || "");
-      setBlogsStr(data.resources?.blogs?.join(", ") || "");
-      setAssignmentsStr(data.resources?.assignments?.join(", ") || "");
+      setSelectedProblems(data.resources?.problems || []);
+      setSelectedBlogs(data.resources?.blogs || []);
+      setExternalLinks(data.resources?.external_links || []);
 
       // Filter and pre-fill custom resource keys
       const customRows: CustomResourceRow[] = [];
       if (data.resources) {
         Object.entries(data.resources).forEach(([key, val]) => {
-          if (key !== "problems" && key !== "blogs" && key !== "assignments") {
+          if (key !== "problems" && key !== "blogs" && key !== "external_links") {
             customRows.push({
               key,
               value: Array.isArray(val) ? val.join(", ") : String(val)
@@ -174,6 +180,13 @@ export default function EditVideoLecturePage() {
       } else {
         setTagsStr("");
       }
+      
+      if (attrs.instructor_id) {
+        setSelectedInstructorId(String(attrs.instructor_id));
+        delete attrs.instructor_id;
+      } else {
+        setSelectedInstructorId("");
+      }
 
       // Stringify remaining custom JSON attributes beautifully
       setCustomJsonStr(JSON.stringify(attrs, null, 2));
@@ -188,10 +201,23 @@ export default function EditVideoLecturePage() {
   }, [backendUrl, id, reset]);
 
   useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/api/v1/instructors/`);
+        if (res.ok) {
+          const data = await res.json();
+          setInstructorsList(data.items || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch instructors", err);
+      }
+    };
+    fetchInstructors();
+
     if (isLoggedIn && user?.roles?.includes("admin") && id) {
       fetchLectureDetail();
     }
-  }, [isLoggedIn, user, id, fetchLectureDetail]);
+  }, [isLoggedIn, user, id, fetchLectureDetail, backendUrl]);
 
   // Handle adding custom resource row
   const addCustomResourceRow = () => {
@@ -222,14 +248,10 @@ export default function EditVideoLecturePage() {
     }
 
     // 1. Build initial resources payload with the 3 main lists
-    const problems = problemsStr.split(",").map(s => s.trim()).filter(Boolean);
-    const blogs = blogsStr.split(",").map(s => s.trim()).filter(Boolean);
-    const assignments = assignmentsStr.split(",").map(s => s.trim()).filter(Boolean);
-
-    const resourcesPayload: Record<string, string[]> = {
-      problems,
-      blogs,
-      assignments
+    const resourcesPayload: Record<string, any> = {
+      problems: selectedProblems,
+      blogs: selectedBlogs,
+      external_links: externalLinks
     };
 
     // 2. Append all dynamic custom resource pairs
@@ -256,6 +278,11 @@ export default function EditVideoLecturePage() {
     const tags = tagsStr.split(",").map(s => s.trim()).filter(Boolean);
     if (tags.length > 0) {
       parsedAttributes.tags = tags;
+    }
+    
+    // Inject instructor ID
+    if (selectedInstructorId) {
+      parsedAttributes.instructor_id = selectedInstructorId;
     }
 
     const payload = {
@@ -287,7 +314,7 @@ export default function EditVideoLecturePage() {
 
       setSubmitSuccess(true);
       setTimeout(() => {
-        router.push("/admin/videos");
+        router.push(`/admin/videos/${id}`);
       }, 1500);
 
     } catch (err: unknown) {
@@ -462,29 +489,28 @@ export default function EditVideoLecturePage() {
           <CardContent className="space-y-6">
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5">
-                  <HelpCircle size={14} className="text-gray-450" />
-                  Coding Problems (Comma separated slugs)
-                </Label>
-                <Input value={problemsStr} onChange={(e) => setProblemsStr(e.target.value)} placeholder="leetcode-3, leetcode-76" />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5">
-                  <FileText size={14} className="text-gray-450" />
-                  Concept Blogs (Comma separated slugs)
-                </Label>
-                <Input value={blogsStr} onChange={(e) => setBlogsStr(e.target.value)} placeholder="sliding-window-article, big-o-guide" />
-              </div>
+              <ResourceSelector 
+                type="problems"
+                selectedSlugs={selectedProblems}
+                onChange={setSelectedProblems}
+                label="Coding Problems"
+                description="Select practice problems mapped to this lecture."
+              />
+              <ResourceSelector 
+                type="articles"
+                selectedSlugs={selectedBlogs}
+                onChange={setSelectedBlogs}
+                label="Concept Articles/Blogs"
+                description="Attach reading material to support this video."
+              />
             </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <LinkIcon size={14} className="text-gray-450" />
-                Assignments Linked (Comma separated URLs)
-              </Label>
-              <Input value={assignmentsStr} onChange={(e) => setAssignmentsStr(e.target.value)} placeholder="https://github.com/crackdsa/sliding-window-hw" />
+            <div className="pt-2">
+              <ExternalLinksEditor 
+                links={externalLinks}
+                onChange={setExternalLinks}
+                label="External Resources & Links"
+                description="Link to Github repos, external assignments, or any other web resource."
+              />
             </div>
 
             {customResources.length > 0 && (
@@ -525,9 +551,27 @@ export default function EditVideoLecturePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags (Comma separated)</Label>
-              <Input id="tags" placeholder="e.g. Sliding Window, Hard" value={tagsStr} onChange={(e) => setTagsStr(e.target.value)} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="tags">Tags (Comma separated)</Label>
+                <Input id="tags" placeholder="e.g. Sliding Window, Hard" value={tagsStr} onChange={(e) => setTagsStr(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instructor">Instructor / Mentor</Label>
+                <select 
+                  id="instructor"
+                  value={selectedInstructorId}
+                  onChange={(e) => setSelectedInstructorId(e.target.value)}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus:ring-gray-300"
+                >
+                  <option value="">-- No Instructor Assigned --</option>
+                  {instructorsList.map((inst: any) => (
+                    <option key={inst.id} value={inst.id}>
+                      {inst.name} ({inst.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="space-y-2">

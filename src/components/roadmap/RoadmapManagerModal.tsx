@@ -73,7 +73,7 @@ export default function RoadmapManagerModal({
                         onBlur={() => handleRenameSubmit(rm.id)}
                         onKeyDown={(e) => e.key === "Enter" && handleRenameSubmit(rm.id)}
                         autoFocus
-                        className="h-7 text-sm px-2 w-full max-w-[200px]"
+                        className="h-7 text-sm px-2 w-full max-w-50"
                       />
                     ) : (
                       <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 flex items-center gap-2">

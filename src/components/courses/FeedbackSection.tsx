@@ -1,12 +1,18 @@
 import React from "react";
 import { FeedbackCard, Testimonial } from "./FeedbackCard";
 import { Heart } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/pagination";
 
 export function FeedbackSection({ feedbacks }: { feedbacks: Testimonial[] }) {
   if (!feedbacks || feedbacks.length === 0) return null;
 
   return (
-    <section className="px-4 max-w-5xl mx-auto pt-24 pb-12">
+    <section className="px-4 max-w-6xl mx-auto pt-24 pb-12">
       <div className="text-center mb-16 space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-black uppercase tracking-widest border border-rose-500/20">
           <Heart size={14} /> Student Success Stories
@@ -19,10 +25,25 @@ export function FeedbackSection({ feedbacks }: { feedbacks: Testimonial[] }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {feedbacks.map((testimonial, idx) => (
-          <FeedbackCard key={idx} testimonial={testimonial} />
-        ))}
+      <div className="w-full relative pb-12 carouselFour">
+        <Swiper
+          modules={[Autoplay, Pagination]}
+          spaceBetween={24}
+          slidesPerView={1}
+          breakpoints={{
+            768: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
+          }}
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          pagination={{ clickable: true, dynamicBullets: true }}
+          className="w-full pb-10"
+        >
+          {feedbacks.map((testimonial, idx) => (
+            <SwiperSlide key={idx} className="h-auto pb-4">
+              <FeedbackCard testimonial={testimonial} />
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
     </section>
   );
