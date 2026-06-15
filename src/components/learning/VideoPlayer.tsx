@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
+import AspectRatioImage from "@/components/common/AspectRatioImage";
 import { Play, Pause, RotateCcw, Volume2, Maximize, Settings, FastForward, AlertCircle, ExternalLink } from "lucide-react";
 
 export interface VideoSource {
@@ -305,10 +306,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <div 
         className={`relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl aspect-video group/player flex items-center justify-center`}
       >
-        <img
+        <AspectRatioImage
           src={thumbnailUrl}
           alt={title}
-          className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover/player:scale-105 transition-transform duration-700"
+          ratio="16/9"
+          className="absolute inset-0 w-full h-full opacity-80 group-hover/player:scale-105 transition-transform duration-700"
         />
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
         

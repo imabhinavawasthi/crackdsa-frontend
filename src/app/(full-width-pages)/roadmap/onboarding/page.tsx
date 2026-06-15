@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Target, Clock, Brain, Compass, Sparkles, AlertCircle,
@@ -252,9 +253,9 @@ export default function RoadmapOnboardingPage() {
         
         {/* Left Sidebar: Progress & Preview Card (Sticky) */}
         <div className="hidden lg:flex flex-col w-[450px] shrink-0 border-r border-gray-200 dark:border-gray-800/60 p-10 h-full relative overflow-y-auto">
-          <button onClick={() => router.push("/roadmap")} className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-12 w-fit">
+          <Link href="/roadmap" className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-12 w-fit">
             <ArrowLeftIcon />
-          </button>
+          </Link>
 
           <div className="space-y-1 mb-8">
             <h1 className="text-2xl font-black tracking-tight">Design Your Curriculum</h1>

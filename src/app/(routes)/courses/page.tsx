@@ -39,11 +39,10 @@ export default function CoursesPage() {
     return courses.find(c => c.is_popular) || courses[0];
   }, [courses]);
 
-  // Determine secondary courses (all except featured)
+  // Determine secondary courses (all courses, including featured)
   const secondaryCourses = useMemo(() => {
-    if (!featuredCourse) return [];
-    return courses.filter(c => c.id !== featuredCourse.id);
-  }, [courses, featuredCourse]);
+    return courses;
+  }, [courses]);
 
   // Apply category filter to secondary courses
   const filteredSecondaryCourses = useMemo(() => {
@@ -187,7 +186,7 @@ export default function CoursesPage() {
               <Zap size={16} />
             </div>
             <div className="text-left">
-              <div className="text-sm font-black text-gray-900 dark:text-white">1:1 Mentorship</div>
+              <div className="text-sm font-black text-gray-900 dark:text-white">Live Doubt Classes</div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Personalized Support</div>
             </div>
           </div>

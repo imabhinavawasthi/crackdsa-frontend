@@ -21,6 +21,7 @@ import { getStoredToken } from "@/functions/auth";
 import { calculateActiveStreak } from "@/utils/streak";
 import LoginRequired from "@/components/common/LoginRequired";
 import ActivityHeatmap from "@/components/common/ActivityHeatmap";
+import ErrorState from "@/components/common/ErrorState";
 
 // Normalizes a date to YYYY-MM-DD string
 const formatDateKey = (date: Date): string => {
@@ -305,6 +306,18 @@ export default function ProgressPage() {
         <LoginRequired
           title="Progress Tracking Requires Sign In"
           description="Sign in to track your learning journey, view your activity heatmap, streaks, notes, and saved bookmarks."
+        />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto py-12 px-4">
+        <ErrorState 
+          title="Error Loading Progress"
+          message={error}
+          onRetry={() => window.location.reload()}
         />
       </div>
     );

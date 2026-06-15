@@ -25,6 +25,8 @@ import { CompareSection } from "@/components/common/CompareSection";
 import { ContactFooterCard } from "@/components/common/ContactFooterCard";
 import { InstructorSection } from "@/components/courses/InstructorSection";
 import { FeedbackSection } from "@/components/courses/FeedbackSection";
+import { CompareProModal } from "@/components/courses/CompareProModal";
+import AspectRatioImage from "@/components/common/AspectRatioImage";
 
 // Reusable animations
 const fadeIn = {
@@ -39,6 +41,7 @@ export default function CourseLandingPage() {
   
   const [expandedSyllabus, setExpandedSyllabus] = useState<number | null>(0);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   
   const [course, setCourse] = useState<CourseSummary | null>(null);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
@@ -84,9 +87,9 @@ export default function CourseLandingPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0B0F19]">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Course not found</h1>
-        <button onClick={() => router.push("/courses")} className="text-brand-500 hover:underline">
+        <Link href="/courses" className="text-brand-500 hover:underline">
           Return to Courses
-        </button>
+        </Link>
       </div>
     );
   }
@@ -123,6 +126,12 @@ export default function CourseLandingPage() {
             <span className="text-sm font-bold">Back to Academy</span>
           </Link>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsCompareModalOpen(true)}
+              className="hidden md:flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-brand-600 dark:text-brand-400 bg-brand-50 hover:bg-brand-100 dark:bg-brand-500/10 dark:hover:bg-brand-500/20 rounded-full transition-colors"
+            >
+              <Trophy size={16} /> Compare PRO
+            </button>
             <Link
               href={`/checkout/course/${course.slug}`}
               className="px-5 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-full transition-colors shadow-lg shadow-brand-500/20"
@@ -227,13 +236,14 @@ export default function CourseLandingPage() {
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="order-1 lg:order-2 w-full aspect-video lg:aspect-[4/3] rounded-3xl relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden shadow-2xl shadow-brand-500/10 group"
+              className="order-1 lg:order-2 w-full aspect-[16/9] rounded-3xl relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden shadow-2xl shadow-brand-500/10 group"
             >
               {course.metadata?.thumbnail_url ? (
-                <img 
-                  src={course.metadata.thumbnail_url} 
-                  alt={`${course.title} thumbnail`} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                <AspectRatioImage
+                  src={course.metadata.thumbnail_url}
+                  alt={`${course.title} thumbnail`}
+                  ratio="16/9"
+                  className="w-full h-full group-hover:scale-105 transition-transform duration-700"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center opacity-30">
@@ -426,6 +436,13 @@ export default function CourseLandingPage() {
         {/* --- 5. Support / Contact Footer --- */}
         <ContactFooterCard />
 
+        {/* Compare PRO Modal */}
+        <CompareProModal 
+          isOpen={isCompareModalOpen}
+          onClose={() => setIsCompareModalOpen(false)}
+          courseTitle={course.title}
+          coursePrice={course.price}
+        />
       </main>
     </div>
   );

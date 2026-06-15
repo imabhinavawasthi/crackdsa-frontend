@@ -73,7 +73,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
       onClick={() => onOpenProblem(slug)}
       className="group hover:bg-gray-50/45 dark:hover:bg-gray-900/30 cursor-pointer transition-all duration-200 border-l-2 border-l-transparent hover:border-l-brand-500"
     >
-      <td className="py-3 px-3 sm:px-5 text-center" onClick={(e) => e.stopPropagation()}>
+      <td className="py-3 px-3 sm:px-5 text-center w-12 sm:w-16" onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           onClick={(e) => isLoggedIn && onToggleSolved(id, slug, e)}
@@ -106,7 +106,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           )}
         </button>
       </td>
-      <td className="py-3 px-2 sm:px-3 text-center" onClick={(e) => e.stopPropagation()}>
+      <td className="py-3 px-2 sm:px-3 text-center w-10 sm:w-12" onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           onClick={(e) => isLoggedIn && onToggleBookmark(id, slug, e)}
@@ -136,7 +136,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           />
         </button>
       </td>
-      <td className="py-3 px-3 sm:px-5">
+      <td className="py-3 px-3 sm:px-5 w-auto">
         <span
           className={`text-[13px] font-medium transition-colors ${
             isSolved
@@ -147,7 +147,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           {formattedTitle}
         </span>
       </td>
-      <td className="py-3 px-3 sm:px-5">
+      <td className="py-3 px-3 sm:px-5 w-24 sm:w-32">
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold tracking-wide border uppercase ${diffConfig.bg} ${diffConfig.color}`}
         >
@@ -155,7 +155,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           {prob.difficulty || "Medium"}
         </span>
       </td>
-      <td className="py-3 px-3 sm:px-5">
+      <td className="py-3 px-3 sm:px-5 w-24 sm:w-32">
         <div className="flex items-center gap-1.5">
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${platformClass}`}
@@ -177,7 +177,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
         </div>
       </td>
       {!hideTopics && (
-        <td className="py-3 px-3 sm:px-5">
+        <td className="py-3 px-3 sm:px-5 w-32 sm:w-48 hidden md:table-cell">
           <div className="flex flex-wrap gap-1">
             {(prob.attributes?.tags || prob.attributes?.topicTags || [])
               .slice(0, 3)
@@ -202,7 +202,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           </div>
         </td>
       )}
-      <td className="py-3 px-3 sm:px-5 text-right">
+      <td className="py-3 px-3 sm:px-5 text-right w-10 sm:w-14">
         <ChevronRight
           size={15}
           className="inline-block text-gray-300 dark:text-gray-700 group-hover:text-brand-500 transform group-hover:translate-x-1 transition-all duration-300"

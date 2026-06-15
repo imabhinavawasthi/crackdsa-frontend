@@ -75,7 +75,7 @@ export default function DSASheetsPage() {
         }
         subtitle="No need to hover between platforms, all at one place. Organised sheets with tracking, solutions, and video editorials—everything you need for your preparation."
         accent="violet"
-        rotatorItems={["crackDSA Sprint", "0 to Hero DSA", "Abhinav's DSA Sheet", "Pattern Mastery", "30-Day Sprint"]}
+        rotatorItems={["crackDSA Sprint 75", "0 to Hero DSA", "Abhinav's DSA Sheet", "Pattern Mastery", "30-Day Sprint"]}
         rotatorPrefix="Prepare with popular collections like "
         rotatorSuffix="."
         tickerItems={["Arrays", "Strings", "Linked Lists", "Stacks & Queues", "Binary Trees", "Graphs", "DP", "Greedy"]}

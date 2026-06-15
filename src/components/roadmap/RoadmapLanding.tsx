@@ -63,13 +63,14 @@ export default function RoadmapLanding({ isLoggedIn }: { isLoggedIn: boolean }) 
         {isLoggedIn ? (
           <div className="relative group">
             <div className="absolute -inset-1.5 bg-gradient-to-r from-brand-500 to-indigo-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500 pointer-events-none" />
-            <Button 
-              className="relative bg-brand-600 hover:bg-brand-700 text-white rounded-full px-12 py-5 h-auto text-lg font-bold shadow-2xl transition-transform active:scale-98" 
-              onClick={() => router.push("/roadmap/onboarding")}
-            >
-              <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
-              Generate Custom Roadmap
-            </Button>
+            <Link href="/roadmap/onboarding">
+              <Button 
+                className="relative bg-brand-600 hover:bg-brand-700 text-white rounded-full px-12 py-5 h-auto text-lg font-bold shadow-2xl transition-transform active:scale-98" 
+              >
+                <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
+                Generate Custom Roadmap
+              </Button>
+            </Link>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4">

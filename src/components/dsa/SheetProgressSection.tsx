@@ -1,6 +1,7 @@
 import React from "react";
 import { DetailedProblem } from "@/types/dsa-sheet";
 import { Clock, PlayCircle, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 
 interface SheetProgressSectionProps {
   totalProblems: number;
@@ -58,16 +59,9 @@ export const SheetProgressSection: React.FC<SheetProgressSectionProps> = ({
             <span className="text-brand-300 text-[10px] uppercase tracking-widest font-bold mb-2 flex items-center gap-1.5">
               <Clock size={12} strokeWidth={2.5} /> Up Next
             </span>
-            <a
+            <Link
               href={
-                nextProblemDetailed?.problem_url ||
-                `/practice/${firstPendingProblem.problem_id}`
-              }
-              target={nextProblemDetailed?.problem_url ? "_blank" : undefined}
-              rel={
-                nextProblemDetailed?.problem_url
-                  ? "noopener noreferrer"
-                  : undefined
+                `/problem/${firstPendingProblem.problem_id}`
               }
               className="group w-full flex items-center justify-between bg-brand-600 hover:bg-brand-500 text-white py-2 px-4 rounded-lg transition-all duration-200 shadow-md shadow-brand-500/20 hover:shadow-brand-500/40 border border-brand-500/50 hover:border-brand-400"
             >
@@ -99,7 +93,7 @@ export const SheetProgressSection: React.FC<SheetProgressSectionProps> = ({
                 size={18}
                 className="shrink-0 group-hover:scale-110 transition-transform"
               />
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="w-full md:w-[40%] relative z-10 flex items-center justify-center gap-3 md:border-l border-white/10 md:pl-5 pt-3 md:pt-0 border-t md:border-t-0 mt-3 md:mt-0">

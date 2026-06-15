@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ChevronRight, Dumbbell, Clock, Hash, FileCode2 } from "lucide-react";
+import { ChevronRight, Dumbbell, Clock, Hash, FileCode2, BookOpen } from "lucide-react";
 import { DSASheet } from "@/types/dsa-sheet";
 
 // Helper to count total problems in a sheet
@@ -19,6 +19,12 @@ function formatDuration(hours?: number): string {
   if (!hours) return "Flexible";
   if (hours < 24) return `${hours} Hours`;
   return `${Math.round(hours / 24)} Days`;
+}
+
+// Helper to count total topics in a sheet
+function getTopicCount(sheet: DSASheet): number {
+  if (!sheet.sheet_json || !sheet.sheet_json.topics) return 0;
+  return sheet.sheet_json.topics.length;
 }
 
 interface DSASheetCardProps {
@@ -78,11 +84,11 @@ export default function DSASheetCard({ sheet }: DSASheetCardProps) {
         </div>
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:bg-violet-100 group-hover:text-violet-600 dark:group-hover:bg-violet-500/20 dark:group-hover:text-violet-400 transition-colors">
-            <Clock size={16} />
+            <BookOpen size={16} />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-bold text-gray-900 dark:text-gray-100">{formatDuration(sheet.estimated_hours)}</span>
-            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Duration</span>
+            <span className="text-xs font-bold text-gray-900 dark:text-gray-100">{getTopicCount(sheet)}</span>
+            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Topics</span>
           </div>
         </div>
       </div>

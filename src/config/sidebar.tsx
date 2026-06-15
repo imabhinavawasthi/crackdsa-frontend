@@ -84,7 +84,7 @@ export const othersItems: NavItem[] = [
     path: "/dsa-sheet",
     subItems: [
       {
-        name: "crackDSA Sprint",
+        name: "Sprint 75",
         path: "/dsa-sheet/crackdsa-revision-sprint",
         icon: <Zap size={16} />,
         new: true,

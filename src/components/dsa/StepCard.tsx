@@ -71,7 +71,7 @@ export const StepCard: React.FC<StepCardProps> = ({
         {/* Problems table */}
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-950 shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full table-fixed text-left border-collapse text-xs">
               <tbody className="divide-y divide-gray-100 dark:divide-gray-900 bg-transparent">
                 {step.problems.map((problem) => {
                   const detailedProblem = sheetProblems.find(p => p.slug === problem.problem_id);

@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { AlertCircle, Sparkles } from "lucide-react";
 import { useRoadmap } from "@/hooks/useRoadmap";
@@ -84,13 +85,14 @@ export default function RoadmapDashboard() {
           </p>
         </div>
 
-        <Button 
-          className="bg-brand-600 hover:bg-brand-500 text-white rounded-xl px-6 py-3 h-auto text-sm font-bold shadow-md flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
-          onClick={() => router.push("/roadmap/onboarding")}
-        >
-          <Sparkles size={18} />
-          Create New Path
-        </Button>
+        <Link href="/roadmap/onboarding">
+          <Button 
+            className="bg-brand-600 hover:bg-brand-500 text-white rounded-xl px-6 py-3 h-auto text-sm font-bold shadow-md flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+          >
+            <Sparkles size={18} />
+            Create New Path
+          </Button>
+        </Link>
       </motion.div>
 
       {/* Active Roadmap Showcase */}

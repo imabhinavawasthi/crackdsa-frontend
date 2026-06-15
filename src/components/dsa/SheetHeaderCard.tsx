@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { DSASheet } from "@/types/dsa-sheet";
-import { BookOpen, Layers, Clock } from "lucide-react";
+import { BookOpen, Layers, Target, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface SheetHeaderCardProps {
   sheet: DSASheet;
@@ -30,87 +31,108 @@ export const SheetHeaderCard: React.FC<SheetHeaderCardProps> = ({
       <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/[0.04]" />
       <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-white/[0.04]" />
 
-      <div className="relative z-10 px-4 md:px-6 py-6 md:py-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
-          {/* Left: Title + description */}
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
+      <div className="relative z-10 px-5 md:px-8 py-6 md:py-8">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center justify-between max-w-7xl mx-auto">
+          
+          {/* Left: Content */}
+          <div className="flex-1 space-y-3 max-w-2xl">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap items-center gap-2"
+            >
               {sheet.level && (
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white">
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white border border-white/10 backdrop-blur-md">
+                  <Target size={12} className="text-white" />
                   {sheet.level}
                 </span>
               )}
-              {sheet.tags &&
-                sheet.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white/80"
-                  >
-                    {tag}
-                  </span>
-                ))}
-            </div>
-
-            <h1 className="text-xl md:text-2xl font-bold text-white mb-1 tracking-tight">
-              {sheet.title || "DSA Learning Sheet"}
-            </h1>
-            <div className="relative max-w-2xl">
-              <p
-                className={`text-white/70 text-sm transition-all duration-300 ${
-                  !isDescriptionExpanded ? "line-clamp-2" : ""
-                }`}
-              >
-                {sheet.description ||
-                  "A structured roadmap guiding you step-by-step through essential DSA patterns."}
-              </p>
-              {sheet.description && sheet.description.length > 120 && (
-                <button
-                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                  className="text-white/90 text-xs font-semibold mt-1 hover:underline transition-all"
+              {sheet.tags && sheet.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-white/10 text-white border border-white/5 backdrop-blur-md"
                 >
-                  {isDescriptionExpanded ? "Read less" : "Read more"}
-                </button>
-              )}
-            </div>
+                  {tag}
+                </span>
+              ))}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <h1 className="text-2xl md:text-3xl font-black text-white mb-1.5 tracking-tight">
+                {sheet.title || "DSA Learning Sheet"}
+              </h1>
+              
+              <div className="relative">
+                <p className={`text-white/80 text-sm leading-relaxed font-medium ${!isDescriptionExpanded ? "line-clamp-2" : ""}`}>
+                  {sheet.description || "A structured roadmap guiding you step-by-step through essential DSA patterns and problem-solving techniques."}
+                </p>
+                {sheet.description && sheet.description.length > 120 && (
+                  <button
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    className="text-white font-bold text-xs mt-1.5 hover:text-white/80 transition-colors underline decoration-white/30 underline-offset-2"
+                  >
+                    {isDescriptionExpanded ? "Show Less" : "Read More"}
+                  </button>
+                )}
+              </div>
+            </motion.div>
           </div>
 
-          {/* Right: Stats */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden md:flex items-center gap-1 text-white/50 text-xs">
-              <BookOpen size={13} />
-              <span className="font-semibold text-white/90">{totalTopics}</span> topics
-              <span className="mx-1">·</span>
-              <Layers size={13} />
-              <span className="font-semibold text-white/90">{totalProblems}</span> problems
-              {sheet.estimated_hours && (
-                <>
-                  <span className="mx-1">·</span>
-                  <Clock size={13} />
-                  <span className="font-semibold text-white/90">~{sheet.estimated_hours}h</span>
-                </>
-              )}
+          {/* Right: Compact Premium Stats */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-row md:flex-col gap-2 shrink-0 w-full md:w-auto"
+          >
+            <div className="flex items-center gap-3 bg-white/10 border border-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1 md:w-48">
+              <div className="w-7 h-7 rounded-md bg-white/20 flex items-center justify-center text-white shrink-0">
+                <BookOpen size={14} />
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-white/60 uppercase tracking-wider leading-none mb-1">Topics</div>
+                <div className="text-sm font-bold text-white leading-none">{totalTopics}</div>
+              </div>
             </div>
-          </div>
+
+            <div className="flex items-center gap-3 bg-white/10 border border-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1 md:w-48">
+              <div className="w-7 h-7 rounded-md bg-white/20 flex items-center justify-center text-white shrink-0">
+                <Layers size={14} />
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-white/60 uppercase tracking-wider leading-none mb-1">Problems</div>
+                <div className="text-sm font-bold text-white leading-none">{totalProblems}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 bg-white/10 border border-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1 md:w-48">
+              <div className="w-7 h-7 rounded-md bg-white/20 flex items-center justify-center text-white shrink-0">
+                <Zap size={14} />
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-white/60 uppercase tracking-wider leading-none mb-1">Format</div>
+                <div className="text-sm font-bold text-white leading-none">Self Paced</div>
+              </div>
+            </div>
+          </motion.div>
+
         </div>
 
-        {/* Mobile stats */}
-        <div className="flex md:hidden items-center gap-3 mt-4 text-[11px] text-white/50">
-          <span>
-            <span className="font-semibold text-white/90">{totalTopics}</span> Topics
-          </span>
-          <span>·</span>
-          <span>
-            <span className="font-semibold text-white/90">{totalProblems}</span> Problems
-          </span>
-          {sheet.estimated_hours && (
-            <>
-              <span>·</span>
-              <span>~{sheet.estimated_hours}h</span>
-            </>
-          )}
-        </div>
-
-        {children}
+        {/* Children (Progress bar) */}
+        {children && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6 md:mt-8 max-w-7xl mx-auto"
+          >
+            {children}
+          </motion.div>
+        )}
       </div>
     </div>
   );

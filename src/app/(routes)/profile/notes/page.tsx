@@ -16,6 +16,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { getStoredToken } from "@/functions/auth";
 import LoginRequired from "@/components/common/LoginRequired";
+import ErrorState from "@/components/common/ErrorState";
 
 type AssetType = "all" | "problem" | "video" | "article";
 
@@ -31,6 +32,7 @@ interface NoteEntry {
 export default function NotesPage() {
   const { isLoggedIn } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [problems, setProblems] = useState<any[]>([]);
   const [videos, setVideos] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
@@ -75,6 +77,7 @@ export default function NotesPage() {
         }
       } catch (err) {
         console.error("Error loading notes:", err);
+        setError("Unable to sync your notes. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -199,6 +202,18 @@ export default function NotesPage() {
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 flex items-center justify-center min-h-[60vh]">
         <Loader2 size={24} className="animate-spin text-brand-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 px-4">
+        <ErrorState 
+          title="Error Loading Notes"
+          message={error}
+          onRetry={() => window.location.reload()}
+        />
       </div>
     );
   }

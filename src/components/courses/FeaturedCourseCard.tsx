@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Crown, ArrowRight, BookOpen, ChevronDown, ChevronUp, CheckCircle2, Code2, Terminal, Cpu } from "lucide-react";
+import { Zap, Crown, ArrowRight, BookOpen, ChevronDown, ChevronUp, CheckCircle2, Code2, Terminal, Cpu, Star, Users } from "lucide-react";
 import { CourseSummary } from "@/types/course";
+import AspectRatioImage from "@/components/common/AspectRatioImage";
 
 export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
   const [expandedSyllabus, setExpandedSyllabus] = useState(false);
-  const router = useRouter();
 
   // Pick an icon based on ID/category
   let Icon = Code2;
@@ -15,55 +14,63 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
   if (course.id.includes("os") || course.slug.includes("system-design")) Icon = Cpu;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      onClick={() => router.push(`/courses/${course.slug}`)}
-      className="relative z-10 cursor-pointer group"
-    >
-      <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-indigo-500 rounded-[2.5rem] blur opacity-25" />
+    <Link href={`/courses/${course.slug}`} className="block relative z-10 cursor-pointer group focus:outline-none">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
+        <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-indigo-500 rounded-[2.5rem] blur opacity-25" />
       <div className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] overflow-hidden shadow-2xl p-8 sm:p-12">
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
           
           {/* Left Col: Info */}
           <div className="flex-1 space-y-6">
             
-            {/* Thumbnail */}
-            <div className="w-full aspect-video md:aspect-[21/9] rounded-2xl relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden shrink-0">
-              {course.metadata?.thumbnail_url ? (
-                <img 
-                  src={course.metadata.thumbnail_url} 
-                  alt={`${course.title} thumbnail`} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 group-hover:scale-110 transition-all duration-700">
-                  <Icon className="w-20 h-20 text-gray-400 dark:text-gray-500" />
+            <div className="flex flex-col space-y-5">
+                <div className="flex flex-wrap items-center gap-3">
+                  {course.is_popular && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-brand-500 text-white shadow-md shadow-brand-500/20">
+                      <Zap size={12} /> Popular Flagship
+                    </span>
+                  )}
+                  <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                    {course.metadata?.difficulty || "Beginner"}
+                  </span>
                 </div>
-              )}
-            </div>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              {course.is_popular && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-brand-500 text-white shadow-md shadow-brand-500/20">
-                  <Zap size={12} /> Popular Flagship
-                </span>
-              )}
-              <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                {course.metadata?.difficulty || "Beginner"}
-              </span>
-            </div>
+                <div>
+                  <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-3">
+                    {course.title}
+                  </h2>
+                  
+                  {/* Stats Row */}
+                  {(course.metadata?.rating || course.metadata?.number_of_students) && (
+                    <div className="flex items-center gap-4">
+                      {course.metadata?.rating && (
+                        <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 dark:text-gray-400">
+                          <Star size={16} className="text-amber-500 fill-amber-500" />
+                          <span>{course.metadata.rating}</span>
+                        </div>
+                      )}
+                      {course.metadata?.rating && course.metadata?.number_of_students && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700" />
+                      )}
+                      {course.metadata?.number_of_students && (
+                        <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 dark:text-gray-400">
+                          <Users size={16} className="text-brand-500" />
+                          <span>{course.metadata.number_of_students > 1000 ? `${(course.metadata.number_of_students / 1000).toFixed(1)}k` : course.metadata.number_of_students} Enrolled</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
 
-            <div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-4">
-                {course.title}
-              </h2>
-              <div 
-                className="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium line-clamp-4 prose prose-gray dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: course.description }}
-              />
-            </div>
+            <div 
+              className="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium line-clamp-4 prose prose-gray dark:prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: course.description }}
+            />
 
             <div className="flex flex-wrap gap-2.5">
               {course.tags.map((tag: string) => (
@@ -76,28 +83,56 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
               ))}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-              <div className="flex flex-col gap-1">
-                <span className="text-2xl font-black text-brand-500">{course.metadata?.duration_weeks || 0}</span>
-                <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Weeks</span>
+            {/* Stats Grid - Only show if stats exist */}
+            {(course.metadata?.duration_weeks || course.total_videos || course.total_problems || course.total_articles) ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+                {course.metadata?.duration_weeks ? (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-2xl font-black text-brand-500">{course.metadata.duration_weeks}</span>
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Weeks</span>
+                  </div>
+                ) : null}
+                {course.total_videos ? (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-2xl font-black text-brand-500">{course.total_videos}</span>
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Lectures</span>
+                  </div>
+                ) : null}
+                {course.total_problems ? (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-2xl font-black text-brand-500">{course.total_problems}</span>
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Problems</span>
+                  </div>
+                ) : null}
+                {course.total_articles ? (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-2xl font-black text-brand-500">{course.total_articles}</span>
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Articles</span>
+                  </div>
+                ) : null}
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-2xl font-black text-brand-500">{course.total_videos || 0}</span>
-                <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Lectures</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-2xl font-black text-brand-500">{course.total_problems || 0}</span>
-                <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Problems</span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-2xl font-black text-brand-500">{course.total_articles || 0}</span>
-                <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Articles</span>
-              </div>
-            </div>
+            ) : null}
           </div>
 
-          {/* Right Col: Pricing & Actions */}
-          <div className="lg:w-80 shrink-0 space-y-6 flex flex-col justify-center">
+          {/* Right Col: Thumbnail, Pricing & Actions */}
+          <div className="lg:w-[360px] shrink-0 space-y-6 flex flex-col justify-start">
+            
+            {/* Thumbnail */}
+            <div className="w-full aspect-[16/9] rounded-3xl relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden group shadow-lg">
+              {course.metadata?.thumbnail_url ? (
+                <AspectRatioImage
+                  src={course.metadata.thumbnail_url}
+                  alt={`${course.title} thumbnail`}
+                  ratio="16/9"
+                  className="w-full h-full group-hover:scale-105 transition-transform duration-700"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 group-hover:scale-110 transition-all duration-700">
+                  <Icon className="w-20 h-20 text-gray-400 dark:text-gray-500" />
+                </div>
+              )}
+            </div>
+
             <div className="p-6 rounded-3xl bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800 space-y-6">
               
               <div className="space-y-1">
@@ -196,8 +231,9 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
               </div>
             )}
           </div>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </Link>
   );
 }
