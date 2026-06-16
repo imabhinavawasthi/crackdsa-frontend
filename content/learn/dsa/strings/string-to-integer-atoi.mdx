@@ -11,36 +11,109 @@ summary: "An essential guide to String to Integer (atoi), covering everything fr
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **String to Integer (atoi)**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+Implementing **`atoi`** (String to Integer) is a ubiquitous interview question that tests your defensive programming skills. The problem doesn't require advanced algorithmic data structures; rather, it assesses your ability to strictly follow parsing rules and handle systemic integer overflow.
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+The algorithm flows sequentially:
+1. **Whitespace:** Ignore leading whitespaces.
+2. **Sign:** Check for a `+` or `-` symbol.
+3. **Digits:** Read digits until a non-digit character is encountered.
+4. **Overflow:** Ensure the value remains within the bounds of a 32-bit signed integer $[-2^{31}, 2^{31} - 1]$. If it goes beyond, clamp it.
+
+The overflow check is the critical step. We cannot just store the parsed number in a 64-bit integer, as interviewers often stipulate a strictly 32-bit environment. We must detect overflow *before* it happens by checking if `current_result > INT_MAX / 10`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for String to Integer (atoi)
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    int myAtoi(string s) {
+        int i = 0, n = s.length(), sign = 1;
+        int result = 0;
+        
+        // 1. Ignore leading whitespaces
+        while (i < n && s[i] == ' ') i++;
+        
+        // 2. Check sign
+        if (i < n && (s[i] == '+' || s[i] == '-')) {
+            sign = (s[i] == '-') ? -1 : 1;
+            i++;
+        }
+        
+        // 3. Process digits and handle overflow
+        while (i < n && isdigit(s[i])) {
+            int digit = s[i] - '0';
+            
+            // Check for overflow before multiplying by 10
+            if (result > INT_MAX / 10 || (result == INT_MAX / 10 && digit > INT_MAX % 10)) {
+                return (sign == 1) ? INT_MAX : INT_MIN;
+            }
+            
+            result = result * 10 + digit;
+            i++;
+        }
+        
+        return result * sign;
     }
 };"
-  java="// Java implementation for String to Integer (atoi)
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public int myAtoi(String s) {
+        int i = 0, n = s.length(), sign = 1;
+        int result = 0;
+        
+        // 1. Ignore leading whitespaces
+        while (i < n && s.charAt(i) == ' ') i++;
+        
+        // 2. Check sign
+        if (i < n && (s.charAt(i) == '+' || s.charAt(i) == '-')) {
+            sign = (s.charAt(i) == '-') ? -1 : 1;
+            i++;
+        }
+        
+        // 3. Process digits and handle overflow
+        while (i < n && Character.isDigit(s.charAt(i))) {
+            int digit = s.charAt(i) - '0';
+            
+            // Check for overflow before multiplying by 10
+            if (result > Integer.MAX_VALUE / 10 || (result == Integer.MAX_VALUE / 10 && digit > Integer.MAX_VALUE % 10)) {
+                return (sign == 1) ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            }
+            
+            result = result * 10 + digit;
+            i++;
+        }
+        
+        return result * sign;
     }
 }"
-  python="# Python implementation for String to Integer (atoi)
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def myAtoi(self, s: str) -> int:
+        i, n, sign = 0, len(s), 1
+        result = 0
+        
+        INT_MAX = 2**31 - 1
+        INT_MIN = -2**31
+        
+        # 1. Ignore leading whitespaces
+        while i < n and s[i] == ' ':
+            i += 1
+            
+        # 2. Check sign
+        if i < n and s[i] in ['+', '-']:
+            if s[i] == '-':
+                sign = -1
+            i += 1
+            
+        # 3. Process digits
+        while i < n and s[i].isdigit():
+            digit = int(s[i])
+            
+            # Python handles arbitrarily large integers, but we must clamp to 32-bit
+            if result > INT_MAX // 10 or (result == INT_MAX // 10 and digit > INT_MAX % 10):
+                return INT_MAX if sign == 1 else INT_MIN
+                
+            result = result * 10 + digit
+            i += 1
+            
+        return result * sign"
 />
 
 # Complexity Analysis
@@ -49,20 +122,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  description="The algorithm processes each character of the string at most once, resulting in an O(N) time complexity where N is the length of the string. The space complexity is O(1) as we only use primitive integer variables to store the state."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- **Python's Auto-Scaling Integers:** Python integers automatically scale to handle arbitrarily large values, avoiding hardware overflow. You MUST still implement manual overflow clamping to adhere to the 32-bit constraint of the problem.
+- **Double Signs:** An input like `+-12` is invalid. The sign check should happen exactly once. Using a `while` loop for the sign check is a common bug.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "Do not use `long` or `long long` datatypes to side-step overflow detection. Assume the system strictly prohibits numbers larger than 32-bits.",
+    "Be explicit about the condition `result == INT_MAX / 10 && digit > INT_MAX % 10`. This shows the interviewer you understand exactly how modular arithmetic bounds work.",
+    "Pay attention to edge cases: words before numbers ('words and 987' returns 0), words after numbers ('4193 with words' returns 4193), and empty strings."
   ]}
 />

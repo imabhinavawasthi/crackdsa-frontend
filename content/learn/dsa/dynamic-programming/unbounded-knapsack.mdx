@@ -11,64 +11,74 @@ summary: "An essential deep-dive into Unbounded Knapsack. This article breaks do
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Unbounded Knapsack**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+The Unbounded Knapsack problem is a variation of the traditional 0/1 Knapsack. The setup is identical: you have `N` items with weights and values, and a knapsack of capacity `W`. However, you are allowed to select each item an unlimited number of times.
 
 ### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+Since an item can be picked multiple times, after deciding to include an item, we **do not** move to the next item immediately. We stay on the same item, allowing it to be chosen again. 
+The recurrence relation reflects this:
+- **Include**: `val[i] + dp(i, W - wt[i])` (notice we don't do `i-1` here)
+- **Exclude**: `dp(i-1, W)`
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+When traversing for the 1D space optimized DP, you iterate forwards in the inner loop, rather than backwards as in 0/1 Knapsack. This naturally allows previous selections of the current item to influence subsequent capacities in the same row.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Unbounded Knapsack
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int unboundedKnapsack(int W, vector<int>& wt, vector<int>& val, int n) {
+        vector<int> dp(W + 1, 0);
+        
+        for (int i = 0; i < n; i++) {
+            for (int w = wt[i]; w <= W; w++) {
+                dp[w] = max(dp[w], dp[w - wt[i]] + val[i]);
+            }
+        }
+        return dp[W];
     }
 };"
-  java="// Java implementation for Unbounded Knapsack
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int unboundedKnapsack(int W, int[] wt, int[] val, int n) {
+        int[] dp = new int[W + 1];
+        
+        for (int i = 0; i < n; i++) {
+            for (int w = wt[i]; w <= W; w++) {
+                dp[w] = Math.max(dp[w], dp[w - wt[i]] + val[i]);
+            }
+        }
+        return dp[W];
     }
 }"
-  python="# Python implementation for Unbounded Knapsack
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def unboundedKnapsack(self, W: int, wt: list[int], val: list[int], n: int) -> int:
+        dp = [0] * (W + 1)
+        
+        for i in range(n):
+            for w in range(wt[i], W + 1):
+                dp[w] = max(dp[w], dp[w - wt[i]] + val[i])
+                
+        return dp[W]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(N * W)"
+  average="O(N * W)"
+  worst="O(N * W)"
+  space="O(W)"
+  description="We process each item for every possible capacity up to W. Using the 1D optimization reduces the space requirement dramatically."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- Traversing the weight array backwards when using 1D DP. Backwards traversal is for 0/1 Knapsack to avoid reusing items; forward traversal is required here!
+- Forgetting to handle items whose weight is greater than the total capacity.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "Always clarify with the interviewer if the item supply is truly infinite or if there's a hard limit (bounded knapsack).",
+    "Mentioning the 1D optimization upfront can earn you serious bonus points, as it shows a deep understanding of state dependencies.",
+    "Problems like Coin Change (finding the number of ways) use identical mechanics under the hood."
   ]}
 />

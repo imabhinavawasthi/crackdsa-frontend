@@ -11,7 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Compass, BookOpen, Users, PanelLeftOpen, PanelLeftClose, Flame } from "lucide-react";
+import { Compass, BookOpen, Users, PanelLeftOpen, PanelLeftClose, Flame, Sparkles } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -110,6 +110,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen })
 
         <div className={`${isApplicationMenuOpen ? "flex" : "hidden"} items-center justify-between w-full gap-3 px-5 py-2 lg:flex lg:justify-end lg:px-0 lg:shadow-none`}>
           <div className="flex items-center gap-2.5">
+            {isLoggedIn && user?.is_pro_active && (
+              <>
+                <Link href="/profile/subscription">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-xs font-extrabold uppercase tracking-widest hover:opacity-90 transition-opacity shadow-sm dark:from-amber-600 dark:to-orange-600">
+                    <Sparkles size={14} className="text-amber-100" />
+                    <span>PRO</span>
+                  </div>
+                </Link>
+                <Separator />
+              </>
+            )}
             <ReferEarnButton />
             <Separator />
             <ThemeToggleButton />

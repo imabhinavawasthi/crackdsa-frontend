@@ -11,59 +11,98 @@ summary: "An essential guide to Adjacency List Representation, exploring its app
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Adjacency List Representation**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+An **Adjacency List** represents a graph as an array (or map) of lists. Each index `i` in the array corresponds to a vertex, and the list at `adj[i]` contains all of `i`'s neighbors.
 
-### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+For a weighted graph, the list contains pairs or objects holding both the neighbor vertex and the edge weight.
+
+### Pros and Cons
+**Pros:**
+- Extremely memory-efficient for sparse graphs: requires `O(V + E)` space.
+- Traversing all neighbors of a specific vertex `u` is fast: `O(degree(u))`.
+
+**Cons:**
+- Checking if an edge exists between `u` and `v` takes `O(degree(u))` time instead of `O(1)`.
+- Slightly more overhead due to pointers/references in dynamic arrays or linked lists.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Adjacency List Representation
-#include <iostream>
-#include <vector>
-using namespace std;
+  cpp="class AdjacencyList {
+    int V;
+    vector<vector<pair<int, int>>> adj;
 
-class Solution {
 public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+    AdjacencyList(int V) {
+        this->V = V;
+        adj.resize(V);
+    }
+
+    void addEdge(int u, int v, int weight = 1, bool directed = false) {
+        adj[u].push_back({v, weight});
+        if (!directed) {
+            adj[v].push_back({u, weight});
+        }
     }
 };"
-  java="// Java implementation for Adjacency List Representation
-import java.util.*;
+  java="import java.util.*;
 
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+class Edge {
+    int to, weight;
+    Edge(int to, int weight) {
+        this.to = to;
+        this.weight = weight;
+    }
+}
+
+class AdjacencyList {
+    int V;
+    List<List<Edge>> adj;
+
+    public AdjacencyList(int V) {
+        this.V = V;
+        adj = new ArrayList<>();
+        for (int i = 0; i < V; i++) {
+            adj.add(new ArrayList<>());
+        }
+    }
+
+    public void addEdge(int u, int v, int weight, boolean directed) {
+        adj.get(u).add(new Edge(v, weight));
+        if (!directed) {
+            adj.get(v).add(new Edge(u, weight));
+        }
     }
 }"
-  python="# Python implementation for Adjacency List Representation
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  python="class AdjacencyList:
+    def __init__(self, V):
+        self.V = V
+        self.adj = [[] for _ in range(V)]
+
+    def add_edge(self, u, v, weight=1, directed=False):
+        self.adj[u].append((v, weight))
+        if not directed:
+            self.adj[v].append((u, weight))"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(V + E)"
-  average="O(V + E)"
-  worst="O(V + E)"
-  space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  best="O(1)"
+  average="O(1)"
+  worst="O(V)"
+  space="O(V + E)"
+  description="Adding an edge takes O(1) time. Checking for an edge or deleting an edge takes O(degree(V)) time, which is O(V) in the worst case. Space is optimally proportional to the number of vertices and edges."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- In languages like C++, `vector<vector<int>>` can be slow if not initialized properly due to frequent reallocation. Use `.reserve()` if possible.
+- When an edge is removed from an undirected graph, it must be removed from both `adj[u]` and `adj[v]`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "This is the standard, go-to representation for 95% of graph problems in interviews.",
+    "If vertex names are strings or characters instead of integers 0 to V-1, use a Map of Lists (e.g., `unordered_map<string, vector<string>>`) instead of an array.",
+    "Keep edge weights encapsulated cleanly via a pair or custom class."
   ]}
 />

@@ -11,35 +11,50 @@ summary: "An essential guide to Two Sum (Array Version), exploring its applicati
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Two Sum (Array Version)**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+The **Two Sum** problem asks us to find two numbers in an array that add up to a specific target value. The brute-force approach involves checking all pairs of numbers, which results in an $O(N^2)$ time complexity.
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+To optimize this to linear $O(N)$ time, we can use a **Hash Map** to store the numbers we've seen so far. As we iterate through the array, we calculate the `complement` (i.e., `target - current_number`). If the `complement` exists in our Hash Map, we have found our pair! If not, we store the `current_number` and its index in the Hash Map and continue.
+
+Alternatively, if the input array is already **sorted**, we can use the **Two Pointers** technique to solve the problem in $O(N)$ time and $O(1)$ space. We place a pointer at the beginning and another at the end, and adjust them based on the sum of their elements compared to the target.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Two Sum (Array Version)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, int> numMap;
+        for (int i = 0; i < nums.size(); i++) {
+            int complement = target - nums[i];
+            if (numMap.count(complement)) {
+                return {numMap[complement], i};
+            }
+            numMap[nums[i]] = i;
+        }
+        return {};
     }
 };"
-  java="// Java implementation for Two Sum (Array Version)
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> numMap = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            if (numMap.containsKey(complement)) {
+                return new int[] { numMap.get(complement), i };
+            }
+            numMap.put(nums[i], i);
+        }
+        return new int[]{};
     }
 }"
-  python="# Python implementation for Two Sum (Array Version)
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        num_map = {}
+        for i, num in enumerate(nums):
+            complement = target - num
+            if complement in num_map:
+                return [num_map[complement], i]
+            num_map[num] = i
+        return []"
 />
 
 # Complexity Analysis
@@ -47,21 +62,21 @@ class Solution:
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  space="O(N)"
+  description="We traverse the list containing N elements exactly once. Each lookup in the hash table costs O(1) time. The space complexity is O(N) because, in the worst case, we might need to insert up to N elements into the hash table."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- Initializing the hash map with all array elements beforehand can lead to using the same element twice. It's crucial to check for the complement and *then* add the current element to the map in a single pass.
+- Using a naive nested loop setup where the inner loop starts at `0` instead of `i + 1` can cause you to sum an element with itself.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "Before diving into the hash map solution, clarify with the interviewer if the array is already sorted. If it is, immediately offer the Two Pointers approach for O(1) space.",
+    "Address potential edge cases: what if there are multiple pairs? What if there are no pairs? (Usually, the problem guarantees exactly one solution).",
+    "Mention that while Hash Maps give O(1) average lookup, hash collisions could theoretically degrade lookup to O(N), though this is rare."
   ]}
 />

@@ -11,57 +11,121 @@ summary: "An essential guide to Copy List with Random Pointer, exploring safe po
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Copy List with Random Pointer**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+In a standard Linked List clone problem, you simply iterate through the original list and spawn new nodes. However, **Copy List with Random Pointer** adds a twist: each node possesses a `random` pointer that can point to absolutely any node in the list, or be null.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+If you blindly copy the list in a single pass, when you encounter a `random` pointer linking forward, that target node might not exist yet!
+
+There are two dominant solutions:
+1. **Hash Map (O(N) Space):** Map each original node to its clone. In a second pass, map the cloned node's `next` and `random` references using the dictionary.
+2. **Interwoven List (O(1) Space):** Clone nodes and insert them immediately *after* their original counterpart. `A -> A' -> B -> B'`. Then resolve random pointers, and finally unweave the two lists. We will focus on this brilliant O(1) space solution.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Copy List with Random Pointer
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    Node* copyRandomList(Node* head) {
+        if (!head) return nullptr;
+        
+        // Step 1: Duplicate nodes and interweave
+        Node* curr = head;
+        while (curr) {
+            Node* clone = new Node(curr->val);
+            clone->next = curr->next;
+            curr->next = clone;
+            curr = clone->next;
+        }
+        
+        // Step 2: Assign random pointers for clones
+        curr = head;
+        while (curr) {
+            if (curr->random) {
+                curr->next->random = curr->random->next;
+            }
+            curr = curr->next->next;
+        }
+        
+        // Step 3: Unweave lists
+        curr = head;
+        Node* cloneHead = head->next;
+        while (curr) {
+            Node* clone = curr->next;
+            curr->next = clone->next;
+            if (clone->next) {
+                clone->next = clone->next->next;
+            }
+            curr = curr->next;
+        }
+        
+        return cloneHead;
     }
 };"
-  java="// Java implementation for Copy List with Random Pointer
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+  java="class Solution {
+    public Node copyRandomList(Node head) {
+        if (head == null) return null;
+        
+        // Step 1: Create interwoven clones
+        Node curr = head;
+        while (curr != null) {
+            Node clone = new Node(curr.val);
+            clone.next = curr.next;
+            curr.next = clone;
+            curr = clone.next;
+        }
+        
+        // Step 2: Assign random pointers
+        curr = head;
+        while (curr != null) {
+            if (curr.random != null) {
+                curr.next.random = curr.random.next;
+            }
+            curr = curr.next.next;
+        }
+        
+        // Step 3: Extract the clone list
+        curr = head;
+        Node cloneHead = head.next;
+        while (curr != null) {
+            Node clone = curr.next;
+            curr.next = clone.next;
+            if (clone.next != null) {
+                clone.next = clone.next.next;
+            }
+            curr = curr.next;
+        }
+        
+        return cloneHead;
     }
 }"
-  python="# Python implementation for Copy List with Random Pointer
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+  python="class Solution:
+    def copyRandomList(self, head: 'Optional[Node]') -> 'Optional[Node]':
+        if not head:
+            return None
+            
+        # Step 1: Duplicate nodes and interweave
+        curr = head
+        while curr:
+            clone = Node(curr.val, curr.next)
+            curr.next = clone
+            curr = clone.next
+            
+        # Step 2: Assign random pointers
+        curr = head
+        while curr:
+            if curr.random:
+                curr.next.random = curr.random.next
+            curr = curr.next.next
+            
+        # Step 3: Unweave
+        curr = head
+        cloneHead = head.next
+        while curr:
+            clone = curr.next
+            curr.next = clone.next
+            if clone.next:
+                clone.next = clone.next.next
+            curr = curr.next
+            
+        return cloneHead"
 />
 
 # Complexity Analysis
@@ -70,20 +134,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="Time Complexity is O(N) since we perform 3 linear traversals of the list. Space Complexity is strictly O(1) because we do not use any supplementary data structures like HashMaps (excluding the memory allocated to construct the required output list)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Mutating the Original List:** Do not return the cloned list while leaving the original list in a permanently damaged state. Ensure the `unweave` step fully restores the original input's next pointers.
+- **Null Random Pointers:** A node's random pointer can be null. Always check `if (curr.random)` before attempting to access `curr.random.next`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "If an interviewer asks to solve this problem, start by outlining the HashMap approach first. It demonstrates solid practical engineering.",
+    "Once the HashMap approach is acknowledged, immediately pitch the O(1) Space 'Interwoven' strategy to score max algorithmic points.",
+    "Be extremely diligent when writing the unweave phase; restoring the original list state is a non-negotiable correctness requirement in real system code."
   ]}
 />

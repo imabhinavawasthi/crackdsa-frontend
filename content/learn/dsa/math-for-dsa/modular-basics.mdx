@@ -1,67 +1,122 @@
 ---
 title: "Modular Addition, Subtraction & Multiplication"
 category: "Math for DSA"
-readTime: "9 min read"
+readTime: "8 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the mathematical intuition behind Modular Addition, Subtraction & Multiplication."
-  - "Learn the standard algorithms and their edge cases."
-  - "Master the time and space complexity analysis."
-summary: "An essential guide to Modular Addition, Subtraction & Multiplication, breaking down complex mathematical formulas into simple code for coding interviews."
+  - "Understand why modular arithmetic is required in Competitive Programming."
+  - "Learn the core properties of modular addition, subtraction, and multiplication."
+  - "Discover how to safely prevent integer overflow."
+summary: "Learn how to perform arithmetic operations under a modulo (usually 10^9 + 7), a crucial skill for preventing overflow in combinatorial and dynamic programming problems."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Modular Addition, Subtraction & Multiplication**. Mathematical algorithms are extremely common in competitive programming and frequently appear as optimization steps in technical interviews.
 
-### Core Intuition
-The primary goal here is to optimize mathematical operations that would normally take O(N) or O(N^2) time down to O(log N) or O(sqrt N) using mathematical properties and number theory.
+In Competitive Programming and advanced DSA, you will frequently encounter problems that ask you to "return the answer modulo $10^9 + 7$".
+
+Why? Because the answer could be incredibly large (e.g., $100!$ or $2^{100}$), which cannot fit inside a standard 32-bit or even 64-bit integer. By applying a modulo operation at each step, we keep the numbers small enough to fit in standard data types while preserving mathematical correctness.
+
+### The Modulo Operator (%)
+The modulo operator returns the remainder of a division. For example, $17 \pmod 5 = 2$.
+
+### Core Properties
+
+To prevent overflow, we apply the modulo operator during intermediate calculations, not just at the very end. The following mathematical properties allow us to do this safely:
+
+Let $M = 10^9 + 7$.
+
+1. **Modular Addition**:
+   $(A + B) \pmod M = ((A \pmod M) + (B \pmod M)) \pmod M$
+
+2. **Modular Multiplication**:
+   $(A \times B) \pmod M = ((A \pmod M) \times (B \pmod M)) \pmod M$
+
+3. **Modular Subtraction**:
+   Subtraction is tricky because in many programming languages (like C++ and Java), the `%` operator can return a negative number! For example, `-5 % 3` returns `-2` in C++, but mathematically we want `1`.
+   To fix this, we always add $M$ before applying the final modulo:
+   $(A - B) \pmod M = ((A \pmod M) - (B \pmod M) + M) \pmod M$
+
+*(Note: There is NO simple property for modular division. We cannot just do $(A / B) \pmod M$. That requires the Modular Multiplicative Inverse, which we will cover soon!)*
 
 # Code Implementation
+
+Here is how you safely implement modular arithmetic operations in code.
+
 <CodeBlock
-  cpp="// C++ implementation for Modular Addition, Subtraction & Multiplication
+  cpp="// C++ Implementation
 #include <iostream>
 using namespace std;
 
-class Solution {
-public:
-    int solve() {
-        // Implementation here
-        return 0;
+const int M = 1e9 + 7;
+
+long long add(long long a, long long b) {
+    return ((a % M) + (b % M)) % M;
+}
+
+long long multiply(long long a, long long b) {
+    return ((a % M) * (b % M)) % M;
+}
+
+long long subtract(long long a, long long b) {
+    // Add M to handle negative numbers in C++
+    return ((a % M) - (b % M) + M) % M;
+}"
+  java="// Java Implementation
+class MathUtils {
+    static final int M = 1000000007;
+    
+    public static long add(long a, long b) {
+        return ((a % M) + (b % M)) % M;
     }
-};"
-  java="// Java implementation for Modular Addition, Subtraction & Multiplication
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    
+    public static long multiply(long a, long b) {
+        return ((a % M) * (b % M)) % M;
+    }
+    
+    public static long subtract(long a, long b) {
+        // Add M to handle negative numbers in Java
+        return ((a % M) - (b % M) + M) % M;
     }
 }"
-  python="# Python implementation for Modular Addition, Subtraction & Multiplication
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="# Python Implementation
+# In Python, the % operator always returns a non-negative result!
+# Also, Python handles arbitrarily large integers automatically,
+# so overflow isn't an issue, but taking modulo keeps things fast.
+
+M = 10**9 + 7
+
+def add(a, b):
+    return (a + b) % M
+
+def multiply(a, b):
+    return (a * b) % M
+
+def subtract(a, b):
+    return (a - b) % M"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
-  worst="O(log N)"
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
   space="O(1)"
-  description="Math algorithms typically run in O(log N) (like Euclidean GCD or Binary Exponentiation) or O(sqrt N) (like Primality Testing). Space is heavily optimized to O(1) iterative variables."
+  description="Basic modular arithmetic operations take constant time O(1)."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Integer Overflow:** Mathematical operations easily exceed standard 32-bit integer limits. Always use 64-bit integers (`long long` in C++, `long` in Java) for intermediate accumulations.
-- **Modulo Properties:** Forgetting to apply modulo at every step of addition/multiplication, not just at the end.
+- **Overflow During Multiplication**: Even if you apply modulo, the intermediate step `(a % M) * (b % M)` can still overflow a 32-bit integer if $M = 10^9 + 7$. The maximum value would be $\approx 10^{18}$, which requires a 64-bit integer (`long long` in C++, `long` in Java). Always cast to a 64-bit integer before multiplying!
+- **Negative Modulo in C++/Java**: As mentioned, `(-2) % 5` gives `-2` in C++/Java. Always use `(val % M + M) % M` when dealing with subtraction or negative numbers.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If an array size is incredibly massive (e.g. 10^9), an O(N) linear scan will Time Out. This is a dead giveaway that you need an O(log N) math or binary search approach.",
-    "Always state the constraints out loud. If numbers are up to 10^18, explicitly tell the interviewer you will use 64-bit integer types to prevent overflow."
+    "If an interview problem says 'return the answer modulo 10^9 + 7', it is a huge hint! It almost always implies the problem is a Dynamic Programming or Combinatorics (Math) problem.",
+    "Why 10^9 + 7? It is a large prime number that fits in a 32-bit signed integer. Furthermore, its square fits within a 64-bit signed integer, meaning we can multiply two numbers modulo 10^9 + 7 without experiencing a 64-bit overflow."
   ]}
 />

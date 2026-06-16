@@ -11,37 +11,92 @@ summary: "An essential guide to Bipartite Graph (DFS), exploring its application
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Bipartite Graph (DFS)**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+A **Bipartite Graph** is a graph whose vertices can be divided into two disjoint sets such that every edge connects a vertex in one set to a vertex in the other set. A common way to check if a graph is bipartite is to try to color it using two colors such that no two adjacent vertices have the same color. 
+
+If we can successfully color the graph with 2 colors, it is a bipartite graph. If we encounter a node that is already colored with the same color as its adjacent node, the graph is not bipartite. An interesting property of a bipartite graph is that **it cannot contain an odd-length cycle**.
+
+Using **Depth First Search (DFS)**, we can recursively traverse the graph, passing the expected color to adjacent nodes. We use an array to keep track of the colors. 
 
 ### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+- Start from an uncolored node, color it with `0`.
+- Traverse its neighbors using DFS. If a neighbor is uncolored, color it with the opposite color (`1 - current_color`) and recursively call DFS.
+- If a neighbor is already colored and has the **same color** as the current node, the graph is not bipartite.
+- Since the graph can be disconnected, ensure you check all components by iterating through all nodes.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Bipartite Graph (DFS)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
+private:
+    bool dfs(int node, int col, vector<int>& color, vector<int> adj[]) {
+        color[node] = col;
+        
+        for (auto it : adj[node]) {
+            if (color[it] == -1) {
+                if (dfs(it, !col, color, adj) == false) return false;
+            } else if (color[it] == col) {
+                return false;
+            }
+        }
+        return true;
+    }
 public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+    bool isBipartite(int V, vector<int> adj[]) {
+        vector<int> color(V, -1);
+        
+        for (int i = 0; i < V; i++) {
+            if (color[i] == -1) {
+                if (dfs(i, 0, color, adj) == false) return false;
+            }
+        }
+        return true;
     }
 };"
-  java="// Java implementation for Bipartite Graph (DFS)
-import java.util.*;
-
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+  java="class Solution {
+    private boolean dfs(int node, int col, int[] color, ArrayList<ArrayList<Integer>> adj) {
+        color[node] = col;
+        
+        for (int it : adj.get(node)) {
+            if (color[it] == -1) {
+                if (!dfs(it, 1 - col, color, adj)) return false;
+            } else if (color[it] == col) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    public boolean isBipartite(int V, ArrayList<ArrayList<Integer>> adj) {
+        int[] color = new int[V];
+        Arrays.fill(color, -1);
+        
+        for (int i = 0; i < V; i++) {
+            if (color[i] == -1) {
+                if (!dfs(i, 0, color, adj)) return false;
+            }
+        }
+        return true;
     }
 }"
-  python="# Python implementation for Bipartite Graph (DFS)
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def dfs(self, node, col, color, adj):
+        color[node] = col
+        
+        for neighbor in adj[node]:
+            if color[neighbor] == -1:
+                if not self.dfs(neighbor, 1 - col, color, adj):
+                    return False
+            elif color[neighbor] == col:
+                return False
+        return True
+
+    def isBipartite(self, V, adj):
+        color = [-1] * V
+        
+        for i in range(V):
+            if color[i] == -1:
+                if not self.dfs(i, 0, color, adj):
+                    return False
+        return True"
 />
 
 # Complexity Analysis
@@ -50,20 +105,21 @@ class Solution:
   average="O(V + E)"
   worst="O(V + E)"
   space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  description="Time Complexity is O(V + E) since we do a standard DFS traversal. Space Complexity is O(V) to store the color array and for the recursion stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- **Disconnected Graphs:** Do not assume the graph is connected. Always iterate through all vertices to handle disconnected components.
+- **Cycle lengths:** Remember that graphs with even-length cycles CAN be bipartite, but graphs with odd-length cycles can NEVER be bipartite.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "Explain the graph coloring concept clearly before writing the code.",
+    "Mention that a bipartite graph can never have an odd-length cycle.",
+    "A tree is always a bipartite graph since it has no cycles.",
+    "If asked for an iterative approach, be prepared to explain the BFS implementation."
   ]}
 />

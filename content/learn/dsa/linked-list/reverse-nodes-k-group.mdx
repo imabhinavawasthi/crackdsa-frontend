@@ -11,57 +11,130 @@ summary: "An essential guide to Reverse Nodes in k-Group, exploring safe pointer
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Reverse Nodes in k-Group**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+**Reverse Nodes in k-Group** is a notoriously difficult Linked List manipulation problem. It combines multiple sub-problems: finding bounds, reversing a local sublist, and flawlessly reconnecting everything to the main chain.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+We are tasked with reversing the nodes of a list `k` at a time. If the remaining nodes at the tail are fewer than `k`, they must remain un-reversed.
+
+**Core Mechanism:**
+1. Maintain a pointer just *before* the start of the current `k` group (`groupPrev`).
+2. Fast-forward `k` nodes to find the end of the group (`kth`). If the end doesn't exist, we break.
+3. Keep track of the node just *after* the `k` group (`groupNext`).
+4. Perform a standard Linked List reversal tightly bounded between the start of the group and `groupNext`.
+5. Wire the reversed segment back to `groupPrev` and `groupNext`.
+6. Advance `groupPrev` to prepare for the next batch.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Reverse Nodes in k-Group
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    ListNode* reverseKGroup(ListNode* head, int k) {
+        ListNode dummy(0);
+        dummy.next = head;
+        ListNode* groupPrev = &dummy;
+        
+        while (true) {
+            // Find the Kth node of this group
+            ListNode* kth = getKth(groupPrev, k);
+            if (!kth) break;
+            
+            ListNode* groupNext = kth->next;
+            
+            // Standard Reverse Linked List logic within bounds
+            ListNode* prev = groupNext; // Connect tail to the next group initially
+            ListNode* curr = groupPrev->next;
+            
+            while (curr != groupNext) {
+                ListNode* tmp = curr->next;
+                curr->next = prev;
+                prev = curr;
+                curr = tmp;
+            }
+            
+            // Reconnect the reversed group to the preceding nodes
+            ListNode* tmp = groupPrev->next;
+            groupPrev->next = kth;
+            groupPrev = tmp;
+        }
+        
+        return dummy.next;
+    }
+    
+private:
+    ListNode* getKth(ListNode* curr, int k) {
+        while (curr && k > 0) {
+            curr = curr->next;
+            k--;
+        }
+        return curr;
     }
 };"
-  java="// Java implementation for Reverse Nodes in k-Group
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+  java="class Solution {
+    public ListNode reverseKGroup(ListNode head, int k) {
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode groupPrev = dummy;
+        
+        while (true) {
+            ListNode kth = getKth(groupPrev, k);
+            if (kth == null) break;
+            
+            ListNode groupNext = kth.next;
+            ListNode prev = groupNext;
+            ListNode curr = groupPrev.next;
+            
+            while (curr != groupNext) {
+                ListNode tmp = curr.next;
+                curr.next = prev;
+                prev = curr;
+                curr = tmp;
+            }
+            
+            ListNode tmp = groupPrev.next;
+            groupPrev.next = kth;
+            groupPrev = tmp;
+        }
+        
+        return dummy.next;
+    }
+    
+    private ListNode getKth(ListNode curr, int k) {
+        while (curr != null && k > 0) {
+            curr = curr.next;
+            k--;
+        }
+        return curr;
     }
 }"
-  python="# Python implementation for Reverse Nodes in k-Group
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+  python="class Solution:
+    def reverseKGroup(self, head: Optional[ListNode], k: int) -> Optional[ListNode]:
+        dummy = ListNode(0, head)
+        groupPrev = dummy
+        
+        while True:
+            kth = self.getKth(groupPrev, k)
+            if not kth:
+                break
+                
+            groupNext = kth.next
+            prev, curr = groupNext, groupPrev.next
+            
+            while curr != groupNext:
+                tmp = curr.next
+                curr.next = prev
+                prev = curr
+                curr = tmp
+                
+            tmp = groupPrev.next
+            groupPrev.next = kth
+            groupPrev = tmp
+            
+        return dummy.next
+        
+    def getKth(self, curr: ListNode, k: int) -> ListNode:
+        while curr and k > 0:
+            curr = curr.next
+            k -= 1
+        return curr"
 />
 
 # Complexity Analysis
@@ -70,20 +143,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="Time Complexity is strictly O(N). Each node is visited exactly twice: once when advancing the 'kth' pointer, and once during the local reversal process. Space Complexity is O(1) via robust, in-place reference switching."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Orphaned Pointers:** During the bounded reversal, you must initialize `prev` to `groupNext` instead of `null`. This prevents disconnecting the tail of the newly reversed group from the un-reversed remainder of the list.
+- **Updating the groupPrev:** After one successful reversal, ensure that `groupPrev` is correctly advanced to point to the node that originally started the group (which is now properly positioned at the very end of the reversed cluster).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "Before writing code, heavily diagram an example like 1->2->3->4 with k=2. It proves you understand the `groupPrev`, `kth`, and `groupNext` boundary conditions.",
+    "Modularize your code. Writing a tiny `getKth()` helper function shows the interviewer you design cleanly structured code rather than dumping everything in a massive while-loop.",
+    "Verify edge cases manually: what if k=1? What if the list length is shorter than k? Your logic should effortlessly skip or NO-OP without crashing."
   ]}
 />

@@ -11,64 +11,123 @@ summary: "An essential deep-dive into Minimum Path Sum. This article breaks down
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Minimum Path Sum**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+Welcome to the **Minimum Path Sum** lesson. We are now moving from 1D Dynamic Programming arrays to 2D matrices. If you understood the climbing stairs pattern, 2D grid problems are just the 2D equivalent.
 
-### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+### The Problem Statement
+Given an `m x n` grid filled with non-negative numbers, find a path from the top-left to the bottom-right, which minimizes the sum of all numbers along its path.
+*Constraint:* You can only move either down or right at any point in time.
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+### The Intuition & State Definition
+Just like the 1D problems, we ask ourselves: *"If I am at a specific cell `(r, c)`, how did I get there?"*
+Because we can only move down or right, we must have arrived at `(r, c)` from either:
+1. The cell directly above it: `(r-1, c)`
+2. The cell directly to its left: `(r, c-1)`
+
+If we want the *minimum* path sum to reach `(r, c)`, we simply look at those two adjacent cells, pick the one with the smaller path sum so far, and add the current cell's value.
+
+**State:** `dp[r][c]` represents the minimum path sum from `(0, 0)` to `(r, c)`.
+**Transition:** `dp[r][c] = grid[r][c] + min(dp[r-1][c], dp[r][c-1])`
+
+### Base Cases
+- The starting cell `dp[0][0]` is just `grid[0][0]`.
+- The top row: You can only reach these cells by moving right. `dp[0][c] = dp[0][c-1] + grid[0][c]`.
+- The left column: You can only reach these cells by moving down. `dp[r][0] = dp[r-1][0] + grid[r][0]`.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Minimum Path Sum
-#include <iostream>
-#include <vector>
-using namespace std;
+We can solve this elegantly using a 2D array. However, because we only ever look at the current row and the previous row, we can optimize the space to 1D! Let's show the standard 2D approach, but note the optimization in the interview tips.
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int minPathSum(vector<vector<int>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+        
+        // Use the grid itself as the DP table to achieve O(1) extra space!
+        // Initialize top row
+        for (int c = 1; c < n; c++) {
+            grid[0][c] += grid[0][c - 1];
+        }
+        
+        // Initialize left column
+        for (int r = 1; r < m; r++) {
+            grid[r][0] += grid[r - 1][0];
+        }
+        
+        // Fill the rest of the grid
+        for (int r = 1; r < m; r++) {
+            for (int c = 1; c < n; c++) {
+                grid[r][c] += min(grid[r - 1][c], grid[r][c - 1]);
+            }
+        }
+        
+        return grid[m - 1][n - 1];
     }
 };"
-  java="// Java implementation for Minimum Path Sum
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int minPathSum(int[][] grid) {
+        int m = grid.length;
+        int n = grid[0].length;
+        
+        // We modify the grid in-place to save space
+        
+        // Top row
+        for (int c = 1; c < n; c++) {
+            grid[0][c] += grid[0][c - 1];
+        }
+        
+        // Left column
+        for (int r = 1; r < m; r++) {
+            grid[r][0] += grid[r - 1][0];
+        }
+        
+        // Compute for internal cells
+        for (int r = 1; r < m; r++) {
+            for (int c = 1; c < n; c++) {
+                grid[r][c] += Math.min(grid[r - 1][c], grid[r][c - 1]);
+            }
+        }
+        
+        return grid[m - 1][n - 1];
     }
 }"
-  python="# Python implementation for Minimum Path Sum
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def minPathSum(self, grid: list[list[int]]) -> int:
+        m, n = len(grid), len(grid[0])
+        
+        # Modify grid in-place
+        for c in range(1, n):
+            grid[0][c] += grid[0][c - 1]
+            
+        for r in range(1, m):
+            grid[r][0] += grid[r - 1][0]
+            
+        for r in range(1, m):
+            for c in range(1, n):
+                grid[r][c] += min(grid[r - 1][c], grid[r][c - 1])
+                
+        return grid[-1][-1]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(M * N)"
+  average="O(M * N)"
+  worst="O(M * N)"
+  space="O(1) in-place, else O(N)"
+  description="We visit every cell in the M x N grid exactly once. By modifying the input grid directly, we achieve O(1) auxiliary space. If modifying the input is not allowed, we can use a 1D array of size N to achieve O(N) space."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- **Modifying Input Constraints:** In some strict interview environments, modifying the input array `grid` is considered a bad practice. Always ask the interviewer: *"Are there any side effects to modifying the input grid, or should I allocate a separate O(N) array?"*
+- **Grid Out of Bounds:** Be extremely careful when initializing the top row and left column separately. A standard `for r... for c...` loop without proper bounds checks will throw index out of bounds on `r-1` or `c-1`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "If you cannot modify the grid, use a 1D DP array of size N. Since `dp[r][c]` only needs `dp[r-1][c]` (the value currently in your 1D array at index c) and `dp[r][c-1]` (the value you just updated at index c-1), a single 1D array is sufficient!",
+    "This pattern perfectly maps to the 'Unique Paths' problem, just replace the `min()` with a `+` operator."
   ]}
 />

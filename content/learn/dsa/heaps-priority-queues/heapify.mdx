@@ -11,55 +11,93 @@ summary: "An essential guide to Heapify & Build Heap, exploring its applications
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Heapify & Build Heap**. This topic is a cornerstone of the Heaps & Priority Queues module. Understanding it thoroughly will significantly improve your problem-solving speed.
+**Heapify** is the core operation used to maintain the heap property in a binary tree. It takes an array and a specific node index, assuming that the subtrees under that node already satisfy the heap property. It then percolates that node downwards until it finds its correct position.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+**Build Heap** is the process of converting an arbitrary, unsorted array into a valid heap. 
+
+### The Naive Approach
+A simple way to build a heap from an array of N elements is to start with an empty heap and insert elements one by one. Since each insert takes `O(log N)` time, doing this for N elements yields a time complexity of `O(N log N)`.
+
+### The Optimal Approach (Bottom-Up Heapify)
+A much faster way is to use a bottom-up approach. We start from the last non-leaf node (index `(N/2) - 1`) and call `heapify` backwards up to the root (index `0`). By doing this, we guarantee that when we call `heapify` on a node, its left and right subtrees are already valid heaps.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Heapify & Build Heap
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    void heapify(vector<int>& arr, int n, int i) {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+
+        if (left < n && arr[left] > arr[largest])
+            largest = left;
+
+        if (right < n && arr[right] > arr[largest])
+            largest = right;
+
+        if (largest != i) {
+            swap(arr[i], arr[largest]);
+            heapify(arr, n, largest);
+        }
     }
 };"
-  java="// Java implementation for Heapify & Build Heap
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public void heapify(int[] arr, int n, int i) {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+
+        if (left < n && arr[left] > arr[largest])
+            largest = left;
+
+        if (right < n && arr[right] > arr[largest])
+            largest = right;
+
+        if (largest != i) {
+            int temp = arr[i];
+            arr[i] = arr[largest];
+            arr[largest] = temp;
+            heapify(arr, n, largest);
+        }
     }
 }"
-  python="# Python implementation for Heapify & Build Heap
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def heapify(self, arr: list[int], n: int, i: int):
+        largest = i
+        left = 2 * i + 1
+        right = 2 * i + 2
+
+        if left < n and arr[left] > arr[largest]:
+            largest = left
+
+        if right < n and arr[right] > arr[largest]:
+            largest = right
+
+        if largest != i:
+            arr[i], arr[largest] = arr[largest], arr[i]
+            self.heapify(arr, n, largest)"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  average="O(log N)"
+  worst="O(log N)"
+  space="O(log N)"
+  description="A single heapify operation takes O(log N) time in the worst case, as the element may need to travel down to the leaves of the tree. The recursive call stack takes O(log N) space."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Calling `heapify` starting from index `0` downwards. This won't work because `heapify` assumes the subtrees are already valid heaps. You must iterate backwards from the last non-leaf node.
+- Passing the wrong array size `n` to the `heapify` function during sorting operations, leading to out-of-bounds access.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Understanding `heapify` is crucial for implementing Heapsort, which sorts an array in-place with O(N log N) time and O(1) space.",
+    "While you rarely write a manual `heapify` in interviews, being able to explain its mechanics and complexity is a common follow-up question."
   ]}
 />

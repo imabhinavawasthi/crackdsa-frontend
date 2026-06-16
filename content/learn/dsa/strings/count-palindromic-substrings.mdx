@@ -11,58 +11,98 @@ summary: "An essential guide to Palindromic Substrings (Count), covering everyth
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Palindromic Substrings (Count)**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+Counting the number of palindromic substrings in a given string is closely related to finding the longest palindromic substring. Instead of keeping track of the maximum length, we just increment a counter every time we identify a valid palindrome.
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+To do this efficiently, we employ the **Expand Around Center** technique. A string of length $N$ has $2N - 1$ possible centers (each character is a center, and the space between each adjacent pair of characters is also a center). For each center, we expand outwards as long as the characters match, counting each valid expansion as one palindromic substring.
+
+This method operates purely on indices and avoids constructing any intermediate substrings, which is vital for keeping our space complexity minimal and our runtime highly performant.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Palindromic Substrings (Count)
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    int countSubstrings(string s) {
+        int count = 0;
+        
+        auto countPalindromesAroundCenter = [&](int left, int right) {
+            int localCount = 0;
+            while (left >= 0 && right < s.length() && s[left] == s[right]) {
+                localCount++;
+                left--;
+                right++;
+            }
+            return localCount;
+        };
+        
+        for (int i = 0; i < s.length(); i++) {
+            count += countPalindromesAroundCenter(i, i);     // Odd length
+            count += countPalindromesAroundCenter(i, i + 1); // Even length
+        }
+        
+        return count;
     }
 };"
-  java="// Java implementation for Palindromic Substrings (Count)
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public int countSubstrings(String s) {
+        int count = 0;
+        
+        for (int i = 0; i < s.length(); i++) {
+            count += countPalindromesAroundCenter(s, i, i);     // Odd length
+            count += countPalindromesAroundCenter(s, i, i + 1); // Even length
+        }
+        
+        return count;
+    }
+    
+    private int countPalindromesAroundCenter(String s, int left, int right) {
+        int localCount = 0;
+        while (left >= 0 && right < s.length() && s.charAt(left) == s.charAt(right)) {
+            localCount++;
+            left--;
+            right++;
+        }
+        return localCount;
     }
 }"
-  python="# Python implementation for Palindromic Substrings (Count)
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def countSubstrings(self, s: str) -> int:
+        count = 0
+        
+        def count_palindromes(left: int, right: int) -> int:
+            local_count = 0
+            while left >= 0 and right < len(s) and s[left] == s[right]:
+                local_count += 1
+                left -= 1
+                right += 1
+            return local_count
+            
+        for i in range(len(s)):
+            count += count_palindromes(i, i)       # Odd length
+            count += count_palindromes(i, i + 1)   # Even length
+            
+        return count"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(N)"
-  average="O(N)"
-  worst="O(N)"
+  average="O(N^2)"
+  worst="O(N^2)"
   space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  description="In the worst case (e.g., a string of identical characters like 'aaaa'), expanding from each center takes O(N) time, leading to O(N^2) overall. Space complexity is strictly O(1) as we only use a few integer variables."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- **Forgetting Single Characters:** Single characters are valid palindromes. The algorithm correctly counts them when expanding from `(i, i)`, so ensure your base logic handles 1-length palindromes implicitly.
+- **DP Memory Overhead:** While a 2D Dynamic Programming table can solve this, it requires $O(N^2)$ space. In an interview, allocating a large boolean matrix can be a red flag when an $O(1)$ space solution exists.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "Highlight how this problem directly builds upon the 'Longest Palindromic Substring' problem. Reusing logic shows strong pattern recognition.",
+    "Mention that every individual character is itself a valid palindrome substring, which forms the base case of your expansion.",
+    "Interviewer might ask for Manacher's algorithm which counts palindromes in O(N). Briefly acknowledge it exists, but emphasize that Expand Around Center is the standard expected approach due to its simplicity and zero space overhead."
   ]}
 />

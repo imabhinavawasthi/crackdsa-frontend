@@ -11,64 +11,103 @@ summary: "An essential guide to Double Ended Queue (Deque), exploring its applic
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Double Ended Queue (Deque)**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+Building upon the basics of Deques, the most advanced use-case for a Deque is the **Monotonic Deque**. Just as a Monotonic Stack maintains elements in a sorted order to find the "next greater" element, a Monotonic Deque maintains a sorted order of elements to find the "maximum or minimum" element in a moving sliding window.
+
+When we combine the O(1) front/back removal capabilities of a Deque with monotonicity, we can dynamically add new elements to our window, remove old elements that fall out of the window, and constantly know the max/min of the window simply by looking at the front of the Deque!
+
+**How a Monotonic Decreasing Deque Works:**
+1. **Adding Elements:** We add elements to the back. But before adding, we must maintain the decreasing order. If the new element is larger than the elements at the back, those back elements are useless (they are smaller and older, so they will never be the maximum!). We pop them from the back.
+2. **Removing Elements:** If the element at the front of the Deque (the maximum) has "expired" (its index is no longer inside our sliding window), we pop it from the front.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Double Ended Queue (Deque)
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="// Standard sliding window logic using Monotonic Deque
+class MonotonicDeque {
+    deque<int> dq; // stores indices
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    void push(vector<int>& nums, int i) {
+        while (!dq.empty() && nums[dq.back()] <= nums[i]) {
+            dq.pop_back(); // Remove smaller elements from the back
+        }
+        dq.push_back(i);
+    }
+    
+    void pop(int out_of_bounds_index) {
+        if (!dq.empty() && dq.front() == out_of_bounds_index) {
+            dq.pop_front(); // Remove if the max is out of the window
+        }
+    }
+    
+    int getMax(vector<int>& nums) {
+        return nums[dq.front()];
     }
 };"
-  java="// Java implementation for Double Ended Queue (Deque)
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="// Standard sliding window logic using Monotonic Deque
+class MonotonicDeque {
+    Deque<Integer> dq = new LinkedList<>(); // stores indices
+    
+    public void push(int[] nums, int i) {
+        while (!dq.isEmpty() && nums[dq.peekLast()] <= nums[i]) {
+            dq.pollLast(); // Remove smaller elements from the back
+        }
+        dq.offerLast(i);
+    }
+    
+    public void pop(int outOfBoundsIndex) {
+        if (!dq.isEmpty() && dq.peekFirst() == outOfBoundsIndex) {
+            dq.pollFirst(); // Remove if the max is out of the window
+        }
+    }
+    
+    public int getMax(int[] nums) {
+        return nums[dq.peekFirst()];
     }
 }"
-  python="# Python implementation for Double Ended Queue (Deque)
+  python="# Standard sliding window logic using Monotonic Deque
 from collections import deque
 
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+class MonotonicDeque:
+    def __init__(self):
+        self.dq = deque() # stores indices
+        
+    def push(self, nums: list[int], i: int):
+        while self.dq and nums[self.dq[-1]] <= nums[i]:
+            self.dq.pop() # Remove smaller elements from the back
+        self.dq.append(i)
+        
+    def pop(self, out_of_bounds_index: int):
+        if self.dq and self.dq[0] == out_of_bounds_index:
+            self.dq.popleft() # Remove if the max is out of the window
+            
+    def get_max(self, nums: list[int]) -> int:
+        return nums[self.dq[0]]"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  space="O(K)"
+  description="Time complexity is O(N) because every element is pushed into the Deque exactly once and popped at most once. Space complexity is bounded by O(K), where K is the size of the sliding window, because the Deque never stores more elements than the window size."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **Storing Values Instead of Indices:** A Monotonic Deque must store indices! If you store values, you have no way to know if the maximum value at the front of the Deque has expired and needs to be popped out of the sliding window.
+- **Popping the Wrong End:** When maintaining monotonicity, pop from the `back`. When removing expired elements, pop from the `front`. Mixing these up will completely break the logic.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "Mastering the Monotonic Deque elevates you to the top 10% of candidates. It is the definitive solution to 'Sliding Window Maximum'.",
+    "Whenever a problem asks for the Max/Min in a dynamic range or window, immediately write down 'Monotonic Deque'.",
+    "Be prepared to explain why this is O(N) despite the while loop: Amortized analysis proves that since each element is evaluated only a constant number of times, the overall time scales linearly."
   ]}
 />

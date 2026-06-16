@@ -1,67 +1,168 @@
 ---
 title: "Permutations & Combinations (nCr, nPr)"
 category: "Math for DSA"
-readTime: "9 min read"
+readTime: "12 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the mathematical intuition behind Permutations & Combinations (nCr, nPr)."
-  - "Learn the standard algorithms and their edge cases."
-  - "Master the time and space complexity analysis."
-summary: "An essential guide to Permutations & Combinations (nCr, nPr), breaking down complex mathematical formulas into simple code for coding interviews."
+  - "Understand the difference between Permutations (nPr) and Combinations (nCr)."
+  - "Learn how to compute nCr using Pascal's Triangle (DP approach)."
+  - "Master computing nCr modulo M using Fermat's Little Theorem."
+summary: "An essential guide to combinatorics, teaching you how to efficiently count arrangements and selections, even when answers are massive."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Permutations & Combinations (nCr, nPr)**. Mathematical algorithms are extremely common in competitive programming and frequently appear as optimization steps in technical interviews.
 
-### Core Intuition
-The primary goal here is to optimize mathematical operations that would normally take O(N) or O(N^2) time down to O(log N) or O(sqrt N) using mathematical properties and number theory.
+Combinatorics is the mathematics of counting. In interview problems, you're frequently asked to find "the number of ways" to do something.
+
+### 1. Permutations ($nPr$)
+A permutation is the number of ways to arrange $r$ items out of $n$ available items, where **order matters**.
+- **Formula**: $nPr = \frac{n!}{(n - r)!}$
+- Example: Arranging 3 people into 2 specific chairs (President, Vice-President). $3P2 = 3! / 1! = 6$.
+
+### 2. Combinations ($nCr$)
+A combination is the number of ways to choose $r$ items out of $n$ available items, where **order does NOT matter**.
+- **Formula**: $nCr = \frac{n!}{r! (n - r)!}$
+- Example: Choosing a team of 2 members from a group of 3 people. $3C2 = 3! / (2! \times 1!) = 3$.
+
+### Computing $nCr$ in Code
+There are two primary ways to compute $nCr$ depending on the constraints of the problem:
+
+**Approach 1: Pascal's Triangle (DP)**
+If $N$ and $R$ are small (e.g., $N \le 1000$), we can use dynamic programming based on the relation: 
+$nCr = (n-1)C(r-1) + (n-1)Cr$. 
+This avoids factorials entirely and prevents overflow.
+
+**Approach 2: Factorials with Modular Inverse**
+If $N$ is up to $10^5$, Pascal's triangle takes $O(N^2)$ space and time, which is too slow. Instead, we precompute factorials. However, since the numbers are huge, we must return the answer modulo $M$ (e.g., $10^9 + 7$). 
+Because the formula involves division by $r! \times (n-r)!$, we **must** use the Modular Multiplicative Inverse to divide!
 
 # Code Implementation
+
+Let's implement the highly efficient $O(N)$ precomputation approach using Modular Inverse.
+
 <CodeBlock
-  cpp="// C++ implementation for Permutations & Combinations (nCr, nPr)
+  cpp="// C++ Implementation (O(N) Factorial Precomputation)
 #include <iostream>
+#include <vector>
 using namespace std;
 
-class Solution {
-public:
-    int solve() {
-        // Implementation here
-        return 0;
+const int M = 1e9 + 7;
+const int MAX = 1e5 + 5;
+long long fact[MAX];
+
+// Precompute factorials
+void precompute() {
+    fact[0] = 1;
+    for (int i = 1; i < MAX; i++) {
+        fact[i] = (fact[i - 1] * i) % M;
     }
-};"
-  java="// Java implementation for Permutations & Combinations (nCr, nPr)
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+}
+
+// Binary Exponentiation
+long long power(long long base, long long exp) {
+    long long res = 1;
+    base %= M;
+    while (exp > 0) {
+        if (exp % 2 == 1) res = (res * base) % M;
+        base = (base * base) % M;
+        exp /= 2;
+    }
+    return res;
+}
+
+// Fermat's Little Theorem for Inverse
+long long modInverse(long long n) {
+    return power(n, M - 2);
+}
+
+// nCr % M
+long long nCr(int n, int r) {
+    if (r < 0 || r > n) return 0;
+    
+    // nCr = n! * (r!)^-1 * ((n-r)!)^-1 % M
+    long long num = fact[n];
+    long long den = (modInverse(fact[r]) * modInverse(fact[n - r])) % M;
+    
+    return (num * den) % M;
+}"
+  java="// Java Implementation
+class Combinatorics {
+    static final int M = 1000000007;
+    static final int MAX = 100005;
+    static long[] fact = new long[MAX];
+    
+    static {
+        fact[0] = 1;
+        for (int i = 1; i < MAX; i++) {
+            fact[i] = (fact[i - 1] * i) % M;
+        }
+    }
+    
+    static long power(long base, long exp) {
+        long res = 1;
+        base %= M;
+        while (exp > 0) {
+            if (exp % 2 == 1) res = (res * base) % M;
+            base = (base * base) % M;
+            exp /= 2;
+        }
+        return res;
+    }
+    
+    static long modInverse(long n) {
+        return power(n, M - 2);
+    }
+    
+    public static long nCr(int n, int r) {
+        if (r < 0 || r > n) return 0;
+        long num = fact[n];
+        long den = (modInverse(fact[r]) * modInverse(fact[n - r])) % M;
+        return (num * den) % M;
     }
 }"
-  python="# Python implementation for Permutations & Combinations (nCr, nPr)
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="# Python Implementation
+# Python handles large integers naturally, but we still need modulo!
+M = 10**9 + 7
+MAX = 100005
+
+fact = [1] * MAX
+for i in range(1, MAX):
+    fact[i] = (fact[i - 1] * i) % M
+
+def nCr(n, r):
+    if r < 0 or r > n:
+        return 0
+        
+    # Python 3.8+ built-in modular inverse
+    inv_r = pow(fact[r], -1, M)
+    inv_nr = pow(fact[n - r], -1, M)
+    
+    den = (inv_r * inv_nr) % M
+    return (fact[n] * den) % M"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
-  worst="O(log N)"
-  space="O(1)"
-  description="Math algorithms typically run in O(log N) (like Euclidean GCD or Binary Exponentiation) or O(sqrt N) (like Primality Testing). Space is heavily optimized to O(1) iterative variables."
+  best="O(1)"
+  average="O(\log M) per query"
+  worst="O(\log M) per query"
+  space="O(N)"
+  description="Precomputing the factorials takes O(N) time and O(N) space. Once precomputed, calculating nCr for any N and R takes O(log M) time to compute the two modular inverses via Binary Exponentiation."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Integer Overflow:** Mathematical operations easily exceed standard 32-bit integer limits. Always use 64-bit integers (`long long` in C++, `long` in Java) for intermediate accumulations.
-- **Modulo Properties:** Forgetting to apply modulo at every step of addition/multiplication, not just at the end.
+- **Out of Bounds**: Always add a base condition `if (r < 0 || r > n) return 0;`. You cannot choose 5 items from a pool of 3.
+- **Forgetting Modulo on Denominator**: When computing `den = inv_r * inv_nr`, you MUST apply modulo to the multiplication of the two inverses before multiplying it with the numerator!
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If an array size is incredibly massive (e.g. 10^9), an O(N) linear scan will Time Out. This is a dead giveaway that you need an O(log N) math or binary search approach.",
-    "Always state the constraints out loud. If numbers are up to 10^18, explicitly tell the interviewer you will use 64-bit integer types to prevent overflow."
+    "Problems asking 'Find the number of paths from top-left to bottom-right of an NxM grid' are actually combinatorics problems in disguise! The answer is simply (N+M-2) C (N-1).",
+    "If N is massive (e.g., 10^9) but R is extremely small (e.g., R <= 10^3), do not use an array! Instead, compute nCr directly using a loop: nCr = n * (n-1) * (n-2) / r!, applying inverses along the way."
   ]}
 />

@@ -11,55 +11,96 @@ summary: "An essential guide to Climbing Stairs (Fibonacci), exploring its appli
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Climbing Stairs (Fibonacci)**. This topic is a cornerstone of the Dynamic Programming module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Welcome to the lesson on **Climbing Stairs**, the quintessential introduction to the Fibonacci sequence disguised as a Dynamic Programming problem.
+
+### The Problem Statement
+You are climbing a staircase. It takes $n$ steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+If you are standing on step $n$, how did you get there? Since you can only climb 1 or 2 steps at a time, you must have come from either:
+1. Step $n-1$ (taking a 1-step)
+2. Step $n-2$ (taking a 2-step)
+
+Therefore, the total number of ways to reach step $n$ is simply the sum of the ways to reach step $n-1$ and step $n-2$. This perfectly perfectly mirrors the **Fibonacci Recurrence**:
+$$dp(n) = dp(n-1) + dp(n-2)$$
+
+### Base Cases
+- Step 0: 1 way (do nothing)
+- Step 1: 1 way (take 1 step)
+- Step 2: 2 ways (1+1 or 2)
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Climbing Stairs (Fibonacci)
-#include <iostream>
-using namespace std;
+We can solve this problem elegantly using bottom-up tabulation. Notice how we optimize the space from $O(N)$ to $O(1)$ by only keeping track of the last two steps.
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int climbStairs(int n) {
+        if (n <= 2) return n;
+        
+        int prev2 = 1; // ways to reach n-2
+        int prev1 = 2; // ways to reach n-1
+        
+        for (int i = 3; i <= n; i++) {
+            int current = prev1 + prev2;
+            prev2 = prev1;
+            prev1 = current;
+        }
+        
+        return prev1;
     }
 };"
-  java="// Java implementation for Climbing Stairs (Fibonacci)
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int climbStairs(int n) {
+        if (n <= 2) return n;
+        
+        int prev2 = 1;
+        int prev1 = 2;
+        
+        for (int i = 3; i <= n; i++) {
+            int current = prev1 + prev2;
+            prev2 = prev1;
+            prev1 = current;
+        }
+        
+        return prev1;
     }
 }"
-  python="# Python implementation for Climbing Stairs (Fibonacci)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def climbStairs(self, n: int) -> int:
+        if n <= 2:
+            return n
+            
+        prev2 = 1
+        prev1 = 2
+        
+        for _ in range(3, n + 1):
+            current = prev1 + prev2
+            prev2 = prev1
+            prev1 = current
+            
+        return prev1"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="We iterate from 3 to N once, yielding an O(N) time complexity. By only storing the last two variables rather than the entire DP table, we achieve an O(1) optimal space complexity."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Overcomplicating the Base Case:** Setting the base cases incorrectly (e.g., getting off by one index) will cause the entire sequence to shift. Remember: 1 step = 1 way, 2 steps = 2 ways.
+- **Integer Overflow:** For large $N$ (typically $N > 45$), the answer exceeds the limit of a 32-bit signed integer. If the problem doesn't guarantee a small $N$, use 64-bit integers.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If you see a problem asking 'how many ways to reach target X' with discrete steps, immediately think of DP and the Fibonacci pattern.",
+    "Mentioning the mathematical formula for the n-th Fibonacci number (Binet's Formula) to achieve O(log N) time is a massive flex, though rarely required to code."
   ]}
 />

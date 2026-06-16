@@ -11,35 +11,93 @@ summary: "An essential guide to Frequency Array / Hash Array, exploring its appl
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Frequency Array / Hash Array**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+A **Frequency Array** (or Hash Array) is a powerful and elegant precomputation technique used to count the occurrences of elements within an array or string. It serves as a lightweight alternative to a Hash Map when the range of possible values is relatively small and contiguous (e.g., lowercase English letters, digits 0-9, or integers in a small range `[0, K]`).
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+### The Core Intuition
+Instead of searching through an array repeatedly—which often requires $O(N)$ time per query—we can use the values themselves as **indices** of a secondary array (the Frequency Array). The value at `freq[i]` simply stores the count of how many times the element `i` appeared in the original dataset.
+
+If we have an array `[1, 2, 2, 4]`, its frequency array of size 5 (indices 0 to 4) would look like:
+- `freq[0] = 0`
+- `freq[1] = 1`
+- `freq[2] = 2`
+- `freq[3] = 0`
+- `freq[4] = 1`
+
+By spending $O(N)$ time and $O(K)$ space to build this array, we enable instantaneous $O(1)$ lookups for the frequency of any element.
+
+### When to use Frequency Arrays
+- **Characters:** Counting letter occurrences in strings (e.g., anagrams, palindromes). An array of size 26 is perfect for lowercase English letters `freq[char - 'a']`.
+- **Small Integers:** Counting elements when constraints show $A[i] \le 10^5$ or similar.
+- **Sorting:** It forms the basis of **Counting Sort**, allowing us to sort elements in linear $O(N)$ time when the range is bounded.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Frequency Array / Hash Array
-#include <iostream>
-#include <vector>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    // Example: Find if two strings are anagrams using a frequency array
+    bool isAnagram(string s, string t) {
+        if (s.length() != t.length()) return false;
+        
+        // Frequency array for 26 lowercase English letters
+        vector<int> freq(26, 0);
+        
+        // Increment for s, decrement for t
+        for (int i = 0; i < s.length(); i++) {
+            freq[s[i] - 'a']++;
+            freq[t[i] - 'a']--;
+        }
+        
+        // If they are anagrams, all counts should be exactly 0
+        for (int count : freq) {
+            if (count != 0) return false;
+        }
+        
+        return true;
     }
 };"
-  java="// Java implementation for Frequency Array / Hash Array
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    // Example: Find if two strings are anagrams using a frequency array
+    public boolean isAnagram(String s, String t) {
+        if (s.length() != t.length()) return false;
+        
+        // Frequency array for 26 lowercase English letters
+        int[] freq = new int[26];
+        
+        // Increment for s, decrement for t
+        for (int i = 0; i < s.length(); i++) {
+            freq[s.charAt(i) - 'a']++;
+            freq[t.charAt(i) - 'a']--;
+        }
+        
+        // If they are anagrams, all counts should be exactly 0
+        for (int count : freq) {
+            if (count != 0) return false;
+        }
+        
+        return true;
     }
 }"
-  python="# Python implementation for Frequency Array / Hash Array
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    # Example: Find if two strings are anagrams using a frequency array
+    def isAnagram(self, s: str, t: str) -> bool:
+        if len(s) != len(t):
+            return False
+            
+        # Frequency array for 26 lowercase English letters
+        freq = [0] * 26
+        
+        # Increment for s, decrement for t
+        for i in range(len(s)):
+            freq[ord(s[i]) - ord('a')] += 1
+            freq[ord(t[i]) - ord('a')] -= 1
+            
+        # If they are anagrams, all counts should be exactly 0
+        for count in freq:
+            if count != 0:
+                return False
+                
+        return True"
 />
 
 # Complexity Analysis
@@ -47,21 +105,22 @@ class Solution:
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  space="O(K)"
+  description="Time complexity is universally linear O(N), where N is the length of the input, as we iterate through the data exactly once (or a constant number of times). Space complexity is O(K), where K is the range of possible values (e.g., 26 for English letters or the maximum integer value)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Out of Bounds Errors:** The most common mistake. Always ensure your `freq` array size is `MAX_VAL + 1`. If elements go up to 100, your array must be of size 101 to safely access index 100.
+- **Negative Numbers:** You cannot directly use negative numbers as indices in C++ or Java. You must use an offset (e.g., `freq[val + OFFSET]`) or switch to a Hash Map.
+- **Memory Limit Exceeded:** Never use a Frequency Array if the maximum value is extremely large (e.g., $10^9$). Creating an array of $10^9$ integers will cause memory limits to exceed; use a Hash Map instead.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "If you see a problem dealing with anagrams, permutations, or character counts, immediately allocate a frequency array of size 26 or 256.",
+    "Whenever constraints indicate elements are bounded to a small range (e.g., 1 <= arr[i] <= 10^5), look for an opportunity to precompute counts or sort linearly.",
+    "Using a frequency array instead of a generic Hash Map demonstrates to interviewers your understanding of overheads; arrays are contiguous in memory and much faster to access due to CPU caching."
   ]}
 />

@@ -11,55 +11,48 @@ summary: "An essential guide to N-Queens & Constraints, exploring its applicatio
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **N-Queens & Constraints**. This topic is a cornerstone of the Recursion & Backtracking module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **N-Queens** puzzle is the quintessential backtracking problem. The objective is to place $N$ queens on an $N \times N$ chessboard such that no two queens attack each other. A queen can attack any piece in the same row, column, or diagonal.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Because no two queens can share the same row, we can place exactly one queen per row. Our recursive state becomes the current row we are trying to place a queen in.
+For row `r`:
+1. Loop through every column `c` from `0` to `N-1`.
+2. Check if placing a queen at `(r, c)` is safe (no other queen in the same column or diagonals).
+3. If safe, place the queen, and recurse to row `r + 1`.
+4. If the recursive call returns (or fails), remove the queen and try the next column.
+
+### Optimizing the "Is Safe" Check
+A naive `isSafe` function loops through the board in $O(N)$ time. We can optimize this to $O(1)$ by using sets (or boolean arrays) to track occupied columns and diagonals.
+- Main diagonal (top-left to bottom-right): `row - col` is constant.
+- Anti-diagonal (top-right to bottom-left): `row + col` is constant.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for N-Queens & Constraints
-#include <iostream>
-using namespace std;
+Here is the implementation of N-Queens using optimized boolean arrays for constraint checking.
 
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-};"
-  java="// Java implementation for N-Queens & Constraints
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-}"
-  python="# Python implementation for N-Queens & Constraints
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+<CodeBlock
+  cpp="class Solution {\npublic:\n    vector<vector<string>> solveNQueens(int n) {\n        vector<vector<string>> res;\n        vector<string> board(n, string(n, '.'));\n        vector<bool> cols(n, false), diag1(2 * n, false), diag2(2 * n, false);\n        backtrack(0, n, board, cols, diag1, diag2, res);\n        return res;\n    }\n    \nprivate:\n    void backtrack(int row, int n, vector<string>& board, vector<bool>& cols, \n                   vector<bool>& diag1, vector<bool>& diag2, vector<vector<string>>& res) {\n        if (row == n) {\n            res.push_back(board);\n            return;\n        }\n        \n        for (int col = 0; col < n; col++) {\n            int d1 = row - col + n; // Offset to prevent negative indices\n            int d2 = row + col;\n            \n            if (cols[col] || diag1[d1] || diag2[d2]) continue;\n            \n            board[row][col] = 'Q';\n            cols[col] = diag1[d1] = diag2[d2] = true;\n            \n            backtrack(row + 1, n, board, cols, diag1, diag2, res);\n            \n            board[row][col] = '.';\n            cols[col] = diag1[d1] = diag2[d2] = false;\n        }\n    }\n};"
+  java="class Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> res = new ArrayList<>();\n        char[][] board = new char[n][n];\n        for (char[] row : board) Arrays.fill(row, '.');\n        \n        boolean[] cols = new boolean[n];\n        boolean[] diag1 = new boolean[2 * n];\n        boolean[] diag2 = new boolean[2 * n];\n        \n        backtrack(0, n, board, cols, diag1, diag2, res);\n        return res;\n    }\n    \n    private void backtrack(int row, int n, char[][] board, boolean[] cols, \n                           boolean[] diag1, boolean[] diag2, List<List<String>> res) {\n        if (row == n) {\n            List<String> b = new ArrayList<>();\n            for (char[] r : board) b.add(new String(r));\n            res.add(b);\n            return;\n        }\n        \n        for (int col = 0; col < n; col++) {\n            int d1 = row - col + n;\n            int d2 = row + col;\n            \n            if (cols[col] || diag1[d1] || diag2[d2]) continue;\n            \n            board[row][col] = 'Q';\n            cols[col] = diag1[d1] = diag2[d2] = true;\n            \n            backtrack(row + 1, n, board, cols, diag1, diag2, res);\n            \n            board[row][col] = '.';\n            cols[col] = diag1[d1] = diag2[d2] = false;\n        }\n    }\n}"
+  python="class Solution:\n    def solveNQueens(self, n: int) -> list[list[str]]:\n        res = []\n        board = [['.'] * n for _ in range(n)]\n        cols = set()\n        diag1 = set() # row - col\n        diag2 = set() # row + col\n        \n        def backtrack(row):\n            if row == n:\n                res.append([''.join(r) for r in board])\n                return\n                \n            for col in range(n):\n                if col in cols or (row - col) in diag1 or (row + col) in diag2:\n                    continue\n                    \n                board[row][col] = 'Q'\n                cols.add(col)\n                diag1.add(row - col)\n                diag2.add(row + col)\n                \n                backtrack(row + 1)\n                \n                board[row][col] = '.'\n                cols.remove(col)\n                diag1.remove(row - col)\n                diag2.remove(row + col)\n                \n        backtrack(0)\n        return res"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(N!)"
+  average="O(N!)"
+  worst="O(N!)"
+  space="O(N)"
+  description="The time complexity is O(N!) because we place one queen per row and have fewer choices for each subsequent row. Space complexity is O(N) for the board representation, the sets/arrays, and the call stack."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Re-scanning the board vertically and diagonally every time taking $O(N)$ instead of using the $O(1)$ set/array optimization.
+- Forgetting to handle negative indices when calculating the main diagonal (`row - col`) in languages like C++ or Java. (Adding `n` fixes this).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If the interviewer asks 'What is the mathematical property of a matrix diagonal?', immediately mention that `row + col` is constant for anti-diagonals, and `row - col` is constant for main diagonals.",
+    "For N-Queens II (where you only return the count of solutions), you don't even need the board array! Just use the recursive function to increment a global count when `row == n`."
   ]}
 />

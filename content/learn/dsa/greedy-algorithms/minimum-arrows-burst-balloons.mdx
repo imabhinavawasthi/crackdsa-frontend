@@ -11,43 +11,89 @@ summary: "An essential guide to Minimum Number of Arrows to Burst Balloons, mast
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Minimum Number of Arrows to Burst Balloons**. This topic is a cornerstone of the Greedy Algorithms module. A Greedy Algorithm builds up a solution piece by piece, always choosing the next piece that offers the most obvious and immediate benefit.
+The **Minimum Number of Arrows to Burst Balloons** problem is a classic interval overlapping problem. You are given a 2D array representing balloons plotted on a wall, where each balloon occupies a horizontal interval `[Xstart, Xend]`. An arrow shot at coordinate `X` bursts all balloons where `Xstart <= X <= Xend`. You need to find the minimum arrows required to burst all balloons.
 
-### Core Intuition
-The tricky part of Greedy algorithms isn't the code—it's proving that it works. Unlike Dynamic Programming which exhaustively searches all paths and guarantees correctness, Greedy only searches one path. You must prove the *Greedy Choice Property*: making a locally optimal choice guarantees a globally optimal solution.
+This is fundamentally identical to the **Activity Selection** or **Non-Overlapping Intervals** problem.
+
+### The Greedy Strategy
+To minimize the number of arrows, you want each arrow to burst as many overlapping balloons as possible. The optimal place to shoot an arrow is at the very end of a balloon's interval, because that maximizes the chance of hitting other balloons that start later.
+
+1. **Sort the balloons** by their ending coordinates (`Xend`) in ascending order.
+2. Initialize the number of arrows to `1`, and set the `currentArrowPos` to the end coordinate of the first balloon.
+3. Iterate through the sorted balloons:
+   - If the next balloon's start coordinate is greater than `currentArrowPos`, it means this balloon cannot be burst by the current arrow.
+   - You must shoot a new arrow! Increment the arrow count and update `currentArrowPos` to the end coordinate of this new balloon.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Minimum Number of Arrows to Burst Balloons
-#include <iostream>
-#include <vector>
+  cpp="#include <vector>
 #include <algorithm>
 using namespace std;
 
 class Solution {
 public:
-    int solve(vector<int>& arr) {
-        // sort(arr.begin(), arr.end());
-        // Implementation here
-        return 0;
+    int findMinArrowShots(vector<vector<int>>& points) {
+        if (points.empty()) return 0;
+        
+        // Sort by end coordinate. 
+        // Note: Use a custom comparator to avoid integer overflow issues when subtracting
+        sort(points.begin(), points.end(), [](const vector<int>& a, const vector<int>& b) {
+            return a[1] < b[1];
+        });
+        
+        int arrows = 1;
+        int currentArrowPos = points[0][1];
+        
+        for (int i = 1; i < points.size(); i++) {
+            // If the start of the current balloon is past the arrow's path
+            if (points[i][0] > currentArrowPos) {
+                arrows++;
+                currentArrowPos = points[i][1];
+            }
+        }
+        
+        return arrows;
     }
 };"
-  java="// Java implementation for Minimum Number of Arrows to Burst Balloons
-import java.util.*;
+  java="import java.util.Arrays;
 
 class Solution {
-    public int solve(int[] arr) {
-        // Arrays.sort(arr);
-        // Implementation here
-        return 0;
+    public int findMinArrowShots(int[][] points) {
+        if (points.length == 0) return 0;
+        
+        // Use Integer.compare to prevent overflow instead of a[1] - b[1]
+        Arrays.sort(points, (a, b) -> Integer.compare(a[1], b[1]));
+        
+        int arrows = 1;
+        int currentArrowPos = points[0][1];
+        
+        for (int i = 1; i < points.length; i++) {
+            if (points[i][0] > currentArrowPos) {
+                arrows++;
+                currentArrowPos = points[i][1];
+            }
+        }
+        
+        return arrows;
     }
 }"
-  python="# Python implementation for Minimum Number of Arrows to Burst Balloons
-class Solution:
-    def solve(self, arr: list[int]) -> int:
-        # arr.sort()
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def findMinArrowShots(self, points: list[list[int]]) -> int:
+        if not points:
+            return 0
+            
+        # Sort by end coordinate
+        points.sort(key=lambda x: x[1])
+        
+        arrows = 1
+        current_arrow_pos = points[0][1]
+        
+        for i in range(1, len(points)):
+            if points[i][0] > current_arrow_pos:
+                arrows += 1
+                current_arrow_pos = points[i][1]
+                
+        return arrows"
 />
 
 # Complexity Analysis
@@ -56,20 +102,20 @@ class Solution:
   average="O(N log N)"
   worst="O(N log N)"
   space="O(1)"
-  description="Greedy algorithms are almost always paired with sorting. Therefore, the time complexity is dominated by the initial sort: O(N log N). The greedy iteration itself is usually O(N). Space complexity is typically O(1) assuming an in-place sort."
+  description="Sorting the points array takes O(N log N) time, which dominates the O(N) linear scan. The space complexity is O(1) or O(log N) depending on the language's native sorting algorithm implementation."
 />
 
 # Common Pitfalls
 <Warning>
-- **Premature Greediness:** Assuming a greedy approach works without testing edge cases. Often, what looks like a Greedy problem is actually a DP problem (e.g., 0/1 Knapsack is DP, Fractional Knapsack is Greedy).
-- **Sorting State:** Forgetting to sort the input arrays before applying the greedy logic!
+- **Integer Overflow in Sorting:** In Java and C++, using `a[1] - b[1]` in the comparator will cause integer overflow if the coordinates are large negative and positive integers (e.g., `-2147483648` and `2147483647`). Always use `Integer.compare(a[1], b[1])` or `<`.
+- Sorting by start coordinate instead of end coordinate. While solvable by sorting by start time, the logic becomes significantly more convoluted as you must maintain a running minimum of end times.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for 'minimum steps', 'maximum profit', or 'optimal scheduling', and Dynamic Programming feels too slow (e.g. constraints up to 10^5), it's highly likely a Greedy problem.",
-    "Interval overlapping problems (like 'Merge Intervals' or 'Minimum Arrows') are classic greedy problems. Always sort them by their start or end times first.",
-    "Be vocal about your proofs. Say to the interviewer: 'I believe a greedy approach works here because making this choice now will never restrict us from making a better choice later.'"
+    "Explicitly point out the integer overflow trap to the interviewer while writing the custom comparator. It shows deep language mastery.",
+    "Explain the intuition: 'If we sort by end time, we know that the first balloon MUST be popped before or at its end coordinate. To maximize the arrow's utility, we shoot it exactly at that end coordinate.'",
+    "Mention that this is functionally isomorphic to finding the maximum number of non-overlapping intervals."
   ]}
 />

@@ -183,7 +183,7 @@ export default function CourseCheckoutPage() {
     
     setIsProcessing(true);
     try {
-      const order = await createOrder("course", course.id, appliedCoupon?.code);
+      const order = await createOrder("course", course.id, appliedCoupon?.code, course.title);
       
       // 2. Open Razorpay Modal
       const options = {

@@ -11,57 +11,89 @@ summary: "An essential guide to Basic Operations (Insert, Delete, Search), explo
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Basic Operations (Insert, Delete, Search)**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+Because arrays store elements in a contiguous block of memory, operations like inserting, deleting, and searching behave very specifically, dictating when you should and shouldn't use arrays.
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+### Search (Linear vs Binary)
+To find an element in an unsorted array, you must check every element one by one (**Linear Search**, $O(N)$). If the array is sorted, you can drastically speed this up to $O(\log N)$ using **Binary Search**.
+
+### Insertion & Deletion
+Inserting or deleting at the **end** of an array is extremely fast ($O(1)$) because no other elements are affected.
+However, inserting or deleting at the **beginning or middle** of an array is expensive ($O(N)$). Why? Because memory is contiguous. If you insert an element at index `0`, you must physically shift every single existing element one position to the right to make room. If you delete an element, you must shift everything to the left to close the gap.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Basic Operations (Insert, Delete, Search)
-#include <iostream>
+  cpp={`// C++ code demonstrating basic operations
 #include <vector>
 using namespace std;
 
-class Solution {
+class ArrayOps {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    void deleteAtIndex(vector<int>& arr, int index) {
+        // Shift elements left to overwrite the target index
+        for (int i = index; i < arr.size() - 1; i++) {
+            arr[i] = arr[i + 1];
+        }
+        arr.pop_back(); // Remove the now-duplicate last element
     }
-};"
-  java="// Java implementation for Basic Operations (Insert, Delete, Search)
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    
+    int linearSearch(vector<int>& arr, int target) {
+        for (int i = 0; i < arr.size(); i++) {
+            if (arr[i] == target) return i;
+        }
+        return -1;
     }
-}"
-  python="# Python implementation for Basic Operations (Insert, Delete, Search)
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+};`}
+  java={`// Java code demonstrating basic operations
+class ArrayOps {
+    public int[] deleteAtIndex(int[] arr, int index) {
+        int[] newArr = new int[arr.length - 1];
+        for (int i = 0, j = 0; i < arr.length; i++) {
+            if (i == index) continue;
+            newArr[j++] = arr[i];
+        }
+        return newArr;
+    }
+    
+    public int linearSearch(int[] arr, int target) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == target) return i;
+        }
+        return -1;
+    }
+}`}
+  python={`# Python code demonstrating basic operations
+class ArrayOps:
+    def delete_at_index(self, arr: list[int], index: int):
+        # Python lists handle shifting under the hood, but it's still O(N)
+        arr.pop(index)
+        
+    def linear_search(self, arr: list[int], target: int) -> int:
+        for i in range(len(arr)):
+            if arr[i] == target:
+                return i
+        return -1`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
+  best="O(1)"
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  description="Insertion/Deletion at the end is O(1). At the beginning/middle, it is O(N) due to shifting. Searching is O(N) for unsorted data."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Hidden O(N) Operations:** In Python, calling arr.insert(0, val) or arr.pop(0) is an O(N) operation. Doing this inside a loop creates an accidental O(N^2) time complexity. If you need fast front insertions/deletions, use collections.deque.
+- **Modifying Iterators:** Erasing an element from a C++ vector while iterating over it via a for loop will invalidate your indices or iterators.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "If a problem involves constant insertions and deletions at both ends of a sequence, do not use an Array. Use a Deque (Double Ended Queue) or Linked List.",
+    "If the array is sorted and you just need to search, never use a linear search. Always mention Binary Search.",
+    "If you only need to 'delete' an element and the order doesn't matter, simply swap the target element with the last element in the array and then pop the last element. This achieves O(1) deletion!"
   ]}
 />

@@ -11,37 +11,81 @@ summary: "An essential guide to Depth First Search (DFS), exploring its applicat
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Depth First Search (DFS)**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+Depth First Search (DFS) is a fundamental graph traversal algorithm that explores as far as possible along each branch before backtracking. It dives deep into a graph, reaching the "leaves" or dead ends before exploring siblings.
 
-### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+DFS can be implemented iteratively using a **Stack** or recursively using the **call stack**. The recursive approach is universally preferred due to its elegance and simplicity.
+
+### The Core Recursive Mechanics
+1. Mark the current node `u` as visited.
+2. For each unvisited neighbor `v` of `u`:
+    - Recursively call DFS on `v`.
+
+Because DFS explores paths until they exhaust, it's the perfect algorithm for detecting cycles, finding connected components, and solving mazes.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Depth First Search (DFS)
-#include <iostream>
-#include <vector>
-using namespace std;
+  cpp="void dfs(int u, vector<vector<int>>& adj, vector<bool>& visited, vector<int>& result) {
+    visited[u] = true;
+    result.push_back(u);
 
-class Solution {
-public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+    for (int v : adj[u]) {
+        if (!visited[v]) {
+            dfs(v, adj, visited, result);
+        }
     }
-};"
-  java="// Java implementation for Depth First Search (DFS)
-import java.util.*;
+}
 
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+vector<int> performDFS(int V, vector<vector<int>>& adj) {
+    vector<bool> visited(V, false);
+    vector<int> result;
+    
+    // Handles disconnected graphs
+    for (int i = 0; i < V; ++i) {
+        if (!visited[i]) {
+            dfs(i, adj, visited, result);
+        }
     }
+    return result;
 }"
-  python="# Python implementation for Depth First Search (DFS)
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  java="public void dfs(int u, List<List<Integer>> adj, boolean[] visited, List<Integer> result) {
+    visited[u] = true;
+    result.add(u);
+
+    for (int v : adj.get(u)) {
+        if (!visited[v]) {
+            dfs(v, adj, visited, result);
+        }
+    }
+}
+
+public List<Integer> performDFS(int V, List<List<Integer>> adj) {
+    boolean[] visited = new boolean[V];
+    List<Integer> result = new ArrayList<>();
+    
+    for (int i = 0; i < V; i++) {
+        if (!visited[i]) {
+            dfs(i, adj, visited, result);
+        }
+    }
+    return result;
+}"
+  python="def dfs(u, adj, visited, result):
+    visited[u] = True
+    result.append(u)
+    
+    for v in adj[u]:
+        if not visited[v]:
+            dfs(v, adj, visited, result)
+
+def perform_dfs(V, adj):
+    visited = [False] * V
+    result = []
+    
+    for i in range(V):
+        if not visited[i]:
+            dfs(i, adj, visited, result)
+            
+    return result"
 />
 
 # Complexity Analysis
@@ -50,20 +94,20 @@ class Solution:
   average="O(V + E)"
   worst="O(V + E)"
   space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  description="DFS visits every vertex and explores every edge, yielding O(V + E) time. The space complexity is O(V) in the worst case (a linear graph/tree) due to the recursion stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- **Stack Overflow:** On graphs with massive depths (e.g., a straight line of 100,000 nodes), recursion can exceed the maximum call stack limit. Iterative DFS might be necessary.
+- Forgetting to handle disconnected graphs by using a loop to initiate DFS on any unvisited node.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "DFS is generally preferred over BFS for tasks like detecting cycles, topological sorting, or searching for any valid path (e.g., maze solving) because it requires less code and is highly intuitive.",
+    "Be able to easily explain how DFS uses the implicit call stack vs BFS using an explicit Queue.",
+    "When solving grid-based (matrix) graph problems, always remember to check matrix boundaries before making recursive DFS calls."
   ]}
 />

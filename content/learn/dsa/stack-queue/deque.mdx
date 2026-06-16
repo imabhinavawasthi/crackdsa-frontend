@@ -11,55 +11,94 @@ summary: "An essential guide to Double Ended Queue (Deque), exploring its applic
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Double Ended Queue (Deque)**. This topic is a cornerstone of the Stack & Queue module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+A **Double Ended Queue**, commonly referred to as a **Deque** (pronounced "deck"), is a highly versatile data structure that combines the capabilities of both a Stack and a Queue. 
+
+In a standard Queue, elements can only be added to the back and removed from the front (FIFO). In a standard Stack, elements are added and removed from the same end (LIFO). A Deque allows insertion and deletion from **both** ends (front and back) in O(1) time.
+
+Deques are extremely powerful when you need sliding window algorithms, undo/redo functionalities, or when simulating real-world lines where people can leave from either the front or the back.
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Double Ended Queue (Deque)
+  cpp="#include <deque>
 #include <iostream>
 using namespace std;
 
-class Solution {
+class DequeDemo {
 public:
-    void solve() {
-        // Implementation here
+    void demonstrate() {
+        deque<int> dq;
+        
+        dq.push_back(10);  // [10]
+        dq.push_front(20); // [20, 10]
+        dq.push_back(30);  // [20, 10, 30]
+        
+        int frontElement = dq.front(); // 20
+        int backElement = dq.back();   // 30
+        
+        dq.pop_front(); // [10, 30]
+        dq.pop_back();  // [10]
     }
 };"
-  java="// Java implementation for Double Ended Queue (Deque)
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="import java.util.Deque;
+import java.util.LinkedList;
+
+class DequeDemo {
+    public void demonstrate() {
+        Deque<Integer> dq = new LinkedList<>();
+        
+        dq.addLast(10);  // [10]
+        dq.addFirst(20); // [20, 10]
+        dq.addLast(30);  // [20, 10, 30]
+        
+        int frontElement = dq.peekFirst(); // 20
+        int backElement = dq.peekLast();   // 30
+        
+        dq.removeFirst(); // [10, 30]
+        dq.removeLast();  // [10]
     }
 }"
-  python="# Python implementation for Double Ended Queue (Deque)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="from collections import deque
+
+class DequeDemo:
+    def demonstrate(self):
+        dq = deque()
+        
+        dq.append(10)      # [10]
+        dq.appendleft(20)  # [20, 10]
+        dq.append(30)      # [20, 10, 30]
+        
+        front_element = dq[0]  # 20
+        back_element = dq[-1]  # 30
+        
+        dq.popleft() # [10, 30]
+        dq.pop()     # [10]"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  average="O(1)"
+  worst="O(1)"
+  space="O(N)"
+  description="Pushing and popping from either the front or the back of a Deque takes strict O(1) time. Space complexity is O(N) where N is the number of elements stored in the deque."
 />
 
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Using Arrays/Lists inappropriately:** In Python, never use a standard `list` to simulate a Deque if you need to pop from the front. `list.pop(0)` takes O(N) time. Always import `collections.deque`.
+- **Memory Overhead:** While Deques provide O(1) operations, they often have a slightly higher memory footprint and cache miss rate compared to a raw array because they are usually implemented as doubly-linked lists or dynamic blocks of arrays under the hood.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If an algorithm requires you to maintain a sliding window of elements and you need access to both the oldest and newest items, Deque is the correct choice.",
+    "A Deque can trivially act as a Stack or a Queue. If you are ever constrained to use only one data structure library import in an interview, import Deque.",
+    "Be completely comfortable with the language-specific Deque API (e.g., `addFirst`/`pollLast` in Java, `appendleft`/`pop` in Python)."
   ]}
 />

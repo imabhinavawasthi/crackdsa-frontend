@@ -11,41 +11,116 @@ summary: "An essential guide to Meeting Rooms II (Min Rooms Required), exploring
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Meeting Rooms II (Min Rooms Required)**. This topic is a cornerstone of the Intervals module. Interval problems almost always involve time, scheduling, or geometric lines. The entire category revolves around one critical realization: **You must sort the intervals first.**
+The **Meeting Rooms II** problem is a massive leap forward in interval problems. Given an array of meeting time intervals `[starti, endi]`, you must find the **minimum number of conference rooms required**.
 
-### Core Intuition
-If you don't sort intervals by their start time, you have to check every interval against every other interval (O(N^2)). But if you sort them, you only ever need to compare the current interval with the *previously processed* interval! This instantly drops the complexity to O(N log N).
+Unlike simply checking for overlaps, we now need to track the *maximum number of overlapping meetings at any single point in time*.
+
+### Core Intuition: Two Main Approaches
+
+1. **Min-Heap (Priority Queue) Approach**:
+   - Sort the meetings by start time.
+   - Use a Min-Heap to keep track of the *end times* of meetings currently occupying a room. The heap's root always gives the room that frees up the earliest.
+   - For every new meeting, check if its start time is `>=` the heap's root (earliest end time). If it is, that room is free! Pop the root and push the new meeting's end time.
+   - If it's not free (start time < root), allocate a new room by pushing the new end time to the heap.
+   - The heap's size at the end is the number of rooms needed.
+
+2. **Chronological Ordering (Two Pointers) Approach**:
+   - Separate the start times and end times into two distinct sorted arrays.
+   - Use two pointers: one for starts and one for ends.
+   - Iterate through the start times. If `start[s] < end[e]`, a meeting has started before the earliest ending meeting finished, so we need a room.
+   - If `start[s] >= end[e]`, a meeting has finished, freeing a room. Move the end pointer.
+
+Both approaches are completely valid and run in $O(N \log N)$ time, but the chronological ordering uses $O(N)$ space more elegantly without needing heap overhead.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Meeting Rooms II (Min Rooms Required)
-#include <iostream>
-#include <vector>
+  cpp="#include <vector>
 #include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<vector<int>>& intervals) {
-        // sort(intervals.begin(), intervals.end());
-        // Implementation here
+    int minMeetingRooms(vector<vector<int>>& intervals) {
+        if (intervals.empty()) return 0;
+        
+        vector<int> starts;
+        vector<int> ends;
+        
+        for (const auto& interval : intervals) {
+            starts.push_back(interval[0]);
+            ends.push_back(interval[1]);
+        }
+        
+        sort(starts.begin(), starts.end());
+        sort(ends.begin(), ends.end());
+        
+        int rooms = 0;
+        int endPtr = 0;
+        
+        for (int i = 0; i < starts.size(); i++) {
+            if (starts[i] < ends[endPtr]) {
+                // Meeting started before the earliest one ended, need a room
+                rooms++;
+            } else {
+                // A room freed up, move the end pointer
+                endPtr++;
+            }
+        }
+        
+        return rooms;
     }
 };"
-  java="// Java implementation for Meeting Rooms II (Min Rooms Required)
-import java.util.*;
+  java="import java.util.*;
 
 class Solution {
-    public void solve(int[][] intervals) {
-        // Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
-        // Implementation here
+    public int minMeetingRooms(int[][] intervals) {
+        if (intervals == null || intervals.length == 0) return 0;
+
+        int n = intervals.length;
+        int[] starts = new int[n];
+        int[] ends = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            starts[i] = intervals[i][0];
+            ends[i] = intervals[i][1];
+        }
+
+        Arrays.sort(starts);
+        Arrays.sort(ends);
+
+        int rooms = 0;
+        int endPtr = 0;
+
+        for (int i = 0; i < n; i++) {
+            if (starts[i] < ends[endPtr]) {
+                rooms++; // Need a new room
+            } else {
+                endPtr++; // Room freed up
+            }
+        }
+
+        return rooms;
     }
 }"
-  python="# Python implementation for Meeting Rooms II (Min Rooms Required)
-class Solution:
-    def solve(self, intervals: list[list[int]]):
-        # intervals.sort(key=lambda x: x[0])
-        # Implementation here
-        pass"
+  python="class Solution:
+    def minMeetingRooms(self, intervals: list[list[int]]) -> int:
+        if not intervals:
+            return 0
+            
+        starts = sorted([i[0] for i in intervals])
+        ends = sorted([i[1] for i in intervals])
+        
+        rooms = 0
+        end_ptr = 0
+        
+        for start in starts:
+            if start < ends[end_ptr]:
+                rooms += 1
+            else:
+                end_ptr += 1
+                
+        return rooms"
 />
 
 # Complexity Analysis
@@ -54,20 +129,19 @@ class Solution:
   average="O(N log N)"
   worst="O(N log N)"
   space="O(N)"
-  description="Sorting the intervals initially dominates the time complexity, resulting in O(N log N). The linear scan that follows takes O(N) time. Space complexity is O(N) because we often need to store the merged or processed intervals in a new array or use a Min-Heap (like in Meeting Rooms II)."
+  description="Sorting the start and end times independently dictates the O(N log N) runtime. The two-pointer traversal takes O(N) time. The space complexity is O(N) because we duplicate the start and end times into separate arrays."
 />
 
 # Common Pitfalls
 <Warning>
-- **Comparing Start vs End:** A very common mistake is checking if `current.start < previous.start`. You must check if `current.start <= previous.end` to detect an overlap!
-- **Modifying while Iterating:** Try to avoid modifying the input array in place. It's much safer to push merged/processed intervals into a new result array.
+- If you opt for the Min-Heap approach, don't accidentally push the entire interval into the heap; you only need to push the **end time**.
+- Misinterpreting the problem as "finding the maximum number of non-overlapping intervals." This is about the *maximum depth of overlap*, not erasing overlaps!
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem involves 'start times', 'end times', 'meetings', or 'flights', you should immediately sort the input array by start time.",
-    "For complex overlaps (like finding the maximum number of simultaneous meetings), the Sweep Line algorithm is the cleanest approach: split every interval into two events: `(start, +1)` and `(end, -1)`. Sort all events by time, and keep a running sum!",
-    "Mention to the interviewer that sorting modifies the input. If the input is read-only, you must allocate O(N) space for a copy."
+    "Explain both the Min-Heap and Chronological Ordering approaches to your interviewer to demonstrate depth of knowledge. Code the Chronological one because it's simpler to write without making heap syntax errors.",
+    "Another brilliant conceptual way to explain this problem is the 'Sweep Line' approach: imagine drawing a vertical line across a timeline. Start events add +1 room, end events subtract 1 room. You want the peak value!"
   ]}
 />

@@ -11,55 +11,67 @@ summary: "An essential guide to Segment Trees Intro, exploring its applications,
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Segment Trees Intro**. This topic is a cornerstone of the Tries & Advanced Data Structures module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Welcome to the lesson on **Segment Trees**. While Tries specialize in prefix searches, Segment Trees specialize in **Dynamic Range Queries**. 
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Imagine you have an array `A = [1, 3, 5, 7, 9, 11]`. You are constantly asked two types of operations:
+1. What is the sum of elements from index `L` to `R`?
+2. Update the value at index `i` to `val`.
+
+Using a raw array: Updates take `O(1)`, but range sums take `O(N)`.
+Using a Prefix Sum array: Range sums take `O(1)`, but updates take `O(N)` because you must rebuild the sums.
+
+A **Segment Tree** achieves a beautiful compromise: both updates and queries take exactly **O(log N)** time. 
+
+### Structure
+A Segment Tree is a full binary tree where:
+- The **leaf nodes** represent the individual elements of the array.
+- The **internal nodes** represent the merged result (sum, min, max, etc.) of their children.
+- The root node represents the result of the entire array from `0` to `N-1`.
+
+This hierarchical structure allows us to skip over large ranges by instantly grabbing the pre-calculated result of a parent node!
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Segment Trees Intro
-#include <iostream>
-using namespace std;
-
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
+  cpp="/* Conceptual Building Block - Not executable algorithm yet */
+class SegmentTreeBasics {
+    // Array to store the tree (usually 4 * N size)
+    // Left child is at 2*i + 1
+    // Right child is at 2*i + 2
 };"
-  java="// Java implementation for Segment Trees Intro
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
+  java="/* Conceptual Building Block - Not executable algorithm yet */
+class SegmentTreeBasics {
+    // Array to store the tree (usually 4 * N size)
+    // Left child is at 2*i + 1
+    // Right child is at 2*i + 2
 }"
-  python="# Python implementation for Segment Trees Intro
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="# Conceptual Building Block - Not executable algorithm yet
+class SegmentTreeBasics:
+    # Array to store the tree (usually 4 * N size)
+    # Left child is at 2*i + 1
+    # Right child is at 2*i + 2
+    pass"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(log N)"
+  average="O(log N)"
+  worst="O(log N)"
+  space="O(N)"
+  description="Updates and Range Queries take O(log N) due to traversing the tree height. Building the tree takes O(N) time. The space requirement is generally 4 * N array slots."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Misallocating array space. A segment tree built over an array of size `N` generally requires an array of size `4 * N` to be safe from out-of-bounds errors due to tree depth.
+- Confusing 0-indexed trees vs 1-indexed trees. In a 0-indexed tree, the children are `2i + 1` and `2i + 2`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Segment Trees are rarely asked in standard FAANG interviews due to their heavy code structure, but they appear frequently in competitive programming.",
+    "If a problem asks for Range Mins, Range Maxes, or Range Sums WITH frequent individual updates, a Segment Tree is the gold standard."
   ]}
 />

@@ -11,37 +11,78 @@ summary: "An essential guide to Find Minimum in Rotated Sorted Array, mastering 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Find Minimum in Rotated Sorted Array**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+Finding the minimum element in a rotated sorted array is a variation of binary search where we don't have a specific `target` value to look for. Instead, we are looking for the "inflection point"—the exact place where the rotation happened.
 
 ### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+In a perfectly sorted array without rotation, the first element is the minimum. When rotated, the minimum element gets pushed somewhere inside the array.
+The key property to exploit is comparing the middle element with the rightmost element:
+1. If `arr[mid] > arr[right]`: The minimum MUST be in the right half. Why? Because in a normal sorted array, mid is always less than right. If mid is greater, it means the large elements have wrapped around, and the "cliff" (the minimum element) lies to the right.
+2. If `arr[mid] <= arr[right]`: The right half is properly sorted. This means the minimum is either at `mid` or somewhere in the left half.
+
+By following this logic, we can always shrink our search space by half.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Find Minimum in Rotated Sorted Array
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int findMin(vector<int>& nums) {
+        int left = 0, right = nums.size() - 1;
+        
+        while (left < right) { // Notice the strictly less than!
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] > nums[right]) {
+                // The minimum is definitely in the right half, EXCLUDING mid
+                left = mid + 1;
+            } else {
+                // The right half is sorted, the minimum is in the left half,
+                // BUT it could BE mid itself, so we don't do mid - 1
+                right = mid; 
+            }
+        }
+        
+        // At the end, left == right, pointing to the minimum element
+        return nums[left];
     }
 };"
-  java="// Java implementation for Find Minimum in Rotated Sorted Array
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int findMin(int[] nums) {
+        int left = 0, right = nums.length - 1;
+        
+        while (left < right) { // Notice the strictly less than!
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] > nums[right]) {
+                // The minimum is definitely in the right half, EXCLUDING mid
+                left = mid + 1;
+            } else {
+                // The right half is sorted, the minimum is in the left half,
+                // BUT it could BE mid itself, so we don't do mid - 1
+                right = mid; 
+            }
+        }
+        
+        // At the end, left == right, pointing to the minimum element
+        return nums[left];
     }
 }"
-  python="# Python implementation for Find Minimum in Rotated Sorted Array
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def findMin(self, nums: list[int]) -> int:
+        left, right = 0, len(nums) - 1
+        
+        while left < right: # Notice the strictly less than!
+            mid = left + (right - left) // 2
+            
+            if nums[mid] > nums[right]:
+                # The minimum is definitely in the right half, EXCLUDING mid
+                left = mid + 1
+            else:
+                # The right half is sorted, the minimum is in the left half,
+                # BUT it could BE mid itself, so we don't do mid - 1
+                right = mid
+                
+        # At the end, left == right, pointing to the minimum element
+        return nums[left]"
 />
 
 # Complexity Analysis
@@ -50,19 +91,21 @@ class Solution:
   average="O(log N)"
   worst="O(log N)"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="Time complexity is O(log N) as the search space is halved every iteration. Space complexity is O(1) using the iterative approach."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- Using `while(left <= right)` and returning mid. This causes an infinite loop because `right = mid` does not aggressively shrink the bounds when `left == right`. Use `while(left < right)` instead.
+- Setting `right = mid - 1`. If `nums[mid]` happens to be the absolute minimum, `mid - 1` completely skips over the right answer.
+- Comparing `nums[mid]` to `nums[left]` instead of `nums[right]`. Comparing with the left pointer introduces nasty edge cases when the array is fully sorted (not rotated). Always compare with `right`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "If the array contains duplicates (e.g., [3,3,1,3]), you cannot definitively know which half to discard when nums[mid] == nums[right]. In that case, the best you can do is right--, leading to O(N) worst-case time.",
+    "This problem is the exact logic needed to find how many times a sorted array has been rotated (the index of the minimum element IS the number of rotations).",
+    "Point out to the interviewer that comparing with the right pointer elegantly handles both rotated and non-rotated arrays without extra logic."
   ]}
 />

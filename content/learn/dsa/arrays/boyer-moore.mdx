@@ -4,42 +4,132 @@ category: "Arrays & Precomputation"
 readTime: "8 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the intuition and mechanics behind Boyer-Moore Majority Vote Algorithm."
-  - "Learn how to optimize brute-force O(N^2) loops into O(N) linear time."
-  - "Master in-place modifications to achieve O(1) space complexity."
-summary: "An essential guide to Boyer-Moore Majority Vote Algorithm, exploring its applications, implementations, and interview intelligence for array problems."
+  - "Understand the intuition behind the Boyer-Moore Majority Vote algorithm."
+  - "Learn how to find the majority element in an array in linear time and constant space."
+  - "Master the technique of candidate elimination and verification."
+summary: "An essential guide to the Boyer-Moore Majority Vote Algorithm, a powerful technique for finding the majority element in O(1) space."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Boyer-Moore Majority Vote Algorithm**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+The **Boyer-Moore Majority Vote Algorithm** is an ingenious algorithm used to find the "majority element" in an array. A majority element is defined as an element that appears **strictly more than $\lfloor N/2 \rfloor$ times** in an array of size $N$. 
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+While you can easily solve this problem using a Hash Map in $O(N)$ time and $O(N)$ space, or by sorting the array in $O(N \log N)$ time and picking the middle element, Boyer-Moore does it in **$O(N)$ time and strictly $O(1)$ auxiliary space**.
+
+### The Core Intuition
+Imagine the array elements as delegates from different political parties. You want to find the party that holds an absolute majority (more than 50% of the delegates). 
+If a delegate meets someone from their own party, they pair up and their presence gets stronger. If they meet someone from a *different* party, they cancel each other out.
+
+Because the majority party has more than 50% of the delegates, even if all other parties gang up and mutually destruct with the majority party, the majority party will *still* have at least one delegate remaining at the end.
+
+The algorithm runs in two phases (though phase 2 is optional if the problem guarantees a majority element exists):
+1. **Candidate Phase:** Find a potential candidate for the majority element.
+2. **Verification Phase:** Count the occurrences of the candidate to verify it actually appears more than $\lfloor N/2 \rfloor$ times.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Boyer-Moore Majority Vote Algorithm
-#include <iostream>
-#include <vector>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int majorityElement(vector<int>& nums) {
+        int candidate = 0;
+        int count = 0;
+        
+        // Phase 1: Find Candidate
+        for (int num : nums) {
+            if (count == 0) {
+                candidate = num;
+            }
+            if (num == candidate) {
+                count++;
+            } else {
+                count--;
+            }
+        }
+        
+        // Note: If the problem guarantees a majority element exists, 
+        // we can just return `candidate` here. 
+        // Otherwise, we must verify.
+        
+        // Phase 2: Verify Candidate
+        int verificationCount = 0;
+        for (int num : nums) {
+            if (num == candidate) {
+                verificationCount++;
+            }
+        }
+        
+        if (verificationCount > nums.size() / 2) {
+            return candidate;
+        }
+        
+        return -1; // No majority element found
     }
 };"
-  java="// Java implementation for Boyer-Moore Majority Vote Algorithm
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int majorityElement(int[] nums) {
+        int candidate = 0;
+        int count = 0;
+        
+        // Phase 1: Find Candidate
+        for (int num : nums) {
+            if (count == 0) {
+                candidate = num;
+            }
+            if (num == candidate) {
+                count++;
+            } else {
+                count--;
+            }
+        }
+        
+        // Note: If the problem guarantees a majority element exists, 
+        // we can just return `candidate` here. 
+        // Otherwise, we must verify.
+        
+        // Phase 2: Verify Candidate
+        int verificationCount = 0;
+        for (int num : nums) {
+            if (num == candidate) {
+                verificationCount++;
+            }
+        }
+        
+        if (verificationCount > nums.length / 2) {
+            return candidate;
+        }
+        
+        return -1; // No majority element found
     }
 }"
-  python="# Python implementation for Boyer-Moore Majority Vote Algorithm
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def majorityElement(self, nums: list[int]) -> int:
+        candidate = 0
+        count = 0
+        
+        # Phase 1: Find Candidate
+        for num in nums:
+            if count == 0:
+                candidate = num
+            
+            if num == candidate:
+                count += 1
+            else:
+                count -= 1
+                
+        # Note: If the problem guarantees a majority element exists, 
+        # we can just return `candidate` here. 
+        # Otherwise, we must verify.
+        
+        # Phase 2: Verify Candidate
+        verification_count = 0
+        for num in nums:
+            if num == candidate:
+                verification_count += 1
+                
+        if verification_count > len(nums) // 2:
+            return candidate
+            
+        return -1 # No majority element found"
 />
 
 # Complexity Analysis
@@ -48,20 +138,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  description="The algorithm processes the array elements at most twice (once for candidate generation, once for verification). Thus, the time complexity is strictly linear. Since we only maintain a `count` and a `candidate` variable, space complexity is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Assuming a majority always exists:** The candidate phase *always* returns an element. If the input is `[1, 2, 3]`, it might return `3` as the candidate. But `3` is not a majority element. Always implement the verification phase unless the problem explicitly states that a majority element *always* exists.
+- **Applying to $> N/3$ incorrectly:** There is a variant of this algorithm for finding elements appearing more than $\lfloor N/3 \rfloor$ times. It requires tracking *two* candidates and *two* counts. Don't try to use the basic single-candidate logic for $> N/3$ problems.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "When an interviewer asks for O(1) space on a frequency or counting problem involving arrays, Boyer-Moore is a strong signal if the problem targets a majority element.",
+    "If the problem requires finding elements appearing more than N/3 times, remember you will need up to 2 candidates, because at most 2 elements can appear more than N/3 times.",
+    "Boyer-Moore only works for finding absolute majorities. It cannot be used to find an element that appears 40% of the time, even if it is the most frequent element."
   ]}
 />

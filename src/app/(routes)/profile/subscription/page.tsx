@@ -13,13 +13,44 @@ import {
   CreditCard
 } from "lucide-react";
 import Link from "next/link";
+import WhatsAppSupportButton from "@/components/common/WhatsAppSupportButton";
 import { motion } from "framer-motion";
 import LoginRequired from "@/components/common/LoginRequired";
 
 export default function SubscriptionPage() {
-  const { isLoggedIn, user, isLoading } = useAuth();
+  const { isLoggedIn, user, isLoading: isAuthLoading } = useAuth();
+  const [subscriptionDetails, setSubscriptionDetails] = React.useState<any>(null);
+  const [isDetailsLoading, setIsDetailsLoading] = React.useState(true);
 
-  if (isLoading) {
+  React.useEffect(() => {
+    if (!isLoggedIn) {
+      setIsDetailsLoading(false);
+      return;
+    }
+    
+    async function fetchDetails() {
+      try {
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+        const token = localStorage.getItem("crackdsa_access_token");
+        const res = await fetch(`${BACKEND_URL}/api/v1/auth/subscription-details`, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSubscriptionDetails(data);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsDetailsLoading(false);
+      }
+    }
+    fetchDetails();
+  }, [isLoggedIn]);
+
+  if (isAuthLoading || isDetailsLoading) {
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 flex items-center justify-center min-h-[60vh]">
         <Loader2 size={24} className="animate-spin text-brand-500" />
@@ -47,10 +78,41 @@ export default function SubscriptionPage() {
     );
   }
 
-  const isPro = user?.pro_subscription?.is_pro || false;
-  const courseCount = Array.isArray(user?.purchased_courses) 
-    ? user.purchased_courses.length 
-    : Object.keys(user?.purchased_courses || {}).length;
+  const isPro = user?.is_pro_active || false;
+  
+  const proSub = subscriptionDetails?.pro_subscription || {};
+  const purchasedCourses = subscriptionDetails?.purchased_courses || {};
+  
+  // Backwards compatibility for courses
+  let coursesList: any[] = [];
+  if (purchasedCourses.courses) {
+    coursesList = purchasedCourses.courses;
+  } else {
+    // Legacy support
+    coursesList = Object.entries(purchasedCourses).map(([id, detail]: [string, any]) => ({
+      course_id: id,
+      course_name: detail.target_name || id,
+      valid_till_epoch: detail.end_time === -1 || detail.end_time === "-1" ? -1 : new Date(detail.end_time).getTime() / 1000,
+      transaction_id: detail.transaction_id
+    }));
+  }
+  const courseCount = coursesList.length;
+
+  // Backwards compatibility for PRO
+  let proHistory: any[] = [];
+  if (proSub.all_purchases) {
+    proHistory = proSub.all_purchases;
+  } else if (proSub.history) {
+    proHistory = proSub.history.map((h: any) => ({
+      duration_in_days: h.added_duration_months === -1 ? -1 : h.added_duration_months * 30,
+      purchase_date_epoch: new Date(h.start_time).getTime() / 1000,
+      transaction_id: h.transaction_id,
+      plan: h.plan
+    }));
+  }
+  
+  const currentExpiryEpoch = proSub.subscription_active_till_epoch 
+    || (proSub.end_time === -1 ? -1 : (new Date(proSub.end_time).getTime() / 1000));
 
   const proFeatures = [
     "Unlimited access to premium DSA worksheets and curated lists",
@@ -95,10 +157,18 @@ export default function SubscriptionPage() {
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-yellow-500/[0.04] to-transparent animate-pulse" />
             )}
             
-            <h2 className="text-sm font-extrabold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-1.5">
-              <CreditCard size={14} />
-              <span>Current Plan Overview</span>
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-extrabold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                <CreditCard size={14} />
+                <span>Current Plan Overview</span>
+              </h2>
+              <Link
+                href="/profile/transactions"
+                className="text-xs font-bold text-brand-500 hover:text-brand-600 transition-colors uppercase tracking-wider"
+              >
+                View Transactions
+              </Link>
+            </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50/50 dark:bg-white/[0.01] rounded-2xl border border-gray-100 dark:border-white/5 p-5">
               <div className="space-y-1">
@@ -114,17 +184,19 @@ export default function SubscriptionPage() {
               </div>
 
               {isPro ? (
-                user?.pro_subscription?.expires_at && (
+                currentExpiryEpoch && (
                   <div className="space-y-1 text-left sm:text-right">
                     <p className="text-xs text-gray-400 font-bold uppercase tracking-wider flex sm:justify-end items-center gap-1">
                       <Calendar size={12} /> Expiration
                     </p>
                     <p className="text-sm font-bold text-gray-800 dark:text-gray-250">
-                      {new Date(user?.pro_subscription?.expires_at || 0).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric"
-                      })}
+                      {currentExpiryEpoch === -1
+                        ? "Lifetime Access"
+                        : new Date(currentExpiryEpoch * 1000).toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric"
+                          })}
                     </p>
                   </div>
                 )
@@ -138,6 +210,29 @@ export default function SubscriptionPage() {
                 </Link>
               )}
             </div>
+
+            {/* PRO History List */}
+            {isPro && proHistory && proHistory.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5 space-y-4">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">PRO Purchase History</h3>
+                <div className="space-y-2">
+                  {proHistory.map((hist: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-center text-sm bg-gray-50 dark:bg-white/[0.02] p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                      <div>
+                        <p className="font-bold text-gray-700 dark:text-gray-300 capitalize">{hist.plan || "PRO"} Plan</p>
+                        <p className="text-xs text-gray-500">Purchased: {new Date(hist.purchase_date_epoch * 1000).toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-gray-700 dark:text-gray-300">
+                          {hist.duration_in_days === -1 ? "Lifetime" : `+${hist.duration_in_days} Days`}
+                        </p>
+                        <p className="text-[10px] text-gray-400 font-mono">{hist.transaction_id?.slice(0,8)}...</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Active Courses Enrollment Card */}
@@ -160,30 +255,51 @@ export default function SubscriptionPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {((Array.isArray(user?.purchased_courses) 
-                  ? user.purchased_courses.map((id: string) => [id, { expires_at: null }])
-                  : Object.entries(user?.purchased_courses || {})) as any[]
-                ).map(([slug, detail]: [string, any]) => (
+                {coursesList.map((detail: any) => (
                   <div
-                    key={slug}
+                    key={detail.course_id}
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50 dark:border-white/5 dark:bg-white/[0.01]"
                   >
                     <div className="min-w-0 space-y-1">
                       <span className="text-xs font-extrabold uppercase tracking-wider text-brand-500 block">Course</span>
                       <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 capitalize">
-                        {slug.length > 20 ? "Purchased Course" : slug.replace(/-/g, " ")}
+                        {detail.course_name}
                       </h4>
                     </div>
 
-                    {detail?.expires_at && (
-                      <div className="mt-2 sm:mt-0 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                        Access Expires: {new Date(detail.expires_at).toLocaleDateString()}
+                    <div className="mt-2 sm:mt-0 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left sm:text-right flex flex-col sm:items-end gap-2">
+                      <div>
+                        {detail.valid_till_epoch === -1 ? (
+                          <span>Lifetime Access</span>
+                        ) : (
+                          <span>Access Expires: {detail.valid_till_epoch ? new Date(detail.valid_till_epoch * 1000).toLocaleDateString() : "Lifetime"}</span>
+                        )}
+                        {detail.transaction_id && detail.transaction_id !== "legacy" && (
+                           <span className="block mt-0.5 opacity-50 font-mono">TX: {detail.transaction_id.slice(0,8)}</span>
+                        )}
                       </div>
-                    )}
+                      <Link 
+                        href={`/courses/${detail.course_id}`}
+                        className="inline-flex items-center gap-1.5 text-brand-500 hover:text-brand-600 transition-colors"
+                      >
+                        Go to Course <ArrowLeft size={10} className="rotate-180" />
+                      </Link>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
+            
+            {/* Support Section */}
+            <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-xs text-gray-500 font-medium">
+                Have questions about your subscriptions or courses?
+              </div>
+              <WhatsAppSupportButton 
+                title="Contact Support"
+                message={`Hi CrackDSA Support, I have a question regarding my subscriptions.\n\nEmail: ${user?.email}`}
+              />
+            </div>
           </div>
         </div>
 

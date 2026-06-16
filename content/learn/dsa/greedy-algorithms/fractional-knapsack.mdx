@@ -11,55 +11,138 @@ summary: "An essential guide to Fractional Knapsack, exploring its applications,
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Fractional Knapsack**. This topic is a cornerstone of the Greedy Algorithms module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Fractional Knapsack Problem** is a classic algorithmic problem where the goal is to maximize the total value of items placed in a knapsack of a given capacity `W`. Unlike the 0/1 Knapsack problem where you must take an item entirely or leave it, here you can break items into fractions to maximize your profit.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Because you can take fractions of an item, a Greedy approach works perfectly. 
+
+### The Greedy Strategy
+To maximize the value in the knapsack, you should always pick the item that offers the highest value for the lowest weight.
+1. Calculate the **value-to-weight ratio** for each item.
+2. Sort all items in descending order of this ratio.
+3. Iterate through the sorted items:
+   - If the entire item fits in the remaining capacity, take it entirely.
+   - If it doesn't fit entirely, take the maximum possible fraction of it that fills the knapsack to its exact limit, and break the loop since the knapsack is now full.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Fractional Knapsack
-#include <iostream>
+  cpp="#include <iostream>
+#include <vector>
+#include <algorithm>
 using namespace std;
+
+struct Item {
+    int value, weight;
+};
 
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    static bool cmp(Item a, Item b) {
+        double r1 = (double)a.value / a.weight;
+        double r2 = (double)b.value / b.weight;
+        return r1 > r2;
+    }
+    
+    double fractionalKnapsack(int W, vector<Item>& items) {
+        sort(items.begin(), items.end(), cmp);
+        
+        double maxValue = 0.0;
+        int currentWeight = 0;
+        
+        for (int i = 0; i < items.size(); i++) {
+            if (currentWeight + items[i].weight <= W) {
+                currentWeight += items[i].weight;
+                maxValue += items[i].value;
+            } else {
+                int remain = W - currentWeight;
+                maxValue += items[i].value * ((double)remain / items[i].weight);
+                break;
+            }
+        }
+        return maxValue;
     }
 };"
-  java="// Java implementation for Fractional Knapsack
+  java="import java.util.*;
+
+class Item {
+    int value, weight;
+    Item(int x, int y){
+        this.value = x;
+        this.weight = y;
+    }
+}
+
 class Solution {
-    public void solve() {
-        // Implementation here
+    public double fractionalKnapsack(int W, Item[] items) {
+        Arrays.sort(items, new Comparator<Item>() {
+            @Override
+            public int compare(Item a, Item b) {
+                double r1 = (double)a.value / a.weight;
+                double r2 = (double)b.value / b.weight;
+                return Double.compare(r2, r1); // Descending order
+            }
+        });
+        
+        double maxValue = 0d;
+        int currentWeight = 0;
+        
+        for (Item item : items) {
+            if (currentWeight + item.weight <= W) {
+                currentWeight += item.weight;
+                maxValue += item.value;
+            } else {
+                int remain = W - currentWeight;
+                maxValue += item.value * ((double)remain / item.weight);
+                break;
+            }
+        }
+        return maxValue;
     }
 }"
-  python="# Python implementation for Fractional Knapsack
+  python="class Item:
+    def __init__(self, value, weight):
+        self.value = value
+        self.weight = weight
+
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def fractionalKnapsack(self, W: int, items: list[Item]) -> float:
+        # Sort items by value-to-weight ratio in descending order
+        items.sort(key=lambda x: x.value / x.weight, reverse=True)
+        
+        max_value = 0.0
+        current_weight = 0
+        
+        for item in items:
+            if current_weight + item.weight <= W:
+                current_weight += item.weight
+                max_value += item.value
+            else:
+                remain = W - current_weight
+                max_value += item.value * (remain / item.weight)
+                break
+                
+        return max_value"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N log N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="Sorting the items dominates the time complexity at O(N log N). The greedy iteration takes O(N) time. The space complexity is O(1) assuming the sorting algorithm works in-place or if ignoring the minimal stack space."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Using integer division instead of floating-point division when calculating the value-to-weight ratio. `5/2` evaluates to `2` in many languages, which will ruin the sort order!
+- Confusing this with the 0/1 Knapsack problem. 0/1 Knapsack CANNOT be solved optimally using a Greedy approach and requires Dynamic Programming.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Explicitly state why the Greedy approach works here but not in 0/1 Knapsack: 'Because we can take fractions, we can always pack the absolute most valuable dust/liquid per pound. In 0/1, we might have leftover space that ruins the efficiency.'",
+    "Always cast to double or float before dividing to find the ratio.",
+    "Be mindful of edge cases where W is 0, or the items list is empty."
   ]}
 />

@@ -11,79 +11,160 @@ summary: "An essential guide to Sort List (Merge Sort on Linked List), exploring
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Sort List (Merge Sort on Linked List)**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+Sorting a Linked List in $O(N \log N)$ time poses a unique challenge because, unlike arrays, we lack random access to elements. This restriction makes algorithms like Quick Sort or Heap Sort difficult to implement efficiently.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+The most natural fit for sorting a linked list is **Merge Sort**. Merge Sort strictly requires sequential access, dividing the list into two halves, sorting each recursively, and merging them back together. 
+
+The strategy is twofold:
+1. **Divide**: Use the Fast and Slow pointer technique to find the middle of the list. Break the list into two disconnected halves.
+2. **Conquer**: Recursively sort both halves.
+3. **Merge**: Iteratively merge the two sorted sublists using a Dummy Node to simplify edge cases.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Sort List (Merge Sort on Linked List)
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    ListNode* sortList(ListNode* head) {
+        if (!head || !head->next) return head;
+        
+        // Find middle using fast and slow pointers
+        ListNode* slow = head;
+        ListNode* fast = head->next;
+        while (fast && fast->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        
+        ListNode* mid = slow->next;
+        slow->next = nullptr; // Sever the list into two halves
+        
+        // Recursive sorts
+        ListNode* left = sortList(head);
+        ListNode* right = sortList(mid);
+        
+        // Merge sorted halves
+        return merge(left, right);
+    }
+    
+private:
+    ListNode* merge(ListNode* l1, ListNode* l2) {
+        ListNode dummy(0);
+        ListNode* tail = &dummy;
+        
+        while (l1 && l2) {
+            if (l1->val < l2->val) {
+                tail->next = l1;
+                l1 = l1->next;
+            } else {
+                tail->next = l2;
+                l2 = l2->next;
+            }
+            tail = tail->next;
+        }
+        if (l1) tail->next = l1;
+        if (l2) tail->next = l2;
+        return dummy.next;
     }
 };"
-  java="// Java implementation for Sort List (Merge Sort on Linked List)
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+  java="class Solution {
+    public ListNode sortList(ListNode head) {
+        if (head == null || head.next == null) return head;
+        
+        ListNode slow = head;
+        ListNode fast = head.next;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        
+        ListNode mid = slow.next;
+        slow.next = null;
+        
+        ListNode left = sortList(head);
+        ListNode right = sortList(mid);
+        
+        return merge(left, right);
+    }
+    
+    private ListNode merge(ListNode l1, ListNode l2) {
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy;
+        
+        while (l1 != null && l2 != null) {
+            if (l1.val < l2.val) {
+                tail.next = l1;
+                l1 = l1.next;
+            } else {
+                tail.next = l2;
+                l2 = l2.next;
+            }
+            tail = tail.next;
+        }
+        if (l1 != null) tail.next = l1;
+        if (l2 != null) tail.next = l2;
+        return dummy.next;
     }
 }"
-  python="# Python implementation for Sort List (Merge Sort on Linked List)
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+  python="class Solution:
+    def sortList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        if not head or not head.next:
+            return head
+            
+        slow = head
+        fast = head.next
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+            
+        mid = slow.next
+        slow.next = None
+        
+        left = self.sortList(head)
+        right = self.sortList(mid)
+        
+        return self.merge(left, right)
+        
+    def merge(self, l1: ListNode, l2: ListNode) -> ListNode:
+        dummy = ListNode(0)
+        tail = dummy
+        
+        while l1 and l2:
+            if l1.val < l2.val:
+                tail.next = l1
+                l1 = l1.next
+            else:
+                tail.next = l2
+                l2 = l2.next
+            tail = tail.next
+            
+        if l1:
+            tail.next = l1
+        if l2:
+            tail.next = l2
+            
+        return dummy.next"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N log N)"
+  space="O(log N)"
+  description="Time complexity is universally O(N log N) since the list is split in half log N times and merging takes O(N) at each level. Space is O(log N) due to the call stack in top-down recursion. A purely iterative bottom-up merge sort can achieve strictly O(1) space, but recursive is most common in interviews."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Stack Overflow:** Make sure you sever the list into two separate halves by setting `slow.next = null`. Failing to do so will cause infinite recursion and crash your program.
+- **Off-By-One Middle Finding:** When using fast/slow pointers, initialize `fast = head.next` instead of `fast = head`. This ensures the slow pointer accurately lands on the first node of the left half's end during an even-length list, guaranteeing the list physically shrinks during the recursion.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "You might be asked if O(1) space is possible. The answer is yes, using Bottom-Up Iterative Merge Sort. While much more complex to implement, it avoids the recursive stack trace.",
+    "Mentioning the Dummy Node pattern in your `merge` helper immediately shows experience with LinkedList idioms.",
+    "Be crystal clear on why Quick Sort is less ideal for linked lists (we lack random access to efficiently pivot and swap elements)."
   ]}
 />

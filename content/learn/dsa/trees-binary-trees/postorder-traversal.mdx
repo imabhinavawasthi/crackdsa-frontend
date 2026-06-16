@@ -11,86 +11,103 @@ summary: "An essential guide to Postorder Traversal (Left, Right, Root), masteri
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Postorder Traversal (Left, Right, Root)**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+**Postorder Traversal** is a Depth-First Search (DFS) traversal where the processing of the current node occurs **after** processing its left and right children. The sequence is:
+1. Recursively traverse the **Left** subtree.
+2. Recursively traverse the **Right** subtree.
+3. Visit the **Root** node.
+
+### Why Postorder?
+Postorder is considered a **Bottom-Up** approach. You use postorder traversal when the result of a parent node strictly depends on the results of its children. 
+
+Common use cases:
+- Calculating the height or depth of a tree.
+- Finding the lowest common ancestor (LCA).
+- Safely deleting a tree from memory (you must delete children before you delete the parent).
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Postorder Traversal (Left, Right, Root)
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    vector<int> postorderTraversal(TreeNode* root) {
+        vector<int> result;
+        traverse(root, result);
+        return result;
+    }
+    
+private:
+    void traverse(TreeNode* node, vector<int>& res) {
+        if (node == nullptr) return;
+        
+        // Left
+        traverse(node->left, res);
+        // Right
+        traverse(node->right, res);
+        // Root
+        res.push_back(node->val);
     }
 };"
-  java="// Java implementation for Postorder Traversal (Left, Right, Root)
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
+  java="class Solution {
+    public List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        traverse(root, result);
+        return result;
     }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+    
+    private void traverse(TreeNode node, List<Integer> res) {
+        if (node == null) return;
+        
+        // Left
+        traverse(node.left, res);
+        // Right
+        traverse(node.right, res);
+        // Root
+        res.add(node.val);
     }
 }"
-  python="# Python implementation for Postorder Traversal (Left, Right, Root)
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def postorderTraversal(self, root: Optional[TreeNode]) -> List[int]:
+        result = []
+        
+        def traverse(node):
+            if not node:
+                return
+            
+            # Left
+            traverse(node.left)
+            # Right
+            traverse(node.right)
+            # Root
+            result.append(node.val)
+            
+        traverse(root)
+        return result"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  description="Time complexity is O(N) since every node is visited. Space complexity relies on the recursion stack, which takes O(H) space where H is the height of the tree."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **Iterative Implementation Complexity:** The iterative version of Postorder is the hardest of all three DFS traversals because you visit a node twice (once to go to the right child, and once to process the node itself).
+- **Infinite Loops:** When implementing iteratively without marking visited nodes, it is very easy to fall into an infinite loop.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "Any tree problem that asks you to compute an aggregate property (like max height, diameter, or path sum that passes through the root) is likely a Postorder traversal.",
+    "For an easier iterative approach, you can do a modified Preorder (Root -> Right -> Left) and then reverse the resulting array!",
+    "Always state the base case explicitly before writing the recursive calls."
   ]}
 />

@@ -11,41 +11,74 @@ summary: "An essential guide to Meeting Rooms I (Can Attend All), exploring swee
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Meeting Rooms I (Can Attend All)**. This topic is a cornerstone of the Intervals module. Interval problems almost always involve time, scheduling, or geometric lines. The entire category revolves around one critical realization: **You must sort the intervals first.**
+The **Meeting Rooms** problem is the gateway to understanding scheduling problems. The premise is simple: Given an array of meeting time intervals where `intervals[i] = [starti, endi]`, determine if a person could attend *all* meetings.
+
+In simpler terms, you are checking if there are **any overlaps** in the provided list of intervals. If even a single overlap exists, the person cannot attend all meetings.
 
 ### Core Intuition
-If you don't sort intervals by their start time, you have to check every interval against every other interval (O(N^2)). But if you sort them, you only ever need to compare the current interval with the *previously processed* interval! This instantly drops the complexity to O(N log N).
+If you don't sort the intervals, you would have to compare every meeting to every other meeting to check for overlaps, which takes $O(N^2)$ time. 
+
+By **sorting the intervals by their start time**, you guarantee that any potential overlap will happen between adjacent elements in the sorted array. You only need to check if the current meeting starts *before* the previous meeting finishes.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Meeting Rooms I (Can Attend All)
-#include <iostream>
-#include <vector>
+  cpp="#include <vector>
 #include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<vector<int>>& intervals) {
-        // sort(intervals.begin(), intervals.end());
-        // Implementation here
+    bool canAttendMeetings(vector<vector<int>>& intervals) {
+        if (intervals.empty()) return true;
+
+        // Sort by starting time
+        sort(intervals.begin(), intervals.end());
+
+        // Check for any overlap between adjacent meetings
+        for (int i = 1; i < intervals.size(); i++) {
+            if (intervals[i][0] < intervals[i - 1][1]) {
+                // The current meeting starts before the previous one ends
+                return false;
+            }
+        }
+
+        return true;
     }
 };"
-  java="// Java implementation for Meeting Rooms I (Can Attend All)
-import java.util.*;
+  java="import java.util.*;
 
 class Solution {
-    public void solve(int[][] intervals) {
-        // Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
-        // Implementation here
+    public boolean canAttendMeetings(int[][] intervals) {
+        if (intervals == null || intervals.length == 0) return true;
+
+        // Sort intervals by their start times
+        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
+
+        for (int i = 1; i < intervals.length; i++) {
+            // Overlap condition
+            if (intervals[i][0] < intervals[i - 1][1]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }"
-  python="# Python implementation for Meeting Rooms I (Can Attend All)
-class Solution:
-    def solve(self, intervals: list[list[int]]):
-        # intervals.sort(key=lambda x: x[0])
-        # Implementation here
-        pass"
+  python="class Solution:
+    def canAttendMeetings(self, intervals: list[list[int]]) -> bool:
+        if not intervals:
+            return True
+            
+        # Sort by start time
+        intervals.sort(key=lambda x: x[0])
+        
+        # Check adjacent intervals for overlap
+        for i in range(1, len(intervals)):
+            if intervals[i][0] < intervals[i - 1][1]:
+                return False
+                
+        return True"
 />
 
 # Complexity Analysis
@@ -53,21 +86,21 @@ class Solution:
   best="O(N log N)"
   average="O(N log N)"
   worst="O(N log N)"
-  space="O(N)"
-  description="Sorting the intervals initially dominates the time complexity, resulting in O(N log N). The linear scan that follows takes O(N) time. Space complexity is O(N) because we often need to store the merged or processed intervals in a new array or use a Min-Heap (like in Meeting Rooms II)."
+  space="O(1)"
+  description="Sorting the array takes O(N log N) time, and the linear scan takes O(N) time. The space complexity is O(1) auxiliary space, assuming an in-place sorting algorithm is used."
 />
 
 # Common Pitfalls
 <Warning>
-- **Comparing Start vs End:** A very common mistake is checking if `current.start < previous.start`. You must check if `current.start <= previous.end` to detect an overlap!
-- **Modifying while Iterating:** Try to avoid modifying the input array in place. It's much safer to push merged/processed intervals into a new result array.
+- Misunderstanding the overlap condition: If one meeting ends at 10:00 and the next begins at 10:00, this is *not* an overlap. You should use `<` rather than `<=` when comparing start and end times.
+- Not handling the empty array edge case. If there are no meetings, a person can technically attend all 0 of them.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem involves 'start times', 'end times', 'meetings', or 'flights', you should immediately sort the input array by start time.",
-    "For complex overlaps (like finding the maximum number of simultaneous meetings), the Sweep Line algorithm is the cleanest approach: split every interval into two events: `(start, +1)` and `(end, -1)`. Sort all events by time, and keep a running sum!",
-    "Mention to the interviewer that sorting modifies the input. If the input is read-only, you must allocate O(N) space for a copy."
+    "Since this is an easy problem, interviewers expect perfectly clean, bug-free code implemented very quickly.",
+    "Be sure to proactively mention the time complexity of the sorting step.",
+    "If the interviewer asks to optimize, note that O(N log N) is the theoretical lower bound unless the interval times are restricted to a very small range (like hours in a day), in which case counting sort could yield O(N)."
   ]}
 />

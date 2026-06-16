@@ -11,58 +11,191 @@ summary: "An essential guide to Articulation Points, exploring its applications,
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Articulation Points**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+An **Articulation Point** (or cut vertex) is a node in a graph whose removal (along with all its incident edges) increases the number of connected components. Similar to bridges, articulation points represent single points of failure in a network.
 
-### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+Finding articulation points is highly analogous to Tarjan's bridge-finding algorithm. We maintain `tin` (Time In) and `low` (Lowest Time) arrays using a single DFS pass.
+
+There are two conditions for a node $u$ to be an articulation point:
+1. **Root of DFS tree:** If $u$ is the root of the DFS tree, it is an articulation point if and only if it has **more than one disconnected child** in the DFS tree.
+2. **Non-root of DFS tree:** If $u$ is not the root, it is an articulation point if it has a child $v$ such that no back-edge from the subtree of $v$ reaches an ancestor of $u$. The mathematical condition is `low[v] >= tin[u]`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Articulation Points
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp={`class Solution {
+private:
+    int timer = 1;
+    void dfs(int node, int parent, vector<int>& visited, vector<int> adj[], 
+             vector<int>& tin, vector<int>& low, vector<int>& mark) {
+        visited[node] = 1;
+        tin[node] = low[node] = timer++;
+        int childCount = 0;
+        
+        for (auto it : adj[node]) {
+            if (it == parent) continue;
+            
+            if (!visited[it]) {
+                dfs(it, node, visited, adj, tin, low, mark);
+                low[node] = min(low[node], low[it]);
+                
+                // Condition for non-root
+                if (low[it] >= tin[node] && parent != -1) {
+                    mark[node] = 1;
+                }
+                childCount++;
+            } else {
+                // Back-edge
+                low[node] = min(low[node], tin[it]);
+            }
+        }
+        
+        // Condition for root
+        if (parent == -1 && childCount > 1) {
+            mark[node] = 1;
+        }
+    }
 public:
-    void solve() {
-        // Implementation here
+    vector<int> articulationPoints(int V, vector<int> adj[]) {
+        vector<int> visited(V, 0);
+        vector<int> tin(V);
+        vector<int> low(V);
+        vector<int> mark(V, 0); // using an array as a set
+        
+        for (int i = 0; i < V; i++) {
+            if (!visited[i]) {
+                dfs(i, -1, visited, adj, tin, low, mark);
+            }
+        }
+        
+        vector<int> ans;
+        for (int i = 0; i < V; i++) {
+            if (mark[i] == 1) ans.push_back(i);
+        }
+        
+        if (ans.empty()) return {-1};
+        return ans;
     }
-};"
-  java="// Java implementation for Articulation Points
-import java.util.*;
+};`}
+  java={`class Solution {
+    private int timer = 1;
+    
+    private void dfs(int node, int parent, boolean[] visited, ArrayList<ArrayList<Integer>> adj, 
+                     int[] tin, int[] low, boolean[] mark) {
+        visited[node] = true;
+        tin[node] = low[node] = timer++;
+        int childCount = 0;
 
-class Solution {
-    public void solve() {
-        // Implementation here
+        for (Integer it : adj.get(node)) {
+            if (it == parent) continue;
+
+            if (!visited[it]) {
+                dfs(it, node, visited, adj, tin, low, mark);
+                low[node] = Math.min(low[node], low[it]);
+
+                // Condition for non-root
+                if (low[it] >= tin[node] && parent != -1) {
+                    mark[node] = true;
+                }
+                childCount++;
+            } else {
+                // Back-edge
+                low[node] = Math.min(low[node], tin[it]);
+            }
+        }
+
+        // Condition for root
+        if (parent == -1 && childCount > 1) {
+            mark[node] = true;
+        }
     }
-}"
-  python="# Python implementation for Articulation Points
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+
+    public ArrayList<Integer> articulationPoints(int V, ArrayList<ArrayList<Integer>> adj) {
+        boolean[] visited = new boolean[V];
+        int[] tin = new int[V];
+        int[] low = new int[V];
+        boolean[] mark = new boolean[V];
+
+        for (int i = 0; i < V; i++) {
+            if (!visited[i]) {
+                dfs(i, -1, visited, adj, tin, low, mark);
+            }
+        }
+
+        ArrayList<Integer> ans = new ArrayList<>();
+        for (int i = 0; i < V; i++) {
+            if (mark[i]) ans.add(i);
+        }
+
+        if (ans.isEmpty()) ans.add(-1);
+        return ans;
+    }
+}`}
+  python={`class Solution:
+    def articulationPoints(self, V: int, adj: list[list[int]]) -> list[int]:
+        visited = [False] * V
+        tin = [0] * V
+        low = [0] * V
+        mark = [False] * V
+        self.timer = 1
+        
+        def dfs(node, parent):
+            visited[node] = True
+            tin[node] = low[node] = self.timer
+            self.timer += 1
+            childCount = 0
+            
+            for it in adj[node]:
+                if it == parent:
+                    continue
+                    
+                if not visited[it]:
+                    dfs(it, node)
+                    low[node] = min(low[node], low[it])
+                    
+                    # Condition for non-root
+                    if low[it] >= tin[node] and parent != -1:
+                        mark[node] = True
+                    childCount += 1
+                else:
+                    # Back-edge
+                    low[node] = min(low[node], tin[it])
+                    
+            # Condition for root
+            if parent == -1 and childCount > 1:
+                mark[node] = True
+                
+        for i in range(V):
+            if not visited[i]:
+                dfs(i, -1)
+                
+        ans = []
+        for i in range(V):
+            if mark[i]:
+                ans.append(i)
+                
+        if not ans:
+            return [-1]
+        return ans`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(E log V)"
-  average="O(E log V)"
-  worst="O(E log V)"
+  best="O(V + E)"
+  average="O(V + E)"
+  worst="O(V + E)"
   space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  description="Maintains the efficiency of standard DFS. Tracking arrays (tin, low, mark) consume O(V) auxiliary space alongside O(V+E) required for graph representation."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Using arrays directly for results:** Since multiple subtrees could independently trigger `low[it] >= tin[node]` for the same node, adding to a list immediately could cause duplicate entries. Always use a boolean marking array or Set.
+- **Bridges vs Articulation Condition:** Bridges check `low[it] > tin[node]`, while Articulation Points check `low[it] >= tin[node]`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "Stress the distinct logic for checking if the 'Root' node is an articulation point. Without counting DFS-children, the root would be mistakenly excluded.",
+    "Connect this problem to real-world applications, such as identifying critical routers in a network whose failure would isolate network partitions."
   ]}
 />

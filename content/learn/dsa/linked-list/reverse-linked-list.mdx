@@ -11,57 +11,77 @@ summary: "An essential guide to Reverse a Linked List (Iterative & Recursive), e
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Reverse a Linked List (Iterative & Recursive)**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+Reversing a linked list is one of the most fundamental operations in data structures. It tests your ability to manipulate pointers (or references) correctly without losing track of the remaining nodes.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+### Iterative Approach
+The iterative approach involves using three pointers: `prev`, `curr`, and `next`. As you traverse the list, you continuously update the `curr` node's `next` pointer to point to the `prev` node, effectively reversing the direction of the list.
+
+### Recursive Approach
+The recursive approach breaks the problem down into reversing the rest of the list and then adjusting the pointers for the current node. It's an elegant solution but comes with an O(N) space complexity cost due to the call stack.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Reverse a Linked List (Iterative & Recursive)
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    ListNode* reverseList(ListNode* head) {
+        ListNode* prev = nullptr;
+        ListNode* curr = head;
+        while (curr != nullptr) {
+            ListNode* nextTemp = curr->next;
+            curr->next = prev;
+            prev = curr;
+            curr = nextTemp;
+        }
+        return prev;
+    }
+
+    ListNode* reverseListRecursive(ListNode* head) {
+        if (head == nullptr || head->next == nullptr) return head;
+        ListNode* p = reverseListRecursive(head->next);
+        head->next->next = head;
+        head->next = nullptr;
+        return p;
     }
 };"
-  java="// Java implementation for Reverse a Linked List (Iterative & Recursive)
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
+  java="class Solution {
+    public ListNode reverseList(ListNode head) {
+        ListNode prev = null;
+        ListNode curr = head;
+        while (curr != null) {
+            ListNode nextTemp = curr.next;
+            curr.next = prev;
+            prev = curr;
+            curr = nextTemp;
+        }
+        return prev;
+    }
 
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+    public ListNode reverseListRecursive(ListNode head) {
+        if (head == null || head.next == null) return head;
+        ListNode p = reverseListRecursive(head.next);
+        head.next.next = head;
+        head.next = null;
+        return p;
     }
 }"
-  python="# Python implementation for Reverse a Linked List (Iterative & Recursive)
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+  python="class Solution:
+    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        prev = None
+        curr = head
+        while curr:
+            next_temp = curr.next
+            curr.next = prev
+            prev = curr
+            curr = next_temp
+        return prev
+        
+    def reverseListRecursive(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        if not head or not head.next:
+            return head
+        p = self.reverseListRecursive(head.next)
+        head.next.next = head
+        head.next = None
+        return p"
 />
 
 # Complexity Analysis
@@ -69,21 +89,20 @@ class Solution:
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  space="O(1) Iterative, O(N) Recursive"
+  description="The time complexity is strictly O(N) because we must visit every node exactly once. The iterative solution requires O(1) space, while the recursive solution uses O(N) space due to the recursion stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Losing the 'Next' Reference:** The most common mistake is updating `curr.next` without first saving the original `curr.next` to a temporary variable, causing the rest of the list to be lost.
+- **Cycle Creation:** Forgetting to set the new tail's next pointer to `null` (especially in recursive implementations) can result in a cycle.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "Always trace your iterative pointer logic on a whiteboard with a 3-node example (1 -> 2 -> 3 -> null) to ensure you aren't losing references.",
+    "Mention the space complexity tradeoff between the iterative and recursive approaches. Interviewers love when you bring up call stack limits."
   ]}
 />

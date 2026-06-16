@@ -11,64 +11,100 @@ summary: "An essential deep-dive into Edit Distance. This article breaks down th
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Edit Distance**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+The **Edit Distance** (or Levenshtein Distance) problem asks for the minimum number of operations required to convert string `word1` into string `word2`. The allowed operations are insert a character, delete a character, and replace a character.
 
 ### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+Similar to Longest Common Subsequence, we compare characters from the two strings.
+- **Match**: If `word1[i-1] == word2[j-1]`, no operation is needed. `dp[i][j] = dp[i-1][j-1]`.
+- **Mismatch**: If they differ, we consider all three operations and take the minimum + 1:
+  1. **Insert**: Imagine we inserted a matching character into `word1`. We consume a character from `word2`. `dp[i][j-1]`
+  2. **Delete**: Imagine we delete the character from `word1`. We consume a character from `word1`. `dp[i-1][j]`
+  3. **Replace**: Imagine we replace the character in `word1` to match `word2`. We consume a character from both. `dp[i-1][j-1]`
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+So, `dp[i][j] = 1 + min(dp[i][j-1], min(dp[i-1][j], dp[i-1][j-1]))`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Edit Distance
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int minDistance(string word1, string word2) {
+        int m = word1.length(), n = word2.length();
+        vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
+        
+        for (int i = 0; i <= m; i++) dp[i][0] = i;
+        for (int j = 0; j <= n; j++) dp[0][j] = j;
+        
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (word1[i - 1] == word2[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = 1 + min({dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]});
+                }
+            }
+        }
+        return dp[m][n];
     }
 };"
-  java="// Java implementation for Edit Distance
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int minDistance(String word1, String word2) {
+        int m = word1.length(), n = word2.length();
+        int[][] dp = new int[m + 1][n + 1];
+        
+        for (int i = 0; i <= m; i++) dp[i][0] = i;
+        for (int j = 0; j <= n; j++) dp[0][j] = j;
+        
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (word1.charAt(i - 1) == word2.charAt(j - 1)) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));
+                }
+            }
+        }
+        return dp[m][n];
     }
 }"
-  python="# Python implementation for Edit Distance
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def minDistance(self, word1: str, word2: str) -> int:
+        m, n = len(word1), len(word2)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        
+        for i in range(m + 1):
+            dp[i][0] = i
+        for j in range(n + 1):
+            dp[0][j] = j
+            
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if word1[i - 1] == word2[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1]
+                else:
+                    dp[i][j] = 1 + min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1])
+                    
+        return dp[m][n]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(M * N)"
+  average="O(M * N)"
+  worst="O(M * N)"
+  space="O(M * N)"
+  description="Time and space complexity are proportional to the lengths of both words. Space can be optimized to O(min(M, N)) since we only need the previous row."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- Forgetting to initialize the base cases (`dp[i][0] = i` and `dp[0][j] = j`). Converting a string to an empty string requires deleting all its characters!
+- Incorrectly assigning the recurrence relations to the operations (e.g., swapping insert and delete state lookups).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "Edit Distance is heavily used in spell-checking, DNA sequence alignment, and natural language processing. Mentioning this real-world application shows seniority.",
+    "Always clarify if the cost of insert, delete, and replace operations are all equal (usually 1, but some variants have different weights)."
   ]}
 />

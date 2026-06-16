@@ -4,67 +4,170 @@ category: "Sorting & Custom Comparators"
 readTime: "9 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the underlying mechanics and intuition behind Radix Sort."
-  - "Master the stability, time complexity, and space complexity of the algorithm."
-  - "Learn when to apply this specific sorting technique in interviews."
-summary: "An essential deep-dive into Radix Sort, breaking down its algorithmic approach, code implementation, and real-world interview applications."
+  - "Understand the logic of sorting digit-by-digit."
+  - "Learn why a stable sorting subroutine (like Counting Sort) is absolutely mandatory."
+  - "Analyze time and space complexity in relation to the number of digits."
+summary: "An essential deep-dive into Radix Sort, breaking down its multi-pass counting approach and its niche use cases in algorithm interviews."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Radix Sort**. This topic is a cornerstone of the Sorting & Custom Comparators module. While standard library sorting functions exist, understanding how these algorithms work under the hood is critical for recognizing when an interview problem is actually a masked sorting algorithm.
+Welcome to the lesson on **Radix Sort**. While Counting Sort is limited by the maximum value in an array (the range $K$), Radix Sort cleverly works around this limitation by sorting elements **digit by digit**. 
 
 ### Core Intuition
-The primary goal of sorting is to order elements either ascending or descending. Depending on the algorithm, this is achieved by swapping adjacent elements, repeatedly selecting the minimum, or dividing the array recursively.
+The standard approach is **LSD (Least Significant Digit) Radix Sort**. We start by sorting the numbers based entirely on their last digit (the 1s place). Then we sort them again based on the 10s place, then the 100s place, and so on up to the maximum number of digits.
+
+**The Golden Rule:** The subroutine algorithm used to sort the individual digits MUST be a **stable sort**. If it is not stable, sorting by the 10s place will scramble the relative order previously established by the 1s place, ruining the entire algorithm. We almost exclusively use a modified **Counting Sort** for this subroutine because sorting digits means our range $K$ is always strictly $0-9$.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Radix Sort
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
+  cpp="class Solution {
+private:
+    void countingSortForRadix(vector<int>& arr, int exp) {
+        int n = arr.size();
+        vector<int> output(n);
+        vector<int> count(10, 0);
 
-class Solution {
+        // Store count of occurrences in count[]
+        for (int i = 0; i < n; i++) {
+            count[(arr[i] / exp) % 10]++;
+        }
+
+        // Change count[i] so that count[i] now contains actual
+        // position of this digit in output[]
+        for (int i = 1; i < 10; i++) {
+            count[i] += count[i - 1];
+        }
+
+        // Build the output array (traverse backwards for stability)
+        for (int i = n - 1; i >= 0; i--) {
+            int digit = (arr[i] / exp) % 10;
+            output[count[digit] - 1] = arr[i];
+            count[digit]--;
+        }
+
+        // Copy the output array to arr[]
+        for (int i = 0; i < n; i++) {
+            arr[i] = output[i];
+        }
+    }
+
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    void radixSort(vector<int>& arr) {
+        if (arr.empty()) return;
+        
+        // Find the maximum number to know number of digits
+        int max_val = *max_element(arr.begin(), arr.end());
+
+        // Do counting sort for every digit. 
+        // exp is 10^i where i is current digit number
+        for (int exp = 1; max_val / exp > 0; exp *= 10) {
+            countingSortForRadix(arr, exp);
+        }
     }
 };"
-  java="// Java implementation for Radix Sort
-import java.util.*;
+  java="class Solution {
+    private void countingSortForRadix(int[] arr, int exp) {
+        int n = arr.length;
+        int[] output = new int[n];
+        int[] count = new int[10];
 
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+        // Store count of occurrences
+        for (int i = 0; i < n; i++) {
+            count[(arr[i] / exp) % 10]++;
+        }
+
+        // Change count[i] to store actual position
+        for (int i = 1; i < 10; i++) {
+            count[i] += count[i - 1];
+        }
+
+        // Build the output array
+        for (int i = n - 1; i >= 0; i--) {
+            int digit = (arr[i] / exp) % 10;
+            output[count[digit] - 1] = arr[i];
+            count[digit]--;
+        }
+
+        // Copy the output array
+        System.arraycopy(output, 0, arr, 0, n);
+    }
+
+    public void radixSort(int[] arr) {
+        if (arr.length == 0) return;
+        
+        // Find the maximum number to know number of digits
+        int maxVal = arr[0];
+        for (int num : arr) {
+            maxVal = Math.max(maxVal, num);
+        }
+
+        // Do counting sort for every digit
+        for (int exp = 1; maxVal / exp > 0; exp *= 10) {
+            countingSortForRadix(arr, exp);
+        }
     }
 }"
-  python="# Python implementation for Radix Sort
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def _counting_sort_for_radix(self, arr: list[int], exp: int) -> None:
+        n = len(arr)
+        output = [0] * n
+        count = [0] * 10
+        
+        # Store count of occurrences
+        for i in range(n):
+            index = (arr[i] // exp) % 10
+            count[index] += 1
+            
+        # Change count[i] to store actual position
+        for i in range(1, 10):
+            count[i] += count[i - 1]
+            
+        # Build the output array
+        i = n - 1
+        while i >= 0:
+            index = (arr[i] // exp) % 10
+            output[count[index] - 1] = arr[i]
+            count[index] -= 1
+            i -= 1
+            
+        # Copy the output array
+        for i in range(n):
+            arr[i] = output[i]
+
+    def radix_sort(self, arr: list[int]) -> None:
+        if not arr:
+            return
+            
+        max_val = max(arr)
+        
+        # Do counting sort for every digit
+        exp = 1
+        while max_val // exp > 0:
+            self._counting_sort_for_radix(arr, exp)
+            exp *= 10"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N log N)"
-  average="O(N log N)"
-  worst="O(N log N)"
-  space="O(1)"
-  description="Sorting time complexity heavily depends on the algorithm. While Merge Sort guarantees O(N log N) worst-case time, Quick Sort can degrade to O(N^2) if the pivot is chosen poorly. Space complexity ranges from O(1) in-place sorts to O(N) auxiliary space."
+  best="O(d * (N + b))"
+  average="O(d * (N + b))"
+  worst="O(d * (N + b))"
+  space="O(N + b)"
+  description="The time complexity depends on N (number of elements), b (the base, which is 10 for decimals), and d (the maximum number of digits). Counting sort takes O(N + b) time, and we call it 'd' times, yielding O(d * (N + b)). Space complexity is O(N + b) needed for the output and count arrays."
 />
 
 # Common Pitfalls
 <Warning>
-- **Stability Issues:** Using an unstable sort (like Quick Sort) when the relative order of equal elements must be preserved. (Use Merge Sort or Insertion Sort instead).
-- **Stack Overflow:** Deep recursion in Merge Sort or Quick Sort on massive arrays can cause Call Stack limits to trigger.
+- **Unstable Subroutine:** If you attempt to use Quick Sort or an unstable version of Counting Sort for the digits, the algorithm will completely fail to sort the numbers.
+- **Negative Numbers:** The standard implementation does not support negative numbers. A common workaround is to split the array into negatives and positives, sort them separately (treating negatives as positives), and then reverse/merge them.
+- **Assuming it always beats O(N log N):** Radix Sort has a large constant factor. If $d$ is very large (e.g., sorting massive 64-bit integers), $d \times N$ can actually be slower than $N \log N$ in practical application.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array contains numbers exactly in the range 1 to N, it is a dead giveaway to use Cycle Sort for an O(N) time and O(1) space solution.",
-    "If you only need to sort numbers within a very small, restricted range (e.g., ages from 1 to 100), Counting Sort is the most optimal approach.",
-    "Always clarify if you are allowed to mutate the input array. If not, you must account for the O(N) space of copying the array."
+    "If an interviewer asks you to sort an array of strings that are all the exact same length (like an array of fixed-length IDs), Radix Sort is highly optimal.",
+    "Be ready to compare Radix Sort against Counting Sort. You use Counting Sort when the absolute maximum value is small. You use Radix Sort when the numbers might be huge, but the number of digits is relatively small.",
+    "Mentioning LSD (Least Significant Digit) implies the existence of MSD (Most Significant Digit) Radix Sort, which is often used for sorting strings of variable lengths."
   ]}
 />

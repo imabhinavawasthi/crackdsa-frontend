@@ -11,64 +11,116 @@ summary: "An essential guide to Design a Min Stack, exploring its applications, 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Design a Min Stack**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+Designing a **Min Stack** is a classic problem that tests your ability to augment a standard data structure to answer queries efficiently. The goal is to design a stack that supports `push`, `pop`, `top`, and retrieving the minimum element (`getMin`)—all in **O(1) time**.
+
+**Intuition**
+A standard stack easily supports `push`, `pop`, and `top` in O(1) time. But finding the minimum element normally takes O(N) time because we would have to scan all elements. To make it O(1), we can trade space for time.
+
+We maintain an auxiliary stack (or store pairs in a single stack) that keeps track of the minimum value at each level of the stack. Whenever we push a new element `x`, the new minimum for this level is simply `min(x, current_minimum)`. When we pop an element, we also pop from our minimum tracker, naturally restoring the previous minimum!
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Design a Min Stack
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class MinStack {
+private:
+    stack<pair<int, int>> st; // pair: {value, current_min}
+
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    MinStack() {}
+    
+    void push(int val) {
+        if (st.empty()) {
+            st.push({val, val});
+        } else {
+            st.push({val, min(val, st.top().second)});
+        }
+    }
+    
+    void pop() {
+        st.pop();
+    }
+    
+    int top() {
+        return st.top().first;
+    }
+    
+    int getMin() {
+        return st.top().second;
     }
 };"
-  java="// Java implementation for Design a Min Stack
-import java.util.*;
+  java="class MinStack {
+    private Stack<int[]> stack; // array: [value, current_min]
 
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    public MinStack() {
+        stack = new Stack<>();
+    }
+    
+    public void push(int val) {
+        if (stack.isEmpty()) {
+            stack.push(new int[]{val, val});
+        } else {
+            stack.push(new int[]{val, Math.min(val, stack.peek()[1])});
+        }
+    }
+    
+    public void pop() {
+        stack.pop();
+    }
+    
+    public int top() {
+        return stack.peek()[0];
+    }
+    
+    public int getMin() {
+        return stack.peek()[1];
     }
 }"
-  python="# Python implementation for Design a Min Stack
-from collections import deque
+  python="class MinStack:
+    def __init__(self):
+        # We will store tuples of (value, min_so_far)
+        self.stack = []
 
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def push(self, val: int) -> None:
+        if not self.stack:
+            self.stack.append((val, val))
+        else:
+            current_min = self.stack[-1][1]
+            self.stack.append((val, min(val, current_min)))
+
+    def pop(self) -> None:
+        self.stack.pop()
+
+    def top(self) -> int:
+        return self.stack[-1][0]
+
+    def getMin(self) -> int:
+        return self.stack[-1][1]"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
   space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  description="All operations—push, pop, top, and getMin—execute in strictly O(1) time. Space complexity is O(N) because we store extra information (the running minimum) alongside every element pushed onto the stack."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **Using a single variable to track the minimum:** This fails when the minimum element is popped off the stack, because you lose track of what the *previous* minimum was.
+- **Forgetting to update the min stack during pops:** If you use two separate stacks, a common bug is popping from the main stack but forgetting to pop from the min stack if the values match. Storing pairs is less error-prone.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "If the interviewer asks to optimize space, you can store only elements that are strictly smaller than or equal to the current minimum in an auxiliary stack.",
+    "Another mathematical optimization exists to achieve O(1) time and O(1) extra space by encoding the minimum into the pushed value (e.g., using `2 * val - current_min`), though storing pairs is safer and more readable.",
+    "This pattern generalizes to 'Max Stack' as well."
   ]}
 />

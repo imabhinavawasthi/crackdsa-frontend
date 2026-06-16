@@ -11,64 +11,125 @@ summary: "An essential guide to Sliding Window Maximum (Deque Approach), explori
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Sliding Window Maximum (Deque Approach)**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+**Sliding Window Maximum** is the hallmark problem for the Monotonic Deque. You are given an array `nums` and a sliding window of size `k` moving from left to right. You need to return the maximum value in the window at every step.
+
+**Intuition**
+A brute-force approach finds the max for every window, taking O(N * K) time. We can optimize this to O(N) using a **Monotonic Decreasing Deque**.
+As the window slides right:
+1. **Maintain Window Size:** Check the front of the deque. If the index stored there is out of the bounds of our current window `(i - k)`, pop it from the front.
+2. **Maintain Monotonicity:** We want the maximum element at the front. Therefore, before adding a new element `nums[i]`, pop all elements from the back of the deque that are smaller than `nums[i]`. They are smaller and older, so they will never be the maximum!
+3. **Record Answer:** Once the window has reached size `k` (when `i >= k - 1`), the maximum element for the current window is simply the value at the index stored at the front of the deque.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Sliding Window Maximum (Deque Approach)
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    vector<int> maxSlidingWindow(vector<int>& nums, int k) {
+        vector<int> result;
+        deque<int> dq; // stores indices
+        
+        for (int i = 0; i < nums.size(); i++) {
+            // 1. Remove elements out of the window
+            if (!dq.empty() && dq.front() == i - k) {
+                dq.pop_front();
+            }
+            
+            // 2. Remove elements from back that are smaller than current
+            while (!dq.empty() && nums[dq.back()] < nums[i]) {
+                dq.pop_back();
+            }
+            
+            // 3. Add current element's index
+            dq.push_back(i);
+            
+            // 4. If window has reached size k, record the max
+            if (i >= k - 1) {
+                result.push_back(nums[dq.front()]);
+            }
+        }
+        return result;
     }
 };"
-  java="// Java implementation for Sliding Window Maximum (Deque Approach)
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        int n = nums.length;
+        int[] result = new int[n - k + 1];
+        int resIndex = 0;
+        Deque<Integer> dq = new LinkedList<>(); // stores indices
+        
+        for (int i = 0; i < n; i++) {
+            // 1. Remove elements out of the window
+            if (!dq.isEmpty() && dq.peekFirst() == i - k) {
+                dq.pollFirst();
+            }
+            
+            // 2. Remove elements from back that are smaller than current
+            while (!dq.isEmpty() && nums[dq.peekLast()] < nums[i]) {
+                dq.pollLast();
+            }
+            
+            // 3. Add current element's index
+            dq.offerLast(i);
+            
+            // 4. If window has reached size k, record the max
+            if (i >= k - 1) {
+                result[resIndex++] = nums[dq.peekFirst()];
+            }
+        }
+        return result;
     }
 }"
-  python="# Python implementation for Sliding Window Maximum (Deque Approach)
-from collections import deque
+  python="from collections import deque
 
 class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def maxSlidingWindow(self, nums: list[int], k: int) -> list[int]:
+        result = []
+        dq = deque() # stores indices
+        
+        for i in range(len(nums)):
+            # 1. Remove elements out of the window
+            if dq and dq[0] == i - k:
+                dq.popleft()
+                
+            # 2. Remove elements from back that are smaller than current
+            while dq and nums[dq[-1]] < nums[i]:
+                dq.pop()
+                
+            # 3. Add current element's index
+            dq.append(i)
+            
+            # 4. If window has reached size k, record the max
+            if i >= k - 1:
+                result.append(nums[dq[0]])
+                
+        return result"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  space="O(K)"
+  description="Time complexity is O(N) because each element is added to the Deque once and removed at most once. The space complexity is O(K) because the Deque will store at most K elements at any given time."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **Using `<` vs `<=`:** When popping from the back, `nums[dq.back()] < nums[i]` is usually sufficient, but `<=` is mathematically safer and slightly more optimal to clear out duplicates.
+- **Recording Output Too Early:** Remember that you should only start adding the maximum to your result array once the loop index `i` has reached `k - 1`. Don't record partial windows.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "If an interviewer asks you to solve this using a Max Heap (Priority Queue), explain that it works but takes O(N log K) time. The Deque approach is strictly superior at O(N).",
+    "You can also use this exact logic to find the 'Sliding Window Minimum'. Just change the while loop condition to pop elements that are *larger* than the current element.",
+    "This algorithm is widely used in network traffic analysis and real-time trading systems to find rolling maximums."
   ]}
 />

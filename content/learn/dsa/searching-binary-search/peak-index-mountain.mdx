@@ -11,37 +11,81 @@ summary: "An essential guide to Peak Index in a Mountain Array, mastering O(log 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Peak Index in a Mountain Array**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+A mountain array is an array that strictly increases to a maximum value (the peak) and then strictly decreases. For example: `[0, 2, 4, 10, 5, 2]`. The peak here is `10` at index `3`.
+We need to find the index of this peak element in `O(log N)` time.
 
 ### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+Even though the array isn't uniformly sorted, it is comprised of two monotonic sequences: an ascending part and a descending part. This guarantees we can use binary search.
+
+To decide whether to go left or right, we just look at the slope at the middle element.
+We compare `arr[mid]` with its right neighbor `arr[mid + 1]`:
+1. **If `arr[mid] < arr[mid + 1]`**: The slope is upwards. We are currently on the ascending side of the mountain. The peak must be to the right. We discard the left part by setting `left = mid + 1`.
+2. **If `arr[mid] > arr[mid + 1]`**: The slope is downwards. We are on the descending side (or exactly at the peak). The peak must be to the left, or it might be `mid` itself. We discard the right part by setting `right = mid`.
+
+By repeating this, `left` and `right` will eventually converge exactly on the peak.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Peak Index in a Mountain Array
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int peakIndexInMountainArray(vector<int>& arr) {
+        int left = 0, right = arr.size() - 1;
+        
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            
+            // Check the slope
+            if (arr[mid] < arr[mid + 1]) {
+                // Ascending slope, peak is to the right
+                left = mid + 1;
+            } else {
+                // Descending slope, peak is mid or to the left
+                right = mid; 
+            }
+        }
+        
+        // left and right converge to the peak index
+        return left;
     }
 };"
-  java="// Java implementation for Peak Index in a Mountain Array
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int peakIndexInMountainArray(int[] arr) {
+        int left = 0, right = arr.length - 1;
+        
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            
+            // Check the slope
+            if (arr[mid] < arr[mid + 1]) {
+                // Ascending slope, peak is to the right
+                left = mid + 1;
+            } else {
+                // Descending slope, peak is mid or to the left
+                right = mid; 
+            }
+        }
+        
+        // left and right converge to the peak index
+        return left;
     }
 }"
-  python="# Python implementation for Peak Index in a Mountain Array
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def peakIndexInMountainArray(self, arr: list[int]) -> int:
+        left, right = 0, len(arr) - 1
+        
+        while left < right:
+            mid = left + (right - left) // 2
+            
+            # Check the slope
+            if arr[mid] < arr[mid + 1]:
+                # Ascending slope, peak is to the right
+                left = mid + 1
+            else:
+                # Descending slope, peak is mid or to the left
+                right = mid
+                
+        # left and right converge to the peak index
+        return left"
 />
 
 # Complexity Analysis
@@ -50,19 +94,20 @@ class Solution:
   average="O(log N)"
   worst="O(log N)"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="We eliminate half of the array at every step by observing the local slope, guaranteeing an O(log N) time complexity. Space complexity is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- Using `while(left <= right)` and returning `mid` when found. In a mountain array, we don't know we are at the peak until `left` converges with `right`. Using `<=` with `right = mid` will cause an infinite loop. Always use `while(left < right)`.
+- Index Out of Bounds: Checking `arr[mid] < arr[mid - 1]` can cause an out-of-bounds error if `mid` is 0. Comparing with `mid + 1` is safer because integer division `(left + right) / 2` biases towards the left, meaning `mid` will never be the last index while `left < right`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "This logic also applies to finding a local peak in any array (an element greater than its neighbors), even if there are multiple peaks.",
+    "If the problem asks to find an element in a mountain array, you first find the peak index, then run a standard binary search on the ascending left half, and a reverse binary search on the descending right half.",
+    "Be ready to explain why comparing with `mid + 1` never throws an IndexOutOfBoundsException."
   ]}
 />

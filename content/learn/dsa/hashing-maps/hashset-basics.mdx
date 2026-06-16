@@ -11,60 +11,139 @@ summary: "An essential guide to Hash Set (HashSet) Basics, mastering O(1) lookup
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Hash Set (HashSet) Basics**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+While a Hash Map stores data in *Key-Value* pairs, a **Hash Set** simply stores *unique Keys*. It acts like a mathematical set. It is built entirely on top of the Hash Map data structure (in Java, a `HashSet` actually just wraps a `HashMap` and maps every inserted key to a dummy value).
+
+### When to use a Hash Set
+- **Deduplication:** Removing duplicates from an array or a list.
+- **Fast Lookups:** Checking if an element exists in a collection in $O(1)$ time. 
+- **Set Operations:** Performing mathematical operations like Union, Intersection, and Difference between collections.
+
+If you don't need to associate a specific value or a frequency count with an item, and you only care *whether or not it exists*, a Hash Set is more memory-efficient and semantically correct than a Hash Map.
+
+---
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Hash Set (HashSet) Basics
+  cpp="```cpp
 #include <iostream>
-#include <unordered_map>
+#include <unordered_set>
 #include <vector>
+
 using namespace std;
 
-class Solution {
-public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+int main() {
+    // 1. Initialization
+    unordered_set<int> mySet;
+    
+    // 2. Insertion
+    mySet.insert(10);
+    mySet.insert(20);
+    mySet.insert(10); // Duplicate is ignored!
+    
+    // 3. Checking Existence
+    if (mySet.count(20)) {
+        cout << \"20 is in the set!\" << endl;
     }
-};"
-  java="// Java implementation for Hash Set (HashSet) Basics
-import java.util.*;
+    
+    // 4. Deletion
+    mySet.erase(10);
+    
+    // 5. Iteration
+    for (int val : mySet) {
+        cout << val << endl;
+    }
+    
+    return 0;
+}
+```"
+  java="```java
+import java.util.HashSet;
+import java.util.Set;
 
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+public class HashSetBasics {
+    public static void main(String[] args) {
+        // 1. Initialization
+        Set<Integer> mySet = new HashSet<>();
+        
+        // 2. Insertion
+        mySet.add(10);
+        mySet.add(20);
+        mySet.add(10); // Duplicate is ignored!
+        
+        // 3. Checking Existence
+        if (mySet.contains(20)) {
+            System.out.println(\"20 is in the set!\");
+        }
+        
+        // 4. Deletion
+        mySet.remove(10);
+        
+        // 5. Iteration
+        for (int val : mySet) {
+            System.out.println(val);
+        }
     }
-}"
-  python="# Python implementation for Hash Set (HashSet) Basics
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+}
+```"
+  python="```python
+def hash_set_basics():
+    # 1. Initialization
+    my_set = set() # Note: {} creates an empty dict, not a set!
+    
+    # 2. Insertion
+    my_set.add(10)
+    my_set.add(20)
+    my_set.add(10) # Duplicate is ignored!
+    
+    # 3. Checking Existence
+    if 20 in my_set:
+        print(\"20 is in the set!\")
+        
+    # 4. Deletion
+    my_set.remove(10) # Raises KeyError if not found
+    # my_set.discard(10) # Safe deletion (no error if not found)
+    
+    # 5. Iteration
+    for val in my_set:
+        print(val)
+
+if __name__ == \"__main__\":
+    hash_set_basics()
+```"
 />
 
+---
+
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
   average="O(1)"
   worst="O(N)"
   space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  description="HashSets provide O(1) average time complexity for adding, removing, and checking if an element exists. Space complexity is O(N) to store N unique elements."
 />
 
+---
+
 # Common Pitfalls
+
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- **Empty Initialization in Python:** Be careful! Initializing `my_set = {}` creates an empty dictionary. You must use `my_set = set()` to create an empty Hash Set.
+- **Relying on Order:** Hash Sets do not guarantee insertion order. If you need a set that remembers the order of insertions, use `LinkedHashSet` in Java or Python's dict keys.
+- **Adding Mutable Elements:** Never add mutable elements (like lists or arrays) to a set. Changes to the element will mess up its hash, effectively making it unreachable inside the set.
 </Warning>
 
+---
+
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "If an interview question asks you to 'find if there are any duplicate elements' or 'find the unique numbers', a HashSet is usually the expected optimal data structure.",
+    "If you need to do intersection (elements common to both) of two arrays, load one array into a HashSet, and then iterate through the second array checking `set.contains()`.",
+    "Remember that HashSet takes O(N) space. If you need O(1) space, you might have to sort the array first (which takes O(N log N) time) or use bit manipulation tricks."
   ]}
 />

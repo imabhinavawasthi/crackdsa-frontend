@@ -11,55 +11,43 @@ summary: "An essential guide to Subsets & Permutations, exploring its applicatio
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Subsets & Permutations**. This topic is a cornerstone of the Recursion & Backtracking module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The generation of **Subsets** and **Permutations** forms the bedrock of combinatorial algorithms. While both use backtracking, they solve fundamentally different problems:
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+- **Subsets (Power Set):** You want to find all possible combinations of elements where order does *not* matter. `[1, 2]` is the same subset as `[2, 1]`. For an array of size $N$, there are exactly $2^N$ subsets.
+- **Permutations:** You want to find all possible arrangements of elements where order *does* matter. `[1, 2]` is a different permutation than `[2, 1]`. For an array of size $N$, there are $N!$ permutations.
+
+Understanding the difference in their Recursion Trees is crucial:
+- The **Subsets Tree** is a binary tree where at each step, you either *include* or *exclude* the current element.
+- The **Permutations Tree** is an $N$-ary tree where at each step, you loop through all available elements to pick the next one.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Subsets & Permutations
-#include <iostream>
-using namespace std;
+Let's look at the basic templates for both approaches.
 
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-};"
-  java="// Java implementation for Subsets & Permutations
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-}"
-  python="# Python implementation for Subsets & Permutations
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+<CodeBlock
+  cpp="// Subsets Template\nvoid generateSubsets(vector<int>& nums, int index, vector<int>& path, vector<vector<int>>& res) {\n    res.push_back(path);\n    for (int i = index; i < nums.size(); i++) {\n        path.push_back(nums[i]); // Choose\n        generateSubsets(nums, i + 1, path, res); // Explore\n        path.pop_back(); // Un-choose\n    }\n}\n\n// Permutations Template\nvoid generatePermutations(vector<int>& nums, vector<int>& path, vector<bool>& used, vector<vector<int>>& res) {\n    if (path.size() == nums.size()) {\n        res.push_back(path);\n        return;\n    }\n    for (int i = 0; i < nums.size(); i++) {\n        if (used[i]) continue;\n        used[i] = true;\n        path.push_back(nums[i]); // Choose\n        generatePermutations(nums, path, used, res); // Explore\n        path.pop_back(); // Un-choose\n        used[i] = false;\n    }\n}"
+  java="// Subsets Template\nprivate void generateSubsets(int[] nums, int index, List<Integer> path, List<List<Integer>> res) {\n    res.add(new ArrayList<>(path));\n    for (int i = index; i < nums.length; i++) {\n        path.add(nums[i]); // Choose\n        generateSubsets(nums, i + 1, path, res); // Explore\n        path.remove(path.size() - 1); // Un-choose\n    }\n}\n\n// Permutations Template\nprivate void generatePermutations(int[] nums, List<Integer> path, boolean[] used, List<List<Integer>> res) {\n    if (path.size() == nums.length) {\n        res.add(new ArrayList<>(path));\n        return;\n    }\n    for (int i = 0; i < nums.length; i++) {\n        if (used[i]) continue;\n        used[i] = true;\n        path.add(nums[i]); // Choose\n        generatePermutations(nums, path, used, res); // Explore\n        path.remove(path.size() - 1); // Un-choose\n        used[i] = false;\n    }\n}"
+  python="# Subsets Template\ndef generate_subsets(nums, index, path, res):\n    res.append(path[:])\n    for i in range(index, len(nums)):\n        path.append(nums[i]) # Choose\n        generate_subsets(nums, i + 1, path, res) # Explore\n        path.pop() # Un-choose\n\n# Permutations Template\ndef generate_permutations(nums, path, used, res):\n    if len(path) == len(nums):\n        res.append(path[:])\n        return\n    for i in range(len(nums)):\n        if used[i]: continue\n        used[i] = True\n        path.append(nums[i]) # Choose\n        generate_permutations(nums, path, used, res) # Explore\n        path.pop() # Un-choose\n        used[i] = False"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(2^N) / O(N!)"
+  average="O(2^N) / O(N!)"
+  worst="O(2^N) / O(N!)"
+  space="O(N)"
+  description="Subsets take O(2^N) time because there are 2^N possible combinations. Permutations take O(N!) time. In both cases, the call stack depth is O(N), giving a space complexity of O(N) (excluding the output array)."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Mixing up the `index` loop variable! Subsets loop starts from `index`, whereas Permutations loop always starts from `0` (and relies on the `used` array to avoid duplicates).
+- Forgetting to make a deep copy of the `path` list when adding it to the `res` list. In many languages, arrays are passed by reference, so if you don't copy, the final list will be full of empty arrays.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Mastering the structural difference between the Subsets 'for loop starting at index' and the Permutations 'for loop starting at 0 with a used array' is critical.",
+    "Always clarify with the interviewer if the input array contains duplicates. If it does, you'll need to add sorting and a duplicate-skipping condition to both templates."
   ]}
 />

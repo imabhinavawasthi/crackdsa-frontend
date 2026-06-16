@@ -11,55 +11,139 @@ summary: "An essential guide to Hash Functions & Collisions, exploring its appli
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Hash Functions & Collisions**. This topic is a cornerstone of the Hashing & Maps module. Understanding it thoroughly will significantly improve your problem-solving speed.
+A **Hash Function** is a mathematical algorithm that maps data of arbitrary size (like strings, objects, or arrays) to a fixed-size integer. This integer is then used as an index in an underlying array (a Hash Table) to store the data, enabling extremely fast $O(1)$ lookups.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+A perfect hash function assigns a unique index to every unique input. However, in reality, because the number of possible inputs is infinite and the array size is finite, two different inputs will eventually map to the same index. This event is called a **Hash Collision**.
+
+To build a robust Hash Map, we must gracefully handle collisions. The two most common techniques are:
+1. **Chaining (Separate Chaining)**: Each array index holds a linked list (or another data structure). When a collision occurs, the new key-value pair is simply appended to the list at that index.
+2. **Open Addressing**: If the target index is occupied, the algorithm probes the array (e.g., using linear or quadratic probing) to find the next available empty slot.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Hash Functions & Collisions
-#include <iostream>
-using namespace std;
+  cpp="class SimpleHashTable {
+private:
+    static const int TABLE_SIZE = 10;
+    vector<list<pair<int, string>>> table;
 
-class Solution {
+    int hashFunction(int key) {
+        return key % TABLE_SIZE;
+    }
+
 public:
-    void solve() {
-        // Implementation here
+    SimpleHashTable() {
+        table.resize(TABLE_SIZE);
+    }
+
+    void insert(int key, string value) {
+        int index = hashFunction(key);
+        for (auto& kv : table[index]) {
+            if (kv.first == key) {
+                kv.second = value; // Update if key exists
+                return;
+            }
+        }
+        table[index].emplace_back(key, value);
+    }
+
+    string search(int key) {
+        int index = hashFunction(key);
+        for (auto& kv : table[index]) {
+            if (kv.first == key) {
+                return kv.second;
+            }
+        }
+        return \"NOT_FOUND\";
     }
 };"
-  java="// Java implementation for Hash Functions & Collisions
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class SimpleHashTable {
+    private static final int TABLE_SIZE = 10;
+    private LinkedList<Entry>[] table;
+
+    class Entry {
+        int key;
+        String value;
+        Entry(int k, String v) { key = k; value = v; }
+    }
+
+    @SuppressWarnings(\"unchecked\")
+    public SimpleHashTable() {
+        table = new LinkedList[TABLE_SIZE];
+        for (int i = 0; i < TABLE_SIZE; i++) {
+            table[i] = new LinkedList<>();
+        }
+    }
+
+    private int hashFunction(int key) {
+        return Math.abs(key) % TABLE_SIZE;
+    }
+
+    public void insert(int key, String value) {
+        int index = hashFunction(key);
+        for (Entry entry : table[index]) {
+            if (entry.key == key) {
+                entry.value = value;
+                return;
+            }
+        }
+        table[index].add(new Entry(key, value));
+    }
+
+    public String search(int key) {
+        int index = hashFunction(key);
+        for (Entry entry : table[index]) {
+            if (entry.key == key) {
+                return entry.value;
+            }
+        }
+        return \"NOT_FOUND\";
     }
 }"
-  python="# Python implementation for Hash Functions & Collisions
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class SimpleHashTable:
+    def __init__(self):
+        self.TABLE_SIZE = 10
+        self.table = [[] for _ in range(self.TABLE_SIZE)]
+        
+    def hash_function(self, key: int) -> int:
+        return abs(key) % self.TABLE_SIZE
+        
+    def insert(self, key: int, value: str):
+        index = self.hash_function(key)
+        for i, kv in enumerate(self.table[index]):
+            if kv[0] == key:
+                self.table[index][i] = (key, value)
+                return
+        self.table[index].append((key, value))
+        
+    def search(self, key: int) -> str:
+        index = self.hash_function(key)
+        for k, v in self.table[index]:
+            if k == key:
+                return v
+        return \"NOT_FOUND\""
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
+  average="O(1)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(N)"
+  description="A well-designed hash function distributes keys evenly, leading to O(1) average lookup time. In the worst case (e.g. all keys map to the same index), it degrades to O(N). Space complexity is proportional to the number of elements inserted."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Using a weak hash function that causes clustered collisions, defeating the purpose of a Hash Map and degrading performance to O(N).
+- Forgetting to handle negative keys in languages like Java or C++ where the modulo operator `%` can return negative values, leading to out-of-bounds array access. Use `abs(key) % size`.
+- Not resizing the underlying array when the load factor gets too high. High load factors exponentially increase the probability of collisions.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Interviewers love asking 'What happens when two keys hash to the same value?' Clearly explain Chaining vs Open Addressing.",
+    "Mention the concept of a 'Load Factor' (usually 0.75 in Java). Explain that when the table gets too full, it needs to be resized to maintain O(1) time complexity.",
+    "If designing a custom object as a key, emphasize that you MUST override both the `equals()` and `hashCode()` methods to maintain contract consistency."
   ]}
 />

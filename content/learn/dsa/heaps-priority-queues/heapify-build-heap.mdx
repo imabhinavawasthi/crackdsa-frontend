@@ -11,64 +11,120 @@ summary: "An essential guide to Heapify & Build Heap O(N), mastering O(log N) ex
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Heapify & Build Heap O(N)**. This topic is a cornerstone of the Heaps & Priority Queues module. A Heap (usually implemented via a Priority Queue) is an extremely specialized tree structure that allows you to instantly extract the minimum or maximum element in O(1) time, while inserts and deletions take O(log N).
+The most surprising fact about heaps is that **building a heap from an unsorted array takes `O(N)` time**, not `O(N log N)`. This optimization is highly tested in interviews.
 
-### Core Intuition
-Heaps are typically implemented under the hood as a complete binary tree mapped to a flat array. The children of node `i` are at `2i + 1` and `2i + 2`. This guarantees the tree is perfectly balanced.
+### Why is Build Heap O(N)?
+When we perform the bottom-up `heapify` process:
+1. Leaf nodes (which make up roughly half the tree, `N/2` nodes) don't need to be heapified at all. They are already valid heaps of size 1.
+2. Nodes one level above the leaves (`N/4` nodes) can sift down at most 1 step.
+3. Nodes two levels above (`N/8` nodes) can sift down at most 2 steps.
+4. Only the root node (1 node) can sift down all `log N` steps.
+
+If we sum the total maximum steps mathematically:
+`N/4 * 1 + N/8 * 2 + N/16 * 3 + ...`
+This series converges to exactly **`O(N)`**. 
+
+Thus, transforming an arbitrary array in-place into a heap is extremely efficient.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Heapify & Build Heap O(N)
-#include <iostream>
-#include <vector>
-#include <queue>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // priority_queue<int> maxHeap;
-        // priority_queue<int, vector<int>, greater<int>> minHeap;
+    void heapify(vector<int>& arr, int n, int i) {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+
+        if (left < n && arr[left] > arr[largest])
+            largest = left;
+
+        if (right < n && arr[right] > arr[largest])
+            largest = right;
+
+        if (largest != i) {
+            swap(arr[i], arr[largest]);
+            heapify(arr, n, largest);
+        }
+    }
+
+    void buildHeap(vector<int>& arr) {
+        int n = arr.size();
+        // Start from the last non-leaf node and move up to the root
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(arr, n, i);
+        }
     }
 };"
-  java="// Java implementation for Heapify & Build Heap O(N)
-import java.util.*;
+  java="class Solution {
+    public void heapify(int[] arr, int n, int i) {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
 
-class Solution {
-    public void solve(int[] arr) {
-        // PriorityQueue<Integer> minHeap = new PriorityQueue<>();
-        // PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+        if (left < n && arr[left] > arr[largest])
+            largest = left;
+
+        if (right < n && arr[right] > arr[largest])
+            largest = right;
+
+        if (largest != i) {
+            int temp = arr[i];
+            arr[i] = arr[largest];
+            arr[largest] = temp;
+            heapify(arr, n, largest);
+        }
+    }
+
+    public void buildHeap(int[] arr) {
+        int n = arr.length;
+        // Start from the last non-leaf node and move up to the root
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(arr, n, i);
+        }
     }
 }"
-  python="# Python implementation for Heapify & Build Heap O(N)
-import heapq
+  python="class Solution:
+    def heapify(self, arr: list[int], n: int, i: int):
+        largest = i
+        left = 2 * i + 1
+        right = 2 * i + 2
 
-class Solution:
-    def solve(self, arr: list[int]):
-        # heapq.heapify(arr)  # Min-heap by default
-        pass"
+        if left < n and arr[left] > arr[largest]:
+            largest = left
+
+        if right < n and arr[right] > arr[largest]:
+            largest = right
+
+        if largest != i:
+            arr[i], arr[largest] = arr[largest], arr[i]
+            self.heapify(arr, n, largest)
+
+    def buildHeap(self, arr: list[int]):
+        n = len(arr)
+        # Start from the last non-leaf node and move up to the root
+        for i in range(n // 2 - 1, -1, -1):
+            self.heapify(arr, n, i)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
-  space="O(N)"
-  description="Peeking at the top element is O(1). Popping or Pushing an element takes O(log N) time because the heap must bubble up or sift down to maintain its properties. Building a heap from an unsorted array takes O(N) time."
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(log N)"
+  description="Building the heap iteratively backwards is O(N) time complexity. The recursion stack for heapify uses O(log N) auxiliary space."
 />
 
 # Common Pitfalls
 <Warning>
-- **Python's heapq:** Python only has a built-in Min-Heap. To simulate a Max-Heap, you must negate all numbers before pushing them in, and negate them again when popping out!
-- **N log N vs N log K:** When finding the Top K elements, do NOT push all N elements into the heap (O(N log N)). Instead, keep the heap size capped at K. When size > K, pop the smallest element. This reduces time complexity to O(N log K).
+- Using `N log N` insertion method instead of the `O(N)` build heap method when initializing a heap from a given array.
+- Standard libraries abstract this away (e.g., `heapq.heapify(arr)` in Python, or passing a vector to the `priority_queue` constructor in C++). Make sure you leverage these standard functions in an interview unless asked to implement them manually.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Kth Largest', 'Kth Smallest', or 'Top K' of anything, it is a 99% guarantee that a Heap/Priority Queue is the intended solution.",
-    "If you need to merge multiple sorted arrays or linked lists simultaneously, a Min-Heap keeping track of the current pointers is the most optimal approach.",
-    "The 'Find Median from Data Stream' problem is a classic hard interview question solved beautifully by maintaining two separate heaps: one Max-Heap for the lower half, and one Min-Heap for the upper half."
+    "If an interviewer asks you the time complexity of building a heap, state clearly that inserting N elements one-by-one is O(N log N), but the bottom-up build process is O(N).",
+    "In C++, `priority_queue<int> pq(arr.begin(), arr.end());` executes the O(N) build heap algorithm internally."
   ]}
 />

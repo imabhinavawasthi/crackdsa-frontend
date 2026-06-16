@@ -11,55 +11,142 @@ summary: "An essential guide to Doubly Linked List, exploring its applications, 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Doubly Linked List**. This topic is a cornerstone of the Linked List module. Understanding it thoroughly will significantly improve your problem-solving speed.
+A **Doubly Linked List** extends the standard Singly Linked List by adding a second pointer, `prev`, which points to the previous node in the sequence. 
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+This simple addition unlocks a massive performance benefit: **Bidirectional Traversal**. In a singly linked list, deleting a node given only its reference takes $O(N)$ time because you must start from the head to find its preceding node. In a doubly linked list, deletion is purely $O(1)$ because the node itself already knows its predecessor.
+
+**Design Pattern: Sentinel Nodes (Dummy Head & Tail)**
+Implementing a Doubly Linked List from scratch is notoriously prone to edge cases (e.g., adding to an empty list, removing the last item). By explicitly instantiating a dummy `head` and a dummy `tail` node right at the start, and connecting them (`head <-> tail`), you ensure that every real data node will always be sandwiched between two existing nodes. This completely eliminates null-pointer exceptions and simplifies the insertion/deletion logic.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Doubly Linked List
-#include <iostream>
-using namespace std;
+  cpp="class MyLinkedList {
+private:
+    struct Node {
+        int val;
+        Node* prev;
+        Node* next;
+        Node(int v) : val(v), prev(nullptr), next(nullptr) {}
+    };
+    Node* head;
+    Node* tail;
 
-class Solution {
 public:
-    void solve() {
-        // Implementation here
+    MyLinkedList() {
+        head = new Node(-1);
+        tail = new Node(-1);
+        head->next = tail;
+        tail->prev = head;
+    }
+    
+    void addNode(Node* prevNode, int val) {
+        Node* newNode = new Node(val);
+        Node* nextNode = prevNode->next;
+        
+        newNode->prev = prevNode;
+        newNode->next = nextNode;
+        
+        prevNode->next = newNode;
+        nextNode->prev = newNode;
+    }
+    
+    void deleteNode(Node* node) {
+        Node* prevNode = node->prev;
+        Node* nextNode = node->next;
+        
+        prevNode->next = nextNode;
+        nextNode->prev = prevNode;
+        
+        delete node; // Clean up memory in C++
     }
 };"
-  java="// Java implementation for Doubly Linked List
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class MyLinkedList {
+    class Node {
+        int val;
+        Node prev;
+        Node next;
+        public Node(int val) { this.val = val; }
+    }
+    
+    Node head, tail;
+    
+    public MyLinkedList() {
+        head = new Node(-1);
+        tail = new Node(-1);
+        head.next = tail;
+        tail.prev = head;
+    }
+    
+    public void addNode(Node prevNode, int val) {
+        Node newNode = new Node(val);
+        Node nextNode = prevNode.next;
+        
+        newNode.prev = prevNode;
+        newNode.next = nextNode;
+        
+        prevNode.next = newNode;
+        nextNode.prev = newNode;
+    }
+    
+    public void deleteNode(Node node) {
+        Node prevNode = node.prev;
+        Node nextNode = node.next;
+        
+        prevNode.next = nextNode;
+        nextNode.prev = prevNode;
     }
 }"
-  python="# Python implementation for Doubly Linked List
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Node:
+    def __init__(self, val: int):
+        self.val = val
+        self.prev = None
+        self.next = None
+
+class MyLinkedList:
+    def __init__(self):
+        self.head = Node(-1)
+        self.tail = Node(-1)
+        self.head.next = self.tail
+        self.tail.prev = self.head
+
+    def addNode(self, prevNode: Node, val: int) -> None:
+        newNode = Node(val)
+        nextNode = prevNode.next
+        
+        newNode.prev = prevNode
+        newNode.next = nextNode
+        
+        prevNode.next = newNode
+        nextNode.prev = newNode
+
+    def deleteNode(self, node: Node) -> None:
+        prevNode = node.prev
+        nextNode = node.next
+        
+        prevNode.next = nextNode
+        nextNode.prev = prevNode"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  average="O(1)"
+  worst="O(1)"
+  space="O(N)"
+  description="Insertion and Deletion strictly take O(1) time since pointers are updated instantly without looping. Search and indexing still require O(N) time. The overall space complexity is O(N) to store the actual nodes, though each node requires slightly more memory to hold the extra prev pointer."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Pointer Update Ordering:** When adding a new node, ALWAYS wire the new node's pointers (`newNode.next`, `newNode.prev`) first, before modifying the surrounding nodes. If you break the existing chain too early, you lose your references!
+- **Garbage Collection:** In languages without garbage collection (like C++), deleting a node requires explicitly calling `delete node` to prevent memory leaks.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Doubly Linked Lists form the backbone of the notorious LRU (Least Recently Used) Cache problem. Understanding O(1) addition/removal here makes LRU Cache a breeze.",
+    "Always initialize a `dummy head` and `dummy tail`. It is the mark of a seasoned engineer and completely eradicates 90% of edge-case bugs.",
+    "Draw boxes and arrows when coding this in an interview. Visualizing `prev` and `next` prevents disastrous pointer tangles."
   ]}
 />

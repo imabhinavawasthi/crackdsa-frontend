@@ -11,57 +11,91 @@ summary: "An essential guide to Static vs Dynamic Arrays, exploring its applicat
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Static vs Dynamic Arrays**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+The primary limitation of a standard **Static Array** is its fixed size. When you declare an array of size 10, it can only ever hold 10 elements. If you need an 11th, you are out of luck.
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+### Dynamic Arrays
+To solve this, languages provide **Dynamic Arrays** (`std::vector` in C++, `ArrayList` in Java, `list` in Python). A dynamic array resizes itself automatically as you add elements to it.
+
+### How Resizing Works (Capacity vs Size)
+A dynamic array manages two variables under the hood:
+- **Size:** The number of elements currently stored by the user.
+- **Capacity:** The actual amount of memory allocated behind the scenes.
+
+When you push an element and `Size == Capacity`, the dynamic array:
+1. Allocates a **brand new array** in memory with double the capacity (`2 * Capacity`).
+2. Copies all existing elements from the old array to the new one.
+3. Deallocates the old array.
+4. Appends the new element.
+
+This reallocation is a heavy $O(N)$ operation, but because we double the capacity, it happens infrequently. As a result, the **amortized (average) time complexity** of appending an element remains $O(1)$.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Static vs Dynamic Arrays
+  cpp={`// C++ Vector (Dynamic Array) Demonstration
 #include <iostream>
 #include <vector>
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    void demonstrateVector() {
+        vector<int> arr;
+        cout << "Initial Capacity: " << arr.capacity() << endl;
+        
+        for (int i = 0; i < 5; i++) {
+            arr.push_back(i);
+            cout << "Size: " << arr.size() 
+                 << ", Capacity: " << arr.capacity() << endl;
+        }
     }
-};"
-  java="// Java implementation for Static vs Dynamic Arrays
+};`}
+  java={`// Java ArrayList (Dynamic Array) Demonstration
+import java.util.ArrayList;
+
 class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    public void demonstrateArrayList() {
+        // Initial capacity is generally 10
+        ArrayList<Integer> arr = new ArrayList<>();
+        
+        for (int i = 0; i < 5; i++) {
+            arr.add(i);
+            System.out.println("Size: " + arr.size());
+            // Java doesn't expose capacity directly
+        }
     }
-}"
-  python="# Python implementation for Static vs Dynamic Arrays
+}`}
+  python={`# Python List (Dynamic Array) Demonstration
+import sys
+
 class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def demonstrate_list(self):
+        arr = []
+        for i in range(5):
+            arr.append(i)
+            # getsizeof shows underlying allocated memory size
+            print(f"Size: {len(arr)}, Bytes: {sys.getsizeof(arr)}")`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
+  best="O(1)"
+  average="O(1)"
   worst="O(N)"
-  space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  space="O(N)"
+  description="Appending an element is O(1) best and amortized time. The worst case is O(N) when a resize is triggered, requiring all N elements to be copied. Space complexity is O(N)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Reallocation Overhead:** If you know exactly how many elements you will insert, dynamically resizing multiple times wastes CPU cycles.
+- **Pointer Invalidation:** In C++, reallocating a vector changes its base memory address. Any iterators or pointers pointing to old elements instantly become invalid and will cause crashes.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "If an array size is unknown at compile-time, always use a dynamic array.",
+    "To optimize performance in competitive programming, explicitly set the initial capacity using reserve() in C++ or the ArrayList(capacity) constructor in Java to avoid dynamic resizing overhead.",
+    "Understand 'Amortized Time Complexity'. Interviewers love to ask why appending to a dynamic array is O(1) even though it sometimes takes O(N) to resize."
   ]}
 />

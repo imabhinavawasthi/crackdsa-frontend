@@ -11,58 +11,189 @@ summary: "An essential guide to Strongly Connected Components (Kosaraju's), expl
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Strongly Connected Components (Kosaraju's)**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+A **Strongly Connected Component (SCC)** is a portion of a directed graph where every node can reach every other node within that component. In an undirected graph, connected components are trivial to find, but in directed graphs, a path from $A$ to $B$ does not guarantee a path from $B$ to $A$.
 
-### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+**Kosaraju's Algorithm** is an elegant two-pass Depth First Search (DFS) approach to finding all SCCs in $O(V+E)$ time:
+1. **First Pass:** Perform DFS on the original graph. As recursive calls finish, push the nodes onto a stack. This effectively sorts the nodes by their "finish times" (similar to topological sorting).
+2. **Reverse the Graph:** Transpose the graph by reversing the direction of all edges.
+3. **Second Pass:** Pop nodes from the stack. For each unvisited node, perform a DFS on the transposed graph. All nodes reachable in this DFS form a single Strongly Connected Component.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Strongly Connected Components (Kosaraju's)
-#include <iostream>
-#include <vector>
-using namespace std;
+  cpp={`class Solution {
+private:
+    void dfs1(int node, vector<int> adj[], vector<bool>& visited, stack<int>& st) {
+        visited[node] = true;
+        for (auto it : adj[node]) {
+            if (!visited[it]) {
+                dfs1(it, adj, visited, st);
+            }
+        }
+        st.push(node);
+    }
+    
+    void dfs2(int node, vector<int> adjRev[], vector<bool>& visited, vector<int>& scc) {
+        visited[node] = true;
+        scc.push_back(node);
+        for (auto it : adjRev[node]) {
+            if (!visited[it]) {
+                dfs2(it, adjRev, visited, scc);
+            }
+        }
+    }
 
-class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int kosaraju(int V, vector<int> adj[]) {
+        vector<bool> visited(V, false);
+        stack<int> st;
+        
+        // Step 1: Store nodes by finish time
+        for (int i = 0; i < V; i++) {
+            if (!visited[i]) {
+                dfs1(i, adj, visited, st);
+            }
+        }
+        
+        // Step 2: Reverse the graph
+        vector<int> adjRev[V];
+        for (int i = 0; i < V; i++) {
+            visited[i] = false; // Reset visited array
+            for (auto it : adj[i]) {
+                adjRev[it].push_back(i); // Reverse the edge
+            }
+        }
+        
+        // Step 3: DFS on reversed graph in stack order
+        int sccCount = 0;
+        while (!st.empty()) {
+            int node = st.top();
+            st.pop();
+            
+            if (!visited[node]) {
+                sccCount++;
+                vector<int> scc;
+                dfs2(node, adjRev, visited, scc);
+                // Print or store the component 'scc' if needed
+            }
+        }
+        return sccCount;
     }
-};"
-  java="// Java implementation for Strongly Connected Components (Kosaraju's)
-import java.util.*;
+};`}
+  java={`class Solution {
+    private void dfs1(int node, ArrayList<ArrayList<Integer>> adj, boolean[] visited, Stack<Integer> st) {
+        visited[node] = true;
+        for (Integer it : adj.get(node)) {
+            if (!visited[it]) {
+                dfs1(it, adj, visited, st);
+            }
+        }
+        st.push(node);
+    }
 
-class Solution {
-    public void solve() {
-        // Implementation here
+    private void dfs2(int node, ArrayList<ArrayList<Integer>> adjRev, boolean[] visited) {
+        visited[node] = true;
+        for (Integer it : adjRev.get(node)) {
+            if (!visited[it]) {
+                dfs2(it, adjRev, visited);
+            }
+        }
     }
-}"
-  python="# Python implementation for Strongly Connected Components (Kosaraju's)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+
+    public int kosaraju(int V, ArrayList<ArrayList<Integer>> adj) {
+        boolean[] visited = new boolean[V];
+        Stack<Integer> st = new Stack<>();
+        
+        // Step 1: Store nodes by finish time
+        for (int i = 0; i < V; i++) {
+            if (!visited[i]) {
+                dfs1(i, adj, visited, st);
+            }
+        }
+        
+        // Step 2: Reverse the graph
+        ArrayList<ArrayList<Integer>> adjRev = new ArrayList<>();
+        for (int i = 0; i < V; i++) {
+            adjRev.add(new ArrayList<Integer>());
+        }
+        for (int i = 0; i < V; i++) {
+            visited[i] = false; // Reset visited array
+            for (Integer it : adj.get(i)) {
+                adjRev.get(it).add(i); // Reverse the edge
+            }
+        }
+        
+        // Step 3: DFS on reversed graph in stack order
+        int sccCount = 0;
+        while (!st.isEmpty()) {
+            int node = st.pop();
+            if (!visited[node]) {
+                sccCount++;
+                dfs2(node, adjRev, visited);
+            }
+        }
+        return sccCount;
+    }
+}`}
+  python={`class Solution:
+    def kosaraju(self, V: int, adj: list[list[int]]) -> int:
+        visited = [False] * V
+        stack = []
+        
+        def dfs1(node):
+            visited[node] = True
+            for neighbor in adj[node]:
+                if not visited[neighbor]:
+                    dfs1(neighbor)
+            stack.append(node)
+            
+        def dfs2(node, adjRev):
+            visited[node] = True
+            for neighbor in adjRev[node]:
+                if not visited[neighbor]:
+                    dfs2(neighbor, adjRev)
+                    
+        # Step 1: Store nodes by finish time
+        for i in range(V):
+            if not visited[i]:
+                dfs1(i)
+                
+        # Step 2: Reverse the graph
+        adjRev = [[] for _ in range(V)]
+        for i in range(V):
+            visited[i] = False # Reset visited array
+            for neighbor in adj[i]:
+                adjRev[neighbor].append(i)
+                
+        # Step 3: DFS on reversed graph in stack order
+        sccCount = 0
+        while stack:
+            node = stack.pop()
+            if not visited[node]:
+                sccCount += 1
+                dfs2(node, adjRev)
+                
+        return sccCount`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(E log V)"
-  average="O(E log V)"
-  worst="O(E log V)"
+  best="O(V + E)"
+  average="O(V + E)"
+  worst="O(V + E)"
   space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  description="The algorithm consists of two DFS passes, each taking O(V+E). Transposing the graph takes O(V+E). Storing the reversed graph demands O(V+E) auxiliary space."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Resetting `visited` Array:** Do not forget to clear or reinitialize the `visited` array before starting the second DFS pass.
+- **Pushing to Stack:** The node must be pushed to the stack *after* all its neighbors are visited (post-order traversal), not before.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "If the interviewer restricts modifying the graph or asks for a one-pass algorithm, mention Tarjan's SCC algorithm.",
+    "Be prepared to answer why reversing the graph works. (It maintains the internal connectivity of SCCs while destroying the forward connections between different SCCs)."
   ]}
 />

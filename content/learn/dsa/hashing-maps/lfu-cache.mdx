@@ -11,60 +11,258 @@ summary: "An essential guide to LFU Cache, mastering O(1) lookup times and crack
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **LFU Cache**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
+The Least Frequently Used (LFU) Cache is a more advanced caching mechanism than LRU. When the cache is full, it evicts the item that has been used the least number of times. If there is a tie (multiple items have the same lowest frequency), it evicts the one that is Least Recently Used among them.
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+Achieving $O(1)$ operations for LFU requires a complex orchestration of data structures:
+1. **Key-Node Map**: A hash map mapping keys to their node objects (holding key, value, and frequency).
+2. **Frequency-List Map**: A hash map mapping a frequency count to a Doubly Linked List of nodes that have that frequency. This list naturally acts as an LRU queue for that frequency.
+3. **Minimum Frequency Variable**: An integer tracking the current lowest frequency, so we know which list to evict from when the cache is full in $O(1)$ time.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for LFU Cache
-#include <iostream>
-#include <unordered_map>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class LFUCache {
+    struct Node {
+        int key, val, freq;
+        Node(int k, int v) : key(k), val(v), freq(1) {}
+    };
+    
+    int capacity;
+    int minFreq;
+    unordered_map<int, Node*> keyNode;
+    unordered_map<int, list<Node*>> freqList;
+    unordered_map<int, list<Node*>::iterator> nodeIter;
+    
+    void updateFreq(Node* node) {
+        int f = node->freq;
+        freqList[f].erase(nodeIter[node->key]);
+        if (freqList[f].empty() && minFreq == f) {
+            minFreq++;
+        }
+        node->freq++;
+        freqList[node->freq].push_front(node);
+        nodeIter[node->key] = freqList[node->freq].begin();
+    }
+    
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    LFUCache(int cap) : capacity(cap), minFreq(0) {}
+    
+    int get(int key) {
+        if (capacity == 0 || keyNode.find(key) == keyNode.end()) return -1;
+        Node* node = keyNode[key];
+        updateFreq(node);
+        return node->val;
+    }
+    
+    void put(int key, int value) {
+        if (capacity == 0) return;
+        
+        if (keyNode.find(key) != keyNode.end()) {
+            Node* node = keyNode[key];
+            node->val = value;
+            updateFreq(node);
+        } else {
+            if (keyNode.size() == capacity) {
+                Node* evict = freqList[minFreq].back();
+                keyNode.erase(evict->key);
+                nodeIter.erase(evict->key);
+                freqList[minFreq].pop_back();
+                delete evict;
+            }
+            Node* newNode = new Node(key, value);
+            keyNode[key] = newNode;
+            minFreq = 1;
+            freqList[1].push_front(newNode);
+            nodeIter[key] = freqList[1].begin();
+        }
     }
 };"
-  java="// Java implementation for LFU Cache
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class LFUCache {
+    class Node {
+        int key, val, freq;
+        Node prev, next;
+        Node(int k, int v) { key = k; val = v; freq = 1; }
+    }
+    
+    class DoublyLinkedList {
+        Node head, tail;
+        int size;
+        DoublyLinkedList() {
+            head = new Node(0, 0);
+            tail = new Node(0, 0);
+            head.next = tail;
+            tail.prev = head;
+            size = 0;
+        }
+        void addFirst(Node node) {
+            node.next = head.next;
+            node.prev = head;
+            head.next.prev = node;
+            head.next = node;
+            size++;
+        }
+        void remove(Node node) {
+            node.prev.next = node.next;
+            node.next.prev = node.prev;
+            size--;
+        }
+        Node removeLast() {
+            if (size > 0) {
+                Node tailNode = tail.prev;
+                remove(tailNode);
+                return tailNode;
+            }
+            return null;
+        }
+    }
+    
+    private int capacity, minFreq;
+    private Map<Integer, Node> keyNode;
+    private Map<Integer, DoublyLinkedList> freqList;
+    
+    public LFUCache(int capacity) {
+        this.capacity = capacity;
+        this.minFreq = 0;
+        keyNode = new HashMap<>();
+        freqList = new HashMap<>();
+    }
+    
+    private void updateFreq(Node node) {
+        int freq = node.freq;
+        DoublyLinkedList dll = freqList.get(freq);
+        dll.remove(node);
+        if (freq == minFreq && dll.size == 0) {
+            minFreq++;
+        }
+        node.freq++;
+        freqList.computeIfAbsent(node.freq, k -> new DoublyLinkedList()).addFirst(node);
+    }
+    
+    public int get(int key) {
+        if (!keyNode.containsKey(key)) return -1;
+        Node node = keyNode.get(key);
+        updateFreq(node);
+        return node.val;
+    }
+    
+    public void put(int key, int value) {
+        if (capacity == 0) return;
+        if (keyNode.containsKey(key)) {
+            Node node = keyNode.get(key);
+            node.val = value;
+            updateFreq(node);
+        } else {
+            if (keyNode.size() == capacity) {
+                DoublyLinkedList dll = freqList.get(minFreq);
+                Node evict = dll.removeLast();
+                keyNode.remove(evict.key);
+            }
+            Node newNode = new Node(key, value);
+            keyNode.put(key, newNode);
+            minFreq = 1;
+            freqList.computeIfAbsent(1, k -> new DoublyLinkedList()).addFirst(newNode);
+        }
     }
 }"
-  python="# Python implementation for LFU Cache
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="from collections import defaultdict
+
+class Node:
+    def __init__(self, key=0, val=0):
+        self.key = key
+        self.val = val
+        self.freq = 1
+        self.prev = None
+        self.next = None
+
+class DoublyLinkedList:
+    def __init__(self):
+        self.head = Node()
+        self.tail = Node()
+        self.head.next = self.tail
+        self.tail.prev = self.head
+        self.size = 0
+
+    def add_first(self, node: Node):
+        node.next = self.head.next
+        node.prev = self.head
+        self.head.next.prev = node
+        self.head.next = node
+        self.size += 1
+
+    def remove(self, node: Node):
+        node.prev.next = node.next
+        node.next.prev = node.prev
+        self.size -= 1
+
+    def remove_last(self) -> Node:
+        if self.size > 0:
+            node = self.tail.prev
+            self.remove(node)
+            return node
+        return None
+
+class LFUCache:
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.min_freq = 0
+        self.key_node = {}
+        self.freq_list = defaultdict(DoublyLinkedList)
+
+    def _update_freq(self, node: Node):
+        freq = node.freq
+        dll = self.freq_list[freq]
+        dll.remove(node)
+        if freq == self.min_freq and dll.size == 0:
+            self.min_freq += 1
+        node.freq += 1
+        self.freq_list[node.freq].add_first(node)
+
+    def get(self, key: int) -> int:
+        if key not in self.key_node:
+            return -1
+        node = self.key_node[key]
+        self._update_freq(node)
+        return node.val
+
+    def put(self, key: int, value: int) -> None:
+        if self.capacity == 0:
+            return
+        if key in self.key_node:
+            node = self.key_node[key]
+            node.val = value
+            self._update_freq(node)
+        else:
+            if len(self.key_node) == self.capacity:
+                dll = self.freq_list[self.min_freq]
+                evict = dll.remove_last()
+                del self.key_node[evict.key]
+            
+            new_node = Node(key, value)
+            self.key_node[key] = new_node
+            self.min_freq = 1
+            self.freq_list[1].add_first(new_node)"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
   average="O(1)"
-  worst="O(N)"
-  space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  worst="O(1)"
+  space="O(K)"
+  description="All get and put operations execute in strictly O(1) time. The space complexity is O(K), where K is the cache capacity, utilized by the hash maps and linked list nodes."
 />
 
 # Common Pitfalls
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- Forgetting to handle the edge case where `capacity == 0`. An LFU cache with 0 capacity should reject all `put` requests immediately.
+- Failing to properly update `minFreq`. `minFreq` should only be incremented if the list representing the current `minFreq` becomes empty and the node being updated *was* the last node with `minFreq`.
+- Resetting `minFreq` incorrectly. When a brand new item is inserted, `minFreq` MUST be reset to 1.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "LFU Cache is one of the hardest design questions often asked at top tech companies. Take your time to clearly map out the data structures before writing code.",
+    "Explain clearly why you need a Doubly Linked List inside the frequency map: to act as an LRU resolver for nodes sharing the exact same frequency.",
+    "Break the code into helper functions like `updateFreq`, `addFirst`, and `remove`. A monolithic `get` or `put` function will quickly become unreadable and buggy."
   ]}
 />

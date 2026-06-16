@@ -11,34 +11,51 @@ summary: "An essential guide to Linear Search, exploring its applications, imple
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Linear Search**. This topic is a cornerstone of the Searching & Binary Search module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Linear Search is the most fundamental search algorithm. It sequentially checks each element of the list until a match is found or the whole list has been searched. While not the most efficient algorithm for large datasets, its simplicity makes it a crucial building block, and it's the only option when searching through unordered data.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+The algorithm works by iterating through an array from the first index to the last. At each step, it compares the current element with the target value. If they match, it returns the current index. If the loop completes without finding a match, it indicates that the target is not in the array (usually by returning `-1`).
+
+### When to use Linear Search
+- The dataset is small.
+- The dataset is unsorted or unordered.
+- You need to find all occurrences of an element, not just the first one.
+- You are searching through a linked list where random access is not possible.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Linear Search
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int linearSearch(vector<int>& arr, int target) {
+        // Iterate through each element in the array
+        for (int i = 0; i < arr.size(); i++) {
+            // Check if the current element matches the target
+            if (arr[i] == target) {
+                return i; // Return the index if found
+            }
+        }
+        return -1; // Target not found
     }
 };"
-  java="// Java implementation for Linear Search
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int linearSearch(int[] arr, int target) {
+        // Iterate through each element in the array
+        for (int i = 0; i < arr.length; i++) {
+            // Check if the current element matches the target
+            if (arr[i] == target) {
+                return i; // Return the index if found
+            }
+        }
+        return -1; // Target not found
     }
 }"
-  python="# Python implementation for Linear Search
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def linear_search(self, arr: list[int], target: int) -> int:
+        # Iterate through each element with its index
+        for i in range(len(arr)):
+            # Check if the current element matches the target
+            if arr[i] == target:
+                return i # Return the index if found
+        return -1 # Target not found"
 />
 
 # Complexity Analysis
@@ -47,19 +64,21 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="The best case occurs when the target is the first element. The worst case occurs when the target is the last element or not present at all. The space complexity is O(1) as no extra space is required."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Confusing the element's value with its index when returning the result.
+- Causing an `IndexOutOfBounds` exception by using `<= length` instead of `< length` in the loop condition.
+- Prematurely returning `-1` inside the loop instead of outside after the loop finishes.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Always clarify if the array is sorted. If it is, immediately mention Binary Search as an optimization.",
+    "Be mindful of the return type. Sometimes interviewers want a boolean, sometimes the index, and sometimes the actual element.",
+    "For strings, mention that a linear search is still required to find a character unless the string is sorted."
   ]}
 />

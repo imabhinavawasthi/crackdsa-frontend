@@ -11,60 +11,258 @@ summary: "An essential guide to Design a HashMap, mastering O(1) lookup times an
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Design a HashMap**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+"Design a HashMap" is a classic, high-frequency interview question that tests whether you understand how standard library data structures work underneath. You cannot use built-in Hash structures here.
+
+### Approach: Array of Linked Lists (Separate Chaining)
+
+The most standard and robust way to design a HashMap in an interview is using **Separate Chaining**. 
+1. **Bucket Array:** We maintain an array of a fixed size (e.g., 1000 or 10000). 
+2. **Nodes:** Each slot (bucket) in the array will hold a pointer to a Linked List node.
+3. **Hash Function:** The hash function maps a `key` to an array index: `index = key % ARRAY_SIZE`.
+4. **Operations:**
+   - `put(key, value)`: Find the index. Traverse the linked list. If the key exists, update its value. If it doesn't exist, append a new Node.
+   - `get(key)`: Find the index. Traverse the linked list. If found, return the value. If not, return -1.
+   - `remove(key)`: Find the index. Traverse the linked list keeping track of a `prev` pointer to safely delete the target node.
+
+### Why not Open Addressing?
+While open addressing (linear probing) is valid, writing the deletion logic for linear probing in a 45-minute interview is notoriously difficult because you must implement "tombstones" (dummy deleted markers) to keep search chains intact. Separate chaining is vastly easier to code flawlessly.
+
+---
 
 # Code Implementation
+
+Here is the implementation of a Custom HashMap using Separate Chaining.
+
 <CodeBlock
-  cpp="// C++ implementation for Design a HashMap
+  cpp="```cpp
 #include <iostream>
-#include <unordered_map>
 #include <vector>
+
 using namespace std;
 
-class Solution {
-public:
-    void solve(vector<int>& arr) {
-        // Implementation here
-    }
-};"
-  java="// Java implementation for Design a HashMap
-import java.util.*;
+struct Node {
+    int key, val;
+    Node* next;
+    Node(int k, int v) : key(k), val(v), next(nullptr) {}
+};
 
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+class MyHashMap {
+private:
+    vector<Node*> buckets;
+    int size = 10000;
+    
+    int getHash(int key) {
+        return key % size;
     }
-}"
-  python="# Python implementation for Design a HashMap
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    
+public:
+    MyHashMap() {
+        buckets.resize(size, nullptr);
+    }
+    
+    void put(int key, int value) {
+        int idx = getHash(key);
+        Node* head = buckets[idx];
+        
+        // Check if key already exists to update
+        Node* curr = head;
+        while (curr) {
+            if (curr->key == key) {
+                curr->val = value;
+                return;
+            }
+            curr = curr->next;
+        }
+        
+        // Insert new node at head
+        Node* newNode = new Node(key, value);
+        newNode->next = head;
+        buckets[idx] = newNode;
+    }
+    
+    int get(int key) {
+        int idx = getHash(key);
+        Node* curr = buckets[idx];
+        
+        while (curr) {
+            if (curr->key == key) return curr->val;
+            curr = curr->next;
+        }
+        return -1;
+    }
+    
+    void remove(int key) {
+        int idx = getHash(key);
+        Node* curr = buckets[idx];
+        Node* prev = nullptr;
+        
+        while (curr) {
+            if (curr->key == key) {
+                if (prev) prev->next = curr->next;
+                else buckets[idx] = curr->next;
+                delete curr;
+                return;
+            }
+            prev = curr;
+            curr = curr->next;
+        }
+    }
+};
+```"
+  java="```java
+class MyHashMap {
+    class Node {
+        int key, val;
+        Node next;
+        Node(int k, int v) {
+            key = k;
+            val = v;
+        }
+    }
+    
+    private final int SIZE = 10000;
+    private Node[] buckets;
+    
+    public MyHashMap() {
+        buckets = new Node[SIZE];
+    }
+    
+    private int getHash(int key) {
+        return key % SIZE;
+    }
+    
+    public void put(int key, int value) {
+        int idx = getHash(key);
+        Node head = buckets[idx];
+        
+        Node curr = head;
+        while (curr != null) {
+            if (curr.key == key) {
+                curr.val = value;
+                return;
+            }
+            curr = curr.next;
+        }
+        
+        Node newNode = new Node(key, value);
+        newNode.next = head;
+        buckets[idx] = newNode;
+    }
+    
+    public int get(int key) {
+        int idx = getHash(key);
+        Node curr = buckets[idx];
+        
+        while (curr != null) {
+            if (curr.key == key) return curr.val;
+            curr = curr.next;
+        }
+        return -1;
+    }
+    
+    public void remove(int key) {
+        int idx = getHash(key);
+        Node curr = buckets[idx];
+        Node prev = null;
+        
+        while (curr != null) {
+            if (curr.key == key) {
+                if (prev != null) prev.next = curr.next;
+                else buckets[idx] = curr.next;
+                return;
+            }
+            prev = curr;
+            curr = curr.next;
+        }
+    }
+}
+```"
+  python="```python
+class Node:
+    def __init__(self, key: int, val: int):
+        self.key = key
+        self.val = val
+        self.next = None
+
+class MyHashMap:
+    def __init__(self):
+        self.size = 10000
+        self.buckets = [None] * self.size
+
+    def _hash(self, key: int) -> int:
+        return key % self.size
+
+    def put(self, key: int, value: int) -> None:
+        idx = self._hash(key)
+        curr = self.buckets[idx]
+        
+        while curr:
+            if curr.key == key:
+                curr.val = value
+                return
+            curr = curr.next
+            
+        new_node = Node(key, value)
+        new_node.next = self.buckets[idx]
+        self.buckets[idx] = new_node
+
+    def get(self, key: int) -> int:
+        idx = self._hash(key)
+        curr = self.buckets[idx]
+        
+        while curr:
+            if curr.key == key:
+                return curr.val
+            curr = curr.next
+        return -1
+
+    def remove(self, key: int) -> None:
+        idx = self._hash(key)
+        curr = self.buckets[idx]
+        prev = None
+        
+        while curr:
+            if curr.key == key:
+                if prev:
+                    prev.next = curr.next
+                else:
+                    self.buckets[idx] = curr.next
+                return
+            prev = curr
+            curr = curr.next
+```"
 />
 
+---
+
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
   average="O(1)"
   worst="O(N)"
-  space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  space="O(K + N)"
+  description="Time complexity for put, get, and remove is O(1) on average. In the worst case (e.g. poor hash function or an adversarial attacker mapping all keys to the same bucket), operations degrade to O(N) where N is the number of keys. Space complexity is O(K + N) where K is the number of buckets and N is the number of nodes."
 />
 
+---
+
 # Common Pitfalls
+
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- **Forgetting to update existing keys:** When calling `put(key, val)`, you must first check if the key already exists in the chain. If it does, update the value. If you don't check, you will insert duplicate keys into the linked list, which breaks `get()`.
+- **Messy Linked List Deletion:** Deleting from a linked list requires a `prev` pointer. Be very careful handling the case where the node to delete is the *head* of the bucket chain!
 </Warning>
 
+---
+
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "Interviewers will ask: 'What happens if we insert millions of elements into an array of size 10000?'. Answer: The linked lists get very long, and performance degrades to O(N).",
+    "Explain that production HashMaps implement 'dynamic resizing' (rehashing). When the Load Factor (items / buckets) exceeds e.g., 0.75, the map doubles the bucket array size and re-inserts all elements.",
+    "Using a prime number for the bucket array size is preferred to minimize modulo-based collisions."
   ]}
 />

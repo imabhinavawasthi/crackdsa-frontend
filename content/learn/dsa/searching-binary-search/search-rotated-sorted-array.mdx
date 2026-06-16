@@ -11,37 +11,112 @@ summary: "An essential guide to Search in Rotated Sorted Array, mastering O(log 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Search in Rotated Sorted Array**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+A Rotated Sorted Array is an array that was initially sorted in ascending order, but then shifted cyclically by some unknown number of positions. For example, `[0,1,2,4,5,6,7]` might become `[4,5,6,7,0,1,2]`.
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+The challenge is to find a target value in this array in O(log N) time. Standard binary search fails because the entire array isn't monotonically increasing.
+
+### The "One Sorted Half" Rule
+The beautiful property of a rotated sorted array is this: **if you pick any middle index, at least one half of the array (either left to mid, or mid to right) will ALWAYS be perfectly sorted.**
+
+To solve this, we:
+1. Find the mid-point.
+2. Check which half is sorted.
+3. Check if our target falls strictly within the bounds of the sorted half.
+4. If it does, we binary search in that sorted half. If it doesn't, we know the target *must* be in the other, unsorted half.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Search in Rotated Sorted Array
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int search(vector<int>& nums, int target) {
+        int left = 0, right = nums.size() - 1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] == target) return mid;
+            
+            // Check if the left half is sorted
+            if (nums[left] <= nums[mid]) {
+                // Check if target is strictly within the sorted left half
+                if (target >= nums[left] && target < nums[mid]) {
+                    right = mid - 1; // Target is here
+                } else {
+                    left = mid + 1;  // Target is in the other half
+                }
+            } 
+            // Otherwise, the right half MUST be sorted
+            else {
+                // Check if target is strictly within the sorted right half
+                if (target > nums[mid] && target <= nums[right]) {
+                    left = mid + 1;  // Target is here
+                } else {
+                    right = mid - 1; // Target is in the other half
+                }
+            }
+        }
+        
+        return -1;
     }
 };"
-  java="// Java implementation for Search in Rotated Sorted Array
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int search(int[] nums, int target) {
+        int left = 0, right = nums.length - 1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] == target) return mid;
+            
+            // Check if the left half is sorted
+            if (nums[left] <= nums[mid]) {
+                // Check if target is strictly within the sorted left half
+                if (target >= nums[left] && target < nums[mid]) {
+                    right = mid - 1;
+                } else {
+                    left = mid + 1;
+                }
+            } 
+            // Otherwise, the right half MUST be sorted
+            else {
+                // Check if target is strictly within the sorted right half
+                if (target > nums[mid] && target <= nums[right]) {
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+        }
+        
+        return -1;
     }
 }"
-  python="# Python implementation for Search in Rotated Sorted Array
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def search(self, nums: list[int], target: int) -> int:
+        left, right = 0, len(nums) - 1
+        
+        while left <= right:
+            mid = left + (right - left) // 2
+            
+            if nums[mid] == target:
+                return mid
+                
+            # Check if left half is sorted
+            if nums[left] <= nums[mid]:
+                # Check if target is in the left sorted half
+                if nums[left] <= target < nums[mid]:
+                    right = mid - 1
+                else:
+                    left = mid + 1
+            # Otherwise, right half is sorted
+            else:
+                # Check if target is in the right sorted half
+                if nums[mid] < target <= nums[right]:
+                    left = mid + 1
+                else:
+                    right = mid - 1
+                    
+        return -1"
 />
 
 # Complexity Analysis
@@ -50,19 +125,21 @@ class Solution:
   average="O(log N)"
   worst="O(log N)"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="Time complexity is strictly O(log N) because we discard half of the array at every iteration, regardless of which half is sorted. Space complexity is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- Using `<` instead of `<=` when checking if the left half is sorted (`nums[left] <= nums[mid]`). If `left == mid`, it IS sorted (a single element), and failing to catch this leads to wrong logic.
+- Misunderstanding the target bounds check. You must check `nums[left] <= target < nums[mid]`, not just `target < nums[mid]`.
+- Forgetting that the array could potentially be un-rotated (a fully sorted array), which is just a special case handled perfectly by the `>=` checks.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "This is one of the most frequently asked binary search questions at FAANG companies.",
+    "If the array contains duplicates (e.g., `[3,1,2,3,3,3,3]`), the `nums[left] <= nums[mid]` logic breaks down. Be prepared to explain how to handle duplicates by incrementing `left` and decrementing `right` to skip them, degrading worst-case time to O(N).",
+    "Always trace your code manually with an un-rotated array to ensure edge cases are solid."
   ]}
 />

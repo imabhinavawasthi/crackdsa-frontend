@@ -11,36 +11,39 @@ summary: "An essential guide to Introduction to MST, exploring its applications,
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Introduction to MST**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+A **Spanning Tree** of an undirected, connected graph is a subgraph that includes all the vertices of the original graph but contains no cycles. A graph can have multiple spanning trees.
+
+A **Minimum Spanning Tree (MST)** is a spanning tree whose sum of edge weights is as small as possible. 
 
 ### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+The problem of finding an MST frequently appears in scenarios like designing networks (telecom, electrical, computer networks), where you want to connect all nodes with the minimum total cost.
+The two most prominent algorithms used to find the Minimum Spanning Tree are **Prim's Algorithm** and **Kruskal's Algorithm**.
+
+1. **Prim's Algorithm** builds the MST node by node, starting from an arbitrary node and always picking the smallest edge connecting the growing tree to a new unvisited node.
+2. **Kruskal's Algorithm** builds the MST edge by edge. It sorts all edges by weight and continually adds the smallest edge that does not form a cycle.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Introduction to MST
-#include <iostream>
-#include <vector>
-using namespace std;
-
+  cpp="// No specific implementation for introductory concept. 
+// See Prim's and Kruskal's chapters for detailed code.
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    void mst() {
+        // Conceptual overview
     }
 };"
-  java="// Java implementation for Introduction to MST
-import java.util.*;
-
+  java="// No specific implementation for introductory concept.
+// See Prim's and Kruskal's chapters for detailed code.
 class Solution {
-    public void solve() {
-        // Implementation here
+    public void mst() {
+        // Conceptual overview
     }
 }"
-  python="# Python implementation for Introduction to MST
+  python="# No specific implementation for introductory concept.
+# See Prim's and Kruskal's chapters for detailed code.
 class Solution:
-    def solve(self):
-        # Implementation here
+    def mst(self):
+        # Conceptual overview
         pass"
 />
 
@@ -50,19 +53,20 @@ class Solution:
   average="O(E log V)"
   worst="O(E log V)"
   space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  description="Both Prim's and Kruskal's algorithms can be optimized to run in O(E log V) or O(E log E) time. Space complexity is dominated by storing the graph and Disjoint Set/Priority Queue, which takes O(V + E)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Disconnected Graphs:** If the graph is not connected, an MST cannot exist. You can instead find a Minimum Spanning Forest.
+- **Cycle Detection:** The primary challenge in MST algorithms is avoiding cycles, which requires tools like the Disjoint Set Union (DSU) or marking visited nodes.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "When asked to connect all points with minimum cost, immediately think of Minimum Spanning Tree.",
+    "Prim's algorithm is generally faster for dense graphs, while Kruskal's is better for sparse graphs.",
+    "Familiarize yourself with the Disjoint Set Union (DSU) data structure as it is essential for Kruskal's Algorithm."
   ]}
 />

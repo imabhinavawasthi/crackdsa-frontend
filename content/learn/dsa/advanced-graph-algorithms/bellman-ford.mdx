@@ -11,55 +11,118 @@ summary: "An essential guide to Bellman-Ford, exploring its applications, implem
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Bellman-Ford**. This topic is a cornerstone of the Advanced Graph Algorithms module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Bellman-Ford Algorithm** is a fundamental single-source shortest path algorithm. While Dijkstra's algorithm is faster, Bellman-Ford is more versatile because it handles graphs with **negative edge weights** and can detect **negative weight cycles**.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+The core idea relies on the principle of *Edge Relaxation*. In a graph with `V` vertices, the shortest path between any two nodes can have at most `V - 1` edges. 
+Therefore, if we relax all edges in the graph `V - 1` times, we guarantee that the shortest path distance to all reachable nodes is computed correctly.
+
+If we relax all edges one more time (the `V`-th time) and any distance updates, it strictly implies the presence of a negative weight cycle!
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Bellman-Ford
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    vector<int> bellman_ford(int V, vector<vector<int>>& edges, int S) {
+        vector<int> dist(V, 1e8);
+        dist[S] = 0;
+        
+        // Relax all edges V - 1 times
+        for (int i = 0; i < V - 1; i++) {
+            for (auto& edge : edges) {
+                int u = edge[0];
+                int v = edge[1];
+                int w = edge[2];
+                if (dist[u] != 1e8 && dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                }
+            }
+        }
+        
+        // Check for negative-weight cycles
+        for (auto& edge : edges) {
+            int u = edge[0];
+            int v = edge[1];
+            int w = edge[2];
+            if (dist[u] != 1e8 && dist[u] + w < dist[v]) {
+                return {-1}; // Indicates negative cycle
+            }
+        }
+        
+        return dist;
     }
 };"
-  java="// Java implementation for Bellman-Ford
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    static int[] bellman_ford(int V, ArrayList<ArrayList<Integer>> edges, int S) {
+        int[] dist = new int[V];
+        Arrays.fill(dist, (int)(1e8));
+        dist[S] = 0;
+        
+        // Relax all edges V - 1 times
+        for (int i = 0; i < V - 1; i++) {
+            for (ArrayList<Integer> edge : edges) {
+                int u = edge.get(0);
+                int v = edge.get(1);
+                int w = edge.get(2);
+                if (dist[u] != 1e8 && dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                }
+            }
+        }
+        
+        // Check for negative-weight cycles
+        for (ArrayList<Integer> edge : edges) {
+            int u = edge.get(0);
+            int v = edge.get(1);
+            int w = edge.get(2);
+            if (dist[u] != 1e8 && dist[u] + w < dist[v]) {
+                return new int[]{-1}; // Indicates negative cycle
+            }
+        }
+        
+        return dist;
     }
 }"
-  python="# Python implementation for Bellman-Ford
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def bellman_ford(self, V, edges, S):
+        dist = [int(1e8)] * V
+        dist[S] = 0
+        
+        # Relax all edges V - 1 times
+        for _ in range(V - 1):
+            for u, v, w in edges:
+                if dist[u] != int(1e8) and dist[u] + w < dist[v]:
+                    dist[v] = dist[u] + w
+                    
+        # Check for negative-weight cycles
+        for u, v, w in edges:
+            if dist[u] != int(1e8) and dist[u] + w < dist[v]:
+                return [-1] # Indicates negative cycle
+                
+        return dist"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(V * E)"
+  average="O(V * E)"
+  worst="O(V * E)"
+  space="O(V)"
+  description="The algorithm processes all E edges exactly V - 1 times, leading to a time complexity of O(V * E). The space complexity is O(V) to store the shortest distance array."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Initial Distance Overflow:** Using `Integer.MAX_VALUE` or `INT_MAX` for infinity can cause integer overflow when adding `w` (`dist[u] + w`). Use a sufficiently large number like `1e8` instead.
+- **Invalid Relaxations:** Forgetting to check if `dist[u] != infinity` before attempting to relax the edge `u -> v`. You cannot relax an edge from an unreachable node!
+- **Not Checking for Cycles:** Sometimes interviewers specifically ask if shortest paths are even valid. Missing the V-th iteration check could fail test cases with negative cycles.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Compare it with Dijkstra verbally: 'I am choosing Bellman-Ford here because the graph has negative edge weights, which Dijkstra cannot handle properly.'",
+    "Point out that Bellman-Ford's O(V * E) time complexity makes it too slow for dense graphs with non-negative weights, demonstrating deep understanding of algorithm trade-offs.",
+    "If asked about finding the actual path, mention that you can maintain a `parent` array alongside the `dist` array."
   ]}
 />

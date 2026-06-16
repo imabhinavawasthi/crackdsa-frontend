@@ -11,35 +11,64 @@ summary: "An essential guide to Maximum Product Subarray, exploring its applicat
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Maximum Product Subarray**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+The **Maximum Product Subarray** problem requires us to find the contiguous subarray that yields the largest product. It is a tricky variation of the Maximum Subarray (Kadane's Algorithm).
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+Unlike addition, multiplication behaves non-linearly with negative numbers. A large negative product can suddenly become a massive positive product if multiplied by another negative number! Because of this, we must keep track of **both** the maximum product and the minimum (most negative) product up to the current element.
+
+At any index `i`, the maximum product ending at `i` could be derived from:
+1. `max_product_ending_here * nums[i]` (if `nums[i]` is positive)
+2. `min_product_ending_here * nums[i]` (if `nums[i]` is negative)
+3. `nums[i]` itself (starting a new subarray)
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Maximum Product Subarray
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int maxProduct(vector<int>& nums) {
+        if (nums.empty()) return 0;
+        int max_so_far = nums[0];
+        int min_so_far = nums[0];
+        int result = max_so_far;
+        
+        for (int i = 1; i < nums.size(); i++) {
+            int curr = nums[i];
+            int temp_max = max({curr, max_so_far * curr, min_so_far * curr});
+            min_so_far = min({curr, max_so_far * curr, min_so_far * curr});
+            max_so_far = temp_max;
+            result = max(result, max_so_far);
+        }
+        return result;
     }
 };"
-  java="// Java implementation for Maximum Product Subarray
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int maxProduct(int[] nums) {
+        if (nums.length == 0) return 0;
+        int maxSoFar = nums[0];
+        int minSoFar = nums[0];
+        int result = maxSoFar;
+        
+        for (int i = 1; i < nums.length; i++) {
+            int curr = nums[i];
+            int tempMax = Math.max(curr, Math.max(maxSoFar * curr, minSoFar * curr));
+            minSoFar = Math.min(curr, Math.min(maxSoFar * curr, minSoFar * curr));
+            maxSoFar = tempMax;
+            result = Math.max(result, maxSoFar);
+        }
+        return result;
     }
 }"
-  python="# Python implementation for Maximum Product Subarray
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def maxProduct(self, nums: List[int]) -> int:
+        if not nums: return 0
+        max_so_far = min_so_far = result = nums[0]
+        
+        for curr in nums[1:]:
+            temp_max = max(curr, max_so_far * curr, min_so_far * curr)
+            min_so_far = min(curr, max_so_far * curr, min_so_far * curr)
+            max_so_far = temp_max
+            result = max(result, max_so_far)
+            
+        return result"
 />
 
 # Complexity Analysis
@@ -48,20 +77,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  description="The algorithm processes each element exactly once, continuously updating three tracking variables. Time complexity is strictly linear, and space complexity is constant O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Forgetting the Temporary Variable:** When updating `max_so_far` and `min_so_far`, you must use a `temp_max` variable. If you update `max_so_far` directly and then use it to calculate `min_so_far`, your calculation will be corrupted!
+- **Handling Zeroes:** Zeroes effectively "reset" the product. The `max()` and `min()` functions handle this gracefully by picking the single element `nums[i]` (which is `0`) over the multiplication.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "If the array elements are integers, multiplying them can cause integer overflow. Mentioning this and discussing 64-bit integer limits shows strong engineering sense.",
+    "There is an alternative approach: compute the prefix product from left to right, and a suffix product from right to left. The maximum product will be the global max of both passes. It perfectly handles single negatives and zeroes!",
+    "When explaining the logic, use a trace table with a sample array like `[2, 3, -2, 4]` to visually prove why tracking `min_so_far` is necessary."
   ]}
 />

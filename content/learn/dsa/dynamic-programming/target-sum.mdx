@@ -11,64 +11,99 @@ summary: "An essential deep-dive into Target Sum. This article breaks down the i
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Target Sum**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+The Target Sum problem asks you to assign a `+` or `-` sign to every integer in an array such that they evaluate to a specific `target`.
 
 ### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+While this looks like a purely mathematical back-tracking problem, it can be cleverly transformed into a classic **Subset Sum** (and therefore **0/1 Knapsack**) problem.
+Let `S1` be the sum of numbers assigned a `+` sign.
+Let `S2` be the sum of numbers assigned a `-` sign.
+We know:
+`S1 - S2 = target`
+`S1 + S2 = totalSum`
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+Adding these two equations:
+`2 * S1 = target + totalSum`
+`S1 = (target + totalSum) / 2`
+
+This means we just need to find the number of subsets that sum to `(target + totalSum) / 2`. If `target + totalSum` is odd or if `target > totalSum` (in absolute value), the answer is 0.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Target Sum
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int findTargetSumWays(vector<int>& nums, int target) {
+        int sum = 0;
+        for (int x : nums) sum += x;
+        if (abs(target) > sum || (sum + target) % 2 != 0) return 0;
+        
+        int s1 = (sum + target) / 2;
+        vector<int> dp(s1 + 1, 0);
+        dp[0] = 1;
+        
+        for (int num : nums) {
+            for (int j = s1; j >= num; j--) {
+                dp[j] += dp[j - num];
+            }
+        }
+        return dp[s1];
     }
 };"
-  java="// Java implementation for Target Sum
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int findTargetSumWays(int[] nums, int target) {
+        int sum = 0;
+        for (int x : nums) sum += x;
+        if (Math.abs(target) > sum || (sum + target) % 2 != 0) return 0;
+        
+        int s1 = (sum + target) / 2;
+        int[] dp = new int[s1 + 1];
+        dp[0] = 1;
+        
+        for (int num : nums) {
+            for (int j = s1; j >= num; j--) {
+                dp[j] += dp[j - num];
+            }
+        }
+        return dp[s1];
     }
 }"
-  python="# Python implementation for Target Sum
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def findTargetSumWays(self, nums: list[int], target: int) -> int:
+        total_sum = sum(nums)
+        if abs(target) > total_sum or (total_sum + target) % 2 != 0:
+            return 0
+            
+        s1 = (total_sum + target) // 2
+        dp = [0] * (s1 + 1)
+        dp[0] = 1
+        
+        for num in nums:
+            for j in range(s1, num - 1, -1):
+                dp[j] += dp[j - num]
+                
+        return dp[s1]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(N * S)"
+  average="O(N * S)"
+  worst="O(N * S)"
+  space="O(S)"
+  description="S is the subset sum we are searching for. Using the mathematical derivation drastically reduces the required space and search space."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- Forgetting to handle the edge case where `target + sum` is an odd number.
+- Ignoring cases where the absolute value of `target` is greater than the total sum.
+- Initializing `dp[0]` incorrectly. It should be `1` because there's one way to make a sum of zero (picking an empty subset).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "Explaining the mathematical deduction to turn this into Subset Sum will impress interviewers.",
+    "Discuss how standard memoization with a Map would look before demonstrating the heavily optimized tabulation approach.",
+    "Pay special attention to the base case when there are zeroes in the input array; the 1D bottom-up DP handles this cleanly."
   ]}
 />

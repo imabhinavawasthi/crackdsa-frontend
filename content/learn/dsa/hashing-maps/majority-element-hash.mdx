@@ -11,60 +11,116 @@ summary: "An essential guide to Majority Element, mastering O(1) lookup times an
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Majority Element**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+The **Majority Element** problem asks you to find an element in an array of size $N$ that appears more than $\lfloor N/2 \rfloor$ times. You may assume that the majority element always exists in the array.
+
+### Approaches
+
+**1. The Hash Map Approach ($O(N)$ Space)**
+The most intuitive solution is a direct application of the **Frequency Counting** pattern. We create a Hash Map, iterate through the array, and maintain a count of each element. The moment a count exceeds $\lfloor N/2 \rfloor$, we immediately return that element.
+
+**2. Sorting Approach ($O(N \log N)$ Time, $O(1)$ Space)**
+If an element appears more than $N/2$ times, then if you sort the array, the element at index $N/2$ will *always* be the majority element. 
+
+**3. Boyer-Moore Voting Algorithm ($O(N)$ Time, $O(1)$ Space)**
+While the Hash Map approach is perfectly valid and excellent to discuss, the optimal solution to this specific problem uses the Boyer-Moore Voting Algorithm. It maintains a `candidate` and a `count`. When `count` is $0$, we pick a new candidate. If the current number matches the candidate, we increment `count`, otherwise we decrement it.
+
+*Note: We will focus on the Hash Map approach here as it generalizes easily to finding elements appearing more than $\lfloor N/3 \rfloor$ or $\lfloor N/K \rfloor$ times.*
+
+---
 
 # Code Implementation
+
+Here is the Hash Map implementation for finding the Majority Element.
+
 <CodeBlock
-  cpp="// C++ implementation for Majority Element
+  cpp="```cpp
 #include <iostream>
-#include <unordered_map>
 #include <vector>
+#include <unordered_map>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int majorityElement(vector<int>& nums) {
+        unordered_map<int, int> counts;
+        int target = nums.size() / 2;
+        
+        for (int num : nums) {
+            counts[num]++;
+            if (counts[num] > target) {
+                return num;
+            }
+        }
+        
+        return -1; // Should not reach here per problem constraints
     }
-};"
-  java="// Java implementation for Majority Element
-import java.util.*;
+};
+```"
+  java="```java
+import java.util.HashMap;
+import java.util.Map;
 
 class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    public int majorityElement(int[] nums) {
+        Map<Integer, Integer> counts = new HashMap<>();
+        int target = nums.length / 2;
+        
+        for (int num : nums) {
+            counts.put(num, counts.getOrDefault(num, 0) + 1);
+            if (counts.get(num) > target) {
+                return num;
+            }
+        }
+        
+        return -1;
     }
-}"
-  python="# Python implementation for Majority Element
+}
+```"
+  python="```python
 class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def majorityElement(self, nums: list[int]) -> int:
+        counts = {}
+        target = len(nums) // 2
+        
+        for num in nums:
+            counts[num] = counts.get(num, 0) + 1
+            if counts[num] > target:
+                return num
+                
+        return -1
+```"
 />
+
+---
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
-  average="O(1)"
+  average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  description="Time complexity is O(N) because we iterate through the array exactly once, performing O(1) hash map operations at each step. Space complexity is O(N) to store the unique numbers and their counts in the map."
 />
 
+---
+
 # Common Pitfalls
+
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- **Waiting until the end to check:** A common mistake is to count *all* frequencies first, and then do a second loop over the map to find the max. It's much faster to check `if count > n/2` *during* the initial iteration!
+- **Not knowing the optimal $O(1)$ space solution:** Even if you write the HashMap code flawlessly, the interviewer will almost certainly ask: "Can you do this in $O(1)$ space without sorting?". You must know the Boyer-Moore Voting Algorithm.
 </Warning>
 
+---
+
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "If asked 'Majority Element II' (elements appearing more than n/3 times), the HashMap approach remains exactly the same! The Boyer-Moore approach, however, becomes much trickier (requiring two candidates).",
+    "Always clarify if the majority element is GUARANTEED to exist. If it's not guaranteed, you must do a second pass in the Boyer-Moore algorithm to verify the candidate."
   ]}
 />

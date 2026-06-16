@@ -11,35 +11,51 @@ summary: "An essential guide to Finding Duplicates in O(N), exploring its applic
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Finding Duplicates in O(N)**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+Finding duplicates in an array where elements are in the range `[1, N]` (or `[0, N-1]`) and the array size is `N` (or `N+1`) is a classic problem. The brute force approach takes $O(N^2)$ time by comparing every pair, and sorting takes $O(N \log N)$. However, utilizing the properties of array indices allows us to find duplicates in $O(N)$ time.
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+The key insight is treating the array values as **indices**. Since elements are within the range of array indices, we can iterate through the array and mutate the element at the index corresponding to the current value. If we encounter a value, say `x`, we go to index `|x|` and make the value there negative. If we encounter a value whose corresponding index is already negative, we know `x` is a duplicate.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Finding Duplicates in O(N)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    vector<int> findDuplicates(vector<int>& nums) {
+        vector<int> result;
+        for(int i = 0; i < nums.size(); i++) {
+            int index = abs(nums[i]) - 1;
+            if(nums[index] < 0) {
+                result.push_back(index + 1);
+            } else {
+                nums[index] = -nums[index];
+            }
+        }
+        return result;
     }
 };"
-  java="// Java implementation for Finding Duplicates in O(N)
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public List<Integer> findDuplicates(int[] nums) {
+        List<Integer> result = new ArrayList<>();
+        for (int i = 0; i < nums.length; i++) {
+            int index = Math.abs(nums[i]) - 1;
+            if (nums[index] < 0) {
+                result.add(index + 1);
+            } else {
+                nums[index] = -nums[index];
+            }
+        }
+        return result;
     }
 }"
-  python="# Python implementation for Finding Duplicates in O(N)
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def findDuplicates(self, nums: List[int]) -> List[int]:
+        result = []
+        for num in nums:
+            index = abs(num) - 1
+            if nums[index] < 0:
+                result.append(index + 1)
+            else:
+                nums[index] = -nums[index]
+        return result"
 />
 
 # Complexity Analysis
@@ -48,20 +64,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  description="The algorithm iterates through the array exactly once, giving a linear time complexity. Since we reuse the input array to store states by negating values, the auxiliary space complexity is O(1) (excluding the space required for the output list)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- Forgetting to use the absolute value `abs(nums[i])` when accessing the array can lead to out-of-bounds exceptions, as previous iterations might have turned the value negative.
+- The technique of using values as indices strictly requires the range of values to fit within the array length bounds (e.g., values from 1 to N for an array of size N).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "If you see an array of size N where elements are strictly bounded between 1 and N, the 'index-as-hash-key' (negation trick) should immediately come to mind.",
+    "Be prepared to answer how to modify the approach if the array is read-only. In that case, you would use Floyd's Tortoise and Hare (Cycle Detection) algorithm for finding a single duplicate.",
+    "Mention that while the space complexity is O(1), we do mutate the input array, which might not be desirable in all real-world concurrent applications."
   ]}
 />

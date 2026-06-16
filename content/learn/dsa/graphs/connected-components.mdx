@@ -11,37 +11,77 @@ summary: "An essential guide to Number of Provinces / Connected Components, expl
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Number of Provinces / Connected Components**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+A **Connected Component** in an undirected graph is a subgraph in which every two vertices are connected to each other by paths, and which is connected to no additional vertices in the supergraph.
 
-### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+The problem "Number of Provinces" asks us to count the total number of connected components in a given graph.
+
+### The Algorithm
+The strategy is simple:
+1. Maintain a `visited` array initialized to `false` for all vertices.
+2. Iterate through every vertex `i` from `0` to `V-1`.
+3. If vertex `i` is not `visited`, it means we have found a new, unexplored component. We increment our `provinces` counter.
+4. We then call DFS or BFS starting from `i` to mark all other vertices in this component as `visited`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Number of Provinces / Connected Components
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+  cpp="void dfs(int u, vector<vector<int>>& adj, vector<bool>& visited) {
+    visited[u] = true;
+    for (int v : adj[u]) {
+        if (!visited[v]) {
+            dfs(v, adj, visited);
+        }
     }
-};"
-  java="// Java implementation for Number of Provinces / Connected Components
-import java.util.*;
+}
 
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+int findCircleNum(int V, vector<vector<int>>& adj) {
+    vector<bool> visited(V, false);
+    int provinces = 0;
+
+    for (int i = 0; i < V; ++i) {
+        if (!visited[i]) {
+            provinces++;
+            dfs(i, adj, visited);
+        }
     }
+    return provinces;
 }"
-  python="# Python implementation for Number of Provinces / Connected Components
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  java="public void dfs(int u, List<List<Integer>> adj, boolean[] visited) {
+    visited[u] = true;
+    for (int v : adj.get(u)) {
+        if (!visited[v]) {
+            dfs(v, adj, visited);
+        }
+    }
+}
+
+public int findCircleNum(int V, List<List<Integer>> adj) {
+    boolean[] visited = new boolean[V];
+    int provinces = 0;
+
+    for (int i = 0; i < V; i++) {
+        if (!visited[i]) {
+            provinces++;
+            dfs(i, adj, visited);
+        }
+    }
+    return provinces;
+}"
+  python="def dfs(u, adj, visited):
+    visited[u] = True
+    for v in adj[u]:
+        if not visited[v]:
+            dfs(v, adj, visited)
+
+def find_circle_num(V, adj):
+    visited = [False] * V
+    provinces = 0
+
+    for i in range(V):
+        if not visited[i]:
+            provinces += 1
+            dfs(i, adj, visited)
+
+    return provinces"
 />
 
 # Complexity Analysis
@@ -50,20 +90,20 @@ class Solution:
   average="O(V + E)"
   worst="O(V + E)"
   space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  description="Every vertex is visited exactly once, and every edge is traversed exactly twice (once from each end) during the DFS traversals. Hence, O(V + E) time. O(V) space is used for the visited array and recursion stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- In LeetCode (e.g. Problem 547: Number of Provinces), the input is often given as an Adjacency Matrix rather than an Adjacency List. You must either convert it or modify the DFS to traverse an Adjacency Matrix (`if matrix[u][v] == 1 and not visited[v]`).
+- Forgetting to pass the `visited` array by reference in C++, leading to infinite loops or incorrect province counts.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "If you know Disjoint Set Union (DSU) / Union-Find, mention that it can also solve this problem elegantly.",
+    "Clarify whether the graph representation provided in the input is an Adjacency List or an Adjacency Matrix, and adapt your standard DFS/BFS accordingly.",
+    "This is the quintessential 'outer-loop' graph traversal problem. Once you master it, dealing with disconnected graphs becomes second nature."
   ]}
 />

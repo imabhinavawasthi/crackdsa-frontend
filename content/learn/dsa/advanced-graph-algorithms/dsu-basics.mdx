@@ -11,58 +11,104 @@ summary: "An essential guide to Union-Find & DSU Basics, exploring its applicati
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Union-Find & DSU Basics**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+The **Disjoint Set Union (DSU)** or **Union-Find** data structure provides an elegant and highly optimized way to manage a collection of disjoint (non-overlapping) sets. It is a fundamental concept in advanced graph algorithms, particularly for dynamic connectivity problems.
 
-### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+DSU supports two primary operations efficiently:
+1. **Find:** Determines which set a particular element belongs to. This is crucial for verifying if two elements belong to the same set (i.e., they are connected).
+2. **Union:** Joins two distinct sets into a single, merged set. 
+
+Initially, every element is an isolated node, meaning it represents a disjoint set of size 1 where the node itself is the representative (or parent) of the set. As the graph builds up dynamically through added edges, we perform `Union` operations to group connected components, and `Find` operations to answer connectivity queries.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Union-Find & DSU Basics
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp={`class DSU {
+private:
+    vector<int> parent;
 public:
-    void solve() {
-        // Implementation here
+    DSU(int n) {
+        parent.resize(n);
+        for(int i = 0; i < n; i++) {
+            parent[i] = i; // Every node is its own parent initially
+        }
     }
-};"
-  java="// Java implementation for Union-Find & DSU Basics
-import java.util.*;
+    
+    int find(int x) {
+        if (parent[x] == x) {
+            return x;
+        }
+        return find(parent[x]); // Basic Find without path compression
+    }
+    
+    void unite(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX != rootY) {
+            parent[rootX] = rootY; // Basic Union
+        }
+    }
+};`}
+  java={`class DSU {
+    private int[] parent;
 
-class Solution {
-    public void solve() {
-        // Implementation here
+    public DSU(int n) {
+        parent = new int[n];
+        for(int i = 0; i < n; i++) {
+            parent[i] = i; // Every node is its own parent initially
+        }
     }
-}"
-  python="# Python implementation for Union-Find & DSU Basics
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+
+    public int find(int x) {
+        if (parent[x] == x) {
+            return x;
+        }
+        return find(parent[x]); // Basic Find
+    }
+
+    public void unite(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX != rootY) {
+            parent[rootX] = rootY; // Basic Union
+        }
+    }
+}`}
+  python={`class DSU:
+    def __init__(self, n):
+        # Every node is its own parent initially
+        self.parent = [i for i in range(n)]
+
+    def find(self, x):
+        if self.parent[x] == x:
+            return x
+        return self.find(self.parent[x]) # Basic Find
+
+    def unite(self, x, y):
+        root_x = self.find(x)
+        root_y = self.find(y)
+        if root_x != root_y:
+            self.parent[root_x] = root_y # Basic Union`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(E log V)"
-  average="O(E log V)"
-  worst="O(E log V)"
-  space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  best="O(1)"
+  average="O(log V)"
+  worst="O(V)"
+  space="O(V)"
+  description="Without Path Compression and Union by Rank, the trees can degenerate into linked lists, making the Find operation O(V) in the worst case."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Forgetting Initialization:** The `parent` array must be initialized correctly such that `parent[i] = i`.
+- **Misunderstanding Find:** Remember that `find` must return the absolute root of the set, not merely the immediate parent of the node.
+- **Uniting Elements Instead of Roots:** A common error is doing `parent[x] = y` instead of finding `rootX` and `rootY` and then updating the parent of `rootX`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "Mention to the interviewer that basic DSU is not optimal and can degrade to O(N) per operation.",
+    "Discuss that DSU is naturally suited for offline queries where all edges are known in advance, or for dynamic connectivity where edges are incrementally added."
   ]}
 />

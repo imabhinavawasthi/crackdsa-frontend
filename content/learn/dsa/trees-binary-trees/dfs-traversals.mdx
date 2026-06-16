@@ -11,55 +11,76 @@ summary: "An essential guide to DFS (Inorder, Preorder, Postorder), exploring it
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **DFS (Inorder, Preorder, Postorder)**. This topic is a cornerstone of the Trees & Binary Trees module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+**Depth-First Search (DFS)** is an algorithm for traversing or searching tree data structures. The algorithm starts at the root node and explores as far as possible along each branch before backtracking. 
+
+Because trees are inherently recursive, DFS is naturally implemented using recursion. In binary trees, there are three primary ways to perform DFS, named based on when the current (root) node is processed relative to its children:
+
+### 1. Preorder (Root -> Left -> Right)
+In Preorder traversal, we visit the node itself first, then explore its left subtree, and finally its right subtree. It's often used when we want to clone a tree or serialize it.
+
+### 2. Inorder (Left -> Root -> Right)
+In Inorder traversal, we first explore the left subtree, then visit the node itself, and finally explore the right subtree. Crucially, in a Binary Search Tree (BST), an inorder traversal yields the elements in sorted (ascending) order.
+
+### 3. Postorder (Left -> Right -> Root)
+In Postorder traversal, we explore both the left and right subtrees first before visiting the node itself. This is exceptionally useful when you need to gather information from children before making a decision at the parent (e.g., calculating height or deleting a tree).
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for DFS (Inorder, Preorder, Postorder)
-#include <iostream>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    // Example: Inorder Traversal
+    void inorder(TreeNode* root, vector<int>& res) {
+        if (!root) return;
+        inorder(root->left, res);
+        res.push_back(root->val);
+        inorder(root->right, res);
     }
 };"
-  java="// Java implementation for DFS (Inorder, Preorder, Postorder)
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    // Example: Preorder Traversal
+    public void preorder(TreeNode root, List<Integer> res) {
+        if (root == null) return;
+        res.add(root.val);
+        preorder(root.left, res);
+        preorder(root.right, res);
     }
 }"
-  python="# Python implementation for DFS (Inorder, Preorder, Postorder)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    # Example: Postorder Traversal
+    def postorder(self, root: TreeNode, res: List[int]):
+        if not root:
+            return
+        self.postorder(root.left, res)
+        self.postorder(root.right, res)
+        res.append(root.val)"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(H)"
+  description="Time complexity is strictly O(N) since every node is visited exactly once. Space complexity is O(H) where H is the height of the tree due to the call stack."
 />
 
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Attempting to use a global array/list to store traversal results. It's better practice to pass the collection as an argument.
+- Forgetting to write the base case `if (root == null) return;`.
+- Not understanding how to convert the recursive approach to an iterative approach using an explicit Stack.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If a problem asks for sorted data from a BST, always use Inorder traversal.",
+    "If a problem requires deleting nodes or freeing memory, use Postorder traversal.",
+    "If you need to serialize a tree into a string, Preorder traversal is the most straightforward approach."
   ]}
 />

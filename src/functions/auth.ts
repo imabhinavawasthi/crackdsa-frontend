@@ -1,5 +1,32 @@
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export interface PurchasedCourse {
+  start_time: string;
+  end_time: string | number; // -1 for lifetime
+  transaction_id: string;
+}
+
+export interface ProPurchaseHistory {
+  plan: string;
+  start_time: string;
+  added_duration_months: number; // -1 for lifetime
+  transaction_id: string;
+}
+
+export interface ProSubscription {
+  is_active: boolean;
+  plan: string;
+  start_time: string;
+  end_time: string | number; // -1 for lifetime
+  transaction_id: string;
+  history: ProPurchaseHistory[];
+}
+
+export interface EnrolledCourse {
+  course_id: string;
+  course_name: string;
+}
+
 export type User = {
   id: string;
   full_name: string;
@@ -22,11 +49,11 @@ export type User = {
     twitter?: string;
   };
   metadata?: Record<string, any>;
-  pro_subscription?: {
-    is_pro?: boolean;
-    expires_at?: string;
-  };
-  purchased_courses?: Record<string, any>;
+  is_pro_active?: boolean;
+  enrolled_courses?: EnrolledCourse[];
+  // Legacy fields (will be undefined from /me)
+  pro_subscription?: any;
+  purchased_courses?: any;
 };
 
 // ─── Base URL ─────────────────────────────────────────────────────────────────

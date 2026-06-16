@@ -4,45 +4,150 @@ category: "Sorting & Custom Comparators"
 readTime: "9 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the underlying mechanics and intuition behind Inversion Count (Merge Sort Application)."
-  - "Master the stability, time complexity, and space complexity of the algorithm."
-  - "Learn when to apply this specific sorting technique in interviews."
-summary: "An essential deep-dive into Inversion Count (Merge Sort Application), breaking down its algorithmic approach, code implementation, and real-world interview applications."
+  - "Understand the definition of an inversion in an array."
+  - "Learn how to calculate the inversion count optimally using Merge Sort."
+  - "Master the logic inside the merge step that counts inversions."
+summary: "An essential deep-dive into the Inversion Count problem, showcasing how to modify Merge Sort for an optimal O(N log N) solution."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Inversion Count (Merge Sort Application)**. This topic is a cornerstone of the Sorting & Custom Comparators module. While standard library sorting functions exist, understanding how these algorithms work under the hood is critical for recognizing when an interview problem is actually a masked sorting algorithm.
+Welcome to the lesson on the **Inversion Count** problem. This is a classic algorithmic puzzle that beautifully demonstrates how modifying a standard sorting algorithm can yield an optimal solution to a seemingly unrelated problem.
 
 ### Core Intuition
-The primary goal of sorting is to order elements either ascending or descending. Depending on the algorithm, this is achieved by swapping adjacent elements, repeatedly selecting the minimum, or dividing the array recursively.
+An **inversion** is a pair of indices `(i, j)` such that `i < j` and `arr[i] > arr[j]`. In simple terms, it measures how far (or close) the array is from being sorted. A fully sorted array has an inversion count of 0, while a reverse sorted array has the maximum number of inversions.
+
+**The Brute Force approach** is to use two nested loops to check every pair, which takes $O(N^2)$ time. This will Time Out on large datasets.
+
+**The Optimal approach** is to piggyback on **Merge Sort**. As Merge Sort divides the array into two sorted halves (Left and Right), we know that every element in the Left half comes *before* every element in the Right half in the original array. 
+
+During the merge step, if we find that `L[i] > R[j]`, it means `L[i]` and **all remaining elements in the Left half** are strictly greater than `R[j]`. Why? Because the Left half is already sorted! Thus, we immediately discover `(L.size() - i)` inversions without having to explicitly check them all.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Inversion Count (Merge Sort Application)
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
+  cpp="class Solution {
+private:
+    long long mergeAndCount(vector<int>& arr, int left, int mid, int right) {
+        vector<int> L(arr.begin() + left, arr.begin() + mid + 1);
+        vector<int> R(arr.begin() + mid + 1, arr.begin() + right + 1);
 
-class Solution {
+        int i = 0, j = 0, k = left;
+        long long swaps = 0;
+
+        while (i < L.size() && j < R.size()) {
+            if (L[i] <= R[j]) {
+                arr[k++] = L[i++];
+            } else {
+                arr[k++] = R[j++];
+                // All remaining elements in L are greater than R[j]
+                swaps += (L.size() - i);
+            }
+        }
+
+        while (i < L.size()) arr[k++] = L[i++];
+        while (j < R.size()) arr[k++] = R[j++];
+
+        return swaps;
+    }
+
+    long long mergeSortAndCount(vector<int>& arr, int left, int right) {
+        long long count = 0;
+        if (left < right) {
+            int mid = left + (right - left) / 2;
+            count += mergeSortAndCount(arr, left, mid);
+            count += mergeSortAndCount(arr, mid + 1, right);
+            count += mergeAndCount(arr, left, mid, right);
+        }
+        return count;
+    }
+
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    long long countInversions(vector<int>& arr) {
+        return mergeSortAndCount(arr, 0, arr.size() - 1);
     }
 };"
-  java="// Java implementation for Inversion Count (Merge Sort Application)
-import java.util.*;
+  java="class Solution {
+    private long mergeAndCount(int[] arr, int left, int mid, int right) {
+        int[] L = new int[mid - left + 1];
+        int[] R = new int[right - mid];
 
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+        for (int i = 0; i < L.length; i++) L[i] = arr[left + i];
+        for (int j = 0; j < R.length; j++) R[j] = arr[mid + 1 + j];
+
+        int i = 0, j = 0, k = left;
+        long swaps = 0;
+
+        while (i < L.length && j < R.length) {
+            if (L[i] <= R[j]) {
+                arr[k++] = L[i++];
+            } else {
+                arr[k++] = R[j++];
+                // All remaining elements in L are greater than R[j]
+                swaps += (L.length - i);
+            }
+        }
+
+        while (i < L.length) arr[k++] = L[i++];
+        while (j < R.length) arr[k++] = R[j++];
+
+        return swaps;
+    }
+
+    private long mergeSortAndCount(int[] arr, int left, int right) {
+        long count = 0;
+        if (left < right) {
+            int mid = left + (right - left) / 2;
+            count += mergeSortAndCount(arr, left, mid);
+            count += mergeSortAndCount(arr, mid + 1, right);
+            count += mergeAndCount(arr, left, mid, right);
+        }
+        return count;
+    }
+
+    public long countInversions(int[] arr) {
+        return mergeSortAndCount(arr, 0, arr.length - 1);
     }
 }"
-  python="# Python implementation for Inversion Count (Merge Sort Application)
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def count_inversions(self, arr: list[int]) -> int:
+        def merge_sort_and_count(left: int, right: int) -> int:
+            if left >= right:
+                return 0
+            
+            mid = left + (right - left) // 2
+            count = merge_sort_and_count(left, mid)
+            count += merge_sort_and_count(mid + 1, right)
+            
+            # Merge and Count
+            L = arr[left:mid + 1]
+            R = arr[mid + 1:right + 1]
+            
+            i = j = 0
+            k = left
+            
+            while i < len(L) and j < len(R):
+                if L[i] <= R[j]:
+                    arr[k] = L[i]
+                    i += 1
+                else:
+                    arr[k] = R[j]
+                    j += 1
+                    # All remaining elements in L are greater than R[j]
+                    count += (len(L) - i)
+                k += 1
+                
+            while i < len(L):
+                arr[k] = L[i]
+                i += 1
+                k += 1
+                
+            while j < len(R):
+                arr[k] = R[j]
+                j += 1
+                k += 1
+                
+            return count
+
+        return merge_sort_and_count(0, len(arr) - 1)"
 />
 
 # Complexity Analysis
@@ -50,21 +155,21 @@ class Solution:
   best="O(N log N)"
   average="O(N log N)"
   worst="O(N log N)"
-  space="O(1)"
-  description="Sorting time complexity heavily depends on the algorithm. While Merge Sort guarantees O(N log N) worst-case time, Quick Sort can degrade to O(N^2) if the pivot is chosen poorly. Space complexity ranges from O(1) in-place sorts to O(N) auxiliary space."
+  space="O(N)"
+  description="Because this algorithm is fundamentally identical to Merge Sort, it shares the exact same time and space complexity. Calculating the inversions during the merge step adds only O(1) overhead per comparison. Space complexity is O(N) due to the temporary arrays created during the merge phase."
 />
 
 # Common Pitfalls
 <Warning>
-- **Stability Issues:** Using an unstable sort (like Quick Sort) when the relative order of equal elements must be preserved. (Use Merge Sort or Insertion Sort instead).
-- **Stack Overflow:** Deep recursion in Merge Sort or Quick Sort on massive arrays can cause Call Stack limits to trigger.
+- **Integer Overflow:** The maximum number of inversions in an array of size $N$ is $N(N-1)/2$. If $N = 10^5$, the max inversions is roughly $5 \times 10^9$, which exceeds the limit of a standard 32-bit integer. Always use `long long` (C++) or `long` (Java) to accumulate the count.
+- **Forgetting the base cases:** Inversions exist not just between the Left and Right arrays, but internally *within* the Left array and *within* the Right array. Make sure you accumulate the counts returned by the recursive calls.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array contains numbers exactly in the range 1 to N, it is a dead giveaway to use Cycle Sort for an O(N) time and O(1) space solution.",
-    "If you only need to sort numbers within a very small, restricted range (e.g., ages from 1 to 100), Counting Sort is the most optimal approach.",
-    "Always clarify if you are allowed to mutate the input array. If not, you must account for the O(N) space of copying the array."
+    "Anytime an interview problem asks you to count pairs (i, j) with i < j meeting some condition (like nums[i] > 2*nums[j]), immediately jump to modifying Merge Sort.",
+    "This problem can also be solved using an advanced data structure called a Fenwick Tree (Binary Indexed Tree) or Segment Tree in O(N log N) time.",
+    "Inversion Count is frequently used in recommender systems or to measure how 'similar' two ranked lists are (Kendall tau distance)."
   ]}
 />

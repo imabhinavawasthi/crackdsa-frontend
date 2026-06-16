@@ -5,61 +5,93 @@ readTime: "5 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
   - "Understand the fundamentals of Insertion Sort."
-  - "Learn how to implement this pattern in real coding interviews."
-  - "Master the time and space complexity."
-summary: "An essential guide to Insertion Sort, exploring its applications, implementations, and interview intelligence."
+  - "Learn how it performs optimally on nearly sorted data."
+  - "Master the implementation and its role in hybrid sorting algorithms."
+summary: "An essential guide to Insertion Sort, exploring its core mechanics, real-world usefulness, and optimal implementations."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Insertion Sort**. This topic is a cornerstone of the Sorting & Custom Comparators module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Welcome to the lesson on **Insertion Sort**. While it has a quadratic worst-case time complexity, Insertion Sort is highly regarded for its sheer speed when handling small arrays or partially sorted data. In fact, modern sorting libraries often fall back on Insertion Sort under the hood.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Insertion Sort works exactly like you would sort a hand of playing cards. You start with an empty left hand and the cards face down on the table. You remove one card at a time from the table and insert it into the correct position in your left hand. To find the correct position for a card, you compare it with the already sorted cards in your hand, from right to left.
+
+Algorithmically, the array is conceptually split into a sorted and an unsorted part. Values from the unsorted part are picked and placed at the correct position in the sorted part by shifting larger elements one position to the right.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Insertion Sort
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    void insertionSort(vector<int>& arr) {
+        int n = arr.size();
+        for (int i = 1; i < n; i++) {
+            int key = arr[i];
+            int j = i - 1;
+            
+            // Move elements of arr[0..i-1] that are greater than key,
+            // to one position ahead of their current position
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j];
+                j = j - 1;
+            }
+            arr[j + 1] = key;
+        }
     }
 };"
-  java="// Java implementation for Insertion Sort
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public void insertionSort(int[] arr) {
+        int n = arr.length;
+        for (int i = 1; i < n; i++) {
+            int key = arr[i];
+            int j = i - 1;
+            
+            // Move elements of arr[0..i-1] that are greater than key,
+            // to one position ahead of their current position
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j];
+                j = j - 1;
+            }
+            arr[j + 1] = key;
+        }
     }
 }"
-  python="# Python implementation for Insertion Sort
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def insertion_sort(self, arr: list[int]) -> None:
+        n = len(arr)
+        for i in range(1, n):
+            key = arr[i]
+            j = i - 1
+            
+            # Move elements of arr[0..i-1] that are greater than key,
+            # to one position ahead of their current position
+            while j >= 0 and arr[j] > key:
+                arr[j + 1] = arr[j]
+                j -= 1
+            
+            arr[j + 1] = key"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(N)"
+  average="O(N^2)"
+  worst="O(N^2)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="In the best case (an already sorted array), the inner while loop never executes, resulting in an impressive O(N) time complexity. The worst case occurs when the array is in reverse order, taking O(N^2) time. It requires O(1) auxiliary space and is a stable sort."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Off-by-one errors:** Forgetting that `i` should start from `1`, not `0`, since a single element is already trivially sorted.
+- **Overwriting Data:** Failing to store the current element in a temporary `key` variable before shifting elements to the right. If you don't save it, it gets overwritten.
+- **Swapping instead of Shifting:** Some implementations swap elements continuously until the item is in place. While logically sound, shifting elements right and writing the key once at the end is fundamentally faster because it reduces write operations.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Insertion Sort is practically the fastest sorting algorithm for very small arrays (usually N < 16 or N < 32) due to low overhead and great cache locality.",
+    "If an interviewer mentions that a dataset is 'continuously updated in real-time' or 'nearly sorted', Insertion Sort is heavily favored because its time complexity approaches O(N) in these scenarios.",
+    "Showcase advanced knowledge by mentioning Timsort (used in Python and Java's standard libraries). Timsort is a hybrid algorithm that uses Merge Sort for large blocks and Insertion Sort for small blocks."
   ]}
 />

@@ -11,55 +11,116 @@ summary: "An essential guide to Disjoint Set Union (DSU), exploring its applicat
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Disjoint Set Union (DSU)**. This topic is a cornerstone of the Advanced Graph Algorithms module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Disjoint Set Union (DSU)** framework answers whether two elements belong to the same set and merges different sets seamlessly. Think of it as keeping track of connected components in a dynamically growing graph.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+At its core, DSU treats components as trees. The "representative" or "root" of the tree identifies the set.
+If two elements share the same root, they are in the same set. If they have different roots, a Union operation attaches the root of one tree to the root of the other, effectively combining the components.
+
+The actual power of DSU lies in two essential optimizations (discussed in later lessons): **Path Compression** and **Union by Rank/Size**. When implemented together, they drop the amortized time complexity of DSU operations to nearly constant time.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Disjoint Set Union (DSU)
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp={`class DSU {
+    vector<int> parent, size;
 public:
-    void solve() {
-        // Implementation here
+    DSU(int n) {
+        parent.resize(n);
+        size.resize(n, 1);
+        for (int i = 0; i < n; i++) parent[i] = i;
     }
-};"
-  java="// Java implementation for Disjoint Set Union (DSU)
-class Solution {
-    public void solve() {
-        // Implementation here
+    
+    int find(int x) {
+        if (x == parent[x]) return x;
+        return parent[x] = find(parent[x]);
     }
-}"
-  python="# Python implementation for Disjoint Set Union (DSU)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    
+    bool unite(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX == rootY) return false;
+        
+        if (size[rootX] < size[rootY]) swap(rootX, rootY);
+        parent[rootY] = rootX;
+        size[rootX] += size[rootY];
+        return true;
+    }
+};`}
+  java={`class DSU {
+    int[] parent;
+    int[] size;
+    
+    public DSU(int n) {
+        parent = new int[n];
+        size = new int[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+            size[i] = 1;
+        }
+    }
+    
+    public int find(int x) {
+        if (x == parent[x]) return x;
+        return parent[x] = find(parent[x]);
+    }
+    
+    public boolean unite(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX == rootY) return false;
+        
+        if (size[rootX] < size[rootY]) {
+            int temp = rootX; rootX = rootY; rootY = temp;
+        }
+        parent[rootY] = rootX;
+        size[rootX] += size[rootY];
+        return true;
+    }
+}`}
+  python={`class DSU:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.size = [1] * n
+        
+    def find(self, x):
+        if self.parent[x] == x:
+            return x
+        self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+        
+    def unite(self, x, y):
+        root_x = self.find(x)
+        root_y = self.find(y)
+        
+        if root_x == root_y:
+            return False
+            
+        if self.size[root_x] < self.size[root_y]:
+            root_x, root_y = root_y, root_x
+            
+        self.parent[root_y] = root_x
+        self.size[root_x] += self.size[root_y]
+        return True`}
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  average="O(α(V))"
+  worst="O(α(V))"
+  space="O(V)"
+  description="With both optimizations, operations take amortized O(α(V)) time, where α is the inverse Ackermann function, effectively O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Size update omission:** In the `unite` method, failing to update the `size` array when attaching the smaller tree to the larger one.
+- **Returning wrong boolean:** Ensure `unite` returns `false` if nodes are already connected. This is extremely useful for cycle detection.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Returning a boolean from the unite function is a very clean way to track redundancy or cycles.",
+    "Always highlight the inverse Ackermann function α(N) when discussing optimal DSU complexity."
   ]}
 />

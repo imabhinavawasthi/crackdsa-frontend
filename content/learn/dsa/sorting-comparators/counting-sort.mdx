@@ -4,67 +4,153 @@ category: "Sorting & Custom Comparators"
 readTime: "9 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the underlying mechanics and intuition behind Counting Sort."
-  - "Master the stability, time complexity, and space complexity of the algorithm."
-  - "Learn when to apply this specific sorting technique in interviews."
-summary: "An essential deep-dive into Counting Sort, breaking down its algorithmic approach, code implementation, and real-world interview applications."
+  - "Understand the power of non-comparison based sorting algorithms."
+  - "Master the prefix-sum technique for stable placements."
+  - "Learn the extreme advantages and critical limitations of Counting Sort."
+summary: "An essential deep-dive into Counting Sort, breaking down its blazing fast O(N + K) time complexity and when to use it in interviews."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Counting Sort**. This topic is a cornerstone of the Sorting & Custom Comparators module. While standard library sorting functions exist, understanding how these algorithms work under the hood is critical for recognizing when an interview problem is actually a masked sorting algorithm.
+Welcome to the lesson on **Counting Sort**. Most sorting algorithms (Merge, Quick, Heap) are comparison-based, meaning their speed is mathematically bottlenecked at $O(N \log N)$. Counting Sort breaks this barrier and achieves a blazing $O(N)$ linear time complexity.
+
+How? It completely skips comparing elements against each other.
 
 ### Core Intuition
-The primary goal of sorting is to order elements either ascending or descending. Depending on the algorithm, this is achieved by swapping adjacent elements, repeatedly selecting the minimum, or dividing the array recursively.
+Counting Sort only works on **discrete values** (like integers) that fall within a specific, relatively small range from $0$ to $K$.
+
+The algorithm works in three main steps:
+1. **Count Frequencies:** Iterate through the array and record how many times each distinct number appears using an auxiliary `count` array of size $K+1$.
+2. **Prefix Sums:** Modify the `count` array by adding the previous count to the current count. This transforms the frequencies into **actual index positions**. For example, if `count[x] = 5`, it means the last occurrence of the number `x` belongs at index 4 (0-indexed).
+3. **Stable Placement:** Traverse the original array **backwards** (to maintain stability). For each element, look up its correct position in the `count` array, place it in the output array, and decrement the `count` value for that number.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Counting Sort
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    void countingSort(vector<int>& arr) {
+        if (arr.empty()) return;
+        
+        // Find the maximum value to know the range K
+        int max_val = *max_element(arr.begin(), arr.end());
+        
+        // Create the count array and output array
+        vector<int> count(max_val + 1, 0);
+        vector<int> output(arr.size());
+        
+        // Step 1: Store the count of each element
+        for (int num : arr) {
+            count[num]++;
+        }
+        
+        // Step 2: Modify count array to store actual positions (prefix sum)
+        for (int i = 1; i <= max_val; i++) {
+            count[i] += count[i - 1];
+        }
+        
+        // Step 3: Build the output array by iterating backwards for stability
+        for (int i = arr.size() - 1; i >= 0; i--) {
+            int current_num = arr[i];
+            int correct_pos = count[current_num] - 1;
+            
+            output[correct_pos] = current_num;
+            count[current_num]--; // decrement count for duplicates
+        }
+        
+        // Copy back to original array
+        for (int i = 0; i < arr.size(); i++) {
+            arr[i] = output[i];
+        }
     }
 };"
-  java="// Java implementation for Counting Sort
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public void countingSort(int[] arr) {
+        if (arr.length == 0) return;
+        
+        // Find the maximum value K
+        int maxVal = arr[0];
+        for (int num : arr) {
+            maxVal = Math.max(maxVal, num);
+        }
+        
+        int[] count = new int[maxVal + 1];
+        int[] output = new int[arr.length];
+        
+        // Count frequencies
+        for (int num : arr) {
+            count[num]++;
+        }
+        
+        // Calculate prefix sums
+        for (int i = 1; i <= maxVal; i++) {
+            count[i] += count[i - 1];
+        }
+        
+        // Place elements backwards to maintain stability
+        for (int i = arr.length - 1; i >= 0; i--) {
+            int currentNum = arr[i];
+            int correctPos = count[currentNum] - 1;
+            
+            output[correctPos] = currentNum;
+            count[currentNum]--;
+        }
+        
+        // Copy to original array
+        System.arraycopy(output, 0, arr, 0, arr.length);
     }
 }"
-  python="# Python implementation for Counting Sort
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def counting_sort(self, arr: list[int]) -> None:
+        if not arr:
+            return
+            
+        max_val = max(arr)
+        
+        count = [0] * (max_val + 1)
+        output = [0] * len(arr)
+        
+        # Count frequencies
+        for num in arr:
+            count[num] += 1
+            
+        # Calculate prefix sums
+        for i in range(1, max_val + 1):
+            count[i] += count[i - 1]
+            
+        # Place elements backwards to maintain stability
+        for i in range(len(arr) - 1, -1, -1):
+            current_num = arr[i]
+            correct_pos = count[current_num] - 1
+            
+            output[correct_pos] = current_num
+            count[current_num] -= 1
+            
+        # Copy to original array
+        for i in range(len(arr)):
+            arr[i] = output[i]
+            "
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N log N)"
-  average="O(N log N)"
-  worst="O(N log N)"
-  space="O(1)"
-  description="Sorting time complexity heavily depends on the algorithm. While Merge Sort guarantees O(N log N) worst-case time, Quick Sort can degrade to O(N^2) if the pivot is chosen poorly. Space complexity ranges from O(1) in-place sorts to O(N) auxiliary space."
+  best="O(N + K)"
+  average="O(N + K)"
+  worst="O(N + K)"
+  space="O(N + K)"
+  description="The time complexity strictly depends on N (the number of elements) and K (the range of the elements). Thus, it runs in O(N + K) time. The space complexity is also O(N + K) because we allocate a 'count' array of size K+1 and an 'output' array of size N."
 />
 
 # Common Pitfalls
 <Warning>
-- **Stability Issues:** Using an unstable sort (like Quick Sort) when the relative order of equal elements must be preserved. (Use Merge Sort or Insertion Sort instead).
-- **Stack Overflow:** Deep recursion in Merge Sort or Quick Sort on massive arrays can cause Call Stack limits to trigger.
+- **Ignoring the K Factor:** Counting Sort is a disaster if $K$ is significantly larger than $N$. Sorting the array `[1, 1000000000]` takes $O(K)$ space and time, crashing your program for just 2 elements. Use it ONLY when $K = O(N)$.
+- **Iterating Forwards for Placement:** In Step 3, if you iterate from `0 to N-1`, the sort will still work, but it will **lose its stability**. Iterating backward guarantees that duplicate elements retain their original relative order.
+- **Negative Numbers:** Standard Counting Sort uses the values directly as array indices. If your array has negative numbers, you must find the minimum value and shift all elements up by an offset to make them strictly non-negative.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array contains numbers exactly in the range 1 to N, it is a dead giveaway to use Cycle Sort for an O(N) time and O(1) space solution.",
-    "If you only need to sort numbers within a very small, restricted range (e.g., ages from 1 to 100), Counting Sort is the most optimal approach.",
-    "Always clarify if you are allowed to mutate the input array. If not, you must account for the O(N) space of copying the array."
+    "If an interview problem says 'Sort an array of a million user ages' or 'Sort employee IDs known to be between 1 and 10,000', IMMEDIATELY use Counting Sort.",
+    "Counting Sort is inherently stable, which makes it the required sub-routine for sorting algorithms that rely on processing digits, like Radix Sort.",
+    "If asked about negative numbers, explain that you would find the global minimum 'min_val', and add `|min_val|` to every element to shift the range to start at 0."
   ]}
 />

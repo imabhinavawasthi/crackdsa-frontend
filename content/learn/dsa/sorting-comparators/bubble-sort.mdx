@@ -4,62 +4,99 @@ category: "Sorting & Custom Comparators"
 readTime: "5 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the fundamentals of Bubble Sort."
-  - "Learn how to implement this pattern in real coding interviews."
-  - "Master the time and space complexity."
-summary: "An essential guide to Bubble Sort, exploring its applications, implementations, and interview intelligence."
+  - "Understand the fundamentals of Bubble Sort and its bubbling mechanics."
+  - "Learn how to implement early-exit optimizations."
+  - "Master the time and space complexity tradeoffs."
+summary: "An essential guide to Bubble Sort, exploring its applications, optimized implementations, and interview intelligence."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Bubble Sort**. This topic is a cornerstone of the Sorting & Custom Comparators module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Welcome to the lesson on **Bubble Sort**. Often the very first algorithmic concept taught in computer science, Bubble Sort provides an excellent, intuitive introduction to sorting algorithms. 
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+The algorithm repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order. The pass through the list is repeated until the list is sorted. 
+
+It gets its name because smaller elements "bubble" to the top of the list (or larger elements sink to the bottom) much like bubbles rising to the surface of a glass of soda. Every time we complete a full pass, we can guarantee that the largest unsorted element has been placed in its final, correct position at the end of the array.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Bubble Sort
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    void bubbleSort(vector<int>& arr) {
+        int n = arr.size();
+        bool swapped;
+        for (int i = 0; i < n - 1; i++) {
+            swapped = false;
+            // The last i elements are already in place
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    swap(arr[j], arr[j + 1]);
+                    swapped = true;
+                }
+            }
+            // If no two elements were swapped by inner loop, then break
+            if (!swapped) break;
+        }
     }
 };"
-  java="// Java implementation for Bubble Sort
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public void bubbleSort(int[] arr) {
+        int n = arr.length;
+        boolean swapped;
+        for (int i = 0; i < n - 1; i++) {
+            swapped = false;
+            // The last i elements are already in place
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    // Swap arr[j] and arr[j+1]
+                    int temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                    swapped = true;
+                }
+            }
+            // If no two elements were swapped by inner loop, then break
+            if (!swapped) break;
+        }
     }
 }"
-  python="# Python implementation for Bubble Sort
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def bubble_sort(self, arr: list[int]) -> None:
+        n = len(arr)
+        for i in range(n):
+            swapped = False
+            # The last i elements are already in place
+            for j in range(0, n - i - 1):
+                if arr[j] > arr[j + 1]:
+                    arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                    swapped = True
+            
+            # If no two elements were swapped by inner loop, then break
+            if not swapped:
+                break"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(N)"
+  average="O(N^2)"
+  worst="O(N^2)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="By incorporating the 'swapped' flag optimization, Bubble Sort can terminate early, giving it a best-case time complexity of O(N) when the array is already sorted. However, average and worst cases remain O(N^2). It is an in-place algorithm, requiring O(1) auxiliary space."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Forgetting the Optimization:** Implementing the unoptimized version of Bubble Sort that always takes O(N^2) time even on sorted arrays. Always include the early-exit `swapped` flag.
+- **Redundant Comparisons:** Failing to decrease the inner loop bound (`n - i - 1`). The largest `i` elements are already sorted at the end, so comparing them again is a waste of time.
+- **Using it in Production:** Bubble Sort is notoriously inefficient for large datasets. It is almost exclusively an educational tool rather than a practical solution.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If you mention Bubble Sort in an interview, explicitly state that you are using it purely as an iterative starting point, and rapidly move on to more optimal algorithms like Merge or Quick Sort.",
+    "Bubble Sort is a stable sorting algorithm. Since it only swaps adjacent elements that are strictly greater than or less than one another, equal elements never cross paths.",
+    "The 'swapped' optimization is a great way to show interviewers that you naturally think about early termination and best-case scenarios."
   ]}
 />

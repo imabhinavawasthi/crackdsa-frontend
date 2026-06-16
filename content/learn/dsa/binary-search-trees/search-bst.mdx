@@ -11,78 +11,72 @@ summary: "An essential guide to Search in a BST, mastering O(log N) searches and
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Search in a BST**. This topic is a cornerstone of the Binary Search Trees module. A Binary Search Tree is a special type of binary tree where every node in the left subtree is strictly smaller than the root, and every node in the right subtree is strictly greater.
+Searching in a **Binary Search Tree (BST)** is one of the most fundamental operations. Because every node follows the rule `Left < Root < Right`, we can locate any element efficiently by discarding half of the tree at each step. This process is identical to performing **Binary Search** on a sorted array.
 
 ### Core Intuition
-Because of this property, an **Inorder Traversal** of a valid BST will *always* yield a perfectly sorted sequence! This allows us to perform searches, insertions, and deletions in O(log N) average time, making it incredibly powerful for dynamic data.
+Starting from the root:
+1. If the current node is `null`, the target does not exist in the tree.
+2. If the current node's value equals the target, you've found it!
+3. If the target is strictly **less** than the current node's value, the target *must* be in the left subtree.
+4. If the target is strictly **greater**, it *must* be in the right subtree.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Search in a BST
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    TreeNode* searchBST(TreeNode* root, int val) {
+        while (root != nullptr && root->val != val) {
+            if (val < root->val) {
+                root = root->left;
+            } else {
+                root = root->right;
+            }
+        }
+        return root;
     }
 };"
-  java="// Java implementation for Search in a BST
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    public TreeNode searchBST(TreeNode root, int val) {
+        while (root != null && root.val != val) {
+            if (val < root.val) {
+                root = root.left;
+            } else {
+                root = root.right;
+            }
+        }
+        return root;
     }
 }"
-  python="# Python implementation for Search in a BST
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def searchBST(self, root: TreeNode, val: int) -> TreeNode:
+        while root and root.val != val:
+            if val < root.val:
+                root = root.left
+            else:
+                root = root.right
+        return root"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(log N)"
+  best="O(1)"
   average="O(log N)"
   worst="O(N)"
-  space="O(H)"
-  description="In a balanced BST, operations take O(log N) time. However, if the tree becomes skewed (like a linked list), the time complexity degrades to O(N). Space complexity is O(H) corresponding to the recursive call stack."
+  space="O(1)"
+  description="The time complexity is proportional to the height of the tree. In the average case of a balanced BST, this is O(log N). In the worst case (a skewed tree), it degrades to O(N). The iterative approach takes O(1) auxiliary space."
 />
 
 # Common Pitfalls
 <Warning>
-- **Local Validation Mistake:** Validating a BST by only checking if `root.left.val < root.val < root.right.val` is INCORRECT. An element deep in the right subtree could be smaller than the main root. You must pass down an allowed `[min, max]` range constraint!
-- **Modifying structure during iteration:** Deleting a node with two children requires finding the inorder successor or predecessor to replace it, which is a notorious source of bugs.
+- Using recursion for searching. While valid and elegant, recursion consumes O(H) space on the call stack. The iterative approach is trivial to write and uses O(1) space.
+- Unnecessarily traversing the entire tree (O(N) time) instead of exploiting the BST property to go left or right.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks if a tree is a valid BST, the immediate answer is to either pass down `(min, max)` boundaries recursively, or do an inorder traversal and check if the result is sorted.",
-    "If a problem asks for the 'Kth smallest/largest' element in a BST, you should instantly think of Inorder Traversal with a counter.",
-    "Be careful: does the interviewer allow duplicate values in the BST? If so, decide whether they go to the left or right subtree."
+    "Always state why you chose the iterative approach (to save memory stack space).",
+    "Mention that finding a node is the prerequisite step for other operations like Deletion or finding a Successor.",
+    "Be ready to explain how a skewed tree affects search time and briefly mention balanced trees like AVL or Red-Black trees."
   ]}
 />

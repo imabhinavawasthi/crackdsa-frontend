@@ -11,37 +11,108 @@ summary: "An essential guide to Prim's Algorithm, exploring its applications, op
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Prim's Algorithm**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+**Prim's Algorithm** is a greedy algorithm used to find the Minimum Spanning Tree (MST) of a weighted, undirected graph. It starts from an arbitrary node and grows the MST one edge at a time.
 
 ### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+We maintain a set of nodes currently included in the MST and a Priority Queue to pick the smallest edge connecting the MST set to a node outside it.
+1. Start at any node, mark it as visited, and push its adjacent edges into a Min-Heap.
+2. Extract the minimum edge from the heap.
+3. If the edge leads to an unvisited node, add the edge weight to the total cost, mark the node as visited, and push all its edges to unvisited neighbors into the heap.
+4. Repeat until all nodes are visited.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Prim's Algorithm
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int spanningTree(int V, vector<vector<int>> adj[]) {
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        vector<int> vis(V, 0);
+        
+        // {weight, node}
+        pq.push({0, 0});
+        int sum = 0;
+        
+        while (!pq.empty()) {
+            auto it = pq.top();
+            pq.pop();
+            int node = it.second;
+            int wt = it.first;
+            
+            if (vis[node] == 1) continue;
+            
+            vis[node] = 1;
+            sum += wt;
+            
+            for (auto it : adj[node]) {
+                int adjNode = it[0];
+                int edW = it[1];
+                if (!vis[adjNode]) {
+                    pq.push({edW, adjNode});
+                }
+            }
+        }
+        return sum;
     }
 };"
-  java="// Java implementation for Prim's Algorithm
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    static int spanningTree(int V, int E, int edges[][]) {
+        List<List<int[]>> adj = new ArrayList<>();
+        for (int i = 0; i < V; i++) adj.add(new ArrayList<>());
+        for (int[] edge : edges) {
+            adj.get(edge[0]).add(new int[]{edge[1], edge[2]});
+            adj.get(edge[1]).add(new int[]{edge[0], edge[2]});
+        }
+        
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+        int[] vis = new int[V];
+        
+        // {weight, node}
+        pq.add(new int[]{0, 0});
+        int sum = 0;
+        
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int wt = curr[0];
+            int node = curr[1];
+            
+            if (vis[node] == 1) continue;
+            
+            vis[node] = 1;
+            sum += wt;
+            
+            for (int[] edge : adj.get(node)) {
+                int adjNode = edge[0];
+                int edW = edge[1];
+                if (vis[adjNode] == 0) {
+                    pq.add(new int[]{edW, adjNode});
+                }
+            }
+        }
+        return sum;
     }
 }"
-  python="# Python implementation for Prim's Algorithm
+  python="import heapq
+
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def spanningTree(self, V, adj):
+        pq = [(0, 0)]  # (weight, node)
+        vis = [False] * V
+        total_sum = 0
+        
+        while pq:
+            wt, node = heapq.heappop(pq)
+            
+            if vis[node]:
+                continue
+                
+            vis[node] = True
+            total_sum += wt
+            
+            for adjNode, edW in adj[node]:
+                if not vis[adjNode]:
+                    heapq.heappush(pq, (edW, adjNode))
+                    
+        return total_sum"
 />
 
 # Complexity Analysis
@@ -50,19 +121,20 @@ class Solution:
   average="O(E log V)"
   worst="O(E log V)"
   space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  description="In the worst case, every edge is added to the priority queue. Extracting from the priority queue takes O(log V) time, resulting in O(E log V) overall time complexity. The space complexity is O(V + E) for the adjacency list and priority queue."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Visited Marking Delay:** Ensure you only mark a node as visited *after* it's popped from the priority queue, not when you push it. Marking it upon push can lead to suboptimal paths.
+- **Handling Disconnected Components:** The standard Prim's starting from node `0` assumes the graph is connected. If it's a forest, you must iterate over all nodes and start a new Prim's process for unvisited nodes.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "If you also need to print the MST edges, maintain a `parent` node in the priority queue and record the edge `(parent, current_node)` when the node is popped.",
+    "Prim's is conceptually similar to Dijkstra's. Mentioning this connection demonstrates strong foundational knowledge.",
+    "For dense graphs, an O(V^2) version of Prim's without a priority queue might be theoretically faster, but the priority queue version is the expected standard."
   ]}
 />

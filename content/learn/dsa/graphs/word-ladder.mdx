@@ -11,59 +11,140 @@ summary: "An essential guide to Word Ladder I & II, exploring its applications, 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Word Ladder I & II**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+The **Word Ladder** problems are classic interview questions that require you to find the shortest transformation sequence from a `beginWord` to an `endWord`. 
+- **Rule 1:** Only one letter can be changed at a time.
+- **Rule 2:** Each transformed word must exist in the given `wordList`.
 
-### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+Since we want the *shortest* path in a scenario where every transformation costs 1 step (unweighted), **Breadth-First Search (BFS)** is the perfect tool.
+
+### Core Intuition (Word Ladder I)
+- Instead of building a massive explicit graph (which is too slow), we generate neighbors dynamically.
+- Store the `wordList` in an unordered set (hash set) for `O(1)` lookups.
+- Push the `beginWord` into a queue alongside its current step count (initially 1).
+- Pop a word, and for every character in the word, replace it with letters from 'a' to 'z'.
+- If the new generated word exists in the set, it's a valid neighbor! Remove it from the set (to prevent cycles and mark as visited) and push it into the queue.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Word Ladder I & II
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+    int ladderLength(string beginWord, string endWord, vector<string>& wordList) {
+        unordered_set<string> st(wordList.begin(), wordList.end());
+        queue<pair<string, int>> q;
+        
+        q.push({beginWord, 1});
+        st.erase(beginWord);
+        
+        while (!q.empty()) {
+            string word = q.front().first;
+            int steps = q.front().second;
+            q.pop();
+            
+            if (word == endWord) return steps;
+            
+            for (int i = 0; i < word.size(); i++) {
+                char original = word[i];
+                for (char c = 'a'; c <= 'z'; c++) {
+                    word[i] = c;
+                    if (st.find(word) != st.end()) {
+                        st.erase(word);
+                        q.push({word, steps + 1});
+                    }
+                }
+                word[i] = original; // Backtrack
+            }
+        }
+        return 0;
     }
 };"
-  java="// Java implementation for Word Ladder I & II
-import java.util.*;
-
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+  java="class Solution {
+    class Pair {
+        String word;
+        int steps;
+        Pair(String word, int steps) {
+            this.word = word;
+            this.steps = steps;
+        }
+    }
+    
+    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
+        Set<String> st = new HashSet<>(wordList);
+        Queue<Pair> q = new LinkedList<>();
+        
+        q.add(new Pair(beginWord, 1));
+        st.remove(beginWord);
+        
+        while (!q.isEmpty()) {
+            Pair curr = q.poll();
+            String word = curr.word;
+            int steps = curr.steps;
+            
+            if (word.equals(endWord)) return steps;
+            
+            for (int i = 0; i < word.length(); i++) {
+                char[] replacedWordArray = word.toCharArray();
+                for (char ch = 'a'; ch <= 'z'; ch++) {
+                    replacedWordArray[i] = ch;
+                    String replacedWord = new String(replacedWordArray);
+                    
+                    if (st.contains(replacedWord)) {
+                        st.remove(replacedWord);
+                        q.add(new Pair(replacedWord, steps + 1));
+                    }
+                }
+            }
+        }
+        return 0;
     }
 }"
-  python="# Python implementation for Word Ladder I & II
+  python="from collections import deque
+
 class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+    def ladderLength(self, beginWord, endWord, wordList):
+        st = set(wordList)
+        if endWord not in st:
+            return 0
+            
+        q = deque([(beginWord, 1)])
+        if beginWord in st:
+            st.remove(beginWord)
+            
+        while q:
+            word, steps = q.popleft()
+            
+            if word == endWord:
+                return steps
+                
+            for i in range(len(word)):
+                for c in 'abcdefghijklmnopqrstuvwxyz':
+                    new_word = word[:i] + c + word[i+1:]
+                    if new_word in st:
+                        st.remove(new_word)
+                        q.append((new_word, steps + 1))
+                        
+        return 0"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(V + E)"
-  average="O(V + E)"
-  worst="O(V + E)"
-  space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  best="O(N * M * 26)"
+  average="O(N * M * 26)"
+  worst="O(N * M * 26)"
+  space="O(N)"
+  description="N is the number of words in the dictionary, and M is the word length. For each word, we check M positions against 26 letters. Using a Hash Set gives O(1) lookups."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- **Removing from Set:** Not erasing the word from the set after pushing it to the queue will lead to infinite loops (cycles) and TLE errors.
+- **Explicit Graph Construction:** Trying to build an explicit adjacency list for all words will result in an O(N^2 * M) time limit exceeded error for large inputs.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "Word Ladder II (finding all shortest paths) is much harder. It requires generating the shortest path tree using BFS and then backtracking using DFS.",
+    "Explain the tradeoff of dynamically generating neighbors vs pre-computing the graph. Dynamic generation is much faster when word length M is small and dictionary N is large.",
+    "Remember to restore the original character (`word[i] = original`) in languages where strings are mutable (C++), or simply build a new string (Java/Python)."
   ]}
 />

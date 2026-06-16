@@ -11,55 +11,128 @@ summary: "An essential guide to Merge Intervals, exploring its applications, imp
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Merge Intervals**. This topic is a cornerstone of the Intervals module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Merge Intervals** problem is a classic and foundational challenge. Given an array of intervals where `intervals[i] = [starti, endi]`, merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+The brute-force way would involve comparing every interval with every other interval, resulting in an $O(N^2)$ runtime. To optimize this, we rely on the fundamental principle of interval problems: **Sorting**.
+
+1. **Sort the Intervals**: Sort the list of intervals by their starting times. This ensures that if intervals overlap, they must be adjacent in the sorted array.
+2. **Iterate and Merge**: Create an empty list to hold the merged intervals. Iterate through the sorted intervals:
+   - If the merged list is empty, or if the current interval does not overlap with the last interval in the merged list, append it.
+   - If it does overlap, merge them by updating the `end` of the last interval in the merged list to be the maximum `end` of the two overlapping intervals.
+
+This approach guarantees that we effectively merge all overlapping clusters in a single pass.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Merge Intervals
-#include <iostream>
+  cpp="#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        if (intervals.empty()) return {};
+
+        // Sort intervals by start time
+        sort(intervals.begin(), intervals.end());
+
+        vector<vector<int>> merged;
+        merged.push_back(intervals[0]);
+
+        for (int i = 1; i < intervals.size(); i++) {
+            // Get the last inserted interval
+            vector<int>& lastInterval = merged.back();
+
+            // If the current interval overlaps with the last interval
+            if (intervals[i][0] <= lastInterval[1]) {
+                // Merge them by taking the maximum end time
+                lastInterval[1] = max(lastInterval[1], intervals[i][1]);
+            } else {
+                // Otherwise, add the current interval to the result
+                merged.push_back(intervals[i]);
+            }
+        }
+
+        return merged;
     }
 };"
-  java="// Java implementation for Merge Intervals
+  java="import java.util.*;
+
 class Solution {
-    public void solve() {
-        // Implementation here
+    public int[][] merge(int[][] intervals) {
+        if (intervals.length <= 1) return intervals;
+
+        // Sort by ascending starting point
+        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
+
+        List<int[]> merged = new ArrayList<>();
+        int[] currentInterval = intervals[0];
+        merged.add(currentInterval);
+
+        for (int[] interval : intervals) {
+            int currentEnd = currentInterval[1];
+            int nextBegin = interval[0];
+            int nextEnd = interval[1];
+
+            if (currentEnd >= nextBegin) {
+                // Overlapping intervals, update the end if needed
+                currentInterval[1] = Math.max(currentEnd, nextEnd);
+            } else {
+                // Disjoint intervals, add the new interval to the list
+                currentInterval = interval;
+                merged.add(currentInterval);
+            }
+        }
+
+        return merged.toArray(new int[merged.size()][]);
     }
 }"
-  python="# Python implementation for Merge Intervals
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def merge(self, intervals: list[list[int]]) -> list[list[int]]:
+        if not intervals:
+            return []
+            
+        # Sort intervals based on the start value
+        intervals.sort(key=lambda x: x[0])
+        
+        merged = [intervals[0]]
+        
+        for current in intervals[1:]:
+            last_merged = merged[-1]
+            
+            # If the current interval overlaps with the last merged interval
+            if current[0] <= last_merged[1]:
+                last_merged[1] = max(last_merged[1], current[1])
+            else:
+                # No overlap, add to the merged list
+                merged.append(current)
+                
+        return merged"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N log N)"
+  space="O(N)"
+  description="Sorting the intervals dictates the O(N log N) time complexity. The subsequent iteration processes the array in O(N) time. The space complexity is O(N) due to the sorting algorithm overhead (like TimSort in Python) and the space required to store the merged result array."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Neglecting to sort the intervals first. Attempting to merge an unsorted list in a single pass will fail for inputs like `[[1,4], [0,2], [3,5]]`.
+- Comparing the end of the previous interval with the end of the current one instead of the start. Overlap condition is `previous.end >= current.start`.
+- Assuming the current interval's end is always greater. You must use `max(previous.end, current.end)` because an interval could be completely swallowed by another, e.g., merging `[1, 5]` and `[2, 3]` yields `[1, 5]`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If the interviewer asks to optimize for space, clarify if you can modify the input array in place. While you can sort in-place, returning a variable-length list usually requires O(N) dynamic storage.",
+    "Be proactive and mention the edge case of an empty array before the interviewer has to point it out.",
+    "If the intervals are already sorted (e.g., as part of a stream), you can solve this in O(N) time directly."
   ]}
 />

@@ -11,86 +11,113 @@ summary: "An essential guide to Balanced Binary Tree, mastering tree traversal a
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Balanced Binary Tree**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+A **Height-Balanced Binary Tree** is a binary tree in which the depth of the two subtrees of *every* node never differs by more than 1.
+
+This property is what keeps search algorithms fast (O(log N)). If a tree becomes unbalanced, it devolves into a linked list, degrading search times to O(N).
+
+### The Brute Force vs. Optimized Approach
+**Brute Force (O(N^2)):** For every node, calculate the height of its left child and right child using a helper function. If the difference is > 1, return false. Otherwise, check its children. This is redundant because `height()` calculates heights from scratch every time.
+
+**Optimized Bottom-Up (O(N)):** We can combine the height calculation and the balance check into a single postorder traversal. 
+- Ask the left child for its height.
+- Ask the right child for its height.
+- If either child is unbalanced (returns a sentinel value, typically `-1`), or if the difference between their heights is > 1, the current node is unbalanced (return `-1`).
+- Otherwise, return `1 + max(leftHeight, rightHeight)`.
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Balanced Binary Tree
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    bool isBalanced(TreeNode* root) {
+        return checkHeight(root) != -1;
+    }
+    
+private:
+    int checkHeight(TreeNode* node) {
+        if (node == nullptr) return 0;
+        
+        int leftHeight = checkHeight(node->left);
+        if (leftHeight == -1) return -1; // Left subtree is unbalanced
+        
+        int rightHeight = checkHeight(node->right);
+        if (rightHeight == -1) return -1; // Right subtree is unbalanced
+        
+        if (abs(leftHeight - rightHeight) > 1) {
+            return -1; // Current node is unbalanced
+        }
+        
+        return 1 + max(leftHeight, rightHeight);
     }
 };"
-  java="// Java implementation for Balanced Binary Tree
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
+  java="class Solution {
+    public boolean isBalanced(TreeNode root) {
+        return checkHeight(root) != -1;
     }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+    
+    private int checkHeight(TreeNode node) {
+        if (node == null) return 0;
+        
+        int leftHeight = checkHeight(node.left);
+        if (leftHeight == -1) return -1;
+        
+        int rightHeight = checkHeight(node.right);
+        if (rightHeight == -1) return -1;
+        
+        if (Math.abs(leftHeight - rightHeight) > 1) {
+            return -1;
+        }
+        
+        return 1 + Math.max(leftHeight, rightHeight);
     }
 }"
-  python="# Python implementation for Balanced Binary Tree
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def isBalanced(self, root: Optional[TreeNode]) -> bool:
+        
+        def check_height(node):
+            if not node:
+                return 0
+                
+            left_height = check_height(node.left)
+            if left_height == -1:
+                return -1
+                
+            right_height = check_height(node.right)
+            if right_height == -1:
+                return -1
+                
+            if abs(left_height - right_height) > 1:
+                return -1
+                
+            return 1 + max(left_height, right_height)
+            
+        return check_height(root) != -1"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  description="Time complexity is O(N) since each node is visited only once in the optimized approach. Space complexity is O(H) representing the maximum recursion depth, which is bounded by the tree's height."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **The O(N^2) Trap:** Writing a naive solution that calls a separate `getHeight()` function inside the `isBalanced` recursion. Interviewers will immediately dock points for this.
+- **Forgetting to Bubble Up -1:** If the left child returns `-1` (meaning it found an imbalance deep in the tree), you MUST return `-1` immediately to bubble the failure up the call stack.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "This is a classic 'Sentinel Value' pattern. We use -1 to represent 'unbalanced' because a valid tree height can never be negative.",
+    "Always clarify the definition of 'balanced'. Some definitions require a specific leaf level fill, but standard problems imply a height difference <= 1.",
+    "Be prepared to explain why the Bottom-Up approach is faster than the Top-Down approach."
   ]}
 />

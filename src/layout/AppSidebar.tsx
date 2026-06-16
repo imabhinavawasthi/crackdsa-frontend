@@ -8,11 +8,8 @@ import { MoreHorizontal, ChevronDown, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
   NavItem,
-  navItems,
-  othersItems,
-  accountItems,
-  adminNavItems,
-  adminOthersItems,
+  sidebarSections,
+  adminSidebarSections,
 } from "@/config/sidebar";
 import SidebarWidget from "./SidebarWidget";
 
@@ -38,7 +35,7 @@ const AppSidebar: React.FC = () => {
 
   const renderMenuItems = (
     navItems: NavItem[],
-    menuType: "main" | "others" | "account"
+    menuType: string
   ) => (
     <ul className="flex flex-col gap-1">
       {navItems.map((nav, index) => (
@@ -178,7 +175,7 @@ const AppSidebar: React.FC = () => {
   );
   
   const [openSubmenu, setOpenSubmenu] = useState<{
-    type: "main" | "others" | "account";
+    type: string;
     index: number;
   } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
@@ -192,16 +189,16 @@ const AppSidebar: React.FC = () => {
   useEffect(() => {
     // Check if the current path matches any submenu item or its parent main path
     let submenuMatched = false;
-    ["main", "others", "account"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : menuType === "others" ? othersItems : accountItems;
-      items.forEach((nav, index) => {
+    const sections = pathname.startsWith("/admin") ? adminSidebarSections : sidebarSections;
+    sections.forEach((section) => {
+      section.items.forEach((nav, index) => {
         if (nav.subItems) {
           const parentMatched = nav.path && isActive(nav.path);
           const subItemMatched = nav.subItems.some((subItem) => isActive(subItem.path));
 
           if (parentMatched || subItemMatched) {
             setOpenSubmenu({
-              type: menuType as "main" | "others" | "account",
+              type: section.key,
               index,
             });
             submenuMatched = true;
@@ -233,7 +230,7 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number, menuType: "main" | "others" | "account") => {
+  const handleSubmenuToggle = (index: number, menuType: string) => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (
         prevOpenSubmenu &&
@@ -316,79 +313,67 @@ const AppSidebar: React.FC = () => {
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar text-[14px]">
         <nav className="mb-6">
           <div className="flex flex-col gap-5">
-            <div>
-              <h2
-                className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  pathname.startsWith("/admin") ? "Admin Panel" : "Learning"
-                ) : (
-                  <MoreHorizontal size={20} />
-                )}
-              </h2>
-              {renderMenuItems(pathname.startsWith("/admin") ? adminNavItems : navItems, "main")}
-            </div>
-
-            <div className="">
-              <h2
-                className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  pathname.startsWith("/admin") ? "Exit Panel" : "Practice"
-                ) : (
-                  <MoreHorizontal size={20} />
-                )}
-              </h2>
-              {renderMenuItems(pathname.startsWith("/admin") ? adminOthersItems : othersItems, "others")}
-            </div>
-
-            {!pathname.startsWith("/admin") && (
-              <div className="">
-                <h2
-                  className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
-                    !isExpanded && !isHovered
-                      ? "lg:justify-center"
-                      : "justify-start"
-                  }`}
-                >
-                  {isExpanded || isHovered || isMobileOpen ? (
-                    "Account"
-                  ) : (
-                    <MoreHorizontal size={20} />
-                  )}
-                </h2>
-                {isLoggedIn ? (
-                  renderMenuItems(accountItems, "account")
-                ) : (
-                  <ul className="flex flex-col gap-1">
-                    <li>
-                      <Link
-                        href="/login"
-                        onClick={closeSidebarOnMobile}
-                        className={`menu-item group ${
-                          isActive("/login") ? "menu-item-active" : "menu-item-inactive"
+            {(() => {
+              const sections = pathname.startsWith("/admin") ? adminSidebarSections : sidebarSections;
+              return sections.map((section) => {
+                if (section.requireAuth && !isLoggedIn) {
+                  return (
+                    <div key={section.key} className="">
+                      <h2
+                        className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
+                          !isExpanded && !isHovered
+                            ? "lg:justify-center"
+                            : "justify-start"
                         }`}
                       >
-                        <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10`}>
-                          <User size={18} />
-                        </span>
-                        {(isExpanded || isHovered || isMobileOpen) && (
-                          <span className={`menu-item-text`}>Sign In</span>
+                        {isExpanded || isHovered || isMobileOpen ? (
+                          section.title
+                        ) : (
+                          <MoreHorizontal size={20} />
                         )}
-                      </Link>
-                    </li>
-                  </ul>
-                )}
-              </div>
-            )}
+                      </h2>
+                      <ul className="flex flex-col gap-1">
+                        <li>
+                          <Link
+                            href="/login"
+                            onClick={closeSidebarOnMobile}
+                            className={`menu-item group ${
+                              isActive("/login") ? "menu-item-active" : "menu-item-inactive"
+                            }`}
+                          >
+                            <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10`}>
+                              <User size={18} />
+                            </span>
+                            {(isExpanded || isHovered || isMobileOpen) && (
+                              <span className={`menu-item-text`}>Sign In</span>
+                            )}
+                          </Link>
+                        </li>
+                      </ul>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={section.key} className="">
+                    <h2
+                      className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
+                        !isExpanded && !isHovered
+                          ? "lg:justify-center"
+                          : "justify-start"
+                      }`}
+                    >
+                      {isExpanded || isHovered || isMobileOpen ? (
+                        section.title
+                      ) : (
+                        <MoreHorizontal size={20} />
+                      )}
+                    </h2>
+                    {renderMenuItems(section.items, section.key)}
+                  </div>
+                );
+              });
+            })()}
           </div>
         </nav>
         {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}

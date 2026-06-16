@@ -11,35 +11,67 @@ summary: "An essential guide to Reversing an Array, exploring its applications, 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Reversing an Array**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+Reversing an array is a classic foundational problem that introduces the powerful **Two-Pointer Technique**. 
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+The naive way to reverse an array is to create a new array, iterate backward through the original array, and append elements to the new array. While this takes $O(N)$ time, it also takes **$O(N)$ extra space**.
+
+### The Two-Pointer Approach (In-Place)
+To achieve true optimization, we must reverse the array **in-place** (without allocating a new array), bringing our space complexity down to $O(1)$. 
+1. Place a `left` pointer at the beginning (index `0`).
+2. Place a `right` pointer at the end (index `size - 1`).
+3. Swap the elements at `left` and `right`.
+4. Increment `left` and decrement `right`.
+5. Repeat until `left >= right`.
+
+This simple, symmetric property forms the basis for many advanced palindrome and sorting algorithms.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Reversing an Array
-#include <iostream>
+  cpp={`// C++ Two-Pointer Array Reversal
 #include <vector>
+#include <algorithm> // for std::swap
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    void reverseArray(vector<int>& arr) {
+        int left = 0;
+        int right = arr.size() - 1;
+        
+        while (left < right) {
+            swap(arr[left], arr[right]);
+            left++;
+            right--;
+        }
     }
-};"
-  java="// Java implementation for Reversing an Array
+};`}
+  java={`// Java Two-Pointer Array Reversal
 class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    public void reverseArray(int[] arr) {
+        int left = 0;
+        int right = arr.length - 1;
+        
+        while (left < right) {
+            // Standard swap logic
+            int temp = arr[left];
+            arr[left] = arr[right];
+            arr[right] = temp;
+            
+            left++;
+            right--;
+        }
     }
-}"
-  python="# Python implementation for Reversing an Array
+}`}
+  python={`# Python Two-Pointer Array Reversal
 class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def reverse_array(self, arr: list[int]) -> None:
+        left, right = 0, len(arr) - 1
+        
+        while left < right:
+            # Python allows elegant tuple swapping
+            arr[left], arr[right] = arr[right], arr[left]
+            left += 1
+            right -= 1`}
 />
 
 # Complexity Analysis
@@ -48,20 +80,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  description="The time complexity is strictly O(N), as we traverse exactly half the array performing constant time O(1) swaps. Because the reversal is performed in-place, the auxiliary space complexity is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Loop Condition:** The condition must be `left < right`. If you use `left <= right`, it will unnecessarily swap the middle element with itself (harmless but inefficient). If you loop through the entire array instead of stopping at the middle, you will reverse it and then un-reverse it back to its original state!
+- **Library Reliance:** While languages offer built-in functions (std::reverse in C++, Collections.reverse in Java, arr[::-1] in Python), interviewers usually want to see the underlying logic implemented from scratch.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "Master the in-place swap logic. It is the cornerstone for algorithms like QuickSort partitioning and Dutch National Flag.",
+    "If a problem asks you to rotate an array by K steps, a brilliant O(N) time and O(1) space trick is to use three reversals: reverse the entire array, reverse the first K elements, then reverse the remaining elements.",
+    "Checking if a string or array is a Palindrome uses the exact same two-pointer logic, but compares elements instead of swapping them."
   ]}
 />

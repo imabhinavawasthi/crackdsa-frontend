@@ -11,65 +11,118 @@ summary: "An essential guide to Lemonade Change, mastering the art of local opti
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Lemonade Change**. This topic is a cornerstone of the Greedy Algorithms module. A Greedy Algorithm builds up a solution piece by piece, always choosing the next piece that offers the most obvious and immediate benefit.
+In the **Lemonade Change** problem, you are selling lemonade at $5 a cup. Customers stand in a queue and buy one cup at a time, paying with either a $5, $10, or $20 bill. You start with no change in your register. You must provide the correct change to every customer, serving them in the order they appear.
 
-### Core Intuition
-The tricky part of Greedy algorithms isn't the code—it's proving that it works. Unlike Dynamic Programming which exhaustively searches all paths and guarantees correctness, Greedy only searches one path. You must prove the *Greedy Choice Property*: making a locally optimal choice guarantees a globally optimal solution.
+### The Greedy Strategy
+This problem is a pure simulation combined with a greedy choice.
+When a customer pays with:
+- **$5 bill**: Keep it. No change needed.
+- **$10 bill**: You must give exactly one $5 bill as change. (Keep the $10).
+- **$20 bill**: You need to give $15 in change. Here is where the Greedy Choice comes in: you can either give three $5 bills, or one $10 bill and one $5 bill. 
+
+**The Greedy Choice**: Always give the $10 bill + $5 bill if possible! Why? Because $5 bills are strictly more versatile. You need $5 bills to give change for $10s, and they can also be used to give change for $20s. A $10 bill is only useful for making change for a $20. By hoarding your $5 bills, you maximize your chances of making change for future customers.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Lemonade Change
-#include <iostream>
-#include <vector>
-#include <algorithm>
+  cpp="#include <vector>
 using namespace std;
 
 class Solution {
 public:
-    int solve(vector<int>& arr) {
-        // sort(arr.begin(), arr.end());
-        // Implementation here
-        return 0;
+    bool lemonadeChange(vector<int>& bills) {
+        int fives = 0, tens = 0;
+        
+        for (int bill : bills) {
+            if (bill == 5) {
+                fives++;
+            } else if (bill == 10) {
+                if (fives == 0) return false;
+                fives--;
+                tens++;
+            } else { // bill == 20
+                if (tens > 0 && fives > 0) {
+                    tens--;
+                    fives--;
+                } else if (fives >= 3) {
+                    fives -= 3;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 };"
-  java="// Java implementation for Lemonade Change
-import java.util.*;
-
-class Solution {
-    public int solve(int[] arr) {
-        // Arrays.sort(arr);
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public boolean lemonadeChange(int[] bills) {
+        int fives = 0, tens = 0;
+        
+        for (int bill : bills) {
+            if (bill == 5) {
+                fives++;
+            } else if (bill == 10) {
+                if (fives == 0) return false;
+                fives--;
+                tens++;
+            } else { // bill == 20
+                if (tens > 0 && fives > 0) {
+                    tens--;
+                    fives--;
+                } else if (fives >= 3) {
+                    fives -= 3;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }"
-  python="# Python implementation for Lemonade Change
-class Solution:
-    def solve(self, arr: list[int]) -> int:
-        # arr.sort()
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def lemonadeChange(self, bills: list[int]) -> bool:
+        fives = 0
+        tens = 0
+        
+        for bill in bills:
+            if bill == 5:
+                fives += 1
+            elif bill == 10:
+                if fives == 0:
+                    return False
+                fives -= 1
+                tens += 1
+            else: # bill == 20
+                if tens > 0 and fives > 0:
+                    tens -= 1
+                    fives -= 1
+                elif fives >= 3:
+                    fives -= 3
+                else:
+                    return False
+                    
+        return True"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N log N)"
-  average="O(N log N)"
-  worst="O(N log N)"
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
   space="O(1)"
-  description="Greedy algorithms are almost always paired with sorting. Therefore, the time complexity is dominated by the initial sort: O(N log N). The greedy iteration itself is usually O(N). Space complexity is typically O(1) assuming an in-place sort."
+  description="We iterate through the bills array exactly once, performing O(1) operations per customer. Space complexity is O(1) as we only use two integer variables to track our register state."
 />
 
 # Common Pitfalls
 <Warning>
-- **Premature Greediness:** Assuming a greedy approach works without testing edge cases. Often, what looks like a Greedy problem is actually a DP problem (e.g., 0/1 Knapsack is DP, Fractional Knapsack is Greedy).
-- **Sorting State:** Forgetting to sort the input arrays before applying the greedy logic!
+- Using up three $5 bills to make change for a $20 when you have a $10 bill available. This violates the greedy principle and will cause you to fail subsequent test cases!
+- Attempting to sort the input array. The customers are in a queue and must be served in the order they arrive. Sorting destroys the sequence of events.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for 'minimum steps', 'maximum profit', or 'optimal scheduling', and Dynamic Programming feels too slow (e.g. constraints up to 10^5), it's highly likely a Greedy problem.",
-    "Interval overlapping problems (like 'Merge Intervals' or 'Minimum Arrows') are classic greedy problems. Always sort them by their start or end times first.",
-    "Be vocal about your proofs. Say to the interviewer: 'I believe a greedy approach works here because making this choice now will never restrict us from making a better choice later.'"
+    "Explicitly call out the Greedy Choice Property to your interviewer: 'I prioritize getting rid of $10 bills because $5 bills are strictly more valuable for making future change.'",
+    "Notice that you don't need to track the number of $20 bills you collected, because a $20 bill can never be used to make change for any customer in this problem.",
+    "If the interviewer asks to generalize this to arbitrary bill denominations, mention that the greedy approach only works if the coin system is 'canonical' (like US currency). Otherwise, DP is required."
   ]}
 />

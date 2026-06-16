@@ -1,67 +1,123 @@
 ---
 title: "Modular Exponentiation (Binary Exponentiation)"
 category: "Math for DSA"
-readTime: "9 min read"
+readTime: "10 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the mathematical intuition behind Modular Exponentiation (Binary Exponentiation)."
-  - "Learn the standard algorithms and their edge cases."
-  - "Master the time and space complexity analysis."
-summary: "An essential guide to Modular Exponentiation (Binary Exponentiation), breaking down complex mathematical formulas into simple code for coding interviews."
+  - "Understand the inefficiency of computing powers iteratively."
+  - "Learn the Binary Exponentiation algorithm."
+  - "Compute (A^B) % M in O(log B) time."
+summary: "An incredibly fast algorithm to compute extremely large exponents modulo M, reducing the time complexity from linear to logarithmic."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Modular Exponentiation (Binary Exponentiation)**. Mathematical algorithms are extremely common in competitive programming and frequently appear as optimization steps in technical interviews.
 
-### Core Intuition
-The primary goal here is to optimize mathematical operations that would normally take O(N) or O(N^2) time down to O(log N) or O(sqrt N) using mathematical properties and number theory.
+How do you calculate $A^B$? 
+The naive approach is to multiply $A$ by itself $B$ times. If we want the answer modulo $M$, we apply `% M` at each step.
+However, if $B = 10^9$, this approach will take $10^9$ operations and result in a Time Limit Exceeded (TLE) error.
+
+We can optimize this significantly using **Binary Exponentiation** (also known as Fast Exponentiation).
+
+### The Core Idea
+Instead of calculating $A^B$ step by step, we can break it down based on whether $B$ is even or odd:
+- **If B is even**: $A^B = (A^{B/2})^2$
+- **If B is odd**: $A^B = A \times (A^{\lfloor B/2 \rfloor})^2$
+
+For example, to calculate $3^{10}$:
+1. $3^{10} = (3^5)^2$
+2. $3^5 = 3 \times (3^2)^2$
+3. $3^2 = (3^1)^2$
+4. $3^1 = 3 \times 3^0$
+
+By continually halving the exponent, we reach $B = 0$ in just $\log_2(B)$ steps!
+
+### The Bitwise Iterative Approach
+We can write this elegantly using bitwise operators. We look at the binary representation of $B$. If the current least significant bit is `1` (i.e., $B$ is odd), we multiply our result by $A$. Then, we square $A$ and right-shift $B$ by 1 (which halves $B$).
 
 # Code Implementation
+
+Here is the highly optimized $O(\log B)$ iterative implementation:
+
 <CodeBlock
-  cpp="// C++ implementation for Modular Exponentiation (Binary Exponentiation)
+  cpp="// C++ Implementation
 #include <iostream>
 using namespace std;
 
-class Solution {
-public:
-    int solve() {
-        // Implementation here
-        return 0;
+// Calculates (base^exp) % mod
+long long binaryExponentiation(long long base, long long exp, long long mod) {
+    long long res = 1;
+    base = base % mod; // Initial modulo just in case base > mod
+    
+    while (exp > 0) {
+        // If exp is odd, multiply base with the result
+        if (exp % 2 == 1) {
+            res = (res * base) % mod;
+        }
+        
+        // Square the base and halve the exponent
+        base = (base * base) % mod;
+        exp = exp / 2;
     }
-};"
-  java="// Java implementation for Modular Exponentiation (Binary Exponentiation)
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    
+    return res;
+}"
+  java="// Java Implementation
+class MathUtils {
+    public static long binaryExponentiation(long base, long exp, long mod) {
+        long res = 1;
+        base = base % mod;
+        
+        while (exp > 0) {
+            // Using bitwise AND to check if odd is slightly faster
+            if ((exp & 1) == 1) {
+                res = (res * base) % mod;
+            }
+            
+            base = (base * base) % mod;
+            exp >>= 1; // Bitwise right shift to divide by 2
+        }
+        
+        return res;
     }
 }"
-  python="# Python implementation for Modular Exponentiation (Binary Exponentiation)
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="# Python Implementation
+def binary_exponentiation(base, exp, mod):
+    # Note: Python actually has this built-in: pow(base, exp, mod)
+    res = 1
+    base = base % mod
+    
+    while exp > 0:
+        if exp % 2 == 1:
+            res = (res * base) % mod
+            
+        base = (base * base) % mod
+        exp //= 2
+        
+    return res"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
-  worst="O(log N)"
+  best="O(1)"
+  average="O(\log B)"
+  worst="O(\log B)"
   space="O(1)"
-  description="Math algorithms typically run in O(log N) (like Euclidean GCD or Binary Exponentiation) or O(sqrt N) (like Primality Testing). Space is heavily optimized to O(1) iterative variables."
+  description="Because we halve the exponent in every iteration, the number of steps is exactly the number of bits in B. Thus, the time complexity is O(log B). Space complexity is O(1) for the iterative approach."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Integer Overflow:** Mathematical operations easily exceed standard 32-bit integer limits. Always use 64-bit integers (`long long` in C++, `long` in Java) for intermediate accumulations.
-- **Modulo Properties:** Forgetting to apply modulo at every step of addition/multiplication, not just at the end.
+- **Overflow During Squaring**: Just like in basic modular multiplication, `base * base` can exceed a 32-bit integer if `mod` is large (e.g., $10^9+7$). Always ensure that `base` and `res` are declared as 64-bit integers (`long long` in C++, `long` in Java).
+- **Negative Exponents**: This algorithm only handles positive exponents. If $B$ can be negative, you must calculate $(A^{-B})^{-1}$, which requires computing the Modular Multiplicative Inverse.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If an array size is incredibly massive (e.g. 10^9), an O(N) linear scan will Time Out. This is a dead giveaway that you need an O(log N) math or binary search approach.",
-    "Always state the constraints out loud. If numbers are up to 10^18, explicitly tell the interviewer you will use 64-bit integer types to prevent overflow."
+    "Python developers have a massive advantage here! The built-in `pow(base, exp, mod)` function in Python executes highly optimized Binary Exponentiation under the hood in C. You don't actually need to write the algorithm yourself unless asked.",
+    "If an interview involves Matrix Exponentiation (used to find the Nth Fibonacci number in O(log N) time), the underlying logic is exactly the same as Binary Exponentiation, just applied to 2D matrices instead of integers!"
   ]}
 />

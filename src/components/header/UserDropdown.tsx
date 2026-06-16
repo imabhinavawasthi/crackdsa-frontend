@@ -42,7 +42,7 @@ export default function UserDropdown() {
           {/* Active Presence Dot */}
           <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-gray-900" />
           
-          {user?.pro_subscription?.is_pro && (
+          {user?.is_pro_active && (
             <div className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white rounded-full p-0.5 shadow-sm border-2 border-white dark:border-gray-950">
               <Crown size={10} strokeWidth={3} />
             </div>
@@ -93,7 +93,7 @@ export default function UserDropdown() {
                   <div className="flex flex-col overflow-hidden">
                     <span className="truncate text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                       {user?.full_name ?? "-"}
-                      {user?.pro_subscription?.is_pro && (
+                      {user?.is_pro_active && (
                         <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] px-1.5 py-0.5 rounded-sm uppercase font-black tracking-widest">PRO</span>
                       )}
                     </span>

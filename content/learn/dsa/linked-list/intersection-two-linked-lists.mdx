@@ -11,79 +11,80 @@ summary: "An essential guide to Intersection of Two Linked Lists, exploring safe
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Intersection of Two Linked Lists**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+Finding the intersection of two linked lists is a fantastic problem that tests your understanding of linked list structure. If two linked lists intersect, it means they share the exact same node in memory, and thus share all subsequent nodes until the end.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+### Two Pointer Approach
+To find the intersection in O(1) space, we can use two pointers. Let pointer `A` start at `headA` and pointer `B` start at `headB`. We traverse the lists. When a pointer reaches the end of its list, we redirect it to the head of the *other* list.
+
+This guarantees that both pointers will traverse exactly the same number of nodes before meeting at the intersection. If list A has length L_A and list B has length L_B, and they intersect, pointer A travels L_A + L_B nodes and pointer B travels L_B + L_A nodes. They meet at the intersection perfectly. If they don't intersect, they will both reach `null` simultaneously.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Intersection of Two Linked Lists
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    ListNode *getIntersectionNode(ListNode *headA, ListNode *headB) {
+        if (headA == nullptr || headB == nullptr) return nullptr;
+        
+        ListNode* pA = headA;
+        ListNode* pB = headB;
+        
+        while (pA != pB) {
+            pA = (pA == nullptr) ? headB : pA->next;
+            pB = (pB == nullptr) ? headA : pB->next;
+        }
+        
+        return pA;
     }
 };"
-  java="// Java implementation for Intersection of Two Linked Lists
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+  java="public class Solution {
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        if (headA == null || headB == null) return null;
+        
+        ListNode pA = headA;
+        ListNode pB = headB;
+        
+        while (pA != pB) {
+            pA = (pA == null) ? headB : pA.next;
+            pB = (pB == null) ? headA : pB.next;
+        }
+        
+        return pA;
     }
 }"
-  python="# Python implementation for Intersection of Two Linked Lists
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+  python="class Solution:
+    def getIntersectionNode(self, headA: ListNode, headB: ListNode) -> Optional[ListNode]:
+        if not headA or not headB:
+            return None
+            
+        pA = headA
+        pB = headB
+        
+        while pA != pB:
+            pA = headB if pA is None else pA.next
+            pB = headA if pB is None else pB.next
+            
+        return pA"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(M + N)"
+  average="O(M + N)"
+  worst="O(M + N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="In the worst case, each pointer traverses both lists exactly once before they meet or reach null. Thus, the time complexity is O(M + N). Since we only use two pointers, space is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Comparing Values vs Nodes:** An intersection means the exact same node object in memory. Don't just compare node values (`pA.val == pB.val`). Compare the references (`pA == pB`).
+- **Infinite Loops:** If you don't advance the pointers to `null` before redirecting to the other list's head, you may create an infinite loop.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "Explain the 'length difference' method as well. Calculate the length of both lists, advance the pointer of the longer list by the difference, and then move both together.",
+    "The two-pointer technique is more elegant and requires less code, making it highly impressive in an interview setting."
   ]}
 />

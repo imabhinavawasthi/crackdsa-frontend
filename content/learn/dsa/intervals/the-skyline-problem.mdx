@@ -11,63 +11,171 @@ summary: "An essential guide to The Skyline Problem, exploring sweeping logic, t
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **The Skyline Problem**. This topic is a cornerstone of the Intervals module. Interval problems almost always involve time, scheduling, or geometric lines. The entire category revolves around one critical realization: **You must sort the intervals first.**
+**The Skyline Problem** is widely considered the ultimate boss battle of the Intervals category. Given the `[left, right, height]` of several buildings, you must output the key points that form the outer silhouette (the skyline) of the city.
 
 ### Core Intuition
-If you don't sort intervals by their start time, you have to check every interval against every other interval (O(N^2)). But if you sort them, you only ever need to compare the current interval with the *previously processed* interval! This instantly drops the complexity to O(N log N).
+This requires a sophisticated marriage of two concepts: the **Sweep Line Algorithm** and a **Max-Heap (Priority Queue)**.
+
+1. **Break into Events**: A building `[L, R, H]` has two events. At `L`, the height `H` is *introduced*. At `R`, the height `H` is *removed*. 
+2. **Sweep Line**: We process all events from left to right.
+3. **Max-Heap for Current Height**: We maintain a Max-Heap of the heights of all currently "active" buildings. The top of the heap is always the highest point of the skyline at the current sweep position.
+4. **Detecting Changes**: If processing an event (either adding or removing a building) changes the max value in the heap, a new key point is formed on the skyline!
+
+### The Tricky Tie-Breakers
+When multiple events occur at the exact same `X` coordinate:
+- If two buildings **start** at the same time, process the **taller** one first (so you don't draw an unnecessary lower point).
+- If two buildings **end** at the same time, process the **shorter** one first.
+- If one starts and one ends, process the **start** first.
+By cleverly encoding start heights as negative numbers and end heights as positive numbers, standard sorting naturally handles all these edge cases!
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for The Skyline Problem
-#include <iostream>
-#include <vector>
+  cpp="#include <vector>
 #include <algorithm>
+#include <set>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<vector<int>>& intervals) {
-        // sort(intervals.begin(), intervals.end());
-        // Implementation here
+    vector<vector<int>> getSkyline(vector<vector<int>>& buildings) {
+        vector<pair<int, int>> events;
+        
+        for (const auto& b : buildings) {
+            // Negative height for start event to handle sorting tie-breakers
+            events.push_back({b[0], -b[2]});
+            events.push_back({b[1], b[2]});
+        }
+        
+        sort(events.begin(), events.end());
+        
+        vector<vector<int>> result;
+        // Multiset acts as our Max-Heap that allows arbitrary element deletion
+        multiset<int> activeHeights = {0}; 
+        int prevMaxHeight = 0;
+        
+        for (const auto& event : events) {
+            int x = event.first;
+            int h = event.second;
+            
+            if (h < 0) {
+                // Start event: add height
+                activeHeights.insert(-h);
+            } else {
+                // End event: remove height
+                activeHeights.erase(activeHeights.find(h));
+            }
+            
+            // Current max height is at the end of the multiset (rbegin)
+            int currentMaxHeight = *activeHeights.rbegin();
+            
+            // If the max height changed, we have a key point
+            if (currentMaxHeight != prevMaxHeight) {
+                result.push_back({x, currentMaxHeight});
+                prevMaxHeight = currentMaxHeight;
+            }
+        }
+        
+        return result;
     }
 };"
-  java="// Java implementation for The Skyline Problem
-import java.util.*;
+  java="import java.util.*;
 
 class Solution {
-    public void solve(int[][] intervals) {
-        // Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
-        // Implementation here
+    public List<List<Integer>> getSkyline(int[][] buildings) {
+        List<int[]> events = new ArrayList<>();
+        for (int[] b : buildings) {
+            events.add(new int[]{b[0], -b[2]}); // Start: negative height
+            events.add(new int[]{b[1], b[2]});  // End: positive height
+        }
+        
+        // Sort by X. If X is same, sort by height (handles all 3 edge cases!)
+        Collections.sort(events, (a, b) -> {
+            if (a[0] != b[0]) return Integer.compare(a[0], b[0]);
+            return Integer.compare(a[1], b[1]);
+        });
+        
+        List<List<Integer>> result = new ArrayList<>();
+        // Max-Heap: passing reverse order comparator
+        PriorityQueue<Integer> pq = new PriorityQueue<>((a, b) -> b - a);
+        pq.offer(0); // Ground level
+        
+        int prevMax = 0;
+        for (int[] event : events) {
+            int x = event[0];
+            int h = event[1];
+            
+            if (h < 0) {
+                pq.offer(-h); // Add building
+            } else {
+                pq.remove(h); // Remove building
+            }
+            
+            int currentMax = pq.peek();
+            if (currentMax != prevMax) {
+                result.add(Arrays.asList(x, currentMax));
+                prevMax = currentMax;
+            }
+        }
+        
+        return result;
     }
 }"
-  python="# Python implementation for The Skyline Problem
+  python="from heapq import heappush, heappop
+
 class Solution:
-    def solve(self, intervals: list[list[int]]):
-        # intervals.sort(key=lambda x: x[0])
-        # Implementation here
-        pass"
+    def getSkyline(self, buildings: list[list[int]]) -> list[list[int]]:
+        events = []
+        for L, R, H in buildings:
+            # Start event: H is negative so that taller starts are processed first
+            events.append((L, -H, R))
+            # End events are encoded implicitly in the heap, 
+            # but we need a marker for x-coordinates:
+            events.append((R, 0, 0)) 
+            
+        events.sort()
+        
+        res = [[0, 0]]
+        # Heap stores: (-height, right_bound)
+        # We use a lazy deletion approach for python heap
+        heap = [(0, float('inf'))]
+        
+        for x, negH, R in events:
+            # 1. Pop buildings that have ended
+            while heap[0][1] <= x:
+                heappop(heap)
+                
+            # 2. Add building if it's a start event
+            if negH != 0:
+                heappush(heap, (negH, R))
+                
+            # 3. Check if max height changed
+            if res[-1][1] != -heap[0][0]:
+                res.append([x, -heap[0][0]])
+                
+        return res[1:]"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(N log N)"
   average="O(N log N)"
-  worst="O(N log N)"
+  worst="O(N^2)"
   space="O(N)"
-  description="Sorting the intervals initially dominates the time complexity, resulting in O(N log N). The linear scan that follows takes O(N) time. Space complexity is O(N) because we often need to store the merged or processed intervals in a new array or use a Min-Heap (like in Meeting Rooms II)."
+  description="Sorting the events takes O(N log N). In Java/C++, removing an arbitrary element from the PriorityQueue/multiset takes O(N) or O(log N). Python uses lazy deletion which ensures O(N log N) overall. The worst-case for Java PriorityQueue.remove() makes it O(N^2), but a TreeMap/multiset keeps it strictly O(N log N)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Comparing Start vs End:** A very common mistake is checking if `current.start < previous.start`. You must check if `current.start <= previous.end` to detect an overlap!
-- **Modifying while Iterating:** Try to avoid modifying the input array in place. It's much safer to push merged/processed intervals into a new result array.
+- Failing to sort tie-breakers correctly. Using `-height` for start events is an ingenious trick that naturally forces the sort to process taller buildings first on exactly identical `X` starts.
+- Modifying a heap while iterating. In Python, removing arbitrary elements from a `heapq` breaks the heap invariant, which is why we must use "Lazy Deletion" (popping dead buildings off the top only when we evaluate the top).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem involves 'start times', 'end times', 'meetings', or 'flights', you should immediately sort the input array by start time.",
-    "For complex overlaps (like finding the maximum number of simultaneous meetings), the Sweep Line algorithm is the cleanest approach: split every interval into two events: `(start, +1)` and `(end, -1)`. Sort all events by time, and keep a running sum!",
-    "Mention to the interviewer that sorting modifies the input. If the input is read-only, you must allocate O(N) space for a copy."
+    "If you encounter this in an interview, do not panic. State clearly: 'This is a Sweep Line problem. I need to track the active heights using a Max-Heap.'",
+    "Explain Lazy Deletion if using Python. Tell the interviewer: 'Finding an element in a heap to delete takes O(N), so instead, I will leave it in the heap and only pop it when it bubbles to the top and its end time has expired.'",
+    "Point out the ground case: always initialize your heap with a height of 0!"
   ]}
 />

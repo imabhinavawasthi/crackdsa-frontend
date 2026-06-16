@@ -11,55 +11,46 @@ summary: "An essential guide to Min & Max Heaps, exploring its applications, imp
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Min & Max Heaps**. This topic is a cornerstone of the Heaps & Priority Queues module. Understanding it thoroughly will significantly improve your problem-solving speed.
+A **Heap** is a specialized tree-based data structure that satisfies the **Heap Property**. It is typically implemented as a binary tree. Heaps are primarily used to efficiently find the minimum or maximum element in a dataset.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+There are two main types of heaps:
+1. **Min-Heap**: The value of each node is greater than or equal to the value of its parent, with the minimum value at the root.
+2. **Max-Heap**: The value of each node is less than or equal to the value of its parent, with the maximum value at the root.
+
+Heaps are most commonly used to implement **Priority Queues**, where elements are pulled based on priority rather than the order they were inserted. They are complete binary trees, which means all levels are fully filled except possibly the last level, and the last level is filled from left to right. This completeness allows heaps to be efficiently represented as arrays.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Min & Max Heaps
-#include <iostream>
-using namespace std;
-
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
+  cpp="class MinHeap {
+    // Conceptual representation, standard library provides priority_queue
 };"
-  java="// Java implementation for Min & Max Heaps
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
+  java="class MinHeap {
+    // Conceptual representation, standard library provides PriorityQueue
 }"
-  python="# Python implementation for Min & Max Heaps
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class MinHeap:
+    # Conceptual representation, standard library provides heapq
+    pass"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  average="O(log N)"
+  worst="O(log N)"
+  space="O(N)"
+  description="Finding the min/max element is O(1) as it is always at the root. Inserting a new element or extracting the root requires O(log N) time to maintain the heap property (heapify up or down). Storing N elements requires O(N) space."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Confusing a heap with a Binary Search Tree (BST). In a BST, the left child is smaller and the right child is larger. In a heap, there is no inherent ordering between the left and right children.
+- Attempting to search for an arbitrary element in a heap. Searching takes O(N) time because heaps are not designed for general search operations.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If a problem asks for the 'Kth Largest', 'Kth Smallest', or 'Top K' frequent elements, a Heap is almost always the optimal choice.",
+    "Remember that in Python, the `heapq` module only provides a Min-Heap. To simulate a Max-Heap, insert the negative of the values."
   ]}
 />

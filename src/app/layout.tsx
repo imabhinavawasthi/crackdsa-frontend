@@ -7,23 +7,23 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | CrackDSA',
-    default: 'CrackDSA - Master Algorithms & System Design',
+    template: '%s | crackDSA',
+    default: 'crackDSA - Master Data Structures, Algorithms & System Design',
   },
   description: 'CrackDSA is the ultimate platform to master Data Structures, Algorithms, and System Design. Prepare for FAANG interviews with curated roadmaps, problems, and courses.',
   keywords: ['DSA', 'Data Structures', 'Algorithms', 'System Design', 'Interview Prep', 'LeetCode', 'FAANG', 'CrackDSA'],
-  authors: [{ name: 'CrackDSA Team' }],
+  authors: [{ name: 'crackDSA Team' }],
   openGraph: {
-    title: 'CrackDSA - Master Algorithms & System Design',
+    title: 'crackDSA - Master Algorithms & System Design',
     description: 'The ultimate platform to master Data Structures, Algorithms, and System Design.',
     url: 'https://crackdsa.com',
-    siteName: 'CrackDSA',
+    siteName: 'crackDSA',
     images: [
       {
         url: 'https://crackdsa.com/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'CrackDSA Preview Image',
+        alt: 'crackDSA Preview Image',
       },
     ],
     locale: 'en_US',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CrackDSA - Master Algorithms & System Design',
+    title: 'crackDSA - Master Algorithms & System Design',
     description: 'The ultimate platform to master Data Structures, Algorithms, and System Design.',
     images: ['https://crackdsa.com/og-image.png'],
   },

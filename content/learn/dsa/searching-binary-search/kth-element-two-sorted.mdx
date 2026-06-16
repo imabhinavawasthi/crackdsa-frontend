@@ -11,58 +11,154 @@ summary: "An essential guide to K-th Element of Two Sorted Arrays, mastering O(l
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **K-th Element of Two Sorted Arrays**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+Finding the K-th element of two sorted arrays is essentially the exact same problem as finding the Median of Two Sorted Arrays, but generalized. 
+Instead of looking for the middle element, we are looking for the `k-th` element. 
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+### The Partition Logic
+Just like the median problem, we want to split the two arrays such that exactly `k` elements exist in the left halves combined.
+If we make a cut `cut1` in `Array1`, then `cut2` MUST be exactly `k - cut1`.
+
+### Updating Search Space Bounds
+Unlike the median problem where `cut1` can range from `0` to `N`, here `k` restricts our bounds!
+- **Minimum `cut1` (`low`)**: If `k` is very large (larger than the entirety of `Array2`), we *must* take at least `k - M` elements from `Array1`. So `low = max(0, k - M)`.
+- **Maximum `cut1` (`high`)**: We can never take more than `k` elements, nor can we take more than the total elements in `Array1`. So `high = min(N, k)`.
+
+Once the bounds are set properly, the validation logic (`left1 <= right2` and `left2 <= right1`) remains exactly the same as the Median problem.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for K-th Element of Two Sorted Arrays
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int kthElement(vector<int>& nums1, vector<int>& nums2, int k) {
+        // Ensure nums1 is the smaller array to optimize binary search
+        if (nums1.size() > nums2.size()) {
+            return kthElement(nums2, nums1, k);
+        }
+        
+        int n = nums1.size();
+        int m = nums2.size();
+        
+        // Edge case bound adjustments based on k
+        int left = max(0, k - m);
+        int right = min(n, k);
+        
+        while (left <= right) {
+            int cut1 = left + (right - left) / 2;
+            int cut2 = k - cut1; // We need exactly k elements in the left halves
+            
+            int left1 = (cut1 == 0) ? INT_MIN : nums1[cut1 - 1];
+            int right1 = (cut1 == n) ? INT_MAX : nums1[cut1];
+            
+            int left2 = (cut2 == 0) ? INT_MIN : nums2[cut2 - 1];
+            int right2 = (cut2 == m) ? INT_MAX : nums2[cut2];
+            
+            if (left1 <= right2 && left2 <= right1) {
+                // The k-th element is the maximum of the left halves
+                return max(left1, left2);
+            }
+            else if (left1 > right2) {
+                right = cut1 - 1; // cut1 is too far right
+            }
+            else {
+                left = cut1 + 1;  // cut1 is too far left
+            }
+        }
+        
+        return 1;
     }
 };"
-  java="// Java implementation for K-th Element of Two Sorted Arrays
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int kthElement(int[] nums1, int[] nums2, int k) {
+        // Ensure nums1 is the smaller array to optimize binary search
+        if (nums1.length > nums2.length) {
+            return kthElement(nums2, nums1, k);
+        }
+        
+        int n = nums1.length;
+        int m = nums2.length;
+        
+        // Edge case bound adjustments based on k
+        int left = Math.max(0, k - m);
+        int right = Math.min(n, k);
+        
+        while (left <= right) {
+            int cut1 = left + (right - left) / 2;
+            int cut2 = k - cut1; // We need exactly k elements in the left halves
+            
+            int left1 = (cut1 == 0) ? Integer.MIN_VALUE : nums1[cut1 - 1];
+            int right1 = (cut1 == n) ? Integer.MAX_VALUE : nums1[cut1];
+            
+            int left2 = (cut2 == 0) ? Integer.MIN_VALUE : nums2[cut2 - 1];
+            int right2 = (cut2 == m) ? Integer.MAX_VALUE : nums2[cut2];
+            
+            if (left1 <= right2 && left2 <= right1) {
+                // The k-th element is the maximum of the left halves
+                return Math.max(left1, left2);
+            }
+            else if (left1 > right2) {
+                right = cut1 - 1; // cut1 is too far right
+            }
+            else {
+                left = cut1 + 1;  // cut1 is too far left
+            }
+        }
+        
+        return 1;
     }
 }"
-  python="# Python implementation for K-th Element of Two Sorted Arrays
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def kthElement(self, nums1: list[int], nums2: list[int], k: int) -> int:
+        # Ensure nums1 is the smaller array to optimize binary search
+        if len(nums1) > len(nums2):
+            return self.kthElement(nums2, nums1, k)
+            
+        n = len(nums1)
+        m = len(nums2)
+        
+        # Edge case bound adjustments based on k
+        left = max(0, k - m)
+        right = min(n, k)
+        
+        while left <= right:
+            cut1 = left + (right - left) // 2
+            cut2 = k - cut1 # We need exactly k elements in the left halves
+            
+            left1 = float('-inf') if cut1 == 0 else nums1[cut1 - 1]
+            right1 = float('inf') if cut1 == n else nums1[cut1]
+            
+            left2 = float('-inf') if cut2 == 0 else nums2[cut2 - 1]
+            right2 = float('inf') if cut2 == m else nums2[cut2]
+            
+            if left1 <= right2 and left2 <= right1:
+                # The k-th element is the maximum of the left halves
+                return int(max(left1, left2))
+            elif left1 > right2:
+                right = cut1 - 1 # cut1 is too far right
+            else:
+                left = cut1 + 1  # cut1 is too far left
+                
+        return 1"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
+  average="O(log(min(N, M)))"
+  worst="O(log(min(N, M)))"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="By always doing binary search on the smaller array, the search space bounds never exceed min(N, M). The time complexity is exactly O(log(min(N, M))). Space is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- **Setting bounds to `0` and `N`**: This is the most common mistake. If `k` is very large, say `k = N + M`, and you set `cut1 = 0`, then `cut2 = k - 0 = N + M`. But `Array2` only has `M` elements! This causes a massive Out of Bounds error. You MUST use `left = max(0, k - M)` and `right = min(N, k)`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "Master the Median of Two Sorted Arrays first. This is just a natural extension of that problem.",
+    "If an interviewer asks you to solve Median of Two Sorted Arrays, mention that you can also solve the generic K-th element version using the same logic.",
+    "The bound adjustments `max(0, k-m)` and `min(n, k)` are what separates a senior candidate from a junior candidate in an interview."
   ]}
 />

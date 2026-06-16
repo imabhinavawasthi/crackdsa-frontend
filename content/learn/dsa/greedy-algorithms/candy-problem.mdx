@@ -11,65 +11,125 @@ summary: "An essential guide to Candy, mastering the art of local optimization a
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Candy**. This topic is a cornerstone of the Greedy Algorithms module. A Greedy Algorithm builds up a solution piece by piece, always choosing the next piece that offers the most obvious and immediate benefit.
+The **Candy Problem** is a famous LeetCode Hard problem that is beautifully solved using a two-pass Greedy algorithm. You have an array representing the `ratings` of children standing in a line. You must distribute candies following two rules:
+1. Every child must have at least one candy.
+2. Children with a higher rating must get more candies than their immediate neighbors.
 
-### Core Intuition
-The tricky part of Greedy algorithms isn't the code—it's proving that it works. Unlike Dynamic Programming which exhaustively searches all paths and guarantees correctness, Greedy only searches one path. You must prove the *Greedy Choice Property*: making a locally optimal choice guarantees a globally optimal solution.
+Your goal is to find the minimum number of candies required.
+
+### The Greedy Strategy
+Trying to satisfy the left and right neighbors simultaneously in one pass leads to complex cascading updates. The greedy insight here is to **decouple the problem**:
+- First, make sure every child has more candies than their **left** neighbor if their rating is higher.
+- Second, make sure every child has more candies than their **right** neighbor if their rating is higher.
+
+1. Create a `candies` array initialized to `1` for every child.
+2. **Left-to-Right Pass**: Iterate from left to right. If `ratings[i] > ratings[i-1]`, set `candies[i] = candies[i-1] + 1`.
+3. **Right-to-Left Pass**: Iterate from right to left. If `ratings[i] > ratings[i+1]`, you must ensure `candies[i]` is strictly greater than `candies[i+1]`. Set `candies[i] = max(candies[i], candies[i+1] + 1)`.
+4. The answer is the sum of the `candies` array.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Candy
-#include <iostream>
-#include <vector>
+  cpp="#include <vector>
+#include <numeric>
 #include <algorithm>
 using namespace std;
 
 class Solution {
 public:
-    int solve(vector<int>& arr) {
-        // sort(arr.begin(), arr.end());
-        // Implementation here
-        return 0;
+    int candy(vector<int>& ratings) {
+        int n = ratings.size();
+        vector<int> candies(n, 1);
+        
+        // Left to Right pass
+        for (int i = 1; i < n; i++) {
+            if (ratings[i] > ratings[i - 1]) {
+                candies[i] = candies[i - 1] + 1;
+            }
+        }
+        
+        // Right to Left pass
+        for (int i = n - 2; i >= 0; i--) {
+            if (ratings[i] > ratings[i + 1]) {
+                candies[i] = max(candies[i], candies[i + 1] + 1);
+            }
+        }
+        
+        // Sum up all candies
+        int totalCandies = 0;
+        for (int candy : candies) {
+            totalCandies += candy;
+        }
+        
+        return totalCandies;
     }
 };"
-  java="// Java implementation for Candy
-import java.util.*;
+  java="import java.util.Arrays;
 
 class Solution {
-    public int solve(int[] arr) {
-        // Arrays.sort(arr);
-        // Implementation here
-        return 0;
+    public int candy(int[] ratings) {
+        int n = ratings.length;
+        int[] candies = new int[n];
+        Arrays.fill(candies, 1);
+        
+        // Left to Right pass
+        for (int i = 1; i < n; i++) {
+            if (ratings[i] > ratings[i - 1]) {
+                candies[i] = candies[i - 1] + 1;
+            }
+        }
+        
+        // Right to Left pass
+        for (int i = n - 2; i >= 0; i--) {
+            if (ratings[i] > ratings[i + 1]) {
+                candies[i] = Math.max(candies[i], candies[i + 1] + 1);
+            }
+        }
+        
+        int totalCandies = 0;
+        for (int candy : candies) {
+            totalCandies += candy;
+        }
+        
+        return totalCandies;
     }
 }"
-  python="# Python implementation for Candy
-class Solution:
-    def solve(self, arr: list[int]) -> int:
-        # arr.sort()
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def candy(self, ratings: list[int]) -> int:
+        n = len(ratings)
+        candies = [1] * n
+        
+        # Left to Right pass
+        for i in range(1, n):
+            if ratings[i] > ratings[i - 1]:
+                candies[i] = candies[i - 1] + 1
+                
+        # Right to Left pass
+        for i in range(n - 2, -1, -1):
+            if ratings[i] > ratings[i + 1]:
+                candies[i] = max(candies[i], candies[i + 1] + 1)
+                
+        return sum(candies)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N log N)"
-  average="O(N log N)"
-  worst="O(N log N)"
-  space="O(1)"
-  description="Greedy algorithms are almost always paired with sorting. Therefore, the time complexity is dominated by the initial sort: O(N log N). The greedy iteration itself is usually O(N). Space complexity is typically O(1) assuming an in-place sort."
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(N)"
+  description="We traverse the array exactly twice, resulting in O(N) time complexity. We require an additional array of size N to store the candies distribution, making space complexity O(N)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Premature Greediness:** Assuming a greedy approach works without testing edge cases. Often, what looks like a Greedy problem is actually a DP problem (e.g., 0/1 Knapsack is DP, Fractional Knapsack is Greedy).
-- **Sorting State:** Forgetting to sort the input arrays before applying the greedy logic!
+- In the right-to-left pass, forgetting to take the `max()` of the current candy value and `candies[i+1] + 1`. Overwriting it directly will destroy the validity achieved during the left-to-right pass!
+- Confusing rules regarding equal ratings. If two neighbors have the same rating, there is NO rule saying they must have the same number of candies.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for 'minimum steps', 'maximum profit', or 'optimal scheduling', and Dynamic Programming feels too slow (e.g. constraints up to 10^5), it's highly likely a Greedy problem.",
-    "Interval overlapping problems (like 'Merge Intervals' or 'Minimum Arrows') are classic greedy problems. Always sort them by their start or end times first.",
-    "Be vocal about your proofs. Say to the interviewer: 'I believe a greedy approach works here because making this choice now will never restrict us from making a better choice later.'"
+    "The 'Two-Pass' array manipulation is a famous design pattern. Point it out to the interviewer. 'Instead of tracking complex cascading changes in one pass, I can ensure local minimums by doing an isolated left-to-right sweep, followed by an isolated right-to-left sweep.'",
+    "If asked to optimize space to O(1), mention that it is possible using a Peak-Valley approach where you track ascending/descending slope lengths, though it makes the code significantly harder to read."
   ]}
 />

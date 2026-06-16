@@ -11,57 +11,90 @@ summary: "An essential guide to Bitwise Operators & Math Properties, breaking do
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Bitwise Operators & Math Properties**. Mathematical algorithms are extremely common in competitive programming and frequently appear as optimization steps in technical interviews.
+Bitwise operations directly manipulate the fundamental bits of data. They are extremely fast and form the core of many advanced mathematical and algorithmic optimizations.
 
-### Core Intuition
-The primary goal here is to optimize mathematical operations that would normally take O(N) or O(N^2) time down to O(log N) or O(sqrt N) using mathematical properties and number theory.
+### The Core Operators
+- **AND (`&`)**: Returns `1` if both bits are `1`, otherwise `0`. Useful for masking.
+- **OR (`|`)**: Returns `1` if at least one bit is `1`. Useful for setting bits.
+- **XOR (`^`)**: Returns `1` if bits are different. This is the most powerful operator in DSA due to its properties:
+  - `x ^ x = 0` (Self-inverse)
+  - `x ^ 0 = x` (Identity)
+  - Commutative and associative.
+- **NOT (`~`)**: Inverts all bits. Note that in languages using Two's Complement for negative numbers, `~x = -x - 1`.
+- **Left Shift (`<<`)**: Shifts bits to the left, effectively multiplying by $2^k$. `x << k` equals $x \times 2^k$.
+- **Right Shift (`>>`)**: Shifts bits to the right, effectively dividing by $2^k$. `x >> k` equals $\lfloor x / 2^k \rfloor$.
+
+### Essential Properties
+1. **Check if odd/even:** `(x & 1) == 1` means `x` is odd.
+2. **Check if power of 2:** `(x & (x - 1)) == 0` (for `x > 0`).
+3. **Drop the lowest set bit:** `x = x & (x - 1)`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Bitwise Operators & Math Properties
+  cpp={`// C++ code demonstrating bitwise properties
 #include <iostream>
 using namespace std;
 
-class Solution {
+class BitwiseProperties {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    bool isEven(int n) {
+        return (n & 1) == 0;
     }
-};"
-  java="// Java implementation for Bitwise Operators & Math Properties
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    
+    bool isPowerOfTwo(int n) {
+        return n > 0 && (n & (n - 1)) == 0;
     }
-}"
-  python="# Python implementation for Bitwise Operators & Math Properties
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+    
+    int dropLowestSetBit(int n) {
+        return n & (n - 1);
+    }
+};`}
+  java={`// Java code demonstrating bitwise properties
+class BitwiseProperties {
+    public boolean isEven(int n) {
+        return (n & 1) == 0;
+    }
+    
+    public boolean isPowerOfTwo(int n) {
+        return n > 0 && (n & (n - 1)) == 0;
+    }
+    
+    public int dropLowestSetBit(int n) {
+        return n & (n - 1);
+    }
+}`}
+  python={`# Python code demonstrating bitwise properties
+class BitwiseProperties:
+    def is_even(self, n: int) -> bool:
+        return (n & 1) == 0
+        
+    def is_power_of_two(self, n: int) -> bool:
+        return n > 0 and (n & (n - 1)) == 0
+        
+    def drop_lowest_set_bit(self, n: int) -> int:
+        return n & (n - 1)`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
-  worst="O(log N)"
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
   space="O(1)"
-  description="Math algorithms typically run in O(log N) (like Euclidean GCD or Binary Exponentiation) or O(sqrt N) (like Primality Testing). Space is heavily optimized to O(1) iterative variables."
+  description="All elementary bitwise operations take constant O(1) time as they are executed directly by the CPU's ALU (Arithmetic Logic Unit). Space is O(1) since no extra memory is allocated."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Mathematical operations easily exceed standard 32-bit integer limits. Always use 64-bit integers (`long long` in C++, `long` in Java) for intermediate accumulations.
-- **Modulo Properties:** Forgetting to apply modulo at every step of addition/multiplication, not just at the end.
+- **Operator Precedence:** Bitwise operators often have lower precedence than arithmetic and equality operators. Always use parentheses! e.g., write `if ((n & 1) == 0)` instead of `if (n & 1 == 0)`.
+- **Negative Numbers Shift:** In C++ and Java, right-shifting negative integers (`>>`) preserves the sign bit (Arithmetic Shift), which can lead to infinite loops. Use `>>>` in Java for Logical Shift. Python handles arbitrarily large integers, so shift behaves differently for negatives.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array size is incredibly massive (e.g. 10^9), an O(N) linear scan will Time Out. This is a dead giveaway that you need an O(log N) math or binary search approach.",
-    "Always state the constraints out loud. If numbers are up to 10^18, explicitly tell the interviewer you will use 64-bit integer types to prevent overflow."
+    "If a problem asks you to find elements that appear an odd number of times while others appear an even number of times, XOR is almost always the answer.",
+    "Multiplying or dividing by powers of 2 should immediately trigger thoughts of bit shifting.",
+    "When manipulating subsets, think of generating combinations using integers from 0 to 2^N - 1, where the i-th bit represents the inclusion of the i-th element."
   ]}
 />

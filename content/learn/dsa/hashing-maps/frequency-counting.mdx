@@ -11,55 +11,140 @@ summary: "An essential guide to Frequency Counting, exploring its applications, 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Frequency Counting**. This topic is a cornerstone of the Hashing & Maps module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+**Frequency Counting** is one of the most fundamental and heavily tested patterns in technical interviews. It involves using a Hash Map (or a fixed-size array if the key range is small and known, like lowercase English letters) to count the occurrences of each element in a dataset.
+
+### Why is this Pattern Important?
+Many brute-force solutions involve nested loops: one loop to pick an element, and an inner loop to count how many times it appears in the rest of the array. That's an $O(N^2)$ operation.
+
+By using a Hash Map, we can iterate through the data *exactly once*, recording frequencies as we go. We can then do a second $O(N)$ pass over the Hash Map to find our answer. This brings our total time down to $O(N)$.
+
+### Common Applications
+1. **Anagrams:** Check if two strings have the exact same character frequencies.
+2. **Top K Frequent Elements:** Count all frequencies, then use a Min-Heap or Bucket Sort to find the most frequent ones.
+3. **Subarrays with Exact K Distinct Elements:** Used alongside the Sliding Window pattern.
+
+---
 
 # Code Implementation
+
+Here is a simple implementation that finds the element with the highest frequency in an array.
+
 <CodeBlock
-  cpp="// C++ implementation for Frequency Counting
+  cpp="```cpp
 #include <iostream>
+#include <vector>
+#include <unordered_map>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int mostFrequent(vector<int>& nums) {
+        unordered_map<int, int> freqMap;
+        
+        // Step 1: Count frequencies
+        for (int num : nums) {
+            freqMap[num]++;
+        }
+        
+        // Step 2: Find the maximum
+        int maxFreq = 0;
+        int maxElement = -1;
+        
+        for (auto const& [key, count] : freqMap) {
+            if (count > maxFreq) {
+                maxFreq = count;
+                maxElement = key;
+            }
+        }
+        
+        return maxElement;
     }
-};"
-  java="// Java implementation for Frequency Counting
+};
+```"
+  java="```java
+import java.util.HashMap;
+import java.util.Map;
+
 class Solution {
-    public void solve() {
-        // Implementation here
+    public int mostFrequent(int[] nums) {
+        Map<Integer, Integer> freqMap = new HashMap<>();
+        
+        // Step 1: Count frequencies
+        for (int num : nums) {
+            freqMap.put(num, freqMap.getOrDefault(num, 0) + 1);
+        }
+        
+        // Step 2: Find the maximum
+        int maxFreq = 0;
+        int maxElement = -1;
+        
+        for (Map.Entry<Integer, Integer> entry : freqMap.entrySet()) {
+            if (entry.getValue() > maxFreq) {
+                maxFreq = entry.getValue();
+                maxElement = entry.getKey();
+            }
+        }
+        
+        return maxElement;
     }
-}"
-  python="# Python implementation for Frequency Counting
+}
+```"
+  python="```python
+from collections import Counter
+
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def mostFrequent(self, nums: list[int]) -> int:
+        # Step 1: Count frequencies
+        # Python's Counter is a specialized dictionary for counting
+        freq_map = Counter(nums)
+        
+        # Step 2: Find the maximum
+        max_freq = 0
+        max_element = -1
+        
+        for key, count in freq_map.items():
+            if count > max_freq:
+                max_freq = count
+                max_element = key
+                
+        return max_element
+
+        # Fun fact: In Python, you can just do:
+        # return freq_map.most_common(1)[0][0]
+```"
 />
+
+---
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(K)"
+  description="Time complexity is strictly O(N) since we iterate through the array of length N, and then iterate through the map which has at most N elements. Space complexity is O(K), where K is the number of UNIQUE elements in the array."
 />
 
+---
+
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Iterating over the array instead of the map:** If you need to find the max frequency, iterate over the keys of your Map! Iterating over the original array again might mean processing duplicate keys multiple times.
+- **`getOrDefault` in Java:** Don't write `if-else` blocks to check if a key exists before incrementing. Use Java's `map.put(key, map.getOrDefault(key, 0) + 1)` for clean, professional code.
 </Warning>
 
+---
+
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "In Python, always leverage the `collections.Counter` module if the interviewer allows it. It shows deep language familiarity.",
+    "If the elements are strictly lowercase English letters ('a'-'z'), DO NOT use a Hash Map. Use a simple integer array `int[26]`! It is vastly faster and takes exactly O(1) space.",
+    "If you need to sort elements by frequency, dump the Map entries into a List and use a custom comparator, or push them into a Priority Queue."
   ]}
 />

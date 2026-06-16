@@ -11,55 +11,105 @@ summary: "An essential guide to Search and Insert, exploring its applications, i
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Search and Insert**. This topic is a cornerstone of the Binary Search Trees module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The foundational operations of a **Binary Search Tree (BST)** are **Searching** for a value and **Inserting** a new value. Both operations take advantage of the BST property to eliminate half of the tree at each step.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+- **Searching**: Start at the root. If the target is equal to the root, return the root. If the target is smaller, search the left subtree. If it's larger, search the right subtree. This mirrors the logic of Binary Search on an array.
+- **Inserting**: Finding where to insert a node is exactly like searching for it. We traverse down the tree until we hit a `null` pointer, and that is precisely where the new node should be attached!
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Search and Insert
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    TreeNode* searchBST(TreeNode* root, int val) {
+        while (root && root->val != val) {
+            root = val < root->val ? root->left : root->right;
+        }
+        return root;
+    }
+    
+    TreeNode* insertIntoBST(TreeNode* root, int val) {
+        if (!root) return new TreeNode(val);
+        TreeNode* curr = root;
+        while (true) {
+            if (val < curr->val) {
+                if (!curr->left) { curr->left = new TreeNode(val); break; }
+                curr = curr->left;
+            } else {
+                if (!curr->right) { curr->right = new TreeNode(val); break; }
+                curr = curr->right;
+            }
+        }
+        return root;
     }
 };"
-  java="// Java implementation for Search and Insert
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public TreeNode searchBST(TreeNode root, int val) {
+        while (root != null && root.val != val) {
+            root = val < root.val ? root.left : root.right;
+        }
+        return root;
+    }
+    
+    public TreeNode insertIntoBST(TreeNode root, int val) {
+        if (root == null) return new TreeNode(val);
+        TreeNode curr = root;
+        while (true) {
+            if (val < curr.val) {
+                if (curr.left == null) { curr.left = new TreeNode(val); break; }
+                curr = curr.left;
+            } else {
+                if (curr.right == null) { curr.right = new TreeNode(val); break; }
+                curr = curr.right;
+            }
+        }
+        return root;
     }
 }"
-  python="# Python implementation for Search and Insert
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def searchBST(self, root: TreeNode, val: int) -> TreeNode:
+        while root and root.val != val:
+            root = root.left if val < root.val else root.right
+        return root
+        
+    def insertIntoBST(self, root: TreeNode, val: int) -> TreeNode:
+        if not root:
+            return TreeNode(val)
+        curr = root
+        while True:
+            if val < curr.val:
+                if not curr.left:
+                    curr.left = TreeNode(val)
+                    break
+                curr = curr.left
+            else:
+                if not curr.right:
+                    curr.right = TreeNode(val)
+                    break
+                curr = curr.right
+        return root"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
+  best="O(log N)"
+  average="O(log N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="Time complexity is proportional to the tree's height O(H). In balanced trees this is O(log N), but in the worst case (skewed tree) it degrades to O(N). Space complexity is O(1) as we are using iterative approaches without any recursive stack overhead."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Using recursion for basic Search and Insert is valid, but an iterative approach saves O(H) call stack space and is extremely easy to write.
+- Forgetting to link the newly inserted node to its parent when doing an iterative insertion.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Always clarify with the interviewer how duplicates should be handled when inserting.",
+    "If memory is extremely constrained in an interview scenario, always prefer the iterative O(1) space implementation.",
+    "Mention that insertion always happens at the leaf level, meaning we never need to restructure the existing tree."
   ]}
 />

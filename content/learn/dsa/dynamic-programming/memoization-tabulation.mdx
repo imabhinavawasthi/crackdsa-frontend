@@ -11,55 +11,115 @@ summary: "An essential guide to Memoization vs Tabulation, exploring its applica
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Memoization vs Tabulation**. This topic is a cornerstone of the Dynamic Programming module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Dynamic programming solutions can be implemented in two primary ways: **Memoization (Top-Down)** and **Tabulation (Bottom-Up)**. Knowing when and why to use each is critical for acing system design and algorithmic interviews.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### Memoization (Top-Down)
+Memoization starts at the target problem and recursively breaks it down into smaller subproblems. Whenever a subproblem is solved, its result is saved in a cache (usually a hash map or an array). If the same subproblem is encountered again, the cached result is returned instead of recalculating it.
+
+**Pros:**
+- Easier to write if you already have a recursive solution.
+- Only computes states that are actually needed (lazy evaluation).
+
+**Cons:**
+- Risk of recursion stack overflow for large inputs.
+- Slight overhead from recursive function calls.
+
+### Tabulation (Bottom-Up)
+Tabulation takes the opposite approach. It starts with the smallest possible subproblems (base cases) and iteratively computes larger problems until the target problem is reached. It typically uses an array or matrix to build the solution.
+
+**Pros:**
+- No recursive overhead, generally faster constant time factors.
+- No risk of stack overflow.
+- Easier to optimize space (e.g., using only the previous row in a 2D matrix).
+
+**Cons:**
+- Might compute states that are never actually needed.
+- Can be less intuitive to derive directly compared to a top-down tree.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Memoization vs Tabulation
-#include <iostream>
-using namespace std;
+Here is how you might solve a 1D DP problem (like finding the nth Fibonacci number) using both approaches to compare them.
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    // Memoization (Top-Down)
+    int memoHelper(int n, vector<int>& memo) {
+        if (n <= 1) return n;
+        if (memo[n] != -1) return memo[n];
+        return memo[n] = memoHelper(n - 1, memo) + memoHelper(n - 2, memo);
+    }
+    
+    // Tabulation (Bottom-Up)
+    int tabulate(int n) {
+        if (n <= 1) return n;
+        vector<int> dp(n + 1);
+        dp[0] = 0;
+        dp[1] = 1;
+        for (int i = 2; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
     }
 };"
-  java="// Java implementation for Memoization vs Tabulation
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    // Memoization (Top-Down)
+    private int memoHelper(int n, int[] memo) {
+        if (n <= 1) return n;
+        if (memo[n] != -1) return memo[n];
+        memo[n] = memoHelper(n - 1, memo) + memoHelper(n - 2, memo);
+        return memo[n];
+    }
+    
+    // Tabulation (Bottom-Up)
+    public int tabulate(int n) {
+        if (n <= 1) return n;
+        int[] dp = new int[n + 1];
+        dp[0] = 0;
+        dp[1] = 1;
+        for (int i = 2; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
     }
 }"
-  python="# Python implementation for Memoization vs Tabulation
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def memoize(self, n: int) -> int:
+        memo = {}
+        def dp(i):
+            if i <= 1: return i
+            if i not in memo:
+                memo[i] = dp(i - 1) + dp(i - 2)
+            return memo[i]
+        return dp(n)
+
+    def tabulate(self, n: int) -> int:
+        if n <= 1: return n
+        dp = [0] * (n + 1)
+        dp[1] = 1
+        for i in range(2, n + 1):
+            dp[i] = dp[i - 1] + dp[i - 2]
+        return dp[n]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(N)"
+  description="Both approaches generally yield the same asymptotic time complexity. However, tabulation often runs slightly faster in practice due to the lack of recursion overhead. Space complexity is O(N) for both, but tabulation can often be optimized to O(1) space."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Choosing Memoization for deeply nested problems:** In languages like Python, recursion limits will hit you fast. Tabulation is safer.
+- **Unnecessary State Computation in Tabulation:** Sometimes the DP space is sparse, meaning only a fraction of states are needed. In such cases, top-down memoization might actually be faster because it only computes what it visits.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Start with the top-down memoized approach to secure a working solution fast. It's more intuitive to translate from a logical thought process directly to recursive code.",
+    "Once the interviewer accepts your top-down approach, offer to convert it to a bottom-up tabulation to eliminate stack overhead. They will be highly impressed!"
   ]}
 />

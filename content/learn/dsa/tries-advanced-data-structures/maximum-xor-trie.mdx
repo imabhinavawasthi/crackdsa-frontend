@@ -11,80 +11,186 @@ summary: "An essential guide to Maximum XOR of Two Numbers in an Array (Bit Trie
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Maximum XOR of Two Numbers in an Array (Bit Trie)**. This topic is a cornerstone of the Tries & Advanced Data Structures module. When HashMaps and binary searches aren't enough to handle complex prefix matching or dynamic range updates, we turn to specialized trees.
+The **Maximum XOR of Two Numbers** problem introduces a radically different application of the Trie: a **Bit Trie** (or Binary Trie). Instead of storing letters ('a' to 'z'), we store binary digits (`0` and `1`). 
 
 ### Core Intuition
-- **Tries (Prefix Trees):** A tree where each node represents a single character. Words are formed by traversing down the branches. This makes searching for a string of length `L` take exactly O(L) time, regardless of how many millions of words are stored!
-- **Segment/Fenwick Trees:** Trees built over an array to allow both point/range *updates* and range *queries* in O(log N) time simultaneously.
+The XOR operation (`^`) yields a `1` only when bits are *different*. To maximize the XOR of a number $X$ against an array, we want to pair $X$ with a number $Y$ such that their bits differ at the **most significant positions** (the highest bits).
+
+A brute force approach comparing every pair takes $O(N^2)$.
+Instead, we convert all numbers into 32-bit binary representations and insert them into a Trie where each node has only two children: `0` and `1`.
+When we take a number $X$ and want to find its best pair $Y$:
+1. We iterate through the bits of $X$ from highest (31) down to lowest (0).
+2. At each step, we look at the Trie. If $X$'s bit is `0`, we passionately *want* to go down the `1` branch to get an XOR of `1`.
+3. If that opposite branch exists, we take it! If it doesn't, we are forced to take the branch matching $X$'s bit (yielding an XOR of `0`).
+4. This greedy traversal guarantees the absolute maximum XOR in strictly $O(32)$ time!
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Maximum XOR of Two Numbers in an Array (Bit Trie)
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
-
-class TrieNode {
+  cpp="class TrieNode {
 public:
-    TrieNode* children[26];
-    bool isEndOfWord;
-    
+    TrieNode* children[2];
     TrieNode() {
-        isEndOfWord = false;
-        for (int i = 0; i < 26; i++) children[i] = nullptr;
+        children[0] = nullptr;
+        children[1] = nullptr;
     }
 };
 
 class Solution {
+    TrieNode* root;
+    
+    void insert(int num) {
+        TrieNode* curr = root;
+        // Insert bits from most significant (31) to least significant (0)
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            if (!curr->children[bit]) {
+                curr->children[bit] = new TrieNode();
+            }
+            curr = curr->children[bit];
+        }
+    }
+    
+    int findMaxXOR(int num) {
+        TrieNode* curr = root;
+        int max_xor = 0;
+        
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            int oppositeBit = 1 - bit;
+            
+            // If the opposite bit exists, go there to maximize XOR (get a 1)
+            if (curr->children[oppositeBit]) {
+                max_xor |= (1 << i);
+                curr = curr->children[oppositeBit];
+            } else {
+                curr = curr->children[bit];
+            }
+        }
+        return max_xor;
+    }
+    
 public:
-    void solve() {
-        // Implementation here
+    int findMaximumXOR(vector<int>& nums) {
+        root = new TrieNode();
+        for (int num : nums) {
+            insert(num);
+        }
+        
+        int result = 0;
+        for (int num : nums) {
+            result = max(result, findMaxXOR(num));
+        }
+        
+        return result;
     }
 };"
-  java="// Java implementation for Maximum XOR of Two Numbers in an Array (Bit Trie)
-class TrieNode {
-    TrieNode[] children = new TrieNode[26];
-    boolean isEndOfWord = false;
+  java="class TrieNode {
+    TrieNode[] children = new TrieNode[2];
 }
 
 class Solution {
-    public void solve() {
-        // Implementation here
+    private TrieNode root;
+
+    private void insert(int num) {
+        TrieNode curr = root;
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            if (curr.children[bit] == null) {
+                curr.children[bit] = new TrieNode();
+            }
+            curr = curr.children[bit];
+        }
+    }
+
+    private int findMaxXOR(int num) {
+        TrieNode curr = root;
+        int maxXor = 0;
+        
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            int oppositeBit = 1 - bit;
+            
+            if (curr.children[oppositeBit] != null) {
+                maxXor |= (1 << i);
+                curr = curr.children[oppositeBit];
+            } else {
+                curr = curr.children[bit];
+            }
+        }
+        return maxXor;
+    }
+
+    public int findMaximumXOR(int[] nums) {
+        root = new TrieNode();
+        for (int num : nums) {
+            insert(num);
+        }
+        
+        int max = 0;
+        for (int num : nums) {
+            max = Math.max(max, findMaxXOR(num));
+        }
+        
+        return max;
     }
 }"
-  python="# Python implementation for Maximum XOR of Two Numbers in an Array (Bit Trie)
-class TrieNode:
+  python="class TrieNode:
     def __init__(self):
         self.children = {}
-        self.is_end_of_word = False
 
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def findMaximumXOR(self, nums: list[int]) -> int:
+        root = TrieNode()
+        
+        # Insert all numbers into Bit Trie
+        for num in nums:
+            curr = root
+            for i in range(31, -1, -1):
+                bit = (num >> i) & 1
+                if bit not in curr.children:
+                    curr.children[bit] = TrieNode()
+                curr = curr.children[bit]
+                
+        max_xor = 0
+        
+        # Find max XOR for each number
+        for num in nums:
+            curr = root
+            curr_xor = 0
+            for i in range(31, -1, -1):
+                bit = (num >> i) & 1
+                opposite_bit = 1 - bit
+                
+                if opposite_bit in curr.children:
+                    curr_xor |= (1 << i)
+                    curr = curr.children[opposite_bit]
+                else:
+                    curr = curr.children[bit]
+                    
+            max_xor = max(max_xor, curr_xor)
+            
+        return max_xor"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(L)"
-  average="O(L)"
-  worst="O(L)"
-  space="O(N * L)"
-  description="For Tries, inserting or searching for a word of length L takes exactly O(L) time. The space complexity can be large: O(N * L) where N is the number of words, because we allocate a node array of size 26 for every single character path."
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(N)"
+  description="Time is strictly O(32 * N) which reduces to O(N). Space is bounded by O(32 * N) as we create at most 32 nodes per number."
 />
 
 # Common Pitfalls
 <Warning>
-- **Memory Leaks:** Tries consume a massive amount of memory because every node often allocates an array of 26 pointers. Be careful about space constraints.
-- **Forgetting End of Word Flag:** It is critical to mark `isEndOfWord = true` at the last node of an insertion. Otherwise, a search might falsely report a prefix as a complete word!
+- Traversing from Least Significant Bit (LSB) to Most Significant Bit (MSB). This destroys the greedy approach! You must prioritize differing bits at the *highest* positions first.
+- Not handling integer bounds correctly. `1 << 31` might overflow signed 32-bit integers in some C++ compilers. Ensure safe shifting or use unsigned types.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an interview question involves a 'dictionary of words' and asks for 'autocomplete', 'spell check', or 'prefix matching', a Trie is guaranteed to be the optimal approach.",
-    "Tries can also be used for bit manipulation! A 'Bit Trie' (where branches are just 0 and 1) is the standard solution for finding the Maximum XOR of two numbers in an array.",
-    "If a problem asks for Range Sums, but the array is frequently updated, a Prefix Sum array fails because updating takes O(N). This is the explicit use case for a Segment Tree or Fenwick Tree (O(log N) updates)."
+    "Bit Tries are a heavily specialized pattern. Recognizing 'Max XOR' instantly maps to a Binary Trie.",
+    "Be able to articulate the 'Greedy Choice Property' on why we prioritize the opposite bit at the 31st position over all other lower bits combined."
   ]}
 />

@@ -11,58 +11,182 @@ summary: "An essential guide to Allocate Minimum Number of Pages, mastering O(lo
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Allocate Minimum Number of Pages**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+The "Allocate Minimum Number of Pages" problem is one of the most famous algorithmic challenges. You are given an array of books where `arr[i]` represents the number of pages in the `i-th` book. You need to allocate these books to `M` students such that:
+1. Every student gets at least one book.
+2. The allocation is contiguous (a student gets a continuous sub-segment of the array).
+3. The **maximum number of pages assigned to a student is minimized**.
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+This is identical in logic to the "Split Array Largest Sum" problem. It's a "Minimize the Maximum" optimization, heavily pointing toward Binary Search on the Answer.
+
+### Search Space
+- **Minimum possible pages (`low`)**: The largest single book in the array. If `M == N` (students equals books), every student gets exactly one book, and the maximum pages a student reads will be the largest book.
+- **Maximum possible pages (`high`)**: The sum of all pages in the array. If `M == 1` (only 1 student), that poor student reads all the books.
+
+### The Validation Function
+For a guessed maximum page limit `mid`, we simulate the allocation. We hand books to a student one by one until the sum exceeds `mid`. When it does, we move to the next student.
+- If we require more than `M` students to distribute the books, our `mid` was too strict (too small).
+- If we require `<= M` students, our `mid` is valid, but we try to find a smaller valid `mid`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Allocate Minimum Number of Pages
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int findPages(vector<int>& arr, int n, int m) {
+        // Base case: If students are more than books, allocation is impossible
+        if (m > n) return -1;
+        
+        int maxBook = 0;
+        long long totalPages = 0;
+        for (int pages : arr) {
+            maxBook = max(maxBook, pages);
+            totalPages += pages;
+        }
+        
+        long long left = maxBook;
+        long long right = totalPages;
+        long long ans = -1;
+        
+        while (left <= right) {
+            long long mid = left + (right - left) / 2;
+            
+            if (isPossible(arr, m, mid)) {
+                ans = mid;       // Valid allocation, try to minimize the max pages
+                right = mid - 1; 
+            } else {
+                left = mid + 1;  // Not possible, we need to allow more pages
+            }
+        }
+        
+        return ans;
+    }
+    
+private:
+    bool isPossible(const vector<int>& arr, int m, long long maxPagesAllowed) {
+        int studentsRequired = 1;
+        long long currentPages = 0;
+        
+        for (int pages : arr) {
+            if (currentPages + pages > maxPagesAllowed) {
+                // Must allocate to the next student
+                studentsRequired++;
+                currentPages = pages;
+                
+                if (studentsRequired > m) return false;
+            } else {
+                currentPages += pages;
+            }
+        }
+        
+        return true;
     }
 };"
-  java="// Java implementation for Allocate Minimum Number of Pages
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int findPages(int[] arr, int n, int m) {
+        // Base case: If students are more than books, allocation is impossible
+        if (m > n) return -1;
+        
+        int maxBook = 0;
+        long totalPages = 0;
+        for (int pages : arr) {
+            maxBook = Math.max(maxBook, pages);
+            totalPages += pages;
+        }
+        
+        long left = maxBook;
+        long right = totalPages;
+        long ans = -1;
+        
+        while (left <= right) {
+            long mid = left + (right - left) / 2;
+            
+            if (isPossible(arr, m, mid)) {
+                ans = mid;       // Valid allocation, try to minimize the max pages
+                right = mid - 1; 
+            } else {
+                left = mid + 1;  // Not possible, we need to allow more pages
+            }
+        }
+        
+        return (int)ans;
+    }
+    
+    private boolean isPossible(int[] arr, int m, long maxPagesAllowed) {
+        int studentsRequired = 1;
+        long currentPages = 0;
+        
+        for (int pages : arr) {
+            if (currentPages + pages > maxPagesAllowed) {
+                // Must allocate to the next student
+                studentsRequired++;
+                currentPages = pages;
+                
+                if (studentsRequired > m) return false;
+            } else {
+                currentPages += pages;
+            }
+        }
+        
+        return true;
     }
 }"
-  python="# Python implementation for Allocate Minimum Number of Pages
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def findPages(self, arr: list[int], n: int, m: int) -> int:
+        # Base case: If students are more than books, allocation is impossible
+        if m > n:
+            return -1
+            
+        left = max(arr)
+        right = sum(arr)
+        ans = -1
+        
+        while left <= right:
+            mid = left + (right - left) // 2
+            
+            if self.isPossible(arr, m, mid):
+                ans = mid       # Valid allocation, try to minimize the max pages
+                right = mid - 1
+            else:
+                left = mid + 1  # Not possible, we need to allow more pages
+                
+        return ans
+        
+    def isPossible(self, arr: list[int], m: int, maxPagesAllowed: int) -> bool:
+        studentsRequired = 1
+        currentPages = 0
+        
+        for pages in arr:
+            if currentPages + pages > maxPagesAllowed:
+                studentsRequired += 1
+                currentPages = pages
+                
+                if studentsRequired > m:
+                    return False
+            else:
+                currentPages += pages
+                
+        return True"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
+  average="O(N * log(Sum))"
+  worst="O(N * log(Sum))"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="Binary search operates between max(arr) and sum(arr), taking O(log(Sum)) steps. Validating takes O(N) time. The overall time is O(N * log(Sum)). Space complexity is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- **Missing the `M > N` edge case:** If there are more students than books, it's impossible to assign at least one book to every student. Returning an empty or default response here without checking leads to WA.
+- **Incorrect search bounds:** Setting `low = 0` or `low = min(arr)` is a fatal error. The max pages a student reads can never be less than the single largest book in the array.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "This problem goes by many names: 'Painter's Partition Problem', 'Split Array Largest Sum', 'Capacity to Ship Packages'. The logic is literally copy-paste identical.",
+    "Clearly explain the 'Greedy' nature of the validation function: we stuff as many books as possible to a student until they hit the limit `mid`.",
+    "Point out to the interviewer that contiguous allocation is the ONLY reason this works. If we could pick books randomly, the problem would become NP-Hard (Bin Packing Problem)."
   ]}
 />

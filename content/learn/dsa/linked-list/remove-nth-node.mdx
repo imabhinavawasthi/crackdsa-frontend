@@ -11,57 +11,96 @@ summary: "An essential guide to Remove Nth Node From End of List, exploring safe
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Remove Nth Node From End of List**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+**Remove Nth Node From End of List** requires us to delete a node given its position relative to the tail, rather than the head.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+### The Two-Pointer Approach
+A naive solution involves a two-pass algorithm: traverse once to find the total length L, and then traverse again to delete the node at position L - N + 1.
+
+The optimal **one-pass** solution employs two pointers, fast and slow, and a Dummy Node.
+1. The fast pointer is advanced N + 1 steps ahead of slow.
+2. Both pointers are then moved one step at a time.
+3. When fast reaches the end of the list, slow will be pointing precisely to the node immediately preceding the target node.
+4. From there, modifying the next pointer of the slow node effectively removes the Nth node.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Remove Nth Node From End of List
-#include <iostream>
-using namespace std;
-
-struct ListNode {
+  cpp="struct ListNode {
     int val;
     ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
     ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
 };
 
 class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        ListNode dummy(0);
+        dummy.next = head;
+        ListNode* slow = &dummy;
+        ListNode* fast = &dummy;
+        
+        for (int i = 0; i <= n; i++) {
+            fast = fast->next;
+        }
+        
+        while (fast != nullptr) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+        
+        ListNode* temp = slow->next;
+        slow->next = slow->next->next;
+        delete temp;
+        
+        return dummy.next;
     }
 };"
-  java="// Java implementation for Remove Nth Node From End of List
-class ListNode {
+  java="class ListNode {
     int val;
     ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+    ListNode(int x) { val = x; }
 }
 
 class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode slow = dummy;
+        ListNode fast = dummy;
+        
+        for (int i = 0; i <= n; i++) {
+            fast = fast.next;
+        }
+        
+        while (fast != null) {
+            slow = slow.next;
+            fast = fast.next;
+        }
+        
+        slow.next = slow.next.next;
+        return dummy.next;
     }
 }"
-  python="# Python implementation for Remove Nth Node From End of List
-class ListNode:
+  python="class ListNode:
     def __init__(self, val=0, next=None):
         self.val = val
         self.next = next
 
 class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+    def removeNthFromEnd(self, head: ListNode, n: int) -> ListNode:
+        dummy = ListNode(0)
+        dummy.next = head
+        slow = dummy
+        fast = dummy
+        
+        for _ in range(n + 1):
+            fast = fast.next
+            
+        while fast:
+            slow = slow.next
+            fast = fast.next
+            
+        slow.next = slow.next.next
+        return dummy.next"
 />
 
 # Complexity Analysis
@@ -70,20 +109,19 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="This one-pass algorithm completes in exactly O(N) time because both pointers traverse the list only once. No extra data structures are instantiated, preserving an O(1) space complexity."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Removing the Head:** Without a dummy node, if the target node is the first node (e.g., removing the 2nd node from the end in a length 2 list), it creates nasty edge cases where the slow pointer cannot stand before the head.
+- **Incorrect Gap Distance:** You must advance the fast pointer N + 1 steps so slow stops exactly one node before the target, rather than on the target itself.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "Whenever a problem asks you to modify the head node or there's a risk the head node might be deleted, a Dummy Node is the most elegant way to solve it.",
+    "This problem perfectly demonstrates the power of maintaining a gap between two pointers to find an element relative to the end."
   ]}
 />

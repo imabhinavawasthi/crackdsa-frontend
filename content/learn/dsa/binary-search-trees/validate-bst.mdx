@@ -11,55 +11,84 @@ summary: "An essential guide to Validate BST, exploring its applications, implem
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Validate BST**. This topic is a cornerstone of the Binary Search Trees module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Validating whether a given binary tree is a valid **Binary Search Tree (BST)** is one of the most frequently asked interview questions. It tests your fundamental understanding of the strict BST property.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+A common beginner mistake is simply checking if `left.val < root.val < right.val` for every node. **This is incorrect!** The BST property states that *all* nodes in the left subtree must be less than the root, and *all* nodes in the right subtree must be greater. A node deep in the right subtree could erroneously be smaller than the main root.
+
+**The Solution:** Top-Down Range Validation.
+As we traverse down the tree, we pass down a valid `[min, max]` range. 
+- When we branch left, the current node's value becomes the new strict upper bound (`max`).
+- When we branch right, the current node's value becomes the new strict lower bound (`min`).
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Validate BST
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    bool isValidBST(TreeNode* root) {
+        return validate(root, nullptr, nullptr);
+    }
+    
+private:
+    bool validate(TreeNode* node, TreeNode* minNode, TreeNode* maxNode) {
+        if (!node) return true;
+        
+        if (minNode && node->val <= minNode->val) return false;
+        if (maxNode && node->val >= maxNode->val) return false;
+        
+        return validate(node->left, minNode, node) && 
+               validate(node->right, node, maxNode);
     }
 };"
-  java="// Java implementation for Validate BST
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return validate(root, null, null);
+    }
+    
+    private boolean validate(TreeNode node, Integer min, Integer max) {
+        if (node == null) return true;
+        
+        if (min != null && node.val <= min) return false;
+        if (max != null && node.val >= max) return false;
+        
+        return validate(node.left, min, node.val) && 
+               validate(node.right, node.val, max);
     }
 }"
-  python="# Python implementation for Validate BST
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def isValidBST(self, root: TreeNode) -> bool:
+        def validate(node, min_val, max_val):
+            if not node:
+                return True
+            
+            if node.val <= min_val or node.val >= max_val:
+                return False
+                
+            return validate(node.left, min_val, node.val) and \
+                   validate(node.right, node.val, max_val)
+                   
+        return validate(root, float('-inf'), float('inf'))"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(H)"
+  description="Time complexity is O(N) because in the worst case we must visit every node to verify the tree. Space complexity is O(H) representing the recursion call stack, where H is the height of the tree."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Using integer minimum/maximum values (like `INT_MIN`) for bounds, which fails if the tree actually contains `INT_MIN`. Use pointers in C++, `Integer` objects in Java (for null checks), or `float('-inf')` in Python to handle absolute bounds safely.
+- Forgetting that the BST property strictly requires `<` and `>`, not `<=` and `>=`. Duplicates usually invalidate a strict BST.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "There is a second valid approach: Inorder Traversal. An inorder traversal of a valid BST will yield a strictly increasing sequence. You just need to keep track of the previously visited node and ensure it's smaller.",
+    "Passing down pointers instead of integer values is a great way to show the interviewer you know how to handle edge case values safely in languages like C++."
   ]}
 />

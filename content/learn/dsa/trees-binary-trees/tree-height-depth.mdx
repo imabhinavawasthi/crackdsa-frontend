@@ -11,55 +11,83 @@ summary: "An essential guide to Height & Depth, exploring its applications, impl
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Height & Depth**. This topic is a cornerstone of the Trees & Binary Trees module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Understanding the dimensions of a tree is crucial for analyzing the time and space complexity of tree-based algorithms. The two most fundamental dimensional properties are **Depth** and **Height**.
+
+### Depth of a Node
+The **depth** of a node is the number of edges from the root node to that specific node. 
+- The depth of the root node is always `0`.
+- Depth is calculated in a **top-down** manner.
+
+### Height of a Node
+The **height** of a node is the number of edges on the longest path from that node to a leaf.
+- The height of a leaf node is always `0`.
+- Height is calculated in a **bottom-up** manner.
+- The **Height of a Tree** is the height of its root node.
+
+*Note: In some contexts (like LeetCode), height or depth is defined by the number of nodes on the path instead of edges, making a single-node tree have a height/depth of 1.*
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Height & Depth
-#include <iostream>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int maxDepth(TreeNode* root) {
+        if (root == nullptr) {
+            return 0; // Return 0 for node-based depth, or -1 for edge-based
+        }
+        int leftHeight = maxDepth(root->left);
+        int rightHeight = maxDepth(root->right);
+        
+        return 1 + max(leftHeight, rightHeight);
     }
 };"
-  java="// Java implementation for Height & Depth
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int maxDepth(TreeNode root) {
+        if (root == null) {
+            return 0;
+        }
+        int leftHeight = maxDepth(root.left);
+        int rightHeight = maxDepth(root.right);
+        
+        return 1 + Math.max(leftHeight, rightHeight);
     }
 }"
-  python="# Python implementation for Height & Depth
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def maxDepth(self, root: Optional[TreeNode]) -> int:
+        if not root:
+            return 0
+        
+        left_height = self.maxDepth(root.left)
+        right_height = self.maxDepth(root.right)
+        
+        return 1 + max(left_height, right_height)"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(H)"
+  description="Time complexity is O(N) because we must visit every node to find the maximum depth. Space complexity is O(H) where H is the height of the tree due to the recursion stack."
 />
 
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Using global variables to track the maximum height. It is much cleaner and less error-prone to return the height from the recursive function.
+- Forgetting the base case `if (root == null)`, leading to a null pointer exception or infinite recursion.
+- Mixing up edge-based and node-based definitions. Always clarify with your interviewer!
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Height calculation is purely a Post-Order traversal concept (Bottom-Up). You need the heights of children before calculating the parent's height.",
+    "If an interviewer asks to check if a tree is balanced, you will be heavily relying on height calculations.",
+    "Always clarify if the depth of a single-node tree is 0 or 1. Different platforms have different standards."
   ]}
 />

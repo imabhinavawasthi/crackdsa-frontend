@@ -11,60 +11,135 @@ summary: "An essential guide to Contains Duplicate I, II & III, mastering O(1) l
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Contains Duplicate I, II & III**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+The **Contains Duplicate** series is a fantastic progression of problems that tests your ability to evolve a solution from a simple Hash Set to a Hash Map, and finally to a Sliding Window or Tree Map.
+
+### 1. Contains Duplicate I
+**Problem:** Given an array, return `true` if any value appears at least twice.
+**Intuition:** This is a pure **Hash Set** problem. As we iterate, if the current element is already in the set, return `true`. Otherwise, add it.
+*Time: O(N), Space: O(N)*
+
+### 2. Contains Duplicate II
+**Problem:** Given an array and an integer `k`, return `true` if there are two identical elements such that the absolute difference of their indices is `<= k`.
+**Intuition:** A Set is no longer enough because we need to know *where* we last saw the element. We use a **Hash Map** to store `value -> last_seen_index`. If we see a number again, we check if `current_index - map.get(number) <= k`. If yes, return `true`. Otherwise, update the index in the map to the current index.
+*Time: O(N), Space: O(N)*
+
+### 3. Contains Duplicate III
+**Problem:** Find two distinct indices `i` and `j` such that `abs(nums[i] - nums[j]) <= t` and `abs(i - j) <= k`.
+**Intuition:** Hash Maps only allow exact matches ($O(1)$). To find values *within a range*, we need a data structure that keeps elements sorted, like a Balanced Binary Search Tree (`std::set` in C++, `TreeSet` in Java). Combined with a Sliding Window of size $k$, we can do an $O(\log k)$ lookup for each element.
+*Time: O(N log K), Space: O(K)*
+
+---
 
 # Code Implementation
+
+Here we will implement the **Contains Duplicate II** solution, as it perfectly demonstrates the power of mapping values to their indices.
+
 <CodeBlock
-  cpp="// C++ implementation for Contains Duplicate I, II & III
+  cpp="```cpp
 #include <iostream>
-#include <unordered_map>
 #include <vector>
+#include <unordered_map>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    bool containsNearbyDuplicate(vector<int>& nums, int k) {
+        // Map to store: Element -> Last seen index
+        unordered_map<int, int> seenMap;
+        
+        for (int i = 0; i < nums.size(); i++) {
+            int num = nums[i];
+            
+            // If the element was seen before, check index difference
+            if (seenMap.count(num)) {
+                if (i - seenMap[num] <= k) {
+                    return true;
+                }
+            }
+            // Update the last seen index to the most recent one!
+            seenMap[num] = i;
+        }
+        
+        return false;
     }
-};"
-  java="// Java implementation for Contains Duplicate I, II & III
-import java.util.*;
+};
+```"
+  java="```java
+import java.util.HashMap;
+import java.util.Map;
 
 class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    public boolean containsNearbyDuplicate(int[] nums, int k) {
+        // Map to store: Element -> Last seen index
+        Map<Integer, Integer> seenMap = new HashMap<>();
+        
+        for (int i = 0; i < nums.length; i++) {
+            int num = nums[i];
+            
+            // If the element was seen before, check index difference
+            if (seenMap.containsKey(num)) {
+                if (i - seenMap.get(num) <= k) {
+                    return true;
+                }
+            }
+            // Update the last seen index to the most recent one!
+            seenMap.put(num, i);
+        }
+        
+        return false;
     }
-}"
-  python="# Python implementation for Contains Duplicate I, II & III
+}
+```"
+  python="```python
 class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def containsNearbyDuplicate(self, nums: list[int], k: int) -> bool:
+        # Map to store: Element -> Last seen index
+        seen_map = {}
+        
+        for i, num in enumerate(nums):
+            # If the element was seen before, check index difference
+            if num in seen_map:
+                if i - seen_map[num] <= k:
+                    return True
+            
+            # Update the last seen index to the most recent one!
+            seen_map[num] = i
+            
+        return False
+```"
 />
+
+---
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
-  average="O(1)"
+  average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  description="Time complexity is O(N) as we traverse the array exactly once, performing O(1) hash map operations. Space complexity is O(N) in the worst case if all elements are unique and must be stored in the map."
 />
 
+---
+
 # Common Pitfalls
+
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- **Failing to update the index:** If you see a duplicate but the distance is $> k$, you MUST update the map with the *new* current index! Why? Because this new index might be $\le k$ away from the *next* occurrence of the number.
+- **Using $O(N^2)$ sliding window:** Don't use a nested loop to check the previous $k$ elements. That degrades to $O(N \cdot K)$, which will Time Out for large $K$.
 </Warning>
 
+---
+
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "For Contains Duplicate I, you can simply write `return len(set(nums)) != len(nums)` in Python for a slick 1-liner.",
+    "For Contains Duplicate II, you can also solve it using a HashSet and a Sliding Window! Add elements to the set, and if the set size exceeds `k`, remove `nums[i - k]`.",
+    "If the array is already sorted, you don't even need a Hash Map! Just check adjacent elements."
   ]}
 />

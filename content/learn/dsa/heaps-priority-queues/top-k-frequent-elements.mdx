@@ -11,64 +11,97 @@ summary: "An essential guide to Top K Frequent Elements, mastering O(log N) extr
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Top K Frequent Elements**. This topic is a cornerstone of the Heaps & Priority Queues module. A Heap (usually implemented via a Priority Queue) is an extremely specialized tree structure that allows you to instantly extract the minimum or maximum element in O(1) time, while inserts and deletions take O(log N).
+In the **Top K Frequent Elements** problem, we are given an integer array and an integer `k`, and we need to return the `k` most frequent elements.
 
-### Core Intuition
-Heaps are typically implemented under the hood as a complete binary tree mapped to a flat array. The children of node `i` are at `2i + 1` and `2i + 2`. This guarantees the tree is perfectly balanced.
+### The Heap Approach
+1. First, we need to count the frequencies of each element. We can do this efficiently using a Hash Map, which gives us `O(N)` time complexity.
+2. Next, we use the Top K pattern. Since we want the "Most" frequent elements, we maintain a **Min-Heap of size K**. 
+3. The heap will store pairs (or nodes) of `(frequency, value)`. We compare elements based strictly on their frequency.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Top K Frequent Elements
-#include <iostream>
-#include <vector>
-#include <queue>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // priority_queue<int> maxHeap;
-        // priority_queue<int, vector<int>, greater<int>> minHeap;
+    vector<int> topKFrequent(vector<int>& nums, int k) {
+        unordered_map<int, int> count;
+        for (int num : nums) count[num]++;
+        
+        // Min-Heap storing pair<frequency, value>
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> minHeap;
+        
+        for (auto& entry : count) {
+            minHeap.push({entry.second, entry.first});
+            if (minHeap.size() > k) {
+                minHeap.pop();
+            }
+        }
+        
+        vector<int> res;
+        while (!minHeap.empty()) {
+            res.push_back(minHeap.top().second);
+            minHeap.pop();
+        }
+        return res;
     }
 };"
-  java="// Java implementation for Top K Frequent Elements
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // PriorityQueue<Integer> minHeap = new PriorityQueue<>();
-        // PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+  java="class Solution {
+    public int[] topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> count = new HashMap<>();
+        for (int num : nums) {
+            count.put(num, count.getOrDefault(num, 0) + 1);
+        }
+        
+        // Min-Heap based on frequency
+        PriorityQueue<Map.Entry<Integer, Integer>> minHeap = 
+            new PriorityQueue<>((a, b) -> a.getValue() - b.getValue());
+            
+        for (Map.Entry<Integer, Integer> entry : count.entrySet()) {
+            minHeap.add(entry);
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+        
+        int[] res = new int[k];
+        int i = 0;
+        while (!minHeap.isEmpty()) {
+            res[i++] = minHeap.poll().getKey();
+        }
+        return res;
     }
 }"
-  python="# Python implementation for Top K Frequent Elements
-import heapq
-
-class Solution:
-    def solve(self, arr: list[int]):
-        # heapq.heapify(arr)  # Min-heap by default
-        pass"
+  python="class Solution:
+    def topKFrequent(self, nums: list[int], k: int) -> list[int]:
+        count = collections.Counter(nums)
+        min_heap = []
+        
+        for num, freq in count.items():
+            heapq.heappush(min_heap, (freq, num))
+            if len(min_heap) > k:
+                heapq.heappop(min_heap)
+                
+        return [num for freq, num in min_heap]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
+  best="O(N log K)"
+  average="O(N log K)"
+  worst="O(N log K)"
   space="O(N)"
-  description="Peeking at the top element is O(1). Popping or Pushing an element takes O(log N) time because the heap must bubble up or sift down to maintain its properties. Building a heap from an unsorted array takes O(N) time."
+  description="Building the frequency map takes O(N) time and space. Inserting unique elements into a heap of size K takes O(U log K) where U is the number of unique elements. Space is O(N) to store the hash map."
 />
 
 # Common Pitfalls
 <Warning>
-- **Python's heapq:** Python only has a built-in Min-Heap. To simulate a Max-Heap, you must negate all numbers before pushing them in, and negate them again when popping out!
-- **N log N vs N log K:** When finding the Top K elements, do NOT push all N elements into the heap (O(N log N)). Instead, keep the heap size capped at K. When size > K, pop the smallest element. This reduces time complexity to O(N log K).
+- Pushing just the values into the heap without attaching the frequency, leading to incorrect comparisons.
+- Returning the frequencies instead of the original values. Ensure you extract the value part from the heap elements when building your final result.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Kth Largest', 'Kth Smallest', or 'Top K' of anything, it is a 99% guarantee that a Heap/Priority Queue is the intended solution.",
-    "If you need to merge multiple sorted arrays or linked lists simultaneously, a Min-Heap keeping track of the current pointers is the most optimal approach.",
-    "The 'Find Median from Data Stream' problem is a classic hard interview question solved beautifully by maintaining two separate heaps: one Max-Heap for the lower half, and one Min-Heap for the upper half."
+    "While the Heap approach is widely accepted and easy to write, mention that Bucket Sort can solve this in purely O(N) time and O(N) space.",
+    "If multiple elements have the same frequency, check with the interviewer if the order of breaking ties matters."
   ]}
 />

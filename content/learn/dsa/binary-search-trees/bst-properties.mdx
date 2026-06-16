@@ -11,55 +11,68 @@ summary: "An essential guide to BST Properties, exploring its applications, impl
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **BST Properties**. This topic is a cornerstone of the Binary Search Trees module. Understanding it thoroughly will significantly improve your problem-solving speed.
+While the basic definition of a **Binary Search Tree (BST)** focuses on the `Left < Root < Right` rule, there are several advanced properties that are indispensable for coding interviews.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### Core Properties & Deductions
+1. **Sorted Sequence Equivalency**: Any operation you can do on a sorted array can theoretically be done on a BST (like Binary Search).
+2. **Successor and Predecessor**: 
+   - **Inorder Successor**: The smallest node in the right subtree (go right, then all the way left).
+   - **Inorder Predecessor**: The largest node in the left subtree (go left, then all the way right).
+3. **Subtree Bounds**: Every subtree in a BST operates within a strict `[min, max]` bound inherited from its ancestors. When you go left, the current node's value becomes the new `max`. When you go right, the current node's value becomes the new `min`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for BST Properties
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    TreeNode* getSuccessor(TreeNode* root) {
+        if (!root || !root->right) return nullptr;
+        TreeNode* curr = root->right;
+        while (curr->left) {
+            curr = curr->left;
+        }
+        return curr;
     }
 };"
-  java="// Java implementation for BST Properties
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public TreeNode getSuccessor(TreeNode root) {
+        if (root == null || root.right == null) return null;
+        TreeNode curr = root.right;
+        while (curr.left != null) {
+            curr = curr.left;
+        }
+        return curr;
     }
 }"
-  python="# Python implementation for BST Properties
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def getSuccessor(self, root: TreeNode) -> TreeNode:
+        if not root or not root.right:
+            return None
+        curr = root.right
+        while curr.left:
+            curr = curr.left
+        return curr"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
+  average="O(log N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="Finding a successor or predecessor takes time proportional to the height of the tree, O(H). In a balanced tree, this is O(log N). Since we are just moving pointers, the auxiliary space is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Forgetting that the successor could be an ancestor if the right subtree is empty (though the code above assumes finding successor of a node with a right subtree).
+- Assuming duplicates are handled consistently. In some BST definitions, duplicates go left, in others right. Always clarify this with your interviewer.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If asked to find the Next element (Successor) in a BST without parent pointers, use standard tree traversal or BST search logic.",
+    "Understanding Successor and Predecessor is the absolute key to implementing BST Deletion optimally.",
+    "Whenever you hear 'BST' and 'range of values', think about passing constraints down from the root."
   ]}
 />

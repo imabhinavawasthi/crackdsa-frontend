@@ -11,86 +11,103 @@ summary: "An essential guide to Inorder Traversal (Left, Root, Right), mastering
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Inorder Traversal (Left, Root, Right)**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+**Inorder Traversal** is a Depth-First Search (DFS) technique where the processing of the current node occurs **between** processing its left and right children. The sequence is:
+1. Recursively traverse the **Left** subtree.
+2. Visit the **Root** node.
+3. Recursively traverse the **Right** subtree.
+
+### The Magic of Inorder in BSTs
+The most powerful property of Inorder traversal shines when applied to a **Binary Search Tree (BST)**. Because a BST maintains the property that left children are strictly less than the parent, and right children are strictly greater, **an Inorder traversal of a BST will always process the nodes in strictly sorted (ascending) order**.
+
+Common use cases:
+- Validating if a given binary tree is a valid Binary Search Tree.
+- Finding the Kth smallest or largest element in a BST.
+- Converting a BST to a sorted array or a doubly linked list.
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Inorder Traversal (Left, Root, Right)
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    vector<int> inorderTraversal(TreeNode* root) {
+        vector<int> result;
+        traverse(root, result);
+        return result;
+    }
+    
+private:
+    void traverse(TreeNode* node, vector<int>& res) {
+        if (node == nullptr) return;
+        
+        // Left
+        traverse(node->left, res);
+        // Root
+        res.push_back(node->val);
+        // Right
+        traverse(node->right, res);
     }
 };"
-  java="// Java implementation for Inorder Traversal (Left, Root, Right)
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
+  java="class Solution {
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        traverse(root, result);
+        return result;
     }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+    
+    private void traverse(TreeNode node, List<Integer> res) {
+        if (node == null) return;
+        
+        // Left
+        traverse(node.left, res);
+        // Root
+        res.add(node.val);
+        // Right
+        traverse(node.right, res);
     }
 }"
-  python="# Python implementation for Inorder Traversal (Left, Root, Right)
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def inorderTraversal(self, root: Optional[TreeNode]) -> List[int]:
+        result = []
+        
+        def traverse(node):
+            if not node:
+                return
+            
+            # Left
+            traverse(node.left)
+            # Root
+            result.append(node.val)
+            # Right
+            traverse(node.right)
+            
+        traverse(root)
+        return result"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  description="Time complexity is O(N) as every node is visited. Space complexity relies on the recursion stack, bounded by the height of the tree O(H)."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **Iterative Stack Logic:** The iterative version of Inorder is tricky. You must traverse down the left side completely, popping and processing nodes, then shifting to the right child.
+- **Forgetting Previous Pointer:** When using Inorder to validate a BST, a common mistake is not keeping track of the previously visited node to compare values.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "Anytime an interview problem mentions a Binary Search Tree (BST), your first thought should be an Inorder traversal.",
+    "If you need an iterative approach, remember: `while (curr != null || !stack.isEmpty())`.",
+    "You can optimize finding the Kth smallest element by stopping the traversal early once you reach the Kth node."
   ]}
 />

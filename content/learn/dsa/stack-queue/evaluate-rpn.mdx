@@ -11,64 +11,98 @@ summary: "An essential guide to Evaluate Reverse Polish Notation (RPN), explorin
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Evaluate Reverse Polish Notation (RPN)**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+**Reverse Polish Notation (RPN)**, also known as postfix notation, is a mathematical notation in which every operator follows all of its operands. For example, `3 4 +` means `3 + 4`. The expression `2 1 + 3 *` evaluates to `(2 + 1) * 3 = 9`.
+
+RPN has a massive advantage: it completely removes the need for parentheses and operator precedence rules. Compilers often convert standard infix expressions (like `3 + 4`) into postfix notation before evaluating them.
+
+**Intuition**
+Evaluating an RPN expression naturally screams "Stack". We process the tokens one by one:
+1. If the token is a number, we push it onto the stack.
+2. If the token is an operator (`+`, `-`, `*`, `/`), we pop the top two numbers from the stack, apply the operator to them, and push the result back onto the stack.
+3. At the end, the stack will contain exactly one element: the final result.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Evaluate Reverse Polish Notation (RPN)
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int evalRPN(vector<string>& tokens) {
+        stack<int> st;
+        for (const string& token : tokens) {
+            if (token == \"+\" || token == \"-\" || token == \"*\" || token == \"/\") {
+                int b = st.top(); st.pop();
+                int a = st.top(); st.pop();
+                if (token == \"+\") st.push(a + b);
+                else if (token == \"-\") st.push(a - b);
+                else if (token == \"*\") st.push(a * b);
+                else st.push(a / b);
+            } else {
+                st.push(stoi(token));
+            }
+        }
+        return st.top();
     }
 };"
-  java="// Java implementation for Evaluate Reverse Polish Notation (RPN)
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int evalRPN(String[] tokens) {
+        Stack<Integer> stack = new Stack<>();
+        for (String token : tokens) {
+            if (\"+-*/\".contains(token)) {
+                int b = stack.pop();
+                int a = stack.pop();
+                switch (token) {
+                    case \"+\": stack.push(a + b); break;
+                    case \"-\": stack.push(a - b); break;
+                    case \"*\": stack.push(a * b); break;
+                    case \"/\": stack.push(a / b); break;
+                }
+            } else {
+                stack.push(Integer.parseInt(token));
+            }
+        }
+        return stack.pop();
     }
 }"
-  python="# Python implementation for Evaluate Reverse Polish Notation (RPN)
-from collections import deque
-
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def evalRPN(self, tokens: list[str]) -> int:
+        stack = []
+        for token in tokens:
+            if token in \"+-*/\":
+                b = stack.pop()
+                a = stack.pop()
+                if token == '+': stack.append(a + b)
+                elif token == '-': stack.append(a - b)
+                elif token == '*': stack.append(a * b)
+                else: stack.append(int(a / b)) # Truncate toward zero
+            else:
+                stack.append(int(token))
+        return stack[0]"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  description="Time complexity is O(N) where N is the number of tokens, because we visit each token exactly once and perform O(1) push/pop operations. Space complexity is O(N) in the worst case (e.g., all numbers pushed before any operators are seen)."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **Order of Operands:** When popping two elements for subtraction or division, order matters! The first element popped is the *second* operand (`b`), and the second element popped is the *first* operand (`a`). So it is `a - b`, not `b - a`.
+- **Integer Division Truncation:** In Python, `//` truncates toward negative infinity. But C++ and Java truncate toward zero. To mimic C++/Java in Python for negative numbers, use `int(a / b)` instead of `a // b`.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "Always clarify with the interviewer if the input is guaranteed to be valid. If not, you must handle underflow (not enough operands) and invalid tokens.",
+    "Mentioning that this approach is how actual compilers parse expressions will give you bonus points.",
+    "Be careful with large integer bounds; ensure that intermediate calculations fit within standard 32-bit signed integers."
   ]}
 />

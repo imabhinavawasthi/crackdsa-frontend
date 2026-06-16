@@ -1,65 +1,163 @@
 ---
 title: "Merge Sort"
 category: "Sorting & Custom Comparators"
-readTime: "5 min read"
+readTime: "8 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the fundamentals of Merge Sort."
-  - "Learn how to implement this pattern in real coding interviews."
-  - "Master the time and space complexity."
-summary: "An essential guide to Merge Sort, exploring its applications, implementations, and interview intelligence."
+  - "Understand the Divide and Conquer paradigm applied to Merge Sort."
+  - "Master the implementation of the merge operation."
+  - "Analyze time and space complexity, and its applications in Linked Lists."
+summary: "An essential guide to Merge Sort, diving deep into divide-and-conquer strategy, recursive implementations, and interview intelligence."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Merge Sort**. This topic is a cornerstone of the Sorting & Custom Comparators module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Welcome to the lesson on **Merge Sort**. This is an incredibly powerful algorithm that forms the backbone of many built-in sorting libraries. It is a quintessential example of the **Divide and Conquer** paradigm.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+The logic of Merge Sort can be broken down into three distinct steps:
+1. **Divide:** Recursively divide the array into two halves until you reach sub-arrays of size 1. An array of size 1 is inherently sorted.
+2. **Conquer:** The recursive calls return, providing you with two sorted sub-arrays.
+3. **Combine (Merge):** Merge the two sorted sub-arrays together to form a single, fully sorted array.
+
+The heart of the algorithm lies in the merge step. Merging two sorted arrays is efficient ($O(N)$ time) because you can use two pointers, repeatedly picking the smaller element from the front of either array.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Merge Sort
-#include <iostream>
-using namespace std;
+  cpp="class Solution {
+private:
+    void merge(vector<int>& arr, int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+        
+        // Create temporary arrays
+        vector<int> L(n1), R(n2);
+        for(int i = 0; i < n1; i++) L[i] = arr[left + i];
+        for(int j = 0; j < n2; j++) R[j] = arr[mid + 1 + j];
+        
+        int i = 0, j = 0, k = left;
+        // Merge the temp arrays back into arr
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) {
+                arr[k++] = L[i++];
+            } else {
+                arr[k++] = R[j++];
+            }
+        }
+        
+        // Copy the remaining elements of L[], if any
+        while (i < n1) arr[k++] = L[i++];
+        // Copy the remaining elements of R[], if any
+        while (j < n2) arr[k++] = R[j++];
+    }
 
-class Solution {
+    void mergeSortHelper(vector<int>& arr, int left, int right) {
+        if (left >= right) return;
+        
+        int mid = left + (right - left) / 2;
+        mergeSortHelper(arr, left, mid);
+        mergeSortHelper(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+
 public:
-    void solve() {
-        // Implementation here
+    void mergeSort(vector<int>& arr) {
+        mergeSortHelper(arr, 0, arr.size() - 1);
     }
 };"
-  java="// Java implementation for Merge Sort
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    private void merge(int[] arr, int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+        
+        int[] L = new int[n1];
+        int[] R = new int[n2];
+        
+        for (int i = 0; i < n1; ++i) L[i] = arr[left + i];
+        for (int j = 0; j < n2; ++j) R[j] = arr[mid + 1 + j];
+        
+        int i = 0, j = 0, k = left;
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) {
+                arr[k++] = L[i++];
+            } else {
+                arr[k++] = R[j++];
+            }
+        }
+        
+        while (i < n1) arr[k++] = L[i++];
+        while (j < n2) arr[k++] = R[j++];
+    }
+
+    private void mergeSortHelper(int[] arr, int left, int right) {
+        if (left >= right) return;
+        
+        int mid = left + (right - left) / 2;
+        mergeSortHelper(arr, left, mid);
+        mergeSortHelper(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+
+    public void mergeSort(int[] arr) {
+        mergeSortHelper(arr, 0, arr.length - 1);
     }
 }"
-  python="# Python implementation for Merge Sort
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def merge_sort(self, arr: list[int]) -> None:
+        if len(arr) > 1:
+            mid = len(arr) // 2
+            
+            # Divide
+            L = arr[:mid]
+            R = arr[mid:]
+            
+            # Conquer
+            self.merge_sort(L)
+            self.merge_sort(R)
+            
+            # Combine
+            i = j = k = 0
+            while i < len(L) and j < len(R):
+                if L[i] <= R[j]:
+                    arr[k] = L[i]
+                    i += 1
+                else:
+                    arr[k] = R[j]
+                    j += 1
+                k += 1
+                
+            # Check for left overs
+            while i < len(L):
+                arr[k] = L[i]
+                i += 1
+                k += 1
+                
+            while j < len(R):
+                arr[k] = R[j]
+                j += 1
+                k += 1"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N log N)"
+  space="O(N)"
+  description="Merge Sort consistently divides the array into halves, creating a recursion tree of height O(log N). At each level of the tree, merging takes O(N) time, resulting in a strictly O(N log N) time complexity across all cases. However, it requires O(N) auxiliary space to store temporary arrays during the merge phase."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Space Complexity Amnesia:** Forgetting that standard Merge Sort on arrays is NOT in-place and requires $O(N)$ extra memory. In an interview, allocating an array on every recursive step is inefficient; passing a single pre-allocated temp array is heavily preferred.
+- **Off-by-one errors in `mid`:** Carelessly calculating mid or passing incorrect bounds (`mergeSortHelper(arr, mid, right)` instead of `mid + 1`) can cause infinite recursion.
+- **Unstable Comparisons:** Using `L[i] < R[j]` instead of `L[i] <= R[j]` during the merge step ruins the stability of Merge Sort.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If an interviewer asks to sort a Linked List optimally, Merge Sort is the undisputed king. Unlike arrays, Linked Lists can be merged in O(1) auxiliary space by simply changing pointers.",
+    "Merge Sort is the underlying algorithm needed to solve the classic 'Inversion Count' problem.",
+    "Always mention that Merge Sort is a STABLE algorithm, making it ideal when sorting complex objects where relative order must be preserved."
   ]}
 />

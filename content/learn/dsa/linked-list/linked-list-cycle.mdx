@@ -11,57 +11,72 @@ summary: "An essential guide to Linked List Cycle (Detection & Starting Node), e
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Linked List Cycle (Detection & Starting Node)**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+Detecting a cycle in a linked list and finding the starting node of that cycle is a classic interview question. It introduces the powerful "Fast and Slow Pointers" technique, also known as Floyd's Tortoise and Hare algorithm.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+### Floyd's Cycle Detection
+We use two pointers: a `slow` pointer that moves one step at a time, and a `fast` pointer that moves two steps at a time. If there is a cycle, the fast pointer will eventually overlap with the slow pointer inside the cycle.
+
+### Finding the Start of the Cycle
+Once a cycle is detected, we can find the node where the cycle begins. We reset the `slow` pointer to the `head` of the list, and move both `slow` and `fast` pointers one step at a time. The point at which they meet again is the starting node of the cycle.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Linked List Cycle (Detection & Starting Node)
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    ListNode *detectCycle(ListNode *head) {
+        ListNode* slow = head;
+        ListNode* fast = head;
+        
+        while (fast != nullptr && fast->next != nullptr) {
+            slow = slow->next;
+            fast = fast->next->next;
+            if (slow == fast) {
+                slow = head;
+                while (slow != fast) {
+                    slow = slow->next;
+                    fast = fast->next;
+                }
+                return slow;
+            }
+        }
+        return nullptr;
     }
 };"
-  java="// Java implementation for Linked List Cycle (Detection & Starting Node)
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+  java="public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            if (slow == fast) {
+                slow = head;
+                while (slow != fast) {
+                    slow = slow.next;
+                    fast = fast.next;
+                }
+                return slow;
+            }
+        }
+        return null;
     }
 }"
-  python="# Python implementation for Linked List Cycle (Detection & Starting Node)
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+  python="class Solution:
+    def detectCycle(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        slow = head
+        fast = head
+        
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+            if slow == fast:
+                slow = head
+                while slow != fast:
+                    slow = slow.next
+                    fast = fast.next
+                return slow
+        return None"
 />
 
 # Complexity Analysis
@@ -70,20 +85,19 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="The algorithm visits each node a constant number of times. By using only two pointers, it achieves an optimal O(1) space complexity without needing a Hash Set."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Null Reference Errors:** Not checking if `fast` and `fast.next` are non-null before advancing the `fast` pointer by two steps.
+- **Incorrect Math:** Trying to calculate cycle lengths unnecessarily when finding the start node only requires moving the pointers at the same speed.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "Always explain the mathematical intuition behind why the two pointers meet at the cycle start. Let L be the distance from head to cycle start, and C be cycle length. It is a brilliant talking point.",
+    "If the interviewer only asks to detect if a cycle exists, you don't need the second phase of resetting the slow pointer."
   ]}
 />

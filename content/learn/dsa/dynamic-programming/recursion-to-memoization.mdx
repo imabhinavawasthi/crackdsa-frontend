@@ -11,64 +11,102 @@ summary: "An essential deep-dive into Recursion to Memoization (Top-Down). This 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Recursion to Memoization (Top-Down)**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+Welcome to the essential guide on **Recursion to Memoization (Top-Down)**. Dynamic Programming often strikes fear into the hearts of interview candidates, but at its core, it's just an optimization over plain recursion.
 
-### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+### The Naive Recursion Problem
+When solving problems with a recursive approach, we often break down a large problem into smaller subproblems. However, in many cases, we end up solving the *exact same subproblem* multiple times. This leads to what we call an **overlapping subproblems** property, causing an exponential time complexity (e.g., $O(2^N)$).
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+### Enter Memoization (Top-Down)
+Memoization is the process of caching the results of expensive function calls and returning the cached result when the same inputs occur again. 
+1. **Top-Down:** We start from the main problem and recursively break it down.
+2. **Cache (Memo):** We use a data structure, typically a hash map or an array, to store the answer to a subproblem the first time we compute it.
+3. **Lookup:** Before doing any work in our recursive function, we check if the answer is already in the cache.
+
+By doing this, we guarantee that each subproblem is computed exactly once, transforming an exponential time complexity into a polynomial one (often linear $O(N)$ or quadratic $O(N^2)$).
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Recursion to Memoization (Top-Down)
-#include <iostream>
-#include <vector>
-using namespace std;
+Let's illustrate this with the classic Fibonacci sequence problem, optimizing a $O(2^N)$ naive recursion to an $O(N)$ memoized solution.
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
+private:
+    int memoHelper(int n, vector<int>& memo) {
+        if (n <= 1) return n;
+        
+        // If we have already computed this state, return it
+        if (memo[n] != -1) {
+            return memo[n];
+        }
+        
+        // Compute and store in memo before returning
+        memo[n] = memoHelper(n - 1, memo) + memoHelper(n - 2, memo);
+        return memo[n];
+    }
+    
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int fib(int n) {
+        // Initialize memo array with -1 indicating uncomputed states
+        vector<int> memo(n + 1, -1);
+        return memoHelper(n, memo);
     }
 };"
-  java="// Java implementation for Recursion to Memoization (Top-Down)
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    private int memoHelper(int n, int[] memo) {
+        if (n <= 1) return n;
+        
+        // Return cached result if it exists
+        if (memo[n] != -1) {
+            return memo[n];
+        }
+        
+        // Calculate, cache, and return
+        memo[n] = memoHelper(n - 1, memo) + memoHelper(n - 2, memo);
+        return memo[n];
+    }
+    
+    public int fib(int n) {
+        int[] memo = new int[n + 1];
+        Arrays.fill(memo, -1);
+        return memoHelper(n, memo);
     }
 }"
-  python="# Python implementation for Recursion to Memoization (Top-Down)
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def fib(self, n: int) -> int:
+        memo = {}
+        
+        def dp(i):
+            if i <= 1:
+                return i
+                
+            if i in memo:
+                return memo[i]
+                
+            memo[i] = dp(i - 1) + dp(i - 2)
+            return memo[i]
+            
+        return dp(n)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(N)"
+  description="Time complexity is heavily reduced because we only evaluate each state once. The space complexity is O(N) to store the cache, plus the O(N) space used by the recursion call stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- **Forgetting to Return the Cached Value:** Computing the answer, putting it in the cache, but failing to check the cache at the very beginning of your recursive function.
+- **Cache Initialization:** Not initializing the cache correctly. In arrays, make sure to fill it with a value that cannot be an actual answer (like `-1`).
+- **Stack Overflow:** Python and some other languages have strict limits on recursion depth. If $N$ is too large, the top-down approach might crash due to a Stack Overflow, even with memoization.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "Draw the recursion tree before writing code. It makes the overlapping subproblems crystal clear to both you and the interviewer.",
+    "If asked about drawbacks of your memoized solution, explicitly mention the recursion call stack overhead and how a bottom-up tabulation approach would resolve it."
   ]}
 />

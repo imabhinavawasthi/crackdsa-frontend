@@ -11,55 +11,73 @@ summary: "An essential guide to Hash Maps (Dictionaries), exploring its applicat
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Hash Maps (Dictionaries)**. This topic is a cornerstone of the Hashing & Maps module. Understanding it thoroughly will significantly improve your problem-solving speed.
+**Hash Maps** (known as Dictionaries in Python, or `unordered_map` in C++) are arguably the most essential data structure for coding interviews. They store data in `Key-Value` pairs and offer blazingly fast $O(1)$ average time complexity for insertions, deletions, and lookups.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+The power of a Hash Map lies in its ability to instantly answer the question: *"Have I seen this element before, and if so, what information is associated with it?"* This makes them indispensable for tracking frequencies, mapping relationships between entities, and optimizing nested loops into single passes.
+
+When you look at an array problem that has an $O(N^2)$ brute-force solution involving nested loops, your immediate instinct should be: **Can I use a Hash Map to store past values and turn this into an $O(N)$ solution?**
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Hash Maps (Dictionaries)
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class TwoSumSolution {
 public:
-    void solve() {
-        // Implementation here
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, int> numMap;
+        for (int i = 0; i < nums.size(); i++) {
+            int complement = target - nums[i];
+            if (numMap.find(complement) != numMap.end()) {
+                return {numMap[complement], i};
+            }
+            numMap[nums[i]] = i;
+        }
+        return {};
     }
 };"
-  java="// Java implementation for Hash Maps (Dictionaries)
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class TwoSumSolution {
+    public int[] twoSum(int[] nums, int target) {
+        Map<Integer, Integer> numMap = new HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            if (numMap.containsKey(complement)) {
+                return new int[] { numMap.get(complement), i };
+            }
+            numMap.put(nums[i], i);
+        }
+        return new int[]{};
     }
 }"
-  python="# Python implementation for Hash Maps (Dictionaries)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class TwoSumSolution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        num_map = {}
+        for i, num in enumerate(nums):
+            complement = target - num
+            if complement in num_map:
+                return [num_map[complement], i]
+            num_map[num] = i
+        return []"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
+  average="O(1)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(N)"
+  description="Lookup and insertion take O(1) time on average. Worst-case O(N) occurs if a poorly designed hash function causes all keys to collide into a single bucket. Space complexity is O(N) to store the N key-value pairs."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Confusing a `Hash Map` with a `Tree Map` (like `std::map` in C++ or `TreeMap` in Java). Tree Maps maintain keys in sorted order but cost $O(\log N)$ for operations. Hash Maps do not guarantee order but operate in $O(1)$.
+- Modifying a key object after inserting it into the map. This alters its hash code, making it impossible for the map to find it again, resulting in a memory leak and logical bugs.
+- Iterating over a Hash Map assuming the elements will be retrieved in the order they were inserted. (Note: Python 3.7+ does maintain insertion order by default, but it's an exception, not the rule across languages).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Hash Maps are the 'Swiss Army Knife' of coding interviews. When stuck, ask yourself: 'Can I cache previous computations in a Hash Map?'",
+    "If asked about space-time tradeoffs, acknowledge that you are sacrificing O(N) memory space to achieve O(1) speed.",
+    "In C++, prefer `unordered_map` for O(1) performance, but be aware that malicious test cases can cause O(N) collisions. Switching to `map` (which uses a Red-Black tree) can prevent TLEs in competitive programming."
   ]}
 />

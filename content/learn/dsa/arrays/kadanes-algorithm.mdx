@@ -11,35 +11,55 @@ summary: "An essential guide to Kadane's Algorithm (Max Subarray), exploring its
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Kadane's Algorithm (Max Subarray)**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+**Kadane's Algorithm** is an elegant dynamic programming technique used to solve the **Maximum Subarray Problem**: finding a contiguous subarray with the largest sum within an array of numbers.
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+The brute force solution involves calculating the sum of every possible subarray, taking $O(N^2)$ time. Kadane's algorithm solves this in an optimal $O(N)$ time with $O(1)$ space.
+
+The core intuition is simple: as we iterate through the array, we maintain a `current_sum`. For each element, we decide whether to add it to the existing `current_sum`, or to *start a fresh subarray* beginning with the current element.
+
+We make this choice by checking if the existing `current_sum` is positive or negative. If `current_sum` drops below zero, it becomes a liability—it will only decrease the sum of future subarrays. Thus, we reset `current_sum` to `0` (or the current element itself). We continuously update our `max_sum` to record the highest value seen so far.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Kadane's Algorithm (Max Subarray)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int maxSubArray(vector<int>& nums) {
+        int max_sum = nums[0];
+        int current_sum = 0;
+        for (int num : nums) {
+            if (current_sum < 0) {
+                current_sum = 0;
+            }
+            current_sum += num;
+            max_sum = max(max_sum, current_sum);
+        }
+        return max_sum;
     }
 };"
-  java="// Java implementation for Kadane's Algorithm (Max Subarray)
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int maxSubArray(int[] nums) {
+        int maxSum = nums[0];
+        int currentSum = 0;
+        for (int num : nums) {
+            if (currentSum < 0) {
+                currentSum = 0;
+            }
+            currentSum += num;
+            maxSum = Math.max(maxSum, currentSum);
+        }
+        return maxSum;
     }
 }"
-  python="# Python implementation for Kadane's Algorithm (Max Subarray)
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def maxSubArray(self, nums: List[int]) -> int:
+        max_sum = nums[0]
+        current_sum = 0
+        for num in nums:
+            if current_sum < 0:
+                current_sum = 0
+            current_sum += num
+            max_sum = max(max_sum, current_sum)
+        return max_sum"
 />
 
 # Complexity Analysis
@@ -48,20 +68,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  description="The algorithm iterates through the array exactly once, checking and updating the sums in constant time. No auxiliary space is used besides two variables, yielding an optimal O(1) space complexity."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Array with All Negative Numbers:** If you initialize `max_sum` to `0` and the array contains only negative numbers, your algorithm will incorrectly return `0`. Always initialize `max_sum` to `nums[0]` or the smallest possible integer.
+- **Incorrect Reset Logic:** Resetting `current_sum` *after* adding the current element instead of *before* can lead to missing the single largest negative element if the array is entirely negative.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "Kadane's algorithm is essentially a space-optimized Dynamic Programming solution. 'current_sum' represents `dp[i] = max(nums[i], dp[i-1] + nums[i])`.",
+    "If the interviewer asks to return the *indices* of the maximum subarray, you can maintain `start`, `temp_start`, and `end` pointers alongside `current_sum`.",
+    "Be ready for a follow-up: what if the array is circular? You would need to run Kadane's normally, then find the 'minimum subarray', and subtract it from the total sum."
   ]}
 />

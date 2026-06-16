@@ -11,64 +11,106 @@ summary: "An essential deep-dive into Tabulation (Bottom-Up). This article break
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Tabulation (Bottom-Up)**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+Welcome to the lesson on **Tabulation (Bottom-Up)**. If you have mastered memoization (top-down), tabulation is the natural next step. It is the ultimate form of dynamic programming, completely removing recursion to yield blistering fast execution times and allowing for insane space optimizations.
 
-### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+### What is Tabulation?
+Tabulation involves solving a dynamic programming problem iteratively. Instead of starting from the massive, overarching problem and digging down recursively, we start at the absolute simplest base cases and build our way up systematically using a table (usually a 1D or 2D array).
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+### The Recipe for Tabulation
+1. **Define the Table:** What does `dp[i]` or `dp[i][j]` represent?
+2. **Initialize Base Cases:** Fill in the simplest known answers (e.g., `dp[0] = 0`).
+3. **Determine the Traversal Order:** Since we are building from the ground up, we usually iterate from `1` to `N`. For 2D grids, this might mean looping row by row.
+4. **State Transition:** Write the iterative rule that fills `dp[i]` using previously computed values like `dp[i-1]` or `dp[i-2]`.
+
+### Why Tabulate?
+No recursion means no call stack overhead and no risk of stack overflow errors. Furthermore, bottom-up implementations easily reveal whether space optimizations (like dropping a full $O(N)$ array for an $O(1)$ variable pair) are possible.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Tabulation (Bottom-Up)
-#include <iostream>
-#include <vector>
-using namespace std;
+Let's see how tabulation elegantly solves a standard DP problem, completely avoiding recursion.
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int solve(int n) {
+        if (n == 0) return 0;
+        if (n == 1) return 1;
+        
+        // 1. Define the table
+        vector<int> dp(n + 1, 0);
+        
+        // 2. Base cases
+        dp[0] = 0;
+        dp[1] = 1;
+        
+        // 3. Traversal order
+        for (int i = 2; i <= n; i++) {
+            // 4. State Transition
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        
+        return dp[n];
     }
 };"
-  java="// Java implementation for Tabulation (Bottom-Up)
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int solve(int n) {
+        if (n == 0) return 0;
+        if (n == 1) return 1;
+        
+        // 1. Define the table
+        int[] dp = new int[n + 1];
+        
+        // 2. Base cases
+        dp[0] = 0;
+        dp[1] = 1;
+        
+        // 3. Traversal order
+        for (int i = 2; i <= n; i++) {
+            // 4. State Transition
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        
+        return dp[n];
     }
 }"
-  python="# Python implementation for Tabulation (Bottom-Up)
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def solve(self, n: int) -> int:
+        if n == 0: return 0
+        if n == 1: return 1
+        
+        # 1. Define the table
+        dp = [0] * (n + 1)
+        
+        # 2. Base cases
+        dp[0] = 0
+        dp[1] = 1
+        
+        # 3. Traversal order
+        for i in range(2, n + 1):
+            # 4. State Transition
+            dp[i] = dp[i - 1] + dp[i - 2]
+            
+        return dp[n]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(N)"
+  description="We visit each state from 1 to N exactly once sequentially. Space complexity is O(N) due to the DP array, but since dp[i] only depends on dp[i-1] and dp[i-2], this can easily be optimized to O(1) space."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- **Off-By-One Errors:** Ensuring the size of your DP array is `N+1` when you need to access `dp[N]` is a very common tripping point.
+- **Incorrect Traversal Direction:** In problems like the Knapsack Problem, traversing backwards is sometimes required to avoid reusing elements. Always be intentional about your loop direction.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "Tabulation can feel intimidating to start with compared to recursion. If you are stuck, write the recursive logic first on a whiteboard. The recursive function's arguments become your array indices!",
+    "Always look for space optimization. Once you write your for-loop, ask yourself: 'How far back in the dp array do I actually look?' If it's just the last 1 or 2 elements, you don't need a whole array!"
   ]}
 />

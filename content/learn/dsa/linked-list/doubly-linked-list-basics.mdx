@@ -11,79 +11,131 @@ summary: "An essential guide to Doubly Linked List Basics, exploring safe pointe
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Doubly Linked List Basics**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+A **Doubly Linked List** builds upon the singly linked list by adding an extra pointer to each node: the prev pointer. This allows traversal in both directions—forwards and backwards.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+While doubly linked lists require more memory per node (for the extra pointer) and involve more complex pointer updates during insertions and deletions, they offer significant advantages:
+1. O(1) deletion if you are given a pointer to the exact node to be deleted.
+2. Easy reverse traversal.
+3. Convenient implementation of complex data structures like Deques and the LRU Cache.
+
+### Key Operations
+When adding or removing a node, you must update up to 4 pointers (the next and prev of the adjacent nodes). Missing any of these updates can lead to broken chains or memory leaks.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Doubly Linked List Basics
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
+  cpp="class Node {
+public:
+    int data;
+    Node* next;
+    Node* prev;
+    Node(int val) : data(val), next(nullptr), prev(nullptr) {}
 };
 
-class Solution {
+class DoublyLinkedList {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    Node* head;
+    DoublyLinkedList() : head(nullptr) {}
+
+    void insertAtHead(int val) {
+        Node* newNode = new Node(val);
+        newNode->next = head;
+        if (head) {
+            head->prev = newNode;
+        }
+        head = newNode;
+    }
+
+    void deleteNode(Node* delNode) {
+        if (!head || !delNode) return;
+        if (head == delNode) {
+            head = delNode->next;
+        }
+        if (delNode->next) {
+            delNode->next->prev = delNode->prev;
+        }
+        if (delNode->prev) {
+            delNode->prev->next = delNode->next;
+        }
+        delete delNode;
     }
 };"
-  java="// Java implementation for Doubly Linked List Basics
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+  java="class Node {
+    int data;
+    Node next, prev;
+    Node(int d) { data = d; next = prev = null; }
 }
 
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+class DoublyLinkedList {
+    Node head;
+
+    public void insertAtHead(int val) {
+        Node newNode = new Node(val);
+        newNode.next = head;
+        if (head != null) {
+            head.prev = newNode;
+        }
+        head = newNode;
+    }
+
+    public void deleteNode(Node delNode) {
+        if (head == null || delNode == null) return;
+        if (head == delNode) {
+            head = delNode.next;
+        }
+        if (delNode.next != null) {
+            delNode.next.prev = delNode.prev;
+        }
+        if (delNode.prev != null) {
+            delNode.prev.next = delNode.next;
+        }
     }
 }"
-  python="# Python implementation for Doubly Linked List Basics
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+  python="class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+        self.prev = None
 
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+class DoublyLinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert_at_head(self, val):
+        new_node = Node(val)
+        new_node.next = self.head
+        if self.head:
+            self.head.prev = new_node
+        self.head = new_node
+
+    def delete_node(self, del_node):
+        if not self.head or not del_node: return
+        if self.head == del_node:
+            self.head = del_node.next
+        if del_node.next:
+            del_node.next.prev = del_node.prev
+        if del_node.prev:
+            del_node.prev.next = del_node.next"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
+  best="O(1)"
+  average="O(1)"
   worst="O(N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="Insertions and deletions with known node references take O(1) time. Searching requires O(N) time. The extra prev pointers do not increase the Big-O space complexity, keeping it at O(1) auxiliary space, though it takes slightly more absolute memory."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Forgetting the Prev Pointer:** It is very common to only update the next pointer and forget the prev pointer, resulting in an inconsistent list structure when iterating backwards.
+- **Head Deletion Edge Cases:** Failing to update the new head's prev pointer to null after deleting the original head.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "In highly complex problems like LRU Cache, using a dummy Head and dummy Tail node is an absolute lifesaver to prevent null pointer checks on every operation.",
+    "Draw out the 4 pointer changes on a whiteboard before writing the code. It minimizes the chance of making a wiring mistake."
   ]}
 />

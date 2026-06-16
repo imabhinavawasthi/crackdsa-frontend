@@ -11,64 +11,117 @@ summary: "An essential guide to Trapping Rain Water (Stack Approach), exploring 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Trapping Rain Water (Stack Approach)**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+**Trapping Rain Water** is legendary. While the Two-Pointer approach is the most space-efficient, the **Monotonic Stack** approach is arguably the most intuitive when you think about the geometry of the problem.
+
+**Intuition**
+Water is trapped when a shorter bar is sandwiched between two taller bars. This forms a "basin" or "valley".
+We can use a **Monotonic Decreasing Stack** to track bars. As long as the bars are decreasing, no water is trapped (it just runs off the side). But the moment we encounter a bar that is *taller* than the top of our stack, a valley is formed!
+
+When a valley is formed:
+1. The `bottom` of the valley is the popped element.
+2. The `left_boundary` is the new top of the stack.
+3. The `right_boundary` is our current element.
+The water trapped at this specific level is `(min(left_height, right_height) - bottom_height) * width`. We add this to our total and repeat.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Trapping Rain Water (Stack Approach)
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int trap(vector<int>& height) {
+        int totalWater = 0;
+        stack<int> st; // stores indices
+        
+        for (int i = 0; i < height.size(); i++) {
+            while (!st.empty() && height[i] > height[st.top()]) {
+                int bottomIndex = st.top();
+                st.pop();
+                
+                if (st.empty()) {
+                    break; // No left boundary, water spills out
+                }
+                
+                int leftBoundary = st.top();
+                int width = i - leftBoundary - 1;
+                int boundedHeight = min(height[leftBoundary], height[i]) - height[bottomIndex];
+                
+                totalWater += width * boundedHeight;
+            }
+            st.push(i);
+        }
+        return totalWater;
     }
 };"
-  java="// Java implementation for Trapping Rain Water (Stack Approach)
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int trap(int[] height) {
+        int totalWater = 0;
+        Stack<Integer> stack = new Stack<>(); // stores indices
+        
+        for (int i = 0; i < height.length; i++) {
+            while (!stack.isEmpty() && height[i] > height[stack.peek()]) {
+                int bottomIndex = stack.pop();
+                
+                if (stack.isEmpty()) {
+                    break; // No left boundary, water spills out
+                }
+                
+                int leftBoundary = stack.peek();
+                int width = i - leftBoundary - 1;
+                int boundedHeight = Math.min(height[leftBoundary], height[i]) - height[bottomIndex];
+                
+                totalWater += width * boundedHeight;
+            }
+            stack.push(i);
+        }
+        return totalWater;
     }
 }"
-  python="# Python implementation for Trapping Rain Water (Stack Approach)
-from collections import deque
-
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def trap(self, height: list[int]) -> int:
+        total_water = 0
+        stack = [] # stores indices
+        
+        for i, current_height in enumerate(height):
+            while stack and current_height > height[stack[-1]]:
+                bottom_index = stack.pop()
+                
+                if not stack:
+                    break # No left boundary, water spills out
+                    
+                left_boundary = stack[-1]
+                width = i - left_boundary - 1
+                bounded_height = min(height[left_boundary], current_height) - height[bottom_index]
+                
+                total_water += width * bounded_height
+                
+            stack.append(i)
+            
+        return total_water"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  description="Time complexity is O(N) because each bar's index is pushed and popped at most once. The while loop runs purely based on elements in the stack. Space complexity is O(N) in the worst case (a perfectly decreasing staircase of bars) because all elements remain in the stack until the end."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **No Left Boundary:** When popping the bottom of a valley, if the stack becomes empty, there is no left wall to hold the water. You must `break` out of the loop!
+- **Calculating Height incorrectly:** The height of the trapped water is determined by the minimum of the two boundaries minus the height of the valley floor: `min(left_bound, right_bound) - bottom`.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "Interviewers will almost always ask you to optimize the space complexity to O(1) after you write the Stack solution. Be prepared to transition into the Two-Pointer approach.",
+    "The Stack approach calculates water horizontally (row by row of water), while the Two-Pointer approach calculates water vertically (column by column). Mentioning this geometric distinction shows extreme mastery of the problem."
   ]}
 />

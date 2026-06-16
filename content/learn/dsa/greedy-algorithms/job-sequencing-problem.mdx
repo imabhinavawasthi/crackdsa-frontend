@@ -11,65 +11,152 @@ summary: "An essential guide to Job Sequencing Problem, mastering the art of loc
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Job Sequencing Problem**. This topic is a cornerstone of the Greedy Algorithms module. A Greedy Algorithm builds up a solution piece by piece, always choosing the next piece that offers the most obvious and immediate benefit.
+The **Job Sequencing Problem** is a scheduling puzzle where you are given a set of jobs. Each job takes exactly 1 unit of time to complete, has a specific deadline, and yields a specific profit if completed before or exactly on its deadline. Your objective is to maximize the total profit by scheduling the jobs optimally.
 
-### Core Intuition
-The tricky part of Greedy algorithms isn't the code—it's proving that it works. Unlike Dynamic Programming which exhaustively searches all paths and guarantees correctness, Greedy only searches one path. You must prove the *Greedy Choice Property*: making a locally optimal choice guarantees a globally optimal solution.
+### The Greedy Strategy
+Since our goal is to maximize profit, the greedy choice is obvious: **always prioritize the jobs with the highest profit**. 
+However, just picking high-profit jobs isn't enough; we must also schedule them smartly so they don't block other jobs. To leave room for as many jobs as possible, we should schedule a job **as close to its deadline as possible**.
+
+1. **Sort** all jobs in descending order based on their profit.
+2. Find the maximum deadline among all jobs to determine the size of our time schedule array.
+3. Create an array (or boolean slots) representing time slots, initialized as empty.
+4. Iterate through the sorted jobs. For each job, start checking time slots backwards from its deadline down to day 1. 
+5. Assign the job to the first available empty slot found. If no slot is available, the job cannot be completed.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Job Sequencing Problem
-#include <iostream>
+  cpp="#include <iostream>
 #include <vector>
 #include <algorithm>
 using namespace std;
 
-class Solution {
-public:
-    int solve(vector<int>& arr) {
-        // sort(arr.begin(), arr.end());
-        // Implementation here
-        return 0;
-    }
-};"
-  java="// Java implementation for Job Sequencing Problem
-import java.util.*;
+struct Job {
+    int id;
+    int deadline;
+    int profit;
+};
 
 class Solution {
-    public int solve(int[] arr) {
-        // Arrays.sort(arr);
-        // Implementation here
-        return 0;
+public:
+    static bool cmp(Job a, Job b) {
+        return a.profit > b.profit;
+    }
+    
+    vector<int> JobScheduling(Job arr[], int n) {
+        sort(arr, arr + n, cmp);
+        
+        int maxDeadline = 0;
+        for (int i = 0; i < n; i++) {
+            maxDeadline = max(maxDeadline, arr[i].deadline);
+        }
+        
+        vector<int> slots(maxDeadline + 1, -1);
+        int countJobs = 0;
+        int maxProfit = 0;
+        
+        for (int i = 0; i < n; i++) {
+            // Traverse slots backwards from the job's deadline
+            for (int j = arr[i].deadline; j > 0; j--) {
+                if (slots[j] == -1) {
+                    slots[j] = arr[i].id;
+                    countJobs++;
+                    maxProfit += arr[i].profit;
+                    break; // Job scheduled, move to next job
+                }
+            }
+        }
+        
+        return {countJobs, maxProfit};
+    }
+};"
+  java="import java.util.*;
+
+class Job {
+    int id, deadline, profit;
+    Job(int x, int y, int z) {
+        this.id = x;
+        this.deadline = y;
+        this.profit = z;
+    }
+}
+
+class Solution {
+    public int[] JobScheduling(Job arr[], int n) {
+        Arrays.sort(arr, (a, b) -> (b.profit - a.profit));
+        
+        int maxDeadline = 0;
+        for (int i = 0; i < n; i++) {
+            maxDeadline = Math.max(maxDeadline, arr[i].deadline);
+        }
+        
+        int[] slots = new int[maxDeadline + 1];
+        Arrays.fill(slots, -1);
+        
+        int countJobs = 0;
+        int maxProfit = 0;
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = arr[i].deadline; j > 0; j--) {
+                if (slots[j] == -1) {
+                    slots[j] = arr[i].id;
+                    countJobs++;
+                    maxProfit += arr[i].profit;
+                    break;
+                }
+            }
+        }
+        
+        return new int[]{countJobs, maxProfit};
     }
 }"
-  python="# Python implementation for Job Sequencing Problem
+  python="class Job:
+    def __init__(self, id, deadline, profit):
+        self.id = id
+        self.deadline = deadline
+        self.profit = profit
+
 class Solution:
-    def solve(self, arr: list[int]) -> int:
-        # arr.sort()
-        # Implementation here
-        return 0"
+    def JobScheduling(self, jobs: list[Job], n: int) -> list[int]:
+        # Sort jobs by profit descending
+        jobs.sort(key=lambda x: x.profit, reverse=True)
+        
+        max_deadline = max(job.deadline for job in jobs) if jobs else 0
+        slots = [-1] * (max_deadline + 1)
+        
+        count_jobs = 0
+        max_profit = 0
+        
+        for job in jobs:
+            # Find a free slot starting from the deadline backwards
+            for j in range(job.deadline, 0, -1):
+                if slots[j] == -1:
+                    slots[j] = job.id
+                    count_jobs += 1
+                    max_profit += job.profit
+                    break
+                    
+        return [count_jobs, max_profit]"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(N log N)"
-  average="O(N log N)"
-  worst="O(N log N)"
-  space="O(1)"
-  description="Greedy algorithms are almost always paired with sorting. Therefore, the time complexity is dominated by the initial sort: O(N log N). The greedy iteration itself is usually O(N). Space complexity is typically O(1) assuming an in-place sort."
+  average="O(N * M)"
+  worst="O(N * M)"
+  space="O(M)"
+  description="Sorting takes O(N log N). Finding the slots takes O(N * M) in the worst case, where N is the number of jobs and M is the maximum deadline. Space complexity is O(M) for the slots array. Note: Time complexity can be optimized to O(N log N) using a Disjoint Set Union (DSU) data structure."
 />
 
 # Common Pitfalls
 <Warning>
-- **Premature Greediness:** Assuming a greedy approach works without testing edge cases. Often, what looks like a Greedy problem is actually a DP problem (e.g., 0/1 Knapsack is DP, Fractional Knapsack is Greedy).
-- **Sorting State:** Forgetting to sort the input arrays before applying the greedy logic!
+- Scheduling jobs at the *earliest* available slot instead of the *latest*. Scheduling early blocks time slots that could be used by jobs with tighter deadlines!
+- Ignoring 1-based indexing for days. Day 1 starts at index 1 in the slots array, not index 0.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for 'minimum steps', 'maximum profit', or 'optimal scheduling', and Dynamic Programming feels too slow (e.g. constraints up to 10^5), it's highly likely a Greedy problem.",
-    "Interval overlapping problems (like 'Merge Intervals' or 'Minimum Arrows') are classic greedy problems. Always sort them by their start or end times first.",
-    "Be vocal about your proofs. Say to the interviewer: 'I believe a greedy approach works here because making this choice now will never restrict us from making a better choice later.'"
+    "If the interviewer asks to optimize the O(N * M) time complexity, mention that a Disjoint Set (Union-Find) can reduce the slot-finding step to near O(1) per job.",
+    "Clearly explain the double-greedy nature: 'We are greedy about picking maximum profit, AND we are greedy about hoarding early time slots by scheduling jobs as late as legally possible.'"
   ]}
 />

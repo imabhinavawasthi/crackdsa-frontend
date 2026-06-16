@@ -11,41 +11,88 @@ summary: "An essential guide to Introduction to Intervals, exploring sweeping lo
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Introduction to Intervals**. This topic is a cornerstone of the Intervals module. Interval problems almost always involve time, scheduling, or geometric lines. The entire category revolves around one critical realization: **You must sort the intervals first.**
+Welcome to the fascinating world of **Intervals**. This topic is highly prevalent in technical interviews, often manifesting as scheduling problems, calendar applications, or geometric intersections.
 
-### Core Intuition
-If you don't sort intervals by their start time, you have to check every interval against every other interval (O(N^2)). But if you sort them, you only ever need to compare the current interval with the *previously processed* interval! This instantly drops the complexity to O(N log N).
+An interval is simply a pair of numbers `[start, end]` representing a contiguous range. Problems typically provide a collection of these intervals, and your task is to merge overlapping ones, find intersections, count the maximum overlaps, or insert a new interval into a sorted list.
+
+### The Golden Rule of Intervals
+The overarching strategy for almost every interval problem boils down to **sorting**.
+If the intervals are not provided in a sorted order, sorting them based on their `start` time (or occasionally `end` time) is your primary directive. Once sorted, processing intervals typically requires a single linear scan, comparing the current interval with the previously processed one to make decisions about overlaps.
+
+Sorting reduces the brute-force complexity from $O(N^2)$ (checking all pairs) to a much more manageable $O(N \log N)$ followed by an $O(N)$ pass.
+
+### Determining Overlaps
+To check if two intervals `A = [startA, endA]` and `B = [startB, endB]` overlap (assuming they are sorted so `startA <= startB`), the condition is straightforward:
+`startB <= endA`
+
+If this holds true, the intervals intersect. The merged interval would then span `[startA, max(endA, endB)]`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Introduction to Intervals
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<vector<int>>& intervals) {
-        // sort(intervals.begin(), intervals.end());
-        // Implementation here
+    // A simple framework to conceptualize processing sorted intervals
+    void processIntervals(vector<vector<int>>& intervals) {
+        if (intervals.empty()) return;
+        
+        // Sort intervals based on starting times
+        sort(intervals.begin(), intervals.end());
+        
+        vector<int> currentInterval = intervals[0];
+        
+        for (int i = 1; i < intervals.size(); i++) {
+            if (intervals[i][0] <= currentInterval[1]) {
+                // Overlapping condition: start of next is less than or equal to end of current
+                // Update current interval's end
+                currentInterval[1] = max(currentInterval[1], intervals[i][1]);
+            } else {
+                // Non-overlapping: current interval is isolated
+                // Save currentInterval and move to the next
+                currentInterval = intervals[i];
+            }
+        }
     }
 };"
-  java="// Java implementation for Introduction to Intervals
-import java.util.*;
+  java="import java.util.*;
 
 class Solution {
-    public void solve(int[][] intervals) {
-        // Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
-        // Implementation here
+    public void processIntervals(int[][] intervals) {
+        if (intervals == null || intervals.length == 0) return;
+        
+        // Sort intervals by start time
+        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
+        
+        int[] currentInterval = intervals[0];
+        
+        for (int i = 1; i < intervals.length; i++) {
+            if (intervals[i][0] <= currentInterval[1]) {
+                // Overlap exists
+                currentInterval[1] = Math.max(currentInterval[1], intervals[i][1]);
+            } else {
+                // Disjoint intervals
+                // Process the currentInterval as complete
+                currentInterval = intervals[i];
+            }
+        }
     }
 }"
-  python="# Python implementation for Introduction to Intervals
-class Solution:
-    def solve(self, intervals: list[list[int]]):
-        # intervals.sort(key=lambda x: x[0])
-        # Implementation here
-        pass"
+  python="class Solution:
+    def process_intervals(self, intervals: list[list[int]]) -> None:
+        if not intervals:
+            return
+            
+        # Sort by the start value
+        intervals.sort(key=lambda x: x[0])
+        
+        current_interval = intervals[0]
+        
+        for i in range(1, len(intervals)):
+            # If the start of the current interval is <= the end of the tracked interval
+            if intervals[i][0] <= current_interval[1]:
+                current_interval[1] = max(current_interval[1], intervals[i][1])
+            else:
+                # No overlap, reset tracked interval
+                current_interval = intervals[i]"
 />
 
 # Complexity Analysis
@@ -54,20 +101,21 @@ class Solution:
   average="O(N log N)"
   worst="O(N log N)"
   space="O(N)"
-  description="Sorting the intervals initially dominates the time complexity, resulting in O(N log N). The linear scan that follows takes O(N) time. Space complexity is O(N) because we often need to store the merged or processed intervals in a new array or use a Min-Heap (like in Meeting Rooms II)."
+  description="Sorting the input array inherently costs O(N log N). The linear iteration that follows processes each interval exactly once, contributing O(N) to the time complexity. Overall time is dominated by the sort. Space complexity relies heavily on the sorting algorithm implementation (O(N) for Python's Timsort or C++ stable_sort) and whether we return a new array."
 />
 
 # Common Pitfalls
 <Warning>
-- **Comparing Start vs End:** A very common mistake is checking if `current.start < previous.start`. You must check if `current.start <= previous.end` to detect an overlap!
-- **Modifying while Iterating:** Try to avoid modifying the input array in place. It's much safer to push merged/processed intervals into a new result array.
+- Confusing strict and non-strict inequalities. If intervals `[1, 2]` and `[2, 3]` are considered overlapping, use `<=`. If they are not (e.g., leaving a meeting exactly when the next starts), use `<`.
+- Modifying the input array `intervals` while iterating through it. This is error-prone. Always maintain a separate list to collect your results.
+- Forgetting to add the very last interval to your results list after the loop finishes.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem involves 'start times', 'end times', 'meetings', or 'flights', you should immediately sort the input array by start time.",
-    "For complex overlaps (like finding the maximum number of simultaneous meetings), the Sweep Line algorithm is the cleanest approach: split every interval into two events: `(start, +1)` and `(end, -1)`. Sort all events by time, and keep a running sum!",
-    "Mention to the interviewer that sorting modifies the input. If the input is read-only, you must allocate O(N) space for a copy."
+    "Anytime a problem mentions 'start times', 'end times', 'meetings', or 'flights', automatically think about sorting.",
+    "If the input intervals are already sorted, point that out to your interviewer! You can jump straight to an O(N) time solution.",
+    "If the intervals have a small finite range (e.g., 0 to 1440 minutes in a day), you might be able to use an array instead of sorting, bringing time complexity down to O(N)."
   ]}
 />

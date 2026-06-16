@@ -11,59 +11,90 @@ summary: "An essential guide to Introduction to Graphs, exploring its applicatio
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Introduction to Graphs**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+A **Graph** is a non-linear data structure consisting of **vertices** (or nodes) and **edges** that connect these vertices. Graphs are used to model real-world relationships such as social networks, computer networks, and road maps.
 
-### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+Graphs can be categorized into several types:
+- **Directed Graph (Digraph):** Edges have a direction, meaning the relationship is one-way.
+- **Undirected Graph:** Edges do not have a direction, meaning the relationship is two-way.
+- **Weighted Graph:** Edges have weights or costs associated with them.
+- **Unweighted Graph:** Edges do not have weights.
+
+Two primary ways to represent a graph in memory are:
+1. **Adjacency Matrix:** A 2D array where `matrix[i][j]` is 1 if there is an edge from vertex `i` to vertex `j`, and 0 otherwise.
+2. **Adjacency List:** An array of lists where `adj[i]` contains a list of all vertices adjacent to vertex `i`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Introduction to Graphs
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Graph {
 public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+    int V;
+    vector<vector<int>> adj;
+
+    Graph(int V) {
+        this->V = V;
+        adj.resize(V);
+    }
+
+    void addEdge(int u, int v, bool directed = false) {
+        adj[u].push_back(v);
+        if (!directed) {
+            adj[v].push_back(u);
+        }
     }
 };"
-  java="// Java implementation for Introduction to Graphs
-import java.util.*;
+  java="import java.util.*;
 
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+class Graph {
+    int V;
+    List<List<Integer>> adj;
+
+    public Graph(int V) {
+        this.V = V;
+        adj = new ArrayList<>();
+        for (int i = 0; i < V; i++) {
+            adj.add(new ArrayList<>());
+        }
+    }
+
+    public void addEdge(int u, int v, boolean directed) {
+        adj.get(u).add(v);
+        if (!directed) {
+            adj.get(v).add(u);
+        }
     }
 }"
-  python="# Python implementation for Introduction to Graphs
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  python="class Graph:
+    def __init__(self, V):
+        self.V = V
+        self.adj = [[] for _ in range(V)]
+
+    def add_edge(self, u, v, directed=False):
+        self.adj[u].append(v)
+        if not directed:
+            self.adj[v].append(u)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(V + E)"
-  average="O(V + E)"
-  worst="O(V + E)"
-  space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
+  space="O(V + E)"
+  description="Adding an edge takes O(1) time in an adjacency list. The space complexity is O(V + E) for an adjacency list, where V is the number of vertices and E is the number of edges."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- Confusing 0-indexed and 1-indexed nodes when building the graph, leading to out-of-bounds exceptions.
+- Forgetting to add the reverse edge `v -> u` for an undirected graph.
+- Assuming an adjacency matrix is always optimal. For sparse graphs, it wastes `O(V^2)` memory.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "Always clarify with the interviewer if the graph is directed or undirected, weighted or unweighted.",
+    "Ask if there can be self-loops or multiple edges between the same pair of vertices.",
+    "If the graph is sparse, default to using an Adjacency List to save space."
   ]}
 />

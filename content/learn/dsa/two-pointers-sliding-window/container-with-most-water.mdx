@@ -11,36 +11,89 @@ summary: "An essential guide to Container With Most Water, exploring its applica
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Container With Most Water**. This topic is a cornerstone of the Two Pointers & Sliding Window module. The Two Pointers and Sliding Window techniques are universally loved by interviewers because they elegantly reduce O(N^2) complexity down to O(N) without requiring extra space.
+The **Container With Most Water** problem asks us to find two lines that, together with the x-axis, form a container that holds the most water. Given an array `height` where each element represents the height of a vertical line on a graph, we need to maximize the area.
 
-### Core Intuition
-Instead of using a nested loop to check every possible pair or subarray, we use two pointers (`left` and `right`) to represent a range or a pair of elements. Based on specific conditions, we strategically move one pointer or the other, drastically reducing the search space.
+### The Brute Force Approach
+The naive approach is to check every possible pair of lines. The area formed by lines at indices `i` and `j` is `min(height[i], height[j]) * (j - i)`. This requires an $O(N^2)$ nested loop, which is too slow for large inputs.
+
+### The Two Pointers Approach
+We can optimize this to $O(N)$ using the **Two Pointers** technique.
+1. Place one pointer `left` at the beginning (index 0) and one pointer `right` at the end (index $N - 1$).
+2. Calculate the area and update the maximum area found so far.
+3. The height of the water is constrained by the shorter line. Moving the pointer at the taller line cannot increase the height, and the width is decreasing anyway, so the area would only decrease.
+4. Therefore, to potentially find a larger area, we must move the pointer pointing to the **shorter line** inward.
+5. Repeat this process until `left` and `right` meet.
+
+This greedy strategy guarantees that we don't miss the optimal solution because any container skipped by moving the shorter line would inherently be smaller or equal in height, with a strictly smaller width.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Container With Most Water
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int maxArea(vector<int>& height) {
+        int max_water = 0;
+        int left = 0;
+        int right = height.size() - 1;
+        
+        while (left < right) {
+            int current_height = min(height[left], height[right]);
+            int current_width = right - left;
+            int current_area = current_height * current_width;
+            
+            max_water = max(max_water, current_area);
+            
+            if (height[left] < height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+        
+        return max_water;
     }
 };"
-  java="// Java implementation for Container With Most Water
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int maxArea(int[] height) {
+        int maxWater = 0;
+        int left = 0;
+        int right = height.length - 1;
+        
+        while (left < right) {
+            int currentHeight = Math.min(height[left], height[right]);
+            int currentWidth = right - left;
+            int currentArea = currentHeight * currentWidth;
+            
+            maxWater = Math.max(maxWater, currentArea);
+            
+            if (height[left] < height[right]) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+        
+        return maxWater;
     }
 }"
-  python="# Python implementation for Container With Most Water
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def maxArea(self, height: list[int]) -> int:
+        max_water = 0
+        left = 0
+        right = len(height) - 1
+        
+        while left < right:
+            current_height = min(height[left], height[right])
+            current_width = right - left
+            current_area = current_height * current_width
+            
+            max_water = max(max_water, current_area)
+            
+            if height[left] < height[right]:
+                left += 1
+            else:
+                right -= 1
+                
+        return max_water"
 />
 
 # Complexity Analysis
@@ -49,20 +102,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) since both the left and right pointers only move in one direction and visit each element at most twice. Space complexity is O(1) because we only store pointer indices."
+  description="The time complexity is strictly O(N) as we traverse the array exactly once with the two pointers. We evaluate each line at most once. The space complexity is O(1) since we only use a few variables (left, right, max_water) regardless of the input size."
 />
 
 # Common Pitfalls
 <Warning>
-- **Off-by-One Errors:** Miscalculating the window size as `right - left` instead of `right - left + 1`.
-- **Pointer Stagnation:** Creating infinite loops by forgetting to increment/decrement the pointers inside a `while` loop condition.
+- **Moving the wrong pointer:** A common mistake is moving the pointer for the taller line. Remember, the area is bottlenecked by the shorter line, so you must move the shorter one to seek a potentially taller line.
+- **Calculating width incorrectly:** The width is just `right - left`. Do not add 1. If pointers are at indices 0 and 1, the width is 1.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If the problem asks for a contiguous sequence (subarray or substring), Sliding Window is almost always the answer.",
-    "If the array is sorted and you need to find a pair, start one pointer at the beginning and one at the end.",
-    "For Variable Sliding Windows, the logic is always: Expand the right pointer, and while the condition is violated, shrink the left pointer."
+    "Explain the greedy choice explicitly to the interviewer: 'We drop the shorter line because keeping it and moving the other line will only decrease the width without increasing the container height.'",
+    "If the interviewer asks about lines of equal height, mention that it doesn't matter which one you move, or you can move both—the maximum area involving either has already been recorded.",
+    "This pattern is a classic example of reducing O(N^2) search space to O(N) by safely eliminating subsets of possibilities."
   ]}
 />

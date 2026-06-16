@@ -11,58 +11,171 @@ summary: "An essential guide to Minimum Number of Days to Make m Bouquets, maste
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Minimum Number of Days to Make m Bouquets**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+This problem is a quintessential "Binary Search on Answer Space" challenge. You are given an integer array `bloomDay` where `bloomDay[i]` is the day the `i-th` flower blooms. You need to make `m` bouquets, each consisting of exactly `k` **adjacent** flowers. We must find the minimum number of days required.
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+### The Monotonic Property
+If you wait longer, more flowers bloom. If you can make `m` bouquets on day `X`, you can certainly make them on day `X+1`. 
+Conversely, if you cannot make them on day `X`, you cannot make them on day `X-1`. 
+This creates a clear monotonic boundary (False, False, ..., True, True). We binary search to find the very first `True`.
+
+### Search Space
+- **Minimum possible days (`low`)**: The minimum value in the `bloomDay` array. (No bouquet can be made before the first flower blooms).
+- **Maximum possible days (`high`)**: The maximum value in the `bloomDay` array. (By this day, all flowers have bloomed).
+- **Impossible Case**: If `m * k > n` (total flowers needed > total flowers available), it's impossible, return `-1`.
+
+### The Validation Function
+For a given day `mid`, iterate through the array. If `bloomDay[i] <= mid`, the flower has bloomed, so we increment a counter of adjacent bloomed flowers. If the counter reaches `k`, we successfully made one bouquet, increment our bouquet count, and reset the flower counter. If a flower hasn't bloomed, the adjacent chain is broken, so we reset the flower counter to 0.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Minimum Number of Days to Make m Bouquets
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int minDays(vector<int>& bloomDay, int m, int k) {
+        long long totalFlowersNeeded = (long long)m * k;
+        if (totalFlowersNeeded > bloomDay.size()) return -1;
+        
+        int low = bloomDay[0], high = bloomDay[0];
+        for (int day : bloomDay) {
+            low = min(low, day);
+            high = max(high, day);
+        }
+        
+        int ans = -1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            
+            if (canMakeBouquets(bloomDay, mid, m, k)) {
+                ans = mid;
+                high = mid - 1; // Try to find a smaller number of days
+            } else {
+                low = mid + 1;  // Not enough bouquets, wait more days
+            }
+        }
+        
+        return ans;
+    }
+    
+private:
+    bool canMakeBouquets(const vector<int>& bloomDay, int currentDay, int m, int k) {
+        int bouquets = 0;
+        int adjacentFlowers = 0;
+        
+        for (int day : bloomDay) {
+            if (day <= currentDay) {
+                adjacentFlowers++;
+                if (adjacentFlowers == k) {
+                    bouquets++;
+                    adjacentFlowers = 0; // Reset for the next bouquet
+                }
+            } else {
+                adjacentFlowers = 0; // Chain broken by an unbloomed flower
+            }
+        }
+        
+        return bouquets >= m;
     }
 };"
-  java="// Java implementation for Minimum Number of Days to Make m Bouquets
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int minDays(int[] bloomDay, int m, int k) {
+        long totalFlowersNeeded = (long)m * k;
+        if (totalFlowersNeeded > bloomDay.length) return -1;
+        
+        int low = bloomDay[0], high = bloomDay[0];
+        for (int day : bloomDay) {
+            low = Math.min(low, day);
+            high = Math.max(high, day);
+        }
+        
+        int ans = -1;
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            
+            if (canMakeBouquets(bloomDay, mid, m, k)) {
+                ans = mid;
+                high = mid - 1; // Try to find a smaller number of days
+            } else {
+                low = mid + 1;  // Not enough bouquets, wait more days
+            }
+        }
+        
+        return ans;
+    }
+    
+    private boolean canMakeBouquets(int[] bloomDay, int currentDay, int m, int k) {
+        int bouquets = 0;
+        int adjacentFlowers = 0;
+        
+        for (int day : bloomDay) {
+            if (day <= currentDay) {
+                adjacentFlowers++;
+                if (adjacentFlowers == k) {
+                    bouquets++;
+                    adjacentFlowers = 0; // Reset for the next bouquet
+                }
+            } else {
+                adjacentFlowers = 0; // Chain broken by an unbloomed flower
+            }
+        }
+        
+        return bouquets >= m;
     }
 }"
-  python="# Python implementation for Minimum Number of Days to Make m Bouquets
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def minDays(self, bloomDay: list[int], m: int, k: int) -> int:
+        if m * k > len(bloomDay):
+            return -1
+            
+        low, high = min(bloomDay), max(bloomDay)
+        ans = -1
+        
+        while low <= high:
+            mid = low + (high - low) // 2
+            
+            if self.canMakeBouquets(bloomDay, mid, m, k):
+                ans = mid
+                high = mid - 1
+            else:
+                low = mid + 1
+                
+        return ans
+        
+    def canMakeBouquets(self, bloomDay: list[int], currentDay: int, m: int, k: int) -> bool:
+        bouquets = 0
+        adjacentFlowers = 0
+        
+        for day in bloomDay:
+            if day <= currentDay:
+                adjacentFlowers += 1
+                if adjacentFlowers == k:
+                    bouquets += 1
+                    adjacentFlowers = 0 # Reset for the next bouquet
+            else:
+                adjacentFlowers = 0 # Chain broken
+                
+        return bouquets >= m"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
+  average="O(N * log(max_val - min_val))"
+  worst="O(N * log(max_val - min_val))"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="The search space is the difference between the max and min bloom days. Binary search takes O(log D) where D is that difference. Inside the search, we iterate the array of size N. Thus, time is O(N log D). Space is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- **Integer Overflow:** The impossible check `m * k > n` will easily overflow a 32-bit integer if `m` and `k` are large (e.g., both 10^5). Cast `m` to `long long` before multiplying.
+- **Forgetting the adjacency rule:** You cannot sort the `bloomDay` array. The flowers must be picked in adjacent indices. Sorting destroys the sequence order required by the problem.
+- **Not resetting the counter:** If an unbloomed flower is encountered, `adjacentFlowers` MUST be reset to 0 immediately.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "Start by establishing the impossible base case `m * k > n`. It shows the interviewer you handle edge cases first.",
+    "If the interviewer asks to optimize further, point out that the `isValid` function is strictly `O(N)` and cannot be optimized, so `O(N log D)` is the absolute theoretical lower bound for this approach.",
+    "Highlight why sorting the array is a critical mistake in this specific problem."
   ]}
 />

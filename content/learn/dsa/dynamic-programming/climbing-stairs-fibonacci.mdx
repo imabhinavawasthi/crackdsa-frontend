@@ -11,64 +11,92 @@ summary: "An essential deep-dive into Climbing Stairs (Fibonacci Pattern). This 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Climbing Stairs (Fibonacci Pattern)**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+Welcome to the deep-dive on the **Climbing Stairs (Fibonacci Pattern)**. This pattern extends beyond just climbing stairs; it is the fundamental framework for any problem that asks: *"In how many distinct ways can I reach a target state, given a set of valid moves?"*
 
-### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+### Generalizing the Fibonacci Pattern
+The standard Climbing Stairs problem allows steps of `1` or `2`. This yields the recurrence: `dp(n) = dp(n-1) + dp(n-2)`.
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+But what if you could take `1`, `2`, or `3` steps at a time?
+Then, to reach step `n`, you could have jumped from `n-1`, `n-2`, or `n-3`.
+The recurrence simply expands: `dp(n) = dp(n-1) + dp(n-2) + dp(n-3)`.
+
+This pattern fundamentally relies on the **Rule of Sum in Combinatorics**. If an event can happen in $A$ mutually exclusive ways and another in $B$ mutually exclusive ways, the total ways the event can occur is $A + B$.
+
+### The DP State
+- **State:** `dp[i]` = the number of distinct ways to reach step `i`.
+- **Transition:** `dp[i] = sum(dp[i - step])` for all valid `step` sizes.
+- **Base Case:** `dp[0] = 1`. There is exactly 1 way to remain on the ground (do nothing).
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Climbing Stairs (Fibonacci Pattern)
-#include <iostream>
-#include <vector>
-using namespace std;
+Let's implement the generalized version where you can take up to `k` steps at a time. This proves you truly understand the pattern rather than just memorizing `prev1 + prev2`.
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int climbStairsWithKSteps(int n, int k) {
+        vector<int> dp(n + 1, 0);
+        dp[0] = 1; // Base case: 1 way to be at the ground
+        
+        for (int i = 1; i <= n; i++) {
+            // Sum up the ways from all valid previous steps
+            for (int step = 1; step <= k; step++) {
+                if (i - step >= 0) {
+                    dp[i] += dp[i - step];
+                }
+            }
+        }
+        
+        return dp[n];
     }
 };"
-  java="// Java implementation for Climbing Stairs (Fibonacci Pattern)
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int climbStairsWithKSteps(int n, int k) {
+        int[] dp = new int[n + 1];
+        dp[0] = 1; // Base case
+        
+        for (int i = 1; i <= n; i++) {
+            for (int step = 1; step <= k; step++) {
+                if (i - step >= 0) {
+                    dp[i] += dp[i - step];
+                }
+            }
+        }
+        
+        return dp[n];
     }
 }"
-  python="# Python implementation for Climbing Stairs (Fibonacci Pattern)
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def climbStairsWithKSteps(self, n: int, k: int) -> int:
+        dp = [0] * (n + 1)
+        dp[0] = 1 # Base case
+        
+        for i in range(1, n + 1):
+            for step in range(1, k + 1):
+                if i - step >= 0:
+                    dp[i] += dp[i - step]
+                    
+        return dp[n]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(N * K)"
+  average="O(N * K)"
+  worst="O(N * K)"
+  space="O(N)"
+  description="We iterate through N steps, and for each step, we look back up to K times. Thus, the time complexity is O(N * K). Space complexity is O(N) to store the DP array, though it could technically be optimized to O(K) space using a sliding window or a circular queue."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- **Misunderstanding `dp[0]`:** Setting `dp[0] = 0` will ruin the entire calculation because all subsequent steps build on the premise that `dp[step] = dp[0]` when taking a full jump from the ground. `dp[0]` must be 1.
+- **Handling Constraints:** If $K$ is very large (e.g., $K = N$), the time complexity becomes $O(N^2)$. You can optimize this to $O(N)$ by keeping a running sum of the last $K$ elements!
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "If the interviewer asks to optimize the O(N*K) solution to O(N), use the sliding window sum technique. Instead of an inner loop, maintain `current_sum`, add `dp[i-1]`, and subtract `dp[i-1-K]`.",
+    "This exact logic maps to the 'Min Cost Climbing Stairs' problem, just replace the summation with a `min()` function and add the cost."
   ]}
 />

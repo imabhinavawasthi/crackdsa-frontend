@@ -11,58 +11,159 @@ summary: "An essential guide to Number of Provinces (DSU), exploring its applica
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Number of Provinces (DSU)**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+The **Number of Provinces** problem is a classic application of the Disjoint Set Union (DSU) data structure. We are given $n$ cities. Some of them are connected, while some are not. If city `a` is connected directly with city `b`, and city `b` is connected directly with city `c`, then city `a` is connected indirectly with city `c`. 
 
-### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+A **province** is a group of directly or indirectly connected cities and no other cities outside of the group. This directly maps to **Connected Components** in an undirected graph.
+
+While Depth First Search (DFS) or Breadth First Search (BFS) can also count connected components, using DSU provides an elegant solution. Initially, we consider every city to be its own independent province (total $n$ provinces). Then, we iterate through the adjacency matrix. If two distinct cities are connected, we unite their sets and decrement our province count by 1.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Number of Provinces (DSU)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp={`class Solution {
+    class DSU {
+        vector<int> parent, rank;
+    public:
+        int count;
+        DSU(int n) {
+            parent.resize(n);
+            rank.resize(n, 0);
+            count = n;
+            for(int i = 0; i < n; i++) parent[i] = i;
+        }
+        int find(int i) {
+            if (parent[i] == i) return i;
+            return parent[i] = find(parent[i]);
+        }
+        void unite(int i, int j) {
+            int rootI = find(i);
+            int rootJ = find(j);
+            if (rootI != rootJ) {
+                if (rank[rootI] < rank[rootJ]) {
+                    parent[rootI] = rootJ;
+                } else if (rank[rootI] > rank[rootJ]) {
+                    parent[rootJ] = rootI;
+                } else {
+                    parent[rootJ] = rootI;
+                    rank[rootI]++;
+                }
+                count--; // Merged two components
+            }
+        }
+    };
 public:
-    void solve() {
-        // Implementation here
+    int findCircleNum(vector<vector<int>>& isConnected) {
+        int n = isConnected.size();
+        DSU dsu(n);
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (isConnected[i][j] == 1) {
+                    dsu.unite(i, j);
+                }
+            }
+        }
+        return dsu.count;
     }
-};"
-  java="// Java implementation for Number of Provinces (DSU)
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
+};`}
+  java={`class Solution {
+    class DSU {
+        int[] parent, rank;
+        int count;
+        public DSU(int n) {
+            parent = new int[n];
+            rank = new int[n];
+            count = n;
+            for (int i = 0; i < n; i++) parent[i] = i;
+        }
+        public int find(int i) {
+            if (parent[i] == i) return i;
+            return parent[i] = find(parent[i]);
+        }
+        public void unite(int i, int j) {
+            int rootI = find(i);
+            int rootJ = find(j);
+            if (rootI != rootJ) {
+                if (rank[rootI] < rank[rootJ]) {
+                    parent[rootI] = rootJ;
+                } else if (rank[rootI] > rank[rootJ]) {
+                    parent[rootJ] = rootI;
+                } else {
+                    parent[rootJ] = rootI;
+                    rank[rootI]++;
+                }
+                count--; // Decrement component count
+            }
+        }
     }
-}"
-  python="# Python implementation for Number of Provinces (DSU)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    
+    public int findCircleNum(int[][] isConnected) {
+        int n = isConnected.length;
+        DSU dsu = new DSU(n);
+        
+        for (int i = 0; i < n; i++) {
+            // Only need to check upper triangle of the matrix
+            for (int j = i + 1; j < n; j++) {
+                if (isConnected[i][j] == 1) {
+                    dsu.unite(i, j);
+                }
+            }
+        }
+        return dsu.count;
+    }
+}`}
+  python={`class Solution:
+    def findCircleNum(self, isConnected: list[list[int]]) -> int:
+        n = len(isConnected)
+        parent = list(range(n))
+        rank = [0] * n
+        self.count = n
+        
+        def find(i):
+            if parent[i] == i:
+                return i
+            parent[i] = find(parent[i])
+            return parent[i]
+            
+        def unite(i, j):
+            root_i = find(i)
+            root_j = find(j)
+            if root_i != root_j:
+                if rank[root_i] < rank[root_j]:
+                    parent[root_i] = root_j
+                elif rank[root_i] > rank[root_j]:
+                    parent[root_j] = root_i
+                else:
+                    parent[root_j] = root_i
+                    rank[root_i] += 1
+                self.count -= 1
+                
+        for i in range(n):
+            for j in range(i + 1, n):
+                if isConnected[i][j] == 1:
+                    unite(i, j)
+                    
+        return self.count`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(E log V)"
-  average="O(E log V)"
-  worst="O(E log V)"
-  space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  best="O(V^2)"
+  average="O(V^2)"
+  worst="O(V^2)"
+  space="O(V)"
+  description="We iterate through the V x V adjacency matrix once. The DSU operations take near O(1) amortized time, hence time is strictly dominated by reading the matrix."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Iterating full matrix:** Traversing all $i$ and $j$ from $0$ to $N-1$ does redundant work. Since the graph is undirected, the matrix is symmetric. Only process `j` from `i + 1` to `N - 1`.
+- **Not maintaining a count variable:** Scanning the parent array at the end is an alternative, but keeping a `count` variable and decrementing on successful unions is much cleaner.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "Mention that while DFS or BFS can solve this in O(V^2), DSU shines when edges are added dynamically over time.",
+    "Explain the optimization of iterating only the upper triangle of the adjacency matrix to half the constant factor in execution time."
   ]}
 />

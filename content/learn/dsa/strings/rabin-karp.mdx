@@ -11,58 +11,154 @@ summary: "An essential guide to Rabin-Karp Algorithm (Rolling Hash), covering ev
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Rabin-Karp Algorithm (Rolling Hash)**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+The **Rabin-Karp Algorithm** is an elegant string searching algorithm that uses hashing to find a pattern within a text. Unlike checking characters one by one, Rabin-Karp computes a numerical hash of the pattern and compares it against the hash of sliding windows of the text.
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+The secret sauce is the **Rolling Hash**. Calculating the hash of a string from scratch takes $O(M)$ time. If we did this for every window, we'd be back to $O(N \times M)$ time. A rolling hash allows us to compute the hash of the *next* window in $O(1)$ time by subtracting the value of the character dropping out of the window, multiplying by the base, and adding the value of the new character entering the window.
+
+To avoid integer overflow, all hash computations are done modulo a large prime number. Note that because of modulo arithmetic, a hash match doesn't guarantee a string match (hash collision). We must perform a direct character comparison when hashes match.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Rabin-Karp Algorithm (Rolling Hash)
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    int strStr(string haystack, string needle) {
+        if (needle.empty()) return 0;
+        int n = haystack.length(), m = needle.length();
+        if (n < m) return -1;
+        
+        long long d = 256; // Number of characters in the alphabet
+        long long q = 1000000007; // A large prime number
+        long long h = 1;
+        
+        // The value of h would be \"pow(d, M-1)%q\"
+        for (int i = 0; i < m - 1; i++)
+            h = (h * d) % q;
+            
+        long long p = 0; // hash value for pattern
+        long long t = 0; // hash value for txt
+        
+        for (int i = 0; i < m; i++) {
+            p = (d * p + needle[i]) % q;
+            t = (d * t + haystack[i]) % q;
+        }
+        
+        for (int i = 0; i <= n - m; i++) {
+            if (p == t) {
+                // Hash matches, verify characters
+                bool match = true;
+                for (int j = 0; j < m; j++) {
+                    if (haystack[i + j] != needle[j]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) return i;
+            }
+            
+            // Calculate hash value for next window
+            if (i < n - m) {
+                t = (d * (t - haystack[i] * h) + haystack[i + m]) % q;
+                if (t < 0) t = (t + q);
+            }
+        }
+        return -1;
     }
 };"
-  java="// Java implementation for Rabin-Karp Algorithm (Rolling Hash)
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public int strStr(String haystack, String needle) {
+        if (needle.isEmpty()) return 0;
+        int n = haystack.length(), m = needle.length();
+        if (n < m) return -1;
+        
+        long d = 256;
+        long q = 1000000007; // Prime
+        long h = 1;
+        
+        for (int i = 0; i < m - 1; i++) {
+            h = (h * d) % q;
+        }
+        
+        long p = 0;
+        long t = 0;
+        
+        for (int i = 0; i < m; i++) {
+            p = (d * p + needle.charAt(i)) % q;
+            t = (d * t + haystack.charAt(i)) % q;
+        }
+        
+        for (int i = 0; i <= n - m; i++) {
+            if (p == t) {
+                boolean match = true;
+                for (int j = 0; j < m; j++) {
+                    if (haystack.charAt(i + j) != needle.charAt(j)) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) return i;
+            }
+            if (i < n - m) {
+                t = (d * (t - haystack.charAt(i) * h) + haystack.charAt(i + m)) % q;
+                if (t < 0) t = (t + q);
+            }
+        }
+        return -1;
     }
 }"
-  python="# Python implementation for Rabin-Karp Algorithm (Rolling Hash)
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def strStr(self, haystack: str, needle: str) -> int:
+        if not needle:
+            return 0
+        n, m = len(haystack), len(needle)
+        if n < m:
+            return -1
+            
+        d = 256
+        q = 1000000007
+        h = pow(d, m - 1, q)
+        
+        p = 0
+        t = 0
+        
+        # Initial hashes
+        for i in range(m):
+            p = (d * p + ord(needle[i])) % q
+            t = (d * t + ord(haystack[i])) % q
+            
+        for i in range(n - m + 1):
+            if p == t:
+                # Check for collisions
+                if haystack[i:i+m] == needle:
+                    return i
+                    
+            if i < n - m:
+                t = (d * (t - ord(haystack[i]) * h) + ord(haystack[i + m])) % q
+                if t < 0:
+                    t += q
+                    
+        return -1"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(N + M)"
+  average="O(N + M)"
+  worst="O(N \times M)"
   space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  description="Average and best-case time complexity is O(N + M). However, in the worst-case (extreme hash collisions), we fall back to manual verification, taking O(N \times M). Space complexity is strictly O(1) since we only maintain integer variables for hashing."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- **Negative Modulo Handling:** When subtracting the outgoing character in the rolling hash, the result can become negative. Languages like C++ and Java can produce negative modulo results, so always check `if (t < 0) t += q;`.
+- **Not Verifying Collisions:** Never assume a hash match means a guaranteed string match. Always verify the actual characters $O(M)$ when a hash match occurs.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "Rabin-Karp shines not just in single pattern matching, but in multi-pattern matching or finding duplicated substrings (like the 'Repeated DNA Sequences' problem).",
+    "Be able to clearly articulate the formula for removing the highest order character and adding the lowest order character. It's similar to shifting digits in base-10: (123 - 1*100)*10 + 4 = 234.",
+    "Explain your choice of prime modulus (e.g., 10^9 + 7) to avoid integer overflow while keeping collision probability infinitesimally small."
   ]}
 />

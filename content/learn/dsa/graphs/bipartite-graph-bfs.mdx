@@ -11,37 +11,117 @@ summary: "An essential guide to Bipartite Graph (BFS), exploring its application
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Bipartite Graph (BFS)**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+A **Bipartite Graph** is a graph whose vertices can be divided into two disjoint sets such that every edge connects a vertex in one set to a vertex in the other set. 
 
-### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+Alternatively, a graph is bipartite if it can be colored using exactly **2 colors** such that no two adjacent vertices have the same color.
+
+### Key Intuitions
+- Any graph with NO cycles is automatically bipartite.
+- Any graph with an **even-length cycle** is bipartite.
+- A graph with an **odd-length cycle** is **NOT bipartite**.
+
+Using BFS, we can try to "color" the graph level by level. We start by assigning color `0` to a node, then color `1` to all its neighbors, then color `0` to their neighbors, and so on. If we ever find an adjacent node that is already colored with the *same color* as the current node, the graph is not bipartite.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Bipartite Graph (BFS)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+  cpp="bool checkBipartiteBFS(int start, vector<vector<int>>& adj, vector<int>& color) {
+    queue<int> q;
+    q.push(start);
+    color[start] = 0; // Assign first color
+    
+    while (!q.empty()) {
+        int node = q.front();
+        q.pop();
+        
+        for (int neighbor : adj[node]) {
+            // If uncolored, color with opposite color and enqueue
+            if (color[neighbor] == -1) {
+                color[neighbor] = !color[node];
+                q.push(neighbor);
+            } 
+            // If colored with the SAME color, it's not bipartite!
+            else if (color[neighbor] == color[node]) {
+                return false;
+            }
+        }
     }
-};"
-  java="// Java implementation for Bipartite Graph (BFS)
-import java.util.*;
+    return true;
+}
 
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+bool isBipartite(int V, vector<vector<int>>& adj) {
+    // -1 means uncolored
+    vector<int> color(V, -1);
+    
+    // Check all components
+    for (int i = 0; i < V; i++) {
+        if (color[i] == -1) {
+            if (!checkBipartiteBFS(i, adj, color)) {
+                return false;
+            }
+        }
     }
+    return true;
 }"
-  python="# Python implementation for Bipartite Graph (BFS)
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  java="public boolean checkBipartiteBFS(int start, int[][] adj, int[] color) {
+    Queue<Integer> q = new LinkedList<>();
+    q.add(start);
+    color[start] = 0; // Assign first color
+    
+    while (!q.isEmpty()) {
+        int node = q.poll();
+        
+        for (int neighbor : adj[node]) {
+            if (color[neighbor] == -1) {
+                color[neighbor] = 1 - color[node]; // 0 becomes 1, 1 becomes 0
+                q.add(neighbor);
+            } else if (color[neighbor] == color[node]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+public boolean isBipartite(int[][] adj) {
+    int V = adj.length;
+    int[] color = new int[V];
+    Arrays.fill(color, -1);
+    
+    for (int i = 0; i < V; i++) {
+        if (color[i] == -1) {
+            if (!checkBipartiteBFS(i, adj, color)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}"
+  python="from collections import deque
+
+def check_bipartite_bfs(start, adj, color):
+    queue = deque([start])
+    color[start] = 0
+    
+    while queue:
+        node = queue.popleft()
+        
+        for neighbor in adj[node]:
+            if color[neighbor] == -1:
+                color[neighbor] = 1 - color[node]
+                queue.append(neighbor)
+            elif color[neighbor] == color[node]:
+                return False
+    return True
+
+def is_bipartite(adj):
+    V = len(adj)
+    color = [-1] * V
+    
+    for i in range(V):
+        if color[i] == -1:
+            if not check_bipartite_bfs(i, adj, color):
+                return False
+    return True"
 />
 
 # Complexity Analysis
@@ -50,20 +130,19 @@ class Solution:
   average="O(V + E)"
   worst="O(V + E)"
   space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  description="Every vertex and edge is traversed exactly once. O(V + E) time. Space complexity is O(V) due to the color array and Queue."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- Using a `visited` boolean array AND a `color` array. You only need the `color` array! Initialize it with `-1` (uncolored) and check if it's `-1` to see if it's visited.
+- Forgetting to handle disconnected components with a `for` loop over all vertices.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "If a problem asks if it's possible to divide people into two groups such that no two enemies are in the same group, it's secretly asking you to check if the graph is Bipartite.",
+    "Always state the fundamental property during an interview: 'A graph is bipartite if and only if it does not contain an odd-length cycle.'"
   ]}
 />

@@ -11,55 +11,96 @@ summary: "An essential guide to Meeting Rooms, exploring its applications, imple
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Meeting Rooms**. This topic is a cornerstone of the Intervals module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Meeting Rooms** problem is the gateway to understanding scheduling problems. The premise is simple: Given an array of meeting time intervals where `intervals[i] = [starti, endi]`, determine if a person could attend *all* meetings.
+
+In simpler terms, you are checking if there are **any overlaps** in the provided list of intervals. If even a single overlap exists, the person cannot attend all meetings.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+If you don't sort the intervals, you would have to compare every meeting to every other meeting to check for overlaps, which takes $O(N^2)$ time. 
+
+By **sorting the intervals by their start time**, you guarantee that any potential overlap will happen between adjacent elements in the sorted array. You only need to check if the current meeting starts *before* the previous meeting finishes.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Meeting Rooms
-#include <iostream>
+  cpp="#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    bool canAttendMeetings(vector<vector<int>>& intervals) {
+        if (intervals.empty()) return true;
+
+        // Sort by starting time
+        sort(intervals.begin(), intervals.end());
+
+        // Check for any overlap between adjacent meetings
+        for (int i = 1; i < intervals.size(); i++) {
+            if (intervals[i][0] < intervals[i - 1][1]) {
+                // The current meeting starts before the previous one ends
+                return false;
+            }
+        }
+
+        return true;
     }
 };"
-  java="// Java implementation for Meeting Rooms
+  java="import java.util.*;
+
 class Solution {
-    public void solve() {
-        // Implementation here
+    public boolean canAttendMeetings(int[][] intervals) {
+        if (intervals == null || intervals.length == 0) return true;
+
+        // Sort intervals by their start times
+        Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
+
+        for (int i = 1; i < intervals.length; i++) {
+            // Overlap condition
+            if (intervals[i][0] < intervals[i - 1][1]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }"
-  python="# Python implementation for Meeting Rooms
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def canAttendMeetings(self, intervals: list[list[int]]) -> bool:
+        if not intervals:
+            return True
+            
+        # Sort by start time
+        intervals.sort(key=lambda x: x[0])
+        
+        # Check adjacent intervals for overlap
+        for i in range(1, len(intervals)):
+            if intervals[i][0] < intervals[i - 1][1]:
+                return False
+                
+        return True"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N log N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="Sorting the array takes O(N log N) time, and the linear scan takes O(N) time. The space complexity is O(1) auxiliary space, assuming an in-place sorting algorithm is used."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Misunderstanding the overlap condition: If one meeting ends at 10:00 and the next begins at 10:00, this is *not* an overlap. You should use `<` rather than `<=` when comparing start and end times.
+- Not handling the empty array edge case. If there are no meetings, a person can technically attend all 0 of them.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Since this is an easy problem, interviewers expect perfectly clean, bug-free code implemented very quickly.",
+    "Be sure to proactively mention the time complexity of the sorting step.",
+    "If the interviewer asks to optimize, note that O(N log N) is the theoretical lower bound unless the interval times are restricted to a very small range (like hours in a day), in which case counting sort could yield O(N)."
   ]}
 />

@@ -11,36 +11,105 @@ summary: "An essential guide to Trapping Rain Water, exploring its applications,
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Trapping Rain Water**. This topic is a cornerstone of the Two Pointers & Sliding Window module. The Two Pointers and Sliding Window techniques are universally loved by interviewers because they elegantly reduce O(N^2) complexity down to O(N) without requiring extra space.
+The **Trapping Rain Water** problem requires us to calculate how much water can be trapped between elevation maps (blocks) after raining. Given an array representing the height of each bar, we need to compute the total trapped water.
 
-### Core Intuition
-Instead of using a nested loop to check every possible pair or subarray, we use two pointers (`left` and `right`) to represent a range or a pair of elements. Based on specific conditions, we strategically move one pointer or the other, drastically reducing the search space.
+### The Intuition
+The amount of water trapped above any given bar `i` is determined by the maximum height of the bars to its left and right. Specifically:
+`Water[i] = max(0, min(max_left, max_right) - height[i])`
+
+### The Two Pointers Approach
+While we could precompute the `max_left` and `max_right` arrays in $O(N)$ time and $O(N)$ space, the Two Pointers technique allows us to achieve $O(1)$ space.
+1. Use `left` and `right` pointers initialized to the ends of the array.
+2. Maintain `left_max` and `right_max` variables.
+3. Because the water level is bounded by the smaller of the two maximums, we only need to care about the securely known smaller bound.
+4. If `left_max < right_max`, we know the water at `left` is securely bounded by `left_max` (regardless of what's further right). We calculate the trapped water for `left` and advance `left`.
+5. Conversely, if `right_max <= left_max`, we process `right` and decrement `right`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Trapping Rain Water
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int trap(vector<int>& height) {
+        if (height.empty()) return 0;
+        
+        int left = 0, right = height.size() - 1;
+        int left_max = 0, right_max = 0;
+        int trapped_water = 0;
+        
+        while (left < right) {
+            if (height[left] < height[right]) {
+                if (height[left] >= left_max) {
+                    left_max = height[left];
+                } else {
+                    trapped_water += left_max - height[left];
+                }
+                left++;
+            } else {
+                if (height[right] >= right_max) {
+                    right_max = height[right];
+                } else {
+                    trapped_water += right_max - height[right];
+                }
+                right--;
+            }
+        }
+        
+        return trapped_water;
     }
 };"
-  java="// Java implementation for Trapping Rain Water
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int trap(int[] height) {
+        if (height == null || height.length == 0) return 0;
+        
+        int left = 0, right = height.length - 1;
+        int leftMax = 0, rightMax = 0;
+        int trappedWater = 0;
+        
+        while (left < right) {
+            if (height[left] < height[right]) {
+                if (height[left] >= leftMax) {
+                    leftMax = height[left];
+                } else {
+                    trappedWater += leftMax - height[left];
+                }
+                left++;
+            } else {
+                if (height[right] >= rightMax) {
+                    rightMax = height[right];
+                } else {
+                    trappedWater += rightMax - height[right];
+                }
+                right--;
+            }
+        }
+        
+        return trappedWater;
     }
 }"
-  python="# Python implementation for Trapping Rain Water
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def trap(self, height: list[int]) -> int:
+        if not height:
+            return 0
+            
+        left, right = 0, len(height) - 1
+        left_max, right_max = 0, 0
+        trapped_water = 0
+        
+        while left < right:
+            if height[left] < height[right]:
+                if height[left] >= left_max:
+                    left_max = height[left]
+                else:
+                    trapped_water += left_max - height[left]
+                left += 1
+            else:
+                if height[right] >= right_max:
+                    right_max = height[right]
+                else:
+                    trapped_water += right_max - height[right]
+                right -= 1
+                
+        return trapped_water"
 />
 
 # Complexity Analysis
@@ -49,20 +118,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) since both the left and right pointers only move in one direction and visit each element at most twice. Space complexity is O(1) because we only store pointer indices."
+  description="The time complexity is O(N) because each element is visited at most once by either the left or the right pointer. The space complexity is O(1) as we only use four integer variables for pointers and tracking max values, eliminating the need for prefix/suffix arrays."
 />
 
 # Common Pitfalls
 <Warning>
-- **Off-by-One Errors:** Miscalculating the window size as `right - left` instead of `right - left + 1`.
-- **Pointer Stagnation:** Creating infinite loops by forgetting to increment/decrement the pointers inside a `while` loop condition.
+- **Confusing pointers and max values:** Ensure you update `left_max` and `right_max` correctly before attempting to calculate trapped water.
+- **Empty Array:** Failing to check if the input array is empty can lead to out-of-bounds exceptions when initializing the `right` pointer.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If the problem asks for a contiguous sequence (subarray or substring), Sliding Window is almost always the answer.",
-    "If the array is sorted and you need to find a pair, start one pointer at the beginning and one at the end.",
-    "For Variable Sliding Windows, the logic is always: Expand the right pointer, and while the condition is violated, shrink the left pointer."
+    "Start by explaining the O(N) space array-based approach (prefix max and suffix max). Interviewers love seeing the progression to the O(1) space two-pointer solution.",
+    "Emphasize the 'bottleneck' principle: Water trapping at any point is bottlenecked by the smaller of the max heights on either side.",
+    "Mention that using two pointers allows us to process the smaller boundary confidently because the larger boundary won't constrain the current side."
   ]}
 />

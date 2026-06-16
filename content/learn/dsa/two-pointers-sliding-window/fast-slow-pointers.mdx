@@ -4,43 +4,161 @@ category: "Two Pointers & Sliding Window"
 readTime: "9 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the pointer mechanics behind Fast & Slow Pointers (Floyd's Tortoise & Hare)."
-  - "Learn how to optimize nested loops into a single O(N) pass."
-  - "Master edge cases and off-by-one window boundaries."
-summary: "An essential guide to Fast & Slow Pointers (Floyd's Tortoise & Hare), exploring its applications, optimal implementations, and how to identify this pattern in interviews."
+  - "Understand the mechanics behind Fast & Slow Pointers (Floyd's Algorithm)."
+  - "Learn how to detect cycles in Linked Lists and Arrays."
+  - "Master the mathematics of finding the exact start of a cycle."
+summary: "An essential guide to Floyd's Tortoise and Hare algorithm, a genius approach to detecting and pinpointing cycles in sequences."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Fast & Slow Pointers (Floyd's Tortoise & Hare)**. This topic is a cornerstone of the Two Pointers & Sliding Window module. The Two Pointers and Sliding Window techniques are universally loved by interviewers because they elegantly reduce O(N^2) complexity down to O(N) without requiring extra space.
+**Fast & Slow Pointers**, formally known as **Floyd's Cycle-Finding Algorithm** (or the Tortoise and Hare algorithm), is a pointer technique specifically designed to detect cycles in a sequence, usually a Linked List or an Array where values act as pointers.
 
-### Core Intuition
-Instead of using a nested loop to check every possible pair or subarray, we use two pointers (`left` and `right`) to represent a range or a pair of elements. Based on specific conditions, we strategically move one pointer or the other, drastically reducing the search space.
+Unlike other two-pointer techniques that iterate over an array to find pairs or filter elements, this algorithm involves two pointers moving through a sequence at **different speeds**.
+
+### The Core Intuition
+Imagine two runners on a track. One runner (the Tortoise) is slow, taking one step at a time. The other runner (the Hare) is fast, taking two steps at a time. 
+
+- **If the track is a straight line:** The Hare will reach the finish line (a `null` pointer) long before the Tortoise.
+- **If the track has a loop:** The Hare will never find a finish line. Instead, it will loop around and eventually "lap" the Tortoise. If they ever land on the exact same spot at the exact same time, a cycle definitively exists.
+
+#### Finding the Start of the Cycle
+Detecting the cycle is easy. But finding exactly *where* the cycle begins requires a bit of math.
+Let:
+- $L_1$ be the distance from the head to the start of the cycle.
+- $L_2$ be the distance from the start of the cycle to the intersection point where Tortoise and Hare meet.
+- $C$ be the total length of the cycle.
+
+When they meet, the Tortoise has traveled $L_1 + L_2$.
+The Hare has traveled $L_1 + L_2 + kC$ (where $k$ is the number of times it looped).
+Since the Hare travels exactly twice as fast as the Tortoise:
+$2(L_1 + L_2) = L_1 + L_2 + kC$
+$L_1 + L_2 = kC$
+$L_1 = kC - L_2$
+
+This equation tells us something profound: **The distance from the head to the start of the cycle ($L_1$) is equal to the distance from the intersection point to the start of the cycle ($kC - L_2$).** 
+
+Therefore, if we reset the Tortoise back to the head of the list, and slow the Hare down so both now take exactly **one step at a time**, the exact point where they meet again will be the start of the cycle!
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Fast & Slow Pointers (Floyd's Tortoise & Hare)
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    // Example: Linked List Cycle II (Find the start of the cycle)
+    struct ListNode {
+        int val;
+        ListNode *next;
+        ListNode(int x) : val(x), next(NULL) {}
+    };
+
+    ListNode *detectCycle(ListNode *head) {
+        if (!head || !head->next) return nullptr;
+        
+        ListNode* slow = head;
+        ListNode* fast = head;
+        
+        // Phase 1: Detect Cycle
+        bool hasCycle = false;
+        while (fast && fast->next) {
+            slow = slow->next;          // Tortoise takes 1 step
+            fast = fast->next->next;    // Hare takes 2 steps
+            
+            if (slow == fast) {
+                hasCycle = true;
+                break;
+            }
+        }
+        
+        if (!hasCycle) return nullptr;
+        
+        // Phase 2: Find Start of Cycle
+        slow = head; // Reset tortoise to head
+        
+        // Both take 1 step at a time now
+        while (slow != fast) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+        
+        return slow; // The start of the cycle
     }
 };"
-  java="// Java implementation for Fast & Slow Pointers (Floyd's Tortoise & Hare)
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="public class Solution {
+    // Example: Linked List Cycle II (Find the start of the cycle)
+    class ListNode {
+        int val;
+        ListNode next;
+        ListNode(int x) { val = x; next = null; }
+    }
+
+    public ListNode detectCycle(ListNode head) {
+        if (head == null || head.next == null) return null;
+        
+        ListNode slow = head;
+        ListNode fast = head;
+        
+        // Phase 1: Detect Cycle
+        boolean hasCycle = false;
+        while (fast != null && fast.next != null) {
+            slow = slow.next;          // Tortoise takes 1 step
+            fast = fast.next.next;     // Hare takes 2 steps
+            
+            if (slow == fast) {
+                hasCycle = true;
+                break;
+            }
+        }
+        
+        if (!hasCycle) return null;
+        
+        // Phase 2: Find Start of Cycle
+        slow = head; // Reset tortoise to head
+        
+        // Both take 1 step at a time now
+        while (slow != fast) {
+            slow = slow.next;
+            fast = fast.next;
+        }
+        
+        return slow; // The start of the cycle
     }
 }"
-  python="# Python implementation for Fast & Slow Pointers (Floyd's Tortoise & Hare)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    # Example: Linked List Cycle II (Find the start of the cycle)
+    class ListNode:
+        def __init__(self, x):
+            self.val = x
+            self.next = None
+
+    def detectCycle(self, head: 'ListNode') -> 'ListNode':
+        if not head or not head.next:
+            return None
+            
+        slow = head
+        fast = head
+        
+        # Phase 1: Detect Cycle
+        has_cycle = False
+        while fast and fast.next:
+            slow = slow.next          # Tortoise takes 1 step
+            fast = fast.next.next     # Hare takes 2 steps
+            
+            if slow == fast:
+                has_cycle = True
+                break
+                
+        if not has_cycle:
+            return None
+            
+        # Phase 2: Find Start of Cycle
+        slow = head # Reset tortoise to head
+        
+        # Both take 1 step at a time now
+        while slow != fast:
+            slow = slow.next
+            fast = fast.next
+            
+        return slow # The start of the cycle"
 />
 
 # Complexity Analysis
@@ -49,20 +167,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) since both the left and right pointers only move in one direction and visit each element at most twice. Space complexity is O(1) because we only store pointer indices."
+  description="In the worst case (a cycle), the fast pointer might loop a few times before catching the slow pointer, but it is mathematically bounded to O(N) operations. We use only two pointers, resulting in strictly O(1) auxiliary space."
 />
 
 # Common Pitfalls
 <Warning>
-- **Off-by-One Errors:** Miscalculating the window size as `right - left` instead of `right - left + 1`.
-- **Pointer Stagnation:** Creating infinite loops by forgetting to increment/decrement the pointers inside a `while` loop condition.
+- **Null Reference Exceptions:** Always check `while (fast && fast->next)`. If you only check `fast`, `fast->next->next` will throw an error when `fast->next` is null.
+- **Forgetting Phase 2 logic:** Finding the start of the cycle is a common follow-up. Do not forget that after they meet, you must reset ONE pointer to the head, and slow the other pointer down to 1 step at a time.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If the problem asks for a contiguous sequence (subarray or substring), Sliding Window is almost always the answer.",
-    "If the array is sorted and you need to find a pair, start one pointer at the beginning and one at the end.",
-    "For Variable Sliding Windows, the logic is always: Expand the right pointer, and while the condition is violated, shrink the left pointer."
+    "If you hear 'Linked List' and 'Cycle', or 'Find the Duplicate Number' in an array with values from 1 to N, Floyd's Algorithm is the expected optimal solution.",
+    "Be fully prepared to draw out the mathematical proof for why Phase 2 works (L1 = kC - L2). Interviewers at top tech companies frequently ask for the mathematical justification.",
+    "This algorithm is not just for Linked Lists. Any sequence where the value at an index points to the next index (e.g., nums[nums[i]]) can be treated as a Linked List and subjected to cycle detection."
   ]}
 />

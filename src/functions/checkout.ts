@@ -44,7 +44,7 @@ export async function applyCoupon(code: string, purchaseType: string, targetId?:
   return res.json();
 }
 
-export async function createOrder(purchaseType: string, targetId?: string, couponCode?: string) {
+export async function createOrder(purchaseType: string, targetId?: string, couponCode?: string, targetName?: string) {
   const res = await fetch(`${BACKEND_URL}/api/v1/checkout/create-order`, {
     method: "POST",
     headers: authHeaders(),
@@ -52,6 +52,7 @@ export async function createOrder(purchaseType: string, targetId?: string, coupo
     body: JSON.stringify({
       purchase_type: purchaseType,
       target_id: targetId,
+      target_name: targetName,
       coupon_code: couponCode,
     }),
   });
@@ -66,3 +67,18 @@ export async function createOrder(purchaseType: string, targetId?: string, coupo
 
 
 
+
+export async function fetchMyTransactions() {
+  const res = await fetch(`${BACKEND_URL}/api/v1/checkout/transactions`, {
+    method: "GET",
+    headers: authHeaders(),
+    credentials: "omit",
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || "Failed to fetch transactions");
+  }
+
+  return res.json();
+}

@@ -11,55 +11,121 @@ summary: "An essential guide to Activity Selection, exploring its applications, 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Activity Selection**. This topic is a cornerstone of the Greedy Algorithms module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Activity Selection Problem** is one of the most classic examples of a Greedy Algorithm. You are given `N` activities, each with a start time and an end time. Your goal is to select the maximum number of non-overlapping activities that can be performed by a single person or machine.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### The Greedy Strategy
+The optimal heuristic for this problem is to always pick the activity that **ends the earliest**.
+Why? Because picking the activity that finishes first leaves the maximum possible free time for subsequent activities. 
+
+To implement this:
+1. Sort all activities based on their **end times** in ascending order.
+2. Select the first activity in the sorted list.
+3. Iterate through the remaining activities. If the start time of the current activity is greater than or equal to the end time of the previously selected activity, select it and update the end time.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Activity Selection
-#include <iostream>
+  cpp="#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int maxActivities(vector<int>& start, vector<int>& end) {
+        int n = start.size();
+        if (n == 0) return 0;
+        
+        vector<pair<int, int>> activities;
+        for (int i = 0; i < n; ++i) {
+            activities.push_back({end[i], start[i]});
+        }
+        
+        // Sort by end time
+        sort(activities.begin(), activities.end());
+        
+        int count = 1;
+        int currentEnd = activities[0].first;
+        
+        for (int i = 1; i < n; ++i) {
+            // If start time is >= end time of previous selected activity
+            if (activities[i].second >= currentEnd) {
+                count++;
+                currentEnd = activities[i].first;
+            }
+        }
+        
+        return count;
     }
 };"
-  java="// Java implementation for Activity Selection
+  java="import java.util.*;
+
 class Solution {
-    public void solve() {
-        // Implementation here
+    public int maxActivities(int[] start, int[] end) {
+        int n = start.length;
+        if (n == 0) return 0;
+        
+        int[][] activities = new int[n][2];
+        for (int i = 0; i < n; i++) {
+            activities[i][0] = start[i];
+            activities[i][1] = end[i];
+        }
+        
+        // Sort by end time
+        Arrays.sort(activities, (a, b) -> Integer.compare(a[1], b[1]));
+        
+        int count = 1;
+        int currentEnd = activities[0][1];
+        
+        for (int i = 1; i < n; i++) {
+            if (activities[i][0] >= currentEnd) {
+                count++;
+                currentEnd = activities[i][1];
+            }
+        }
+        
+        return count;
     }
 }"
-  python="# Python implementation for Activity Selection
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def maxActivities(self, start: list[int], end: list[int]) -> int:
+        if not start:
+            return 0
+            
+        # Combine start and end times, then sort by end time
+        activities = sorted(zip(start, end), key=lambda x: x[1])
+        
+        count = 1
+        current_end = activities[0][1]
+        
+        for i in range(1, len(activities)):
+            if activities[i][0] >= current_end:
+                count += 1
+                current_end = activities[i][1]
+                
+        return count"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N log N)"
+  space="O(N)"
+  description="Sorting the activities dominates the time complexity, giving O(N log N). The space complexity is O(N) to store the paired activities, although it can be O(1) if you are allowed to modify the input arrays directly and use indices."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Sorting by start time or duration instead of end time. Sorting by start time fails when an early-starting activity has a massive duration, blocking many shorter activities.
+- Forgetting to pair the start and end times together before sorting.
+- Mishandling edge cases where `start[i] == currentEnd`. Clarify if contiguous activities are allowed (usually yes).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If the problem asks for 'maximum non-overlapping intervals', it's exactly the Activity Selection problem.",
+    "Always be prepared to explain *why* sorting by end time is superior to sorting by start time. Give a counter-example!",
+    "If the input is already sorted by end time, point out to the interviewer that you can achieve an O(N) time complexity."
   ]}
 />

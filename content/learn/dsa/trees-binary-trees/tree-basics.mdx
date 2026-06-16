@@ -11,55 +11,77 @@ summary: "An essential guide to Tree Fundamentals, exploring its applications, i
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Tree Fundamentals**. This topic is a cornerstone of the Trees & Binary Trees module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+A **Tree** is a non-linear hierarchical data structure consisting of nodes connected by edges. Unlike arrays and linked lists, which are linear, trees allow for the representation of hierarchical relationships.
+
+### Key Terminology
+- **Node**: An entity containing a value and pointers to its child nodes.
+- **Root**: The topmost node of a tree, which has no parent.
+- **Edge**: The link connecting two nodes.
+- **Leaf**: A node with no children (its child pointers are null).
+- **Parent**: A node that has at least one child.
+- **Child**: A node extending from another node.
+- **Subtree**: A structure consisting of a node and all of its descendants.
+
+### Binary Trees
+A **Binary Tree** is a specialized tree where every node has at most two children, typically referred to as the left child and the right child. This constraint makes binary trees highly predictable and forms the basis for more advanced structures like Binary Search Trees (BSTs) and Heaps.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Tree Fundamentals
-#include <iostream>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Node {
 public:
-    void solve() {
-        // Implementation here
+    int data;
+    Node* left;
+    Node* right;
+    
+    Node(int val) {
+        data = val;
+        left = nullptr;
+        right = nullptr;
     }
 };"
-  java="// Java implementation for Tree Fundamentals
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Node {
+    int data;
+    Node left;
+    Node right;
+    
+    public Node(int item) {
+        data = item;
+        left = right = null;
     }
 }"
-  python="# Python implementation for Tree Fundamentals
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Node:
+    def __init__(self, key):
+        self.val = key
+        self.left = None
+        self.right = None"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
+  average="O(log N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(N)"
+  description="Basic tree operations vary in complexity. Storing a tree takes O(N) space. Navigating a balanced tree takes O(log N) time, but can degrade to O(N) if the tree is heavily skewed."
 />
 
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Confusing a general Binary Tree with a Binary Search Tree (BST). A standard binary tree has no ordering rules.
+- Forgetting to handle the empty tree case (when root is null) in algorithms.
+- Creating cyclic references. Trees must be directed acyclic graphs (DAGs).
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Always clarify if the tree is a Binary Search Tree (BST) or just a standard Binary Tree. This completely changes your approach.",
+    "Be comfortable writing out the Node class definition from memory.",
+    "Remember that trees are recursive by nature. If you can solve it for a node and its children, you can solve it for the whole tree."
   ]}
 />

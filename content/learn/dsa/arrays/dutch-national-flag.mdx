@@ -4,42 +4,106 @@ category: "Arrays & Precomputation"
 readTime: "8 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the intuition and mechanics behind Dutch National Flag Algorithm (Sort 0s, 1s, 2s)."
-  - "Learn how to optimize brute-force O(N^2) loops into O(N) linear time."
-  - "Master in-place modifications to achieve O(1) space complexity."
-summary: "An essential guide to Dutch National Flag Algorithm (Sort 0s, 1s, 2s), exploring its applications, implementations, and interview intelligence for array problems."
+  - "Understand the intuition and mechanics behind the Dutch National Flag Algorithm."
+  - "Learn how to sort an array of three distinct elements in a single pass."
+  - "Master the three-pointer approach to achieve O(N) time and O(1) space."
+summary: "An essential guide to the Dutch National Flag Algorithm, proposed by Edsger Dijkstra, for sorting arrays of three distinct values in a single pass."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Dutch National Flag Algorithm (Sort 0s, 1s, 2s)**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+The **Dutch National Flag Algorithm** was proposed by Edsger Dijkstra to solve the problem of sorting an array consisting of three distinct elements (often represented as 0s, 1s, and 2s, or Red, White, and Blue—the colors of the Dutch flag). 
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+While you could simply sort the array using a standard $O(N \log N)$ algorithm, or count the occurrences of 0s, 1s, and 2s in a first pass and then overwrite the array in a second pass ($O(N)$ time, but two passes), Dijkstra's algorithm solves it in a **single pass** ($O(N)$ time) and strictly $O(1)$ space.
+
+### The Core Intuition
+The algorithm uses three pointers: `low`, `mid`, and `high`. These pointers dynamically partition the array into four regions during iteration:
+1. `[0, low - 1]` contains all `0`s.
+2. `[low, mid - 1]` contains all `1`s.
+3. `[mid, high]` contains unexamined elements.
+4. `[high + 1, N - 1]` contains all `2`s.
+
+Initially, `low` and `mid` start at index `0`, and `high` starts at index `N - 1`. The `mid` pointer acts as our active iterator:
+- If `nums[mid] == 0`: We swap `nums[mid]` with `nums[low]`. Since we know `nums[low]` was a `1` (or `mid` and `low` were pointing to the same `0`), we can safely increment both `low` and `mid`.
+- If `nums[mid] == 1`: The element is already in the correct middle section. We just increment `mid`.
+- If `nums[mid] == 2`: We swap `nums[mid]` with `nums[high]`. We decrement `high`. **Crucially, we do not increment `mid`** because the new element swapped into the `mid` position from `high` has not been examined yet.
+
+The loop terminates when `mid > high`, meaning the unexamined region is empty.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Dutch National Flag Algorithm (Sort 0s, 1s, 2s)
-#include <iostream>
-#include <vector>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    void sortColors(vector<int>& nums) {
+        int low = 0;
+        int mid = 0;
+        int high = nums.size() - 1;
+        
+        while (mid <= high) {
+            if (nums[mid] == 0) {
+                swap(nums[low], nums[mid]);
+                low++;
+                mid++;
+            } 
+            else if (nums[mid] == 1) {
+                mid++;
+            } 
+            else { // nums[mid] == 2
+                swap(nums[mid], nums[high]);
+                high--;
+                // Note: mid is NOT incremented here
+            }
+        }
     }
 };"
-  java="// Java implementation for Dutch National Flag Algorithm (Sort 0s, 1s, 2s)
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public void sortColors(int[] nums) {
+        int low = 0;
+        int mid = 0;
+        int high = nums.length - 1;
+        
+        while (mid <= high) {
+            if (nums[mid] == 0) {
+                // Swap nums[low] and nums[mid]
+                int temp = nums[low];
+                nums[low] = nums[mid];
+                nums[mid] = temp;
+                
+                low++;
+                mid++;
+            } 
+            else if (nums[mid] == 1) {
+                mid++;
+            } 
+            else { // nums[mid] == 2
+                // Swap nums[mid] and nums[high]
+                int temp = nums[mid];
+                nums[mid] = nums[high];
+                nums[high] = temp;
+                
+                high--;
+                // Note: mid is NOT incremented here
+            }
+        }
     }
 }"
-  python="# Python implementation for Dutch National Flag Algorithm (Sort 0s, 1s, 2s)
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def sortColors(self, nums: list[int]) -> None:
+        low = 0
+        mid = 0
+        high = len(nums) - 1
+        
+        while mid <= high:
+            if nums[mid] == 0:
+                nums[low], nums[mid] = nums[mid], nums[low]
+                low += 1
+                mid += 1
+            elif nums[mid] == 1:
+                mid += 1
+            else: # nums[mid] == 2
+                nums[mid], nums[high] = nums[high], nums[mid]
+                high -= 1
+                # Note: mid is NOT incremented here"
 />
 
 # Complexity Analysis
@@ -48,20 +112,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  description="We traverse the array exactly once with the mid pointer. At each step, either mid increases or high decreases. Thus, the loop runs exactly N times. Space complexity is O(1) as we only use three integer pointers regardless of the input size."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Incrementing `mid` when encountering a 2:** This is the most frequent bug. When you swap `nums[mid]` with `nums[high]`, the element coming from `high` into `mid` is completely unexamined. If you increment `mid`, you might skip processing a 0 or a 2.
+- **Loop Condition:** The loop condition must be `while (mid <= high)`. If you use `while (mid < high)`, you will leave the element at `high` unexamined, which will break the algorithm if that element needs to be swapped.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "Whenever a problem asks you to sort an array of exactly three distinct elements (like colors, categories, or 0/1/2), Dutch National Flag is the expected optimal solution.",
+    "Be prepared to explain why `mid` is incremented when encountering a `0` but not when encountering a `2`. It shows a deep understanding of loop invariants.",
+    "The algorithm is fundamentally a variation of the three-way partitioning used in Quicksort."
   ]}
 />

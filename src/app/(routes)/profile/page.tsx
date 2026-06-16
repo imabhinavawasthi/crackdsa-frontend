@@ -71,7 +71,7 @@ export default function ProfilePage() {
     );
   }
 
-  const isPro = user?.pro_subscription?.is_pro || false;
+  const isPro = user?.is_pro_active || false;
 
   // Calculate profile completeness based on user fields
   const fields = [

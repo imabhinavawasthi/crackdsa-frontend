@@ -11,55 +11,84 @@ summary: "An essential guide to Top K Elements, exploring its applications, impl
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Top K Elements**. This topic is a cornerstone of the Heaps & Priority Queues module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Top K Elements** pattern is a generalized approach for solving any problem that asks you to find the "Top K", "Smallest K", "K Most Frequent", or "K Closest" elements in a given dataset.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Whenever a problem asks for `K` extremums, your immediate thought should be **Heaps**. 
+
+### The Core Strategy
+1. **To find the K LARGEST elements:** Use a **Min-Heap** of size K.
+2. **To find the K SMALLEST elements:** Use a **Max-Heap** of size K.
+
+Why opposite? If you want the K largest elements, a Min-Heap keeps the smallest of those K elements at the root. If you see a new element larger than the root, it means the root can be discarded, and the new element takes its place. This brilliantly bounds our heap size to exactly `K`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Top K Elements
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    vector<int> topKElements(vector<int>& nums, int k) {
+        // Find K largest elements
+        priority_queue<int, vector<int>, greater<int>> minHeap;
+        for (int num : nums) {
+            minHeap.push(num);
+            if (minHeap.size() > k) {
+                minHeap.pop();
+            }
+        }
+        vector<int> res;
+        while (!minHeap.empty()) {
+            res.push_back(minHeap.top());
+            minHeap.pop();
+        }
+        return res;
     }
 };"
-  java="// Java implementation for Top K Elements
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public List<Integer> topKElements(int[] nums, int k) {
+        // Find K largest elements
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        for (int num : nums) {
+            minHeap.add(num);
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+        List<Integer> res = new ArrayList<>();
+        while (!minHeap.isEmpty()) {
+            res.add(minHeap.poll());
+        }
+        return res;
     }
 }"
-  python="# Python implementation for Top K Elements
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def topKElements(self, nums: list[int], k: int) -> list[int]:
+        # Find K largest elements
+        min_heap = []
+        for num in nums:
+            heapq.heappush(min_heap, num)
+            if len(min_heap) > k:
+                heapq.heappop(min_heap)
+        return min_heap"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(N log K)"
+  average="O(N log K)"
+  worst="O(N log K)"
+  space="O(K)"
+  description="Processing N elements into a heap of size K takes O(N log K) time. The heap maintains at most K elements, consuming O(K) space."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Using a Max-Heap to find the K largest elements and pushing all N elements. This consumes O(N) space and takes O(N log N) time, defeating the optimization.
+- Forgetting that the elements remaining in the Min-Heap will be popped in ascending order, not descending order. If the problem requires descending order, reverse the result array.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Clearly articulate why you are using a Min-Heap for 'Top K Largest'—it often trips up candidates when speaking out loud.",
+    "Be ready to adapt the elements stored in the heap (e.g., storing pairs of `(frequency, value)` or `(distance, coordinate)`)."
   ]}
 />

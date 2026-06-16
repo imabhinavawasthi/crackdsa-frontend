@@ -11,58 +11,155 @@ summary: "An essential guide to Redundant Connection, exploring its applications
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Redundant Connection**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+The **Redundant Connection** problem is a classic application of the Disjoint Set Union (DSU) pattern. You are given a graph that started as a tree with $n$ nodes but had exactly one extra edge added to it. Your goal is to find this extra edge that created a cycle, and return it.
 
-### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+A tree is a connected graph with $n$ nodes and $n-1$ edges (i.e., no cycles). Adding one edge inherently creates exactly one cycle. 
+
+Using DSU, we can iterate over the edges one by one:
+1. For each edge `[u, v]`, we check if `u` and `v` are already in the same set (have the same root).
+2. If they are not in the same set, we union them.
+3. If they **are** already in the same set, adding this edge creates a cycle! Since we are iterating over edges in order, the first edge we find that connects two already-connected nodes is our redundant connection.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Redundant Connection
-#include <iostream>
-#include <vector>
-using namespace std;
+  cpp={`class Solution {
+    vector<int> parent, rank;
 
-class Solution {
+    int find(int i) {
+        if (parent[i] == i) return i;
+        return parent[i] = find(parent[i]);
+    }
+
+    bool unite(int i, int j) {
+        int rootI = find(i);
+        int rootJ = find(j);
+        
+        if (rootI == rootJ) return false; // Cycle detected!
+        
+        if (rank[rootI] < rank[rootJ]) {
+            parent[rootI] = rootJ;
+        } else if (rank[rootI] > rank[rootJ]) {
+            parent[rootJ] = rootI;
+        } else {
+            parent[rootJ] = rootI;
+            rank[rootI]++;
+        }
+        return true;
+    }
+
 public:
-    void solve() {
-        // Implementation here
+    vector<int> findRedundantConnection(vector<vector<int>>& edges) {
+        int n = edges.size();
+        parent.resize(n + 1);
+        rank.resize(n + 1, 0);
+        
+        for (int i = 1; i <= n; i++) parent[i] = i;
+        
+        for (auto& edge : edges) {
+            if (!unite(edge[0], edge[1])) {
+                return edge;
+            }
+        }
+        
+        return {};
     }
-};"
-  java="// Java implementation for Redundant Connection
-import java.util.*;
+};`}
+  java={`class Solution {
+    int[] parent;
+    int[] rank;
+    
+    private int find(int i) {
+        if (parent[i] == i) return i;
+        return parent[i] = find(parent[i]);
+    }
+    
+    private boolean unite(int i, int j) {
+        int rootI = find(i);
+        int rootJ = find(j);
+        
+        if (rootI == rootJ) return false; // Cycle detected!
+        
+        if (rank[rootI] < rank[rootJ]) {
+            parent[rootI] = rootJ;
+        } else if (rank[rootI] > rank[rootJ]) {
+            parent[rootJ] = rootI;
+        } else {
+            parent[rootJ] = rootI;
+            rank[rootI]++;
+        }
+        return true;
+    }
 
-class Solution {
-    public void solve() {
-        // Implementation here
+    public int[] findRedundantConnection(int[][] edges) {
+        int n = edges.length;
+        parent = new int[n + 1];
+        rank = new int[n + 1];
+        
+        for (int i = 1; i <= n; i++) parent[i] = i;
+        
+        for (int[] edge : edges) {
+            if (!unite(edge[0], edge[1])) {
+                return edge;
+            }
+        }
+        
+        return new int[0];
     }
-}"
-  python="# Python implementation for Redundant Connection
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+}`}
+  python={`class Solution:
+    def findRedundantConnection(self, edges: list[list[int]]) -> list[int]:
+        n = len(edges)
+        parent = list(range(n + 1))
+        rank = [0] * (n + 1)
+        
+        def find(i):
+            if parent[i] == i:
+                return i
+            parent[i] = find(parent[i])
+            return parent[i]
+            
+        def unite(i, j):
+            root_i = find(i)
+            root_j = find(j)
+            
+            if root_i == root_j:
+                return False # Cycle detected!
+                
+            if rank[root_i] < rank[root_j]:
+                parent[root_i] = root_j
+            elif rank[root_i] > rank[root_j]:
+                parent[root_j] = root_i
+            else:
+                parent[root_j] = root_i
+                rank[root_i] += 1
+            return True
+            
+        for u, v in edges:
+            if not unite(u, v):
+                return [u, v]
+                
+        return []`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(E log V)"
-  average="O(E log V)"
-  worst="O(E log V)"
-  space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  best="O(V)"
+  average="O(V)"
+  worst="O(V)"
+  space="O(V)"
+  description="Iterating over the edges takes O(E). However, in this problem E = V. Each DSU operation runs in near O(1) amortized time."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **1-based vs 0-based indexing:** Graph nodes in this specific problem are 1-indexed (from 1 to N). Ensure your parent and rank arrays are sized `N + 1`.
+- **Finding ALL cycles vs ONE cycle:** As soon as `unite` returns false, you have found the redundant edge. Do not process the rest of the edges!
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "Point out that Depth First Search (DFS) or Breadth First Search (BFS) can also solve this in O(V^2) or O(V) depending on implementation, but DSU is the cleanest and most efficient.",
+    "Mention that DSU handles incremental connectivity, which is ideal when processing edges streaming in one by one."
   ]}
 />

@@ -11,58 +11,167 @@ summary: "An essential guide to Median of Two Sorted Arrays, mastering O(log N) 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Median of Two Sorted Arrays**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+Finding the median of two sorted arrays in `O(log(min(N, M)))` time is widely considered one of the hardest Binary Search problems. 
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+### What is a Median?
+In a sorted array, the median divides the array into two equal halves. 
+- Left half contains elements strictly smaller than or equal to the right half.
+- If the total length is odd, the median is the center element.
+- If the total length is even, the median is the average of the two center elements.
+
+### The Binary Search Partition Logic
+If we merge the two arrays into one, it would have a total of `N + M` elements. The left half of this merged array would have exactly `(N + M + 1) / 2` elements.
+Instead of actually merging them (which takes `O(N+M)` time), we can guess how many elements from `Array1` should be in the left half of the merged array.
+Let's call this cut `cut1`. If we take `cut1` elements from `Array1`, we MUST take `cut2 = (N + M + 1) / 2 - cut1` elements from `Array2`.
+
+Now we have 4 edge elements to look at:
+- `left1`: The largest element taken from `Array1`
+- `right1`: The smallest element NOT taken from `Array1`
+- `left2`: The largest element taken from `Array2`
+- `right2`: The smallest element NOT taken from `Array2`
+
+A partition is PERFECT if:
+`left1 <= right2` AND `left2 <= right1`.
+If `left1 > right2`, our `cut1` is too far to the right, we must move it left.
+If `left2 > right1`, our `cut1` is too far to the left, we must move it right.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Median of Two Sorted Arrays
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
+        // Always binary search on the smaller array to keep complexity O(log(min(N,M)))
+        if (nums1.size() > nums2.size()) {
+            return findMedianSortedArrays(nums2, nums1);
+        }
+        
+        int n = nums1.size();
+        int m = nums2.size();
+        int left = 0, right = n; // Searching for 'cut1'
+        
+        while (left <= right) {
+            int cut1 = left + (right - left) / 2;
+            int cut2 = (n + m + 1) / 2 - cut1;
+            
+            int left1 = (cut1 == 0) ? INT_MIN : nums1[cut1 - 1];
+            int right1 = (cut1 == n) ? INT_MAX : nums1[cut1];
+            
+            int left2 = (cut2 == 0) ? INT_MIN : nums2[cut2 - 1];
+            int right2 = (cut2 == m) ? INT_MAX : nums2[cut2];
+            
+            // Valid partition check
+            if (left1 <= right2 && left2 <= right1) {
+                if ((n + m) % 2 == 0) { // Even total length
+                    return (max(left1, left2) + min(right1, right2)) / 2.0;
+                } else { // Odd total length
+                    return max(left1, left2);
+                }
+            } 
+            else if (left1 > right2) {
+                right = cut1 - 1; // Move cut1 to the left
+            } 
+            else {
+                left = cut1 + 1;  // Move cut1 to the right
+            }
+        }
+        
+        return 0.0;
     }
 };"
-  java="// Java implementation for Median of Two Sorted Arrays
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        // Always binary search on the smaller array to keep complexity O(log(min(N,M)))
+        if (nums1.length > nums2.length) {
+            return findMedianSortedArrays(nums2, nums1);
+        }
+        
+        int n = nums1.length;
+        int m = nums2.length;
+        int left = 0, right = n; // Searching for 'cut1'
+        
+        while (left <= right) {
+            int cut1 = left + (right - left) / 2;
+            int cut2 = (n + m + 1) / 2 - cut1;
+            
+            int left1 = (cut1 == 0) ? Integer.MIN_VALUE : nums1[cut1 - 1];
+            int right1 = (cut1 == n) ? Integer.MAX_VALUE : nums1[cut1];
+            
+            int left2 = (cut2 == 0) ? Integer.MIN_VALUE : nums2[cut2 - 1];
+            int right2 = (cut2 == m) ? Integer.MAX_VALUE : nums2[cut2];
+            
+            // Valid partition check
+            if (left1 <= right2 && left2 <= right1) {
+                if ((n + m) % 2 == 0) { // Even total length
+                    return (Math.max(left1, left2) + Math.min(right1, right2)) / 2.0;
+                } else { // Odd total length
+                    return Math.max(left1, left2);
+                }
+            } 
+            else if (left1 > right2) {
+                right = cut1 - 1; // Move cut1 to the left
+            } 
+            else {
+                left = cut1 + 1;  // Move cut1 to the right
+            }
+        }
+        
+        return 0.0;
     }
 }"
-  python="# Python implementation for Median of Two Sorted Arrays
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def findMedianSortedArrays(self, nums1: list[int], nums2: list[int]) -> float:
+        # Always binary search on the smaller array to keep complexity O(log(min(N,M)))
+        if len(nums1) > len(nums2):
+            return self.findMedianSortedArrays(nums2, nums1)
+            
+        n = len(nums1)
+        m = len(nums2)
+        left, right = 0, n # Searching for 'cut1'
+        
+        while left <= right:
+            cut1 = left + (right - left) // 2
+            cut2 = (n + m + 1) // 2 - cut1
+            
+            left1 = float('-inf') if cut1 == 0 else nums1[cut1 - 1]
+            right1 = float('inf') if cut1 == n else nums1[cut1]
+            
+            left2 = float('-inf') if cut2 == 0 else nums2[cut2 - 1]
+            right2 = float('inf') if cut2 == m else nums2[cut2]
+            
+            # Valid partition check
+            if left1 <= right2 and left2 <= right1:
+                if (n + m) % 2 == 0: # Even total length
+                    return (max(left1, left2) + min(right1, right2)) / 2.0
+                else: # Odd total length
+                    return float(max(left1, left2))
+            elif left1 > right2:
+                right = cut1 - 1 # Move cut1 to the left
+            else:
+                left = cut1 + 1  # Move cut1 to the right
+                
+        return 0.0"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
+  average="O(log(min(N, M)))"
+  worst="O(log(min(N, M)))"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="We specifically force the binary search to run on the smaller array. Thus, the search space is from 0 to min(N, M), resulting in O(log(min(N, M))) time. Space complexity is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- **Not swapping the arrays:** If you don't ensure `nums1` is the smaller array, `cut2` can become negative, leading to Out of Bounds errors.
+- **Handling Out of Bounds:** When `cut1 == 0`, it means we took 0 elements from `nums1` for the left half. We must simulate `left1` as `-INFINITY` so it doesn't break the `left1 <= right2` condition. Missing these `INT_MIN` / `INT_MAX` fallback values guarantees a crash.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "If you get stuck trying to explain the partition, draw two arrays of different lengths, and draw a physical line splitting both arrays vertically.",
+    "First mention the O(N+M) merge approach, then the O(N+M) two-pointer approach, before bringing out this O(log(min(N, M))) beast.",
+    "Memorize the partition math: `cut2 = (n + m + 1) / 2 - cut1`. The `+1` elegantly handles both odd and even total lengths."
   ]}
 />

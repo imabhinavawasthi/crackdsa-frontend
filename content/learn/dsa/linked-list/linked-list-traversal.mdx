@@ -11,34 +11,78 @@ summary: "An essential guide to Traversal & Insertion, exploring its application
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Traversal & Insertion**. This topic is a cornerstone of the Linked List module. Understanding it thoroughly will significantly improve your problem-solving speed.
+**Traversal** is the most basic yet crucial operation you can perform on a linked list. It refers to the process of visiting each node exactly once. Because there is no random access like in an array, you rely solely on traversal to find values, compute lengths, or seek specific insertion points.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### The Role of Traversal in Insertion
+When you need to insert a node at a specific position k or after a certain value, you must safely traverse the list until you reach the target node. During this traversal, maintaining a correct reference to the current node is critical. 
+
+### Why not arrays?
+Array insertion requires shifting all subsequent elements, causing an O(N) penalty. Linked lists, once traversed to the correct insertion spot, allow for an O(1) pointer adjustment, making them theoretically more efficient for volatile lists with high insertion and deletion volumes.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Traversal & Insertion
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Node {
 public:
-    void solve() {
-        // Implementation here
+    int data;
+    Node* next;
+    Node(int val) : data(val), next(nullptr) {}
+};
+
+class LinkedList {
+public:
+    Node* head;
+    LinkedList() : head(nullptr) {}
+
+    void insertAfter(int key, int newVal) {
+        Node* curr = head;
+        while (curr != nullptr && curr->data != key) {
+            curr = curr->next;
+        }
+        if (curr != nullptr) {
+            Node* newNode = new Node(newVal);
+            newNode->next = curr->next;
+            curr->next = newNode;
+        }
     }
 };"
-  java="// Java implementation for Traversal & Insertion
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Node {
+    int data;
+    Node next;
+    Node(int d) { data = d; next = null; }
+}
+
+class LinkedList {
+    Node head;
+
+    public void insertAfter(int key, int newVal) {
+        Node curr = head;
+        while (curr != null && curr.data != key) {
+            curr = curr.next;
+        }
+        if (curr != null) {
+            Node newNode = new Node(newVal);
+            newNode.next = curr.next;
+            curr.next = newNode;
+        }
     }
 }"
-  python="# Python implementation for Traversal & Insertion
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert_after(self, key, new_val):
+        curr = self.head
+        while curr and curr.data != key:
+            curr = curr.next
+        if curr:
+            new_node = Node(new_val)
+            new_node.next = curr.next
+            curr.next = new_node"
 />
 
 # Complexity Analysis
@@ -47,19 +91,19 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="Traversing to the target location takes O(N) time in the worst case (if the node is at the end or does not exist). The insertion itself is O(1) time and requires O(1) auxiliary space."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Updating the head incorrectly:** Always use a temporary variable (like curr) to traverse. If you reassign the head to traverse, you will lose the entire first portion of the linked list.
+- **Index Out Of Bounds equivalent:** Traversing past the end of the list and attempting to access the next property causes a crash.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "A while loop condition like `while (curr != null)` is safer and more universally applicable than checking `curr.next`, unless you specifically need the node before the end.",
+    "If the position for insertion could be the head, a Dummy Node simplifies your logic significantly."
   ]}
 />

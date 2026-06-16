@@ -83,9 +83,9 @@ export default function MasterclassesPage() {
         {/* Hero Section */}
         <motion.div variants={itemVariants} className="text-center max-w-3xl mb-16 space-y-6">
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight text-gray-900 dark:text-white leading-[1.1]">
-            The Ultimate <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 dark:from-brand-400 dark:via-brand-500 dark:to-indigo-400">
-              Masterclass Experience
+            Upcoming <br className="hidden sm:block" />
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-brand-600 via-brand-500 to-indigo-600 dark:from-brand-400 dark:via-brand-500 dark:to-indigo-400">
+              Masterclasses
             </span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl font-medium text-gray-500 dark:text-gray-400 leading-relaxed max-w-2xl mx-auto">

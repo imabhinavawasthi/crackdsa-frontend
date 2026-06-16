@@ -11,79 +11,116 @@ summary: "An essential guide to Merge k Sorted Lists, exploring safe pointer rea
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Merge k Sorted Lists**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+The **Merge k Sorted Lists** problem is a classic hard-level challenge that tests your ability to synthesize Linked Lists with other advanced data structures, specifically a Priority Queue (Min-Heap) or Divide and Conquer strategies.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+Given $k$ linked lists, each sorted in ascending order, the goal is to merge them into one single sorted linked list.
+A naive approach would be to collect all elements, sort them, and rebuild a new list. However, this is inefficient and ignores the fact that our input lists are *already* locally sorted.
+
+**Optimal Strategy: Priority Queue (Min-Heap)**
+By inserting the head of each of the $k$ lists into a min-heap, we can effortlessly extract the smallest global node in $O(\log k)$ time. Whenever we extract a node and append it to our result list, we simply push its `next` node into the heap.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Merge k Sorted Lists
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
+    struct compare {
+        bool operator()(const ListNode* l, const ListNode* r) {
+            return l->val > r->val;
+        }
+    };
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    ListNode* mergeKLists(vector<ListNode*>& lists) {
+        priority_queue<ListNode*, vector<ListNode*>, compare> pq;
+        for (auto l : lists) {
+            if (l) pq.push(l);
+        }
+        
+        ListNode dummy(0);
+        ListNode* tail = &dummy;
+        
+        while (!pq.empty()) {
+            tail->next = pq.top();
+            pq.pop();
+            tail = tail->next;
+            
+            if (tail->next) {
+                pq.push(tail->next);
+            }
+        }
+        return dummy.next;
     }
 };"
-  java="// Java implementation for Merge k Sorted Lists
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+  java="class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) return null;
+        
+        PriorityQueue<ListNode> pq = new PriorityQueue<>((a, b) -> a.val - b.val);
+        for (ListNode node : lists) {
+            if (node != null) {
+                pq.offer(node);
+            }
+        }
+        
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy;
+        
+        while (!pq.isEmpty()) {
+            tail.next = pq.poll();
+            tail = tail.next;
+            
+            if (tail.next != null) {
+                pq.offer(tail.next);
+            }
+        }
+        
+        return dummy.next;
     }
 }"
-  python="# Python implementation for Merge k Sorted Lists
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+  python="import heapq
 
 class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        # We need a wrapper to resolve ties since ListNode doesn't support comparison
+        ListNode.__lt__ = lambda self, other: self.val < other.val
+        
+        pq = []
+        for l in lists:
+            if l:
+                heapq.heappush(pq, l)
+                
+        dummy = ListNode(0)
+        tail = dummy
+        
+        while pq:
+            smallestNode = heapq.heappop(pq)
+            tail.next = smallestNode
+            tail = tail.next
+            
+            if smallestNode.next:
+                heapq.heappush(pq, smallestNode.next)
+                
+        return dummy.next"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  best="O(N log k)"
+  average="O(N log k)"
+  worst="O(N log k)"
+  space="O(k)"
+  description="Time is O(N log k) where N is the total number of nodes across all lists and k is the number of lists. Every node is pushed and popped exactly once from the heap of max size k. The space complexity is O(k) to maintain the priority queue."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Null List Inputs:** Lists might be empty, or contain null references. Always verify `if (l != null)` before adding a list's head to your heap.
+- **Tie-Breaking in Python:** Python's `heapq` will throw a `TypeError` if there is a duplicate value and the secondary comparison falls back onto the `ListNode` objects (which don't natively support `<`). You must either override `__lt__` on the class, or push a tuple containing an incrementing unique ID like `(val, id, node)`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "The Priority Queue approach is highly favored due to its elegance and real-world applicability (e.g., merging sorted logs in a distributed system).",
+    "Be prepared to code the Divide and Conquer approach as an alternative. That involves pairing up lists, merging pairs to reduce k to k/2, and repeating until 1 list remains. It achieves the exact same O(N log k) time and only O(1) space!",
+    "When explaining your complexity, clearly distinguish between N (total nodes) and k (number of initial lists)."
   ]}
 />

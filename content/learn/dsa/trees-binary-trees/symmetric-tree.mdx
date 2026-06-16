@@ -11,86 +11,100 @@ summary: "An essential guide to Same Tree / Symmetric Tree, mastering tree trave
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Same Tree / Symmetric Tree**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+**Same Tree** and **Symmetric Tree** are foundational problems that teach you how to traverse and compare multiple pointers simultaneously. 
+
+### Same Tree
+Two binary trees are considered the same if they are structurally identical, and the nodes have the same value.
+- Traverse both trees at the exact same time (`p` and `q`).
+- If `p.val != q.val`, return false.
+- Recursively compare `p.left` with `q.left`, and `p.right` with `q.right`.
+
+### Symmetric Tree
+A tree is symmetric if it is a mirror of itself across its center.
+- This is just "Same Tree" applied to the left and right subtrees of a single root, but with a twist!
+- We compare the `left` child of tree 1 with the `right` child of tree 2.
+- We compare the `right` child of tree 1 with the `left` child of tree 2.
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Same Tree / Symmetric Tree
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    // Symmetric Tree implementation
+    bool isSymmetric(TreeNode* root) {
+        if (!root) return true;
+        return isMirror(root->left, root->right);
+    }
+    
+private:
+    bool isMirror(TreeNode* t1, TreeNode* t2) {
+        if (!t1 && !t2) return true;
+        if (!t1 || !t2) return false;
+        
+        return (t1->val == t2->val)
+            && isMirror(t1->left, t2->right)
+            && isMirror(t1->right, t2->left);
     }
 };"
-  java="// Java implementation for Same Tree / Symmetric Tree
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
-    }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    // Same Tree implementation
+    public boolean isSameTree(TreeNode p, TreeNode q) {
+        // Both are null
+        if (p == null && q == null) return true;
+        
+        // One is null, the other is not
+        if (p == null || q == null) return false;
+        
+        // Values don't match
+        if (p.val != q.val) return false;
+        
+        // Recursively check children
+        return isSameTree(p.left, q.left) && isSameTree(p.right, q.right);
     }
 }"
-  python="# Python implementation for Same Tree / Symmetric Tree
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    # Symmetric Tree implementation
+    def isSymmetric(self, root: Optional[TreeNode]) -> bool:
+        if not root:
+            return True
+            
+        def is_mirror(t1, t2):
+            if not t1 and not t2:
+                return True
+            if not t1 or not t2:
+                return False
+                
+            return (t1.val == t2.val and
+                    is_mirror(t1.left, t2.right) and
+                    is_mirror(t1.right, t2.left))
+                    
+        return is_mirror(root.left, root.right)"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  description="Time complexity is O(N) as we might need to visit all nodes to confirm symmetry/sameness. Space complexity is O(H) corresponding to the recursive call stack."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **Incomplete Null Checks:** Failing to check if only *one* of the nodes is null. If `t1` is null but `t2` is not, you will get a Null Reference Exception when checking `t1.val == t2.val`.
+- **Symmetric Traversal Error:** Forgetting that symmetry means `t1.left` matches `t2.right`. It is very easy to accidentally write `t1.left` matching `t2.left` out of muscle memory from Same Tree.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "If you want to blow the interviewer away, offer to write an iterative version using a Queue (BFS). You simply push nodes in pairs and pop them in pairs to compare.",
+    "Master the `if (!t1 && !t2) return true; if (!t1 || !t2) return false;` base case pattern. It handles all null checks flawlessly.",
+    "These problems are stepping stones for complex subtree matching problems."
   ]}
 />

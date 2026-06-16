@@ -11,79 +11,133 @@ summary: "An essential guide to Singly Linked List Basics (Insertion, Deletion),
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Singly Linked List Basics (Insertion, Deletion)**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+A **Singly Linked List** is a fundamental data structure consisting of nodes. Each node contains data and a reference (or pointer) to the next node in the sequence. Unlike arrays, elements in a linked list are not stored in contiguous memory locations, making insertion and deletion operations more efficient since no elements need to be shifted.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+### Insertion
+Inserting a new node into a singly linked list can happen at three distinct places:
+1. **At the beginning (Head):** Create a new node, point its next reference to the current head, and update the head pointer.
+2. **At the end (Tail):** Traverse to the last node and update its next reference to point to the new node.
+3. **In the middle:** Traverse to the node just before the insertion point, update the new node's next reference to the current node's next, and then update the current node's next to the new node.
+
+### Deletion
+Deleting a node is similar:
+1. **From the beginning:** Move the head pointer to the next node.
+2. **From the end/middle:** Traverse to the node preceding the one you want to delete, and update its next pointer to skip the node being deleted.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Singly Linked List Basics (Insertion, Deletion)
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
+  cpp="class Node {
+public:
+    int data;
+    Node* next;
+    Node(int val) : data(val), next(nullptr) {}
 };
 
-class Solution {
+class LinkedList {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    Node* head;
+    LinkedList() : head(nullptr) {}
+
+    void insertAtHead(int val) {
+        Node* newNode = new Node(val);
+        newNode->next = head;
+        head = newNode;
+    }
+
+    void deleteNode(int val) {
+        if (!head) return;
+        if (head->data == val) {
+            Node* temp = head;
+            head = head->next;
+            delete temp;
+            return;
+        }
+        Node* curr = head;
+        while (curr->next && curr->next->data != val) {
+            curr = curr->next;
+        }
+        if (curr->next) {
+            Node* temp = curr->next;
+            curr->next = curr->next->next;
+            delete temp;
+        }
     }
 };"
-  java="// Java implementation for Singly Linked List Basics (Insertion, Deletion)
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+  java="class Node {
+    int data;
+    Node next;
+    Node(int d) { data = d; next = null; }
 }
 
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+class LinkedList {
+    Node head;
+
+    public void insertAtHead(int val) {
+        Node newNode = new Node(val);
+        newNode.next = head;
+        head = newNode;
+    }
+
+    public void deleteNode(int val) {
+        if (head == null) return;
+        if (head.data == val) {
+            head = head.next;
+            return;
+        }
+        Node curr = head;
+        while (curr.next != null && curr.next.data != val) {
+            curr = curr.next;
+        }
+        if (curr.next != null) {
+            curr.next = curr.next.next;
+        }
     }
 }"
-  python="# Python implementation for Singly Linked List Basics (Insertion, Deletion)
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+  python="class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
 
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert_at_head(self, val):
+        new_node = Node(val)
+        new_node.next = self.head
+        self.head = new_node
+
+    def delete_node(self, val):
+        if not self.head: return
+        if self.head.data == val:
+            self.head = self.head.next
+            return
+        curr = self.head
+        while curr.next and curr.next.data != val:
+            curr = curr.next
+        if curr.next:
+            curr.next = curr.next.next"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
+  best="O(1)"
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="Insertion and deletion at the head take O(1) time. However, inserting or deleting at a specific position requires traversing the list, leading to O(N) time complexity. The space complexity is O(1) because we only allocate a new node or manipulate pointers."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Null Pointer Exceptions:** Always check if the current node or next node is null before accessing their properties.
+- **Lost References:** Be careful with the order of operations when updating pointers. If you update the next pointer of the current node too early, you lose access to the remainder of the list.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "Using a dummy node at the head can simplify insertion and deletion code by eliminating edge cases where the head itself changes.",
+    "Be extra careful when writing while conditions, ensuring you don't overshoot your target node."
   ]}
 />

@@ -4,62 +4,139 @@ category: "Sorting & Custom Comparators"
 readTime: "5 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the fundamentals of Quick Sort."
-  - "Learn how to implement this pattern in real coding interviews."
-  - "Master the time and space complexity."
-summary: "An essential guide to Quick Sort, exploring its applications, implementations, and interview intelligence."
+  - "Understand the Divide and Conquer strategy behind Quick Sort."
+  - "Learn how to implement Lomuto or Hoare partitioning."
+  - "Master the time and space complexity, including worst-case degradation."
+summary: "An essential guide to Quick Sort, exploring its applications, partitioning logic, and interview intelligence."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Quick Sort**. This topic is a cornerstone of the Sorting & Custom Comparators module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Welcome to the lesson on **Quick Sort**. Quick Sort is a highly efficient sorting algorithm and is heavily used in practice. Many built-in language sort functions use variations of Quick Sort (like IntroSort) under the hood.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Like Merge Sort, Quick Sort is a **Divide and Conquer** algorithm. However, it does all the heavy lifting during the *divide* step rather than the *combine* step.
+
+The core idea is to pick an element as a **pivot**. Then, we **partition** the given array around the picked pivot so that:
+1. All elements smaller than the pivot are moved to its left.
+2. All elements greater than the pivot are moved to its right.
+3. The pivot is now placed in its absolute correct sorted position.
+
+After partitioning, the algorithm recursively applies the exact same logic to the left sub-array and the right sub-array. 
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Quick Sort
-#include <iostream>
-using namespace std;
+  cpp="class Solution {
+private:
+    int partition(vector<int>& arr, int low, int high) {
+        // Choosing the last element as the pivot
+        int pivot = arr[high];
+        int i = low - 1; // Index of smaller element
 
-class Solution {
+        for (int j = low; j < high; j++) {
+            // If current element is smaller than or equal to pivot
+            if (arr[j] <= pivot) {
+                i++;
+                swap(arr[i], arr[j]);
+            }
+        }
+        swap(arr[i + 1], arr[high]);
+        return i + 1;
+    }
+
+    void quickSortHelper(vector<int>& arr, int low, int high) {
+        if (low < high) {
+            // pi is partitioning index, arr[pi] is now at right place
+            int pi = partition(arr, low, high);
+
+            // Separately sort elements before and after partition
+            quickSortHelper(arr, low, pi - 1);
+            quickSortHelper(arr, pi + 1, high);
+        }
+    }
+
 public:
-    void solve() {
-        // Implementation here
+    void quickSort(vector<int>& arr) {
+        quickSortHelper(arr, 0, arr.size() - 1);
     }
 };"
-  java="// Java implementation for Quick Sort
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    private int partition(int[] arr, int low, int high) {
+        int pivot = arr[high];
+        int i = low - 1;
+
+        for (int j = low; j < high; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                // Swap arr[i] and arr[j]
+                int temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+        // Swap arr[i+1] and arr[high] (or pivot)
+        int temp = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = temp;
+
+        return i + 1;
+    }
+
+    private void quickSortHelper(int[] arr, int low, int high) {
+        if (low < high) {
+            int pi = partition(arr, low, high);
+            quickSortHelper(arr, low, pi - 1);
+            quickSortHelper(arr, pi + 1, high);
+        }
+    }
+
+    public void quickSort(int[] arr) {
+        quickSortHelper(arr, 0, arr.length - 1);
     }
 }"
-  python="# Python implementation for Quick Sort
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def _partition(self, arr: list[int], low: int, high: int) -> int:
+        pivot = arr[high]
+        i = low - 1
+
+        for j in range(low, high):
+            if arr[j] <= pivot:
+                i += 1
+                arr[i], arr[j] = arr[j], arr[i]
+
+        arr[i + 1], arr[high] = arr[high], arr[i + 1]
+        return i + 1
+
+    def _quick_sort_helper(self, arr: list[int], low: int, high: int):
+        if low < high:
+            pi = self._partition(arr, low, high)
+            self._quick_sort_helper(arr, low, pi - 1)
+            self._quick_sort_helper(arr, pi + 1, high)
+
+    def quick_sort(self, arr: list[int]) -> None:
+        self._quick_sort_helper(arr, 0, len(arr) - 1)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N^2)"
+  space="O(log N)"
+  description="On average, the pivot splits the array into roughly equal halves, resulting in O(N log N) time complexity. However, if the array is already sorted (or reverse sorted) and the worst pivot (like the last element) is chosen, the recursion tree becomes a skewed line, taking O(N^2) time. Space complexity is O(log N) due to the recursive call stack, though it can degrade to O(N) in the worst case."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Choosing the wrong pivot:** Always picking the first or last element as the pivot is dangerous if the input is nearly sorted. In production, a random pivot or 'median of three' is used to avoid the $O(N^2)$ trap.
+- **Not an In-Place Sort:** Wait, isn't it in-place? While it requires no auxiliary arrays (unlike Merge Sort), it DOES require $O(\log N)$ implicit space for the call stack, so it is technically not strictly $O(1)$ space.
+- **Unstable Comparisons:** Standard Quick Sort is inherently unstable. Elements with the same value might flip their relative order during the partitioning phase.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If you need to find the 'Kth largest/smallest element' in an array, immediately pivot your thinking to QuickSelect. QuickSelect modifies Quick Sort's partitioning logic to run in O(N) average time.",
+    "Be prepared to explain why standard library sorts prefer Quick Sort over Merge Sort for arrays (better cache locality and no extra array allocation).",
+    "Quick Sort is a classic example of an algorithm where randomized choices (random pivot) drastically improve worst-case performance."
   ]}
 />

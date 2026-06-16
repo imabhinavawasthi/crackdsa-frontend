@@ -11,58 +11,135 @@ summary: "An essential guide to Path Compression & Union by Rank, exploring its 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Path Compression & Union by Rank**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+To make the Disjoint Set Union (DSU) operations nearly constant time, we implement two powerful optimizations: **Path Compression** and **Union by Rank/Size**.
 
-### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+### Path Compression
+Path compression is an optimization for the `Find` operation. While traversing up the tree to find the root, we can attach every visited node directly to the root. Thus, subsequent calls to `Find` for these nodes or their descendants will execute much faster, in $O(1)$ time. 
+
+### Union by Rank (or Size)
+Union by rank optimizes the `Union` operation. When merging two trees, we always attach the root of the shorter/smaller tree to the root of the taller/larger tree. 
+- **By Rank:** Uses tree height. The height of the merged tree only increases if both original trees had the exact same height.
+- **By Size:** Uses the number of nodes. The size of the merged tree is the sum of the sizes of the two trees.
+
+Together, these optimizations ensure that the tree depth remains extremely shallow, resulting in an amortized time complexity of $O(\alpha(V))$, where $\alpha$ is the incredibly slow-growing Inverse Ackermann function.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Path Compression & Union by Rank
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp={`class OptimizedDSU {
+    vector<int> parent;
+    vector<int> rank;
 public:
-    void solve() {
-        // Implementation here
+    OptimizedDSU(int n) {
+        parent.resize(n);
+        rank.resize(n, 0);
+        for(int i = 0; i < n; i++) parent[i] = i;
     }
-};"
-  java="// Java implementation for Path Compression & Union by Rank
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
+    
+    int find(int i) {
+        if (parent[i] == i)
+            return i;
+        // Path compression: attach node directly to the root
+        return parent[i] = find(parent[i]);
     }
-}"
-  python="# Python implementation for Path Compression & Union by Rank
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    
+    void unite(int i, int j) {
+        int rootI = find(i);
+        int rootJ = find(j);
+        if (rootI != rootJ) {
+            // Union by Rank
+            if (rank[rootI] < rank[rootJ]) {
+                parent[rootI] = rootJ;
+            } else if (rank[rootI] > rank[rootJ]) {
+                parent[rootJ] = rootI;
+            } else {
+                parent[rootJ] = rootI;
+                rank[rootI]++;
+            }
+        }
+    }
+};`}
+  java={`class OptimizedDSU {
+    int[] parent;
+    int[] rank;
+    
+    public OptimizedDSU(int n) {
+        parent = new int[n];
+        rank = new int[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+            rank[i] = 0;
+        }
+    }
+    
+    public int find(int i) {
+        if (parent[i] == i)
+            return i;
+        // Path compression
+        return parent[i] = find(parent[i]);
+    }
+    
+    public void unite(int i, int j) {
+        int rootI = find(i);
+        int rootJ = find(j);
+        if (rootI != rootJ) {
+            // Union by Rank
+            if (rank[rootI] < rank[rootJ]) {
+                parent[rootI] = rootJ;
+            } else if (rank[rootI] > rank[rootJ]) {
+                parent[rootJ] = rootI;
+            } else {
+                parent[rootJ] = rootI;
+                rank[rootI]++;
+            }
+        }
+    }
+}`}
+  python={`class OptimizedDSU:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+        
+    def find(self, i):
+        if self.parent[i] == i:
+            return i
+        # Path compression
+        self.parent[i] = self.find(self.parent[i])
+        return self.parent[i]
+        
+    def unite(self, i, j):
+        root_i = self.find(i)
+        root_j = self.find(j)
+        if root_i != root_j:
+            # Union by Rank
+            if self.rank[root_i] < self.rank[root_j]:
+                self.parent[root_i] = root_j
+            elif self.rank[root_i] > self.rank[root_j]:
+                self.parent[root_j] = root_i
+            else:
+                self.parent[root_j] = root_i
+                self.rank[root_i] += 1`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(E log V)"
-  average="O(E log V)"
-  worst="O(E log V)"
-  space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  best="O(1)"
+  average="O(α(V))"
+  worst="O(α(V))"
+  space="O(V)"
+  description="Both Path Compression and Union by Rank work synergistically. The Inverse Ackermann function α(V) is bounded by 4 for all reasonable V, practically making it O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Modifying rank erroneously:** Remember that the rank of the merged tree only increases if both roots had the *exact same rank* prior to the merge.
+- **Forgetting to update parent in `find`:** `return find(parent[i])` does NOT do path compression! You must assign it: `return parent[i] = find(parent[i])`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "Interviewer: 'What is the time complexity with only Path Compression?' Answer: O(log V) amortized per operation.",
+    "Interviewer: 'What if we only use Union by Rank?' Answer: O(log V) strictly per operation.",
+    "Mentioning the Ackermann function properly demonstrates profound CS knowledge."
   ]}
 />

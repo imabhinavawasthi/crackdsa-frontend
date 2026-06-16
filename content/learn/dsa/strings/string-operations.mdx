@@ -11,58 +11,81 @@ summary: "An essential guide to Basic Operations (Substring, Concatenation), cov
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Basic Operations (Substring, Concatenation)**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+Manipulating strings frequently requires basic operations like taking substrings, concatenation, and splitting strings by a delimiter. While these functions are heavily abstracted by standard libraries, understanding their computational costs is vital.
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+**Substring:**
+Creating a substring involves copying a section of the characters into a new string. Thus, if you extract a substring of length $K$, the operation takes $O(K)$ time and $O(K)$ space. Repeatedly creating substrings in a loop can easily push your algorithm into $O(N^2)$ or $O(N^3)$ complexity. A standard optimization is to avoid substrings entirely and simply pass indices (e.g., a `start` and `end` pointer) through your helper functions.
+
+**Concatenation:**
+Combining two strings $S_1$ and $S_2$ takes $O(|S_1| + |S_2|)$ time because both sets of characters must be copied to a new memory block (except when appending to a mutable string with enough capacity). 
+
+**Splitting:**
+Splitting a string by a delimiter requires iterating through the entire string to identify delimiters and subsequently copying each token into an array. This is an $O(N)$ operation in both time and space.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Basic Operations (Substring, Concatenation)
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    void stringOperations() {
+        string s = \"hello world\";
+        
+        // Substring: starts at index 0, length 5. Time: O(K)
+        string sub = s.substr(0, 5); 
+        
+        // Concatenation. Time: O(N + M)
+        string concat = sub + \" universe\"; 
+        
+        // In C++, splitting by delimiter is usually done with stringstream
     }
 };"
-  java="// Java implementation for Basic Operations (Substring, Concatenation)
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public void stringOperations() {
+        String s = \"hello world\";
+        
+        // Substring: from index 0 (inclusive) to 5 (exclusive). Time: O(K)
+        String sub = s.substring(0, 5);
+        
+        // Concatenation. Time: O(N + M)
+        String concat = sub + \" universe\";
+        
+        // Splitting by delimiter. Time: O(N)
+        String[] tokens = s.split(\" \");
     }
 }"
-  python="# Python implementation for Basic Operations (Substring, Concatenation)
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def string_operations(self) -> None:
+        s = 'hello world'
+        
+        # Substring (Slicing): Time O(K)
+        sub = s[0:5]
+        
+        # Concatenation: Time O(N + M)
+        concat = sub + ' universe'
+        
+        # Splitting by delimiter: Time O(N)
+        tokens = s.split(' ')"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  best="O(K)"
+  average="O(K)"
+  worst="O(K)"
+  space="O(K)"
+  description="Creating a substring of length K takes O(K) time and space. Concatenating two strings takes time proportional to the combined length of both strings."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- Extracting substrings inside a recursive function or loop, significantly degrading performance. Pass index pointers (`int start`, `int end`) instead.
+- Using `.split()` on very large strings when you only need to process tokens sequentially. Consider using a scanner or iterating character by character.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "Whenever you are tempted to use `substring()`, ask yourself: 'Can I just use two integer pointers to represent this range?'",
+    "String slicing in Python `s[start:end]` creates a copy. Do not confuse it with C++ string_view or other zero-copy abstractions unless explicitly using those types.",
+    "For string concatenation inside a loop, always use a Builder or join array elements."
   ]}
 />

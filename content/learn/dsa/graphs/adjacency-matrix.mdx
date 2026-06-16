@@ -11,59 +11,99 @@ summary: "An essential guide to Adjacency Matrix Representation, exploring its a
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Adjacency Matrix Representation**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+An **Adjacency Matrix** is a 2D array of size `V x V` (where `V` is the number of vertices) used to represent a finite graph. 
 
-### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+- `matrix[i][j] = 1` indicates an edge exists from vertex `i` to vertex `j`.
+- `matrix[i][j] = 0` indicates no edge exists.
+- In a weighted graph, `matrix[i][j] = weight` if an edge exists, and a special value (like `infinity` or `0`) otherwise.
+
+### Pros and Cons
+**Pros:**
+- Checking if an edge exists between two vertices `u` and `v` is `O(1)`.
+- Easy to implement and understand.
+- Useful for dense graphs where `E` is close to `V^2`.
+
+**Cons:**
+- Consumes `O(V^2)` space, which is highly inefficient for sparse graphs.
+- Iterating over all neighbors of a vertex takes `O(V)` time.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Adjacency Matrix Representation
-#include <iostream>
-#include <vector>
-using namespace std;
+  cpp="class AdjacencyMatrix {
+    int V;
+    vector<vector<int>> matrix;
 
-class Solution {
 public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+    AdjacencyMatrix(int V) {
+        this->V = V;
+        matrix.assign(V, vector<int>(V, 0));
+    }
+
+    void addEdge(int u, int v, int weight = 1, bool directed = false) {
+        matrix[u][v] = weight;
+        if (!directed) {
+            matrix[v][u] = weight;
+        }
+    }
+
+    bool hasEdge(int u, int v) {
+        return matrix[u][v] != 0;
     }
 };"
-  java="// Java implementation for Adjacency Matrix Representation
-import java.util.*;
+  java="class AdjacencyMatrix {
+    int V;
+    int[][] matrix;
 
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+    public AdjacencyMatrix(int V) {
+        this.V = V;
+        matrix = new int[V][V];
+    }
+
+    public void addEdge(int u, int v, int weight, boolean directed) {
+        matrix[u][v] = weight;
+        if (!directed) {
+            matrix[v][u] = weight;
+        }
+    }
+
+    public boolean hasEdge(int u, int v) {
+        return matrix[u][v] != 0;
     }
 }"
-  python="# Python implementation for Adjacency Matrix Representation
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  python="class AdjacencyMatrix:
+    def __init__(self, V):
+        self.V = V
+        self.matrix = [[0] * V for _ in range(V)]
+
+    def add_edge(self, u, v, weight=1, directed=False):
+        self.matrix[u][v] = weight
+        if not directed:
+            self.matrix[v][u] = weight
+
+    def has_edge(self, u, v):
+        return self.matrix[u][v] != 0"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(V + E)"
-  average="O(V + E)"
-  worst="O(V + E)"
-  space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
+  space="O(V^2)"
+  description="Adding, removing, or checking for an edge takes O(1) time. The space complexity is firmly O(V^2), allocating space for all possible V x V connections, regardless of actual edges."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- Using an adjacency matrix for very large graphs (e.g., `V > 10000`). This will cause a Memory Limit Exceeded (MLE) error since `10^8` integers take ~400MB of RAM.
+- Forgetting to handle `u == v` (self-loops) correctly if they are not allowed.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "Only use an Adjacency Matrix if V is very small (usually V <= 1000).",
+    "It is incredibly fast for checking edge existence in dense graphs (e.g., shortest path problems like Floyd-Warshall).",
+    "For unweighted graphs, consider using a Bitset instead of a boolean array to save a massive amount of memory (factor of 32x in C++)."
   ]}
 />

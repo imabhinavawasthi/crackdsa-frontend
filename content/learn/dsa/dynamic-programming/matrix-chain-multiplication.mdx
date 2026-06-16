@@ -11,64 +11,86 @@ summary: "An essential deep-dive into Matrix Chain Multiplication (MCM). This ar
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Matrix Chain Multiplication (MCM)**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+The **Matrix Chain Multiplication (MCM)** problem determines the most efficient way to multiply a given sequence of matrices. The problem is not actually to perform the multiplications, but merely to decide the order of the matrix multiplications to minimize the number of scalar multiplications.
 
 ### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
-
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+This is a classic **Partition DP** (or Interval DP) problem. 
+If we want to evaluate the product of matrices from index `i` to `j`, we can split the product at some point `k` (where `i <= k < j`).
+The cost of this split is:
+`cost(i, k) + cost(k+1, j) + operations to multiply the two resulting matrices`.
+To find the optimal split, we try all possible values of `k` and take the minimum.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Matrix Chain Multiplication (MCM)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int matrixMultiplication(int N, vector<int>& arr) {
+        vector<vector<int>> dp(N, vector<int>(N, 0));
+        
+        for (int len = 2; len < N; len++) {
+            for (int i = 1; i < N - len + 1; i++) {
+                int j = i + len - 1;
+                dp[i][j] = INT_MAX;
+                for (int k = i; k < j; k++) {
+                    int cost = dp[i][k] + dp[k + 1][j] + arr[i - 1] * arr[k] * arr[j];
+                    dp[i][j] = min(dp[i][j], cost);
+                }
+            }
+        }
+        return dp[1][N - 1];
     }
 };"
-  java="// Java implementation for Matrix Chain Multiplication (MCM)
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int matrixMultiplication(int N, int[] arr) {
+        int[][] dp = new int[N][N];
+        
+        for (int len = 2; len < N; len++) {
+            for (int i = 1; i < N - len + 1; i++) {
+                int j = i + len - 1;
+                dp[i][j] = Integer.MAX_VALUE;
+                for (int k = i; k < j; k++) {
+                    int cost = dp[i][k] + dp[k + 1][j] + arr[i - 1] * arr[k] * arr[j];
+                    dp[i][j] = Math.min(dp[i][j], cost);
+                }
+            }
+        }
+        return dp[1][N - 1];
     }
 }"
-  python="# Python implementation for Matrix Chain Multiplication (MCM)
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def matrixMultiplication(self, N: int, arr: list[int]) -> int:
+        dp = [[0] * N for _ in range(N)]
+        
+        for length in range(2, N):
+            for i in range(1, N - length + 1):
+                j = i + length - 1
+                dp[i][j] = float('inf')
+                for k in range(i, j):
+                    cost = dp[i][k] + dp[k + 1][j] + arr[i - 1] * arr[k] * arr[j]
+                    dp[i][j] = min(dp[i][j], cost)
+                    
+        return dp[1][N - 1]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(N^3)"
+  average="O(N^3)"
+  worst="O(N^3)"
+  space="O(N^2)"
+  description="We test intervals of every length, from every start point, and try every split point. This leads to 3 nested loops, causing an O(N^3) time complexity."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- Struggling with the loop structures. Remember that interval DP usually iterates over the **length of the interval** first, then the starting point, and finally the split point.
+- Array indexing: The dimensions for matrix `i` are `arr[i-1] x arr[i]`. So the multiplication cost at split `k` is `arr[i-1] * arr[k] * arr[j]`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "MCM is a framework more than just a single problem. Problems like 'Burst Balloons' or 'Palindrome Partitioning' use the exact same interval DP approach.",
+    "If tabulation is confusing, start with memoization (top-down). Top-down is incredibly intuitive for MCM since you just recurse on `(i, k)` and `(k+1, j)`."
   ]}
 />

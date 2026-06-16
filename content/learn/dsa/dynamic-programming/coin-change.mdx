@@ -11,64 +11,110 @@ summary: "An essential deep-dive into Coin Change I & II. This article breaks do
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Coin Change I & II**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+The **Coin Change** problem family typically asks two questions:
+1. **Coin Change I**: What is the *minimum number of coins* needed to make a specific amount?
+2. **Coin Change II**: What is the *total number of combinations* to make a specific amount?
 
 ### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+Both are variations of the Unbounded Knapsack pattern since you have an infinite supply of each coin denomination.
+For **Coin Change I**, your state tracks the minimum coins. Transition: `dp[i] = min(dp[i], dp[i - coin] + 1)`.
+For **Coin Change II**, your state tracks the total ways. Transition: `dp[i] += dp[i - coin]`.
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+Because items can be reused indefinitely, we iterate the inner loops forwards (from `coin` to `amount`), carrying over the impact of multiple uses of the same coin.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Coin Change I & II
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    // Coin Change I: Minimum Coins
+    int coinChange(vector<int>& coins, int amount) {
+        vector<int> dp(amount + 1, amount + 1);
+        dp[0] = 0;
+        for (int coin : coins) {
+            for (int i = coin; i <= amount; i++) {
+                dp[i] = min(dp[i], dp[i - coin] + 1);
+            }
+        }
+        return dp[amount] > amount ? -1 : dp[amount];
+    }
+
+    // Coin Change II: Total Combinations
+    int change(int amount, vector<int>& coins) {
+        vector<int> dp(amount + 1, 0);
+        dp[0] = 1;
+        for (int coin : coins) {
+            for (int i = coin; i <= amount; i++) {
+                dp[i] += dp[i - coin];
+            }
+        }
+        return dp[amount];
     }
 };"
-  java="// Java implementation for Coin Change I & II
-import java.util.*;
+  java="class Solution {
+    // Coin Change I: Minimum Coins
+    public int coinChange(int[] coins, int amount) {
+        int[] dp = new int[amount + 1];
+        Arrays.fill(dp, amount + 1);
+        dp[0] = 0;
+        for (int coin : coins) {
+            for (int i = coin; i <= amount; i++) {
+                dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+            }
+        }
+        return dp[amount] > amount ? -1 : dp[amount];
+    }
 
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    // Coin Change II: Total Combinations
+    public int change(int amount, int[] coins) {
+        int[] dp = new int[amount + 1];
+        dp[0] = 1;
+        for (int coin : coins) {
+            for (int i = coin; i <= amount; i++) {
+                dp[i] += dp[i - coin];
+            }
+        }
+        return dp[amount];
     }
 }"
-  python="# Python implementation for Coin Change I & II
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    # Coin Change I: Minimum Coins
+    def coinChange(self, coins: list[int], amount: int) -> int:
+        dp = [float('inf')] * (amount + 1)
+        dp[0] = 0
+        for coin in coins:
+            for i in range(coin, amount + 1):
+                dp[i] = min(dp[i], dp[i - coin] + 1)
+        return dp[amount] if dp[amount] != float('inf') else -1
+
+    # Coin Change II: Total Combinations
+    def change(self, amount: int, coins: list[int]) -> int:
+        dp = [0] * (amount + 1)
+        dp[0] = 1
+        for coin in coins:
+            for i in range(coin, amount + 1):
+                dp[i] += dp[i - coin]
+        return dp[amount]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(C * A)"
+  average="O(C * A)"
+  worst="O(C * A)"
+  space="O(A)"
+  description="Where C is the number of coins and A is the target amount. The space complexity is O(A) thanks to the 1D dynamic programming array."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- In Coin Change II, swapping the loops (iterating amount first, then coins) calculates permutations instead of combinations, double-counting identical combinations in different orders.
+- Initializing the DP array with `INT_MAX` for Coin Change I without accounting for overflow when adding `1`. Use `amount + 1` or a sufficiently large safe value.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "Understand the distinction between combinations and permutations. The loop order strictly controls which one you compute.",
+    "For Coin Change I, if the problem requires reconstructing the exact coins used, maintain a `parent` array alongside your DP array to backtrack."
   ]}
 />

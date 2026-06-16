@@ -11,73 +11,40 @@ summary: "An essential guide to Palindrome String (Recursive), exploring recursi
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Palindrome String (Recursive)**. This topic is a cornerstone of the Recursion & Backtracking module. Recursion is the foundation for Trees, Graphs, and Dynamic Programming. If you can't visualize a recursion tree, those advanced topics will be impossible to master.
+A string is a **palindrome** if it reads the same forwards and backwards (e.g., "racecar", "madam"). Checking if a string is a palindrome recursively builds directly upon the logic used to reverse an array.
 
-### Core Intuition
-Recursion is simply a function calling itself with a slightly smaller input until it hits a Base Case. 
-**Backtracking** is a specialized form of recursion. It's an algorithmic technique for solving problems recursively by trying to build a solution incrementally, one piece at a time, removing those solutions that fail to satisfy the constraints of the problem at any point in time.
+Using a two-pointer approach (`left` and `right`):
+- **Base Case:** If `left >= right`, all pairs of characters have matched, so the string is a palindrome (return `true`).
+- **Recursive Step:** Check if the character at `left` matches the character at `right`. If they don't, return `false`. If they do, recurse on the substring by incrementing `left` and decrementing `right`.
 
 # Code Implementation
+Here is the standard recursive implementation for checking a palindrome.
+
 <CodeBlock
-  cpp="// C++ implementation for Palindrome String (Recursive)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-    
-private:
-    void backtrack() {
-        // Recursive helper
-    }
-};"
-  java="// Java implementation for Palindrome String (Recursive)
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-    
-    private void backtrack() {
-        // Recursive helper
-    }
-}"
-  python="# Python implementation for Palindrome String (Recursive)
-class Solution:
-    def solve(self):
-        def backtrack():
-            # Recursive helper
-            pass
-            
-        # Implementation here
-        pass"
+  cpp="class Solution {\npublic:\n    bool isPalindrome(string& s, int left, int right) {\n        // Base case: crossed the middle\n        if (left >= right) return true;\n        \n        // If mismatch found, not a palindrome\n        if (s[left] != s[right]) return false;\n        \n        // Recurse for the inner substring\n        return isPalindrome(s, left + 1, right - 1);\n    }\n};"
+  java="class Solution {\n    public boolean isPalindrome(String s, int left, int right) {\n        // Base case\n        if (left >= right) return true;\n        \n        // Mismatch\n        if (s.charAt(left) != s.charAt(right)) return false;\n        \n        // Recurse\n        return isPalindrome(s, left + 1, right - 1);\n    }\n}"
+  python="class Solution:\n    def is_palindrome(self, s: str, left: int, right: int) -> bool:\n        # Base case\n        if left >= right:\n            return True\n            \n        # Mismatch\n        if s[left] != s[right]:\n            return False\n            \n        # Recurse\n        return self.is_palindrome(s, left + 1, right - 1)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(2^N)"
-  average="O(2^N)"
-  worst="O(N!)"
+  best="O(1)"
+  average="O(N)"
+  worst="O(N)"
   space="O(N)"
-  description="Combinatorial backtracking generates massive state spaces. Generating subsets is O(2^N), while generating permutations is O(N!). Space complexity is typically bounded by the maximum recursion depth, which is usually O(N)."
+  description="The time complexity is O(N) because in the worst case (a valid palindrome), we check N/2 pairs. Space complexity is O(N) because the Call Stack goes N/2 levels deep."
 />
 
 # Common Pitfalls
 <Warning>
-- **Missing Base Case:** A recursion function without a base case (or an unreachable one) will crash with a `StackOverflowError` instantly.
-- **Pass By Reference Mutations:** In Python and C++, if you append a list/vector to your results array, you must append a *copy* (`path[:]` or `new ArrayList<>(path)`). Otherwise, future backtracking steps will clear out your stored answers!
+- Creating new substrings at each recursive step (e.g., `s.substring(1, s.length() - 1)`). This changes the time complexity to O(N^2) due to string copying! Always pass the original string by reference and use pointer indices.
+- Not accounting for case sensitivity or non-alphanumeric characters if the problem requires it (like LeetCode's 'Valid Palindrome').
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks you to 'return all possible combinations', 'find all paths', or 'generate all subsets', it is a 100% guarantee that it requires Backtracking.",
-    "Draw the recursion tree out loud for the interviewer for N=3. This proves you understand the state transitions and aren't just memorizing code.",
-    "State the time complexity carefully. Say 'O(2^N * N)' where the extra N is the time it takes to copy the subset into the final result list."
+    "Passing strings by reference (in C++) and using index pointers is crucial to avoid hidden O(N) penalties during string slicing.",
+    "Just like array reversal, the iterative two-pointer approach is preferred in production for O(1) space, but this is a great exercise for solidifying recursive thinking."
   ]}
 />

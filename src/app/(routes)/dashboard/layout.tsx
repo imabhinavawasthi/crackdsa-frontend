@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Dashboard | CrackDSA",
+  title: "Dashboard | crackDSA",
   description: "View your progress, recent activity, and personalized recommendations.",
 };
 

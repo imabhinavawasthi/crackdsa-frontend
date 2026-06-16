@@ -11,55 +11,103 @@ summary: "An essential guide to Lowest Common Ancestor, exploring its applicatio
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Lowest Common Ancestor**. This topic is a cornerstone of the Trees & Binary Trees module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+The **Lowest Common Ancestor (LCA)** algorithm is a powerful tool in tree traversal. This lesson focuses on the generalized **Binary Tree** approach (where no ordering property is guaranteed).
+
+### The Mechanics of General LCA
+When we don't have a Binary Search Tree (BST), we have no clue whether `p` or `q` is in the left or right subtree. We must perform an exhaustive search. 
+
+We use a **Bottom-Up (Postorder)** recursive strategy:
+1. If the current node is null, return null.
+2. If the current node is either `p` or `q`, return the current node immediately. (This implicitly covers the rule that a node can be an ancestor of itself).
+3. Recursively call LCA on the left and right children.
+4. If BOTH the left and right recursive calls return non-null nodes, it means `p` was found in one subtree and `q` in the other. Thus, the *current node* is the Lowest Common Ancestor!
+5. If only one call returns a non-null node, we bubble that non-null node up the call stack.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Lowest Common Ancestor
-#include <iostream>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        // Base case: if root is null, or matches p or q
+        if (root == nullptr || root == p || root == q) {
+            return root;
+        }
+        
+        // Search left and right subtrees
+        TreeNode* left = lowestCommonAncestor(root->left, p, q);
+        TreeNode* right = lowestCommonAncestor(root->right, p, q);
+        
+        // If both are found, this is the LCA
+        if (left != nullptr && right != nullptr) {
+            return root;
+        }
+        
+        // Otherwise, return the non-null child (bubble up)
+        return left != nullptr ? left : right;
     }
 };"
-  java="// Java implementation for Lowest Common Ancestor
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        // Base case: if root is null, or matches p or q
+        if (root == null || root == p || root == q) {
+            return root;
+        }
+        
+        // Search left and right subtrees
+        TreeNode left = lowestCommonAncestor(root.left, p, q);
+        TreeNode right = lowestCommonAncestor(root.right, p, q);
+        
+        // If both are found, this is the LCA
+        if (left != null && right != null) {
+            return root;
+        }
+        
+        // Otherwise, return the non-null child (bubble up)
+        return left != null ? left : right;
     }
 }"
-  python="# Python implementation for Lowest Common Ancestor
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+        # Base case: if root is null, or matches p or q
+        if not root or root == p or root == q:
+            return root
+            
+        # Search left and right subtrees
+        left = self.lowestCommonAncestor(root.left, p, q)
+        right = self.lowestCommonAncestor(root.right, p, q)
+        
+        # If both are found, this is the LCA
+        if left and right:
+            return root
+            
+        # Otherwise, return the non-null child (bubble up)
+        return left if left else right"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(H)"
+  description="Time complexity is O(N) because in the worst case, p and q are at the deepest leaves. Space complexity is O(H) representing the maximum recursion call stack."
 />
 
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Assuming Both Nodes Exist:** The standard algorithm assumes both `p` and `q` are guaranteed to exist in the tree. If one node might be missing, returning a match early will falsely identify it as the LCA. You would need a separate boolean flag to confirm both were found!
+- **Value Matching vs Reference Matching:** Ensure you are comparing the node references (`root == p`), not just the values (`root.val == p.val`), especially if the tree allows duplicate values.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "This algorithm is incredibly elegant because it uses the returned object itself as a boolean flag (null = not found, node = found/LCA). Explain this design pattern to the interviewer.",
+    "If the interviewer asks how to solve this iteratively without parent pointers, mention using a Stack to simulate DFS while maintaining a path array, but clarify that recursion is cleaner."
   ]}
 />

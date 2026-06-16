@@ -11,55 +11,60 @@ summary: "An essential guide to Fenwick Trees (BIT), exploring its applications,
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Fenwick Trees (BIT)**. This topic is a cornerstone of the Tries & Advanced Data Structures module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Welcome to **Fenwick Trees**, famously known as **Binary Indexed Trees (BIT)**. If Segment Trees felt like writing an encyclopedic amount of code, a Fenwick Tree is the minimalist wizard's alternative. 
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+A Fenwick Tree solves the exact same problem as a Segment Tree—Dynamic Range Sum Queries and Point Updates in O(log N)—but does so using bitwise operations and a strictly `N+1` sized array!
+
+The genius of Fenwick trees lies in isolating the "Lowest Set Bit" (LSB) of an index to define intervals.
+Every index `i` in the BIT array stores the sum of a specific range of elements. The size of this range is equal to the value of the Lowest Set Bit of `i`.
+
+### The Magic Formula: `x & (-x)`
+In two's complement binary arithmetic, `x & (-x)` isolates the lowest set bit.
+- **Updating**: To add a value, we start at index `i` and move UP the tree by **adding** the LSB (`i += i & (-i)`).
+- **Querying**: To get the prefix sum up to index `i`, we start at `i` and move DOWN by **subtracting** the LSB (`i -= i & (-i)`).
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Fenwick Trees (BIT)
-#include <iostream>
-using namespace std;
-
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
+  cpp="/* Conceptual Building Block - Not executable algorithm yet */
+class BITBasics {
+    // Array of size N + 1
+    // Update moves forward: idx += (idx & -idx)
+    // Query moves backward: idx -= (idx & -idx)
 };"
-  java="// Java implementation for Fenwick Trees (BIT)
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
+  java="/* Conceptual Building Block - Not executable algorithm yet */
+class BITBasics {
+    // Array of size N + 1
+    // Update moves forward: idx += (idx & -idx)
+    // Query moves backward: idx -= (idx & -idx)
 }"
-  python="# Python implementation for Fenwick Trees (BIT)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="# Conceptual Building Block - Not executable algorithm yet
+class BITBasics:
+    # Array of size N + 1
+    # Update moves forward: idx += (idx & -idx)
+    # Query moves backward: idx -= (idx & -idx)
+    pass"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(log N)"
+  average="O(log N)"
+  worst="O(log N)"
+  space="O(N)"
+  description="Extremely efficient. Both update and query loop for exactly the number of set bits in the index, which is at most O(log N). Memory is strictly O(N+1)."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Fenwick Trees **must be 1-indexed**. Using 0-indexing causes an infinite loop because `0 & (-0)` is 0, so the index never increments.
+- Fenwick trees are naturally meant for prefix sums. Finding a range sum `[L, R]` requires querying `Query(R) - Query(L-1)`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Fenwick Trees are much faster in practice than Segment Trees because bitwise operations are executed directly on the CPU with zero recursion overhead.",
+    "The limitation is that BITs cannot easily handle complex range queries like Range Min/Max; they are strictly designed for associative and invertible operations like Sum."
   ]}
 />

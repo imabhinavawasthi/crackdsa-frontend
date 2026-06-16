@@ -99,9 +99,15 @@ export function CourseCard({ course, index }: { course: CourseSummary; index: nu
             )}
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-lg font-black text-gray-900 dark:text-white">₹{course.price}</span>
-            {course.original_price > course.price && (
-              <span className="text-xs font-bold text-gray-400 line-through">₹{course.original_price}</span>
+            {course.price === 0 ? (
+              <span className="text-lg font-black text-emerald-500">Free</span>
+            ) : (
+              <>
+                <span className="text-lg font-black text-gray-900 dark:text-white">₹{course.price}</span>
+                {course.original_price > course.price && (
+                  <span className="text-xs font-bold text-gray-400 line-through">₹{course.original_price}</span>
+                )}
+              </>
             )}
           </div>
         </div>

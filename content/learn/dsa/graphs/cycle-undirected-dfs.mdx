@@ -11,37 +11,87 @@ summary: "An essential guide to Cycle in Undirected Graph (DFS), exploring its a
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Cycle in Undirected Graph (DFS)**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+Just like with BFS, detecting a cycle in an undirected graph can be achieved cleanly using Depth First Search (DFS).
 
-### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+The logic remains identical: if we visit a node and encounter an adjacent node that is **already visited**, and that adjacent node is **not the parent** of the current node, then a cycle exists.
+
+### Why DFS?
+Many candidates find the DFS implementation much shorter and slightly easier to write than BFS because it utilizes the call stack implicitly rather than requiring an explicit Queue to store `(node, parent)` pairs. We simply pass the `parent` as an argument to our recursive function.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Cycle in Undirected Graph (DFS)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+  cpp="bool detectCycleDFS(int node, int parent, vector<vector<int>>& adj, vector<bool>& visited) {
+    visited[node] = true;
+    
+    for (int neighbor : adj[node]) {
+        if (!visited[neighbor]) {
+            if (detectCycleDFS(neighbor, node, adj, visited)) {
+                return true;
+            }
+        } 
+        // If visited and not the parent, cycle detected!
+        else if (neighbor != parent) {
+            return true;
+        }
     }
-};"
-  java="// Java implementation for Cycle in Undirected Graph (DFS)
-import java.util.*;
+    return false;
+}
 
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+bool isCyclic(int V, vector<vector<int>>& adj) {
+    vector<bool> visited(V, false);
+    for (int i = 0; i < V; i++) {
+        if (!visited[i]) {
+            // Initial parent is -1
+            if (detectCycleDFS(i, -1, adj, visited)) return true;
+        }
     }
+    return false;
 }"
-  python="# Python implementation for Cycle in Undirected Graph (DFS)
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  java="public boolean detectCycleDFS(int node, int parent, List<List<Integer>> adj, boolean[] visited) {
+    visited[node] = true;
+    
+    for (int neighbor : adj.get(node)) {
+        if (!visited[neighbor]) {
+            if (detectCycleDFS(neighbor, node, adj, visited)) {
+                return true;
+            }
+        } else if (neighbor != parent) {
+            return true; // Cycle detected!
+        }
+    }
+    return false;
+}
+
+public boolean isCyclic(int V, List<List<Integer>> adj) {
+    boolean[] visited = new boolean[V];
+    for (int i = 0; i < V; i++) {
+        if (!visited[i]) {
+            // Initial parent is -1
+            if (detectCycleDFS(i, -1, adj, visited)) return true;
+        }
+    }
+    return false;
+}"
+  python="def detect_cycle_dfs(node, parent, adj, visited):
+    visited[node] = True
+    
+    for neighbor in adj[node]:
+        if not visited[neighbor]:
+            if detect_cycle_dfs(neighbor, node, adj, visited):
+                return True
+        elif neighbor != parent:
+            return True # Cycle detected
+            
+    return False
+
+def is_cyclic(V, adj):
+    visited = [False] * V
+    for i in range(V):
+        if not visited[i]:
+            # Initial parent is -1
+            if detect_cycle_dfs(i, -1, adj, visited):
+                return True
+    return False"
 />
 
 # Complexity Analysis
@@ -50,20 +100,19 @@ class Solution:
   average="O(V + E)"
   worst="O(V + E)"
   space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  description="Every vertex is visited once, and all edges are checked. This results in O(V + E) time. The space complexity is O(V) for the recursive call stack and the visited array."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- Forgetting to return `true` immediately when the recursive call returns `true`. If you forget the `if (detectCycleDFS(...)) return true;` check, the cycle will be ignored.
+- Accidentally checking for cycles in Directed graphs using this logic. Directed graphs require tracking the recursion stack, not just the parent.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "If an interviewer asks you to check if a graph is a valid Tree, you can use this exact algorithm. A valid tree is simply a connected graph with NO cycles.",
+    "Be careful to initialize the parent of the starting node as -1 or a value that doesn't correspond to any actual vertex index."
   ]}
 />

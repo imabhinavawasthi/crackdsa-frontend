@@ -11,79 +11,111 @@ summary: "An essential guide to Circular Linked List, exploring safe pointer rea
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Circular Linked List**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+A **Circular Linked List** is a variation of the linked list where the last node points back to the first node instead of pointing to null. This forms a continuous loop. Circular linked lists can be either singly or doubly linked.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+### Applications
+Circular lists are incredibly useful in scenarios where a cyclic traversal is necessary:
+- Round-Robin scheduling algorithms in operating systems.
+- Multiplayer board games to cycle through players' turns.
+- Audio or video playlists designed to loop continuously.
+
+### Traversal Strategy
+Unlike a linear linked list where you stop when the current node is null, in a circular list you stop when the next node is the head. This is the fundamental difference that you must be aware of to prevent infinite loops.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Circular Linked List
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
+  cpp="class Node {
+public:
+    int data;
+    Node* next;
+    Node(int val) : data(val), next(nullptr) {}
 };
 
-class Solution {
+class CircularLinkedList {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    Node* head;
+    CircularLinkedList() : head(nullptr) {}
+
+    void insertEnd(int val) {
+        Node* newNode = new Node(val);
+        if (!head) {
+            head = newNode;
+            newNode->next = head;
+            return;
+        }
+        Node* curr = head;
+        while (curr->next != head) {
+            curr = curr->next;
+        }
+        curr->next = newNode;
+        newNode->next = head;
     }
 };"
-  java="// Java implementation for Circular Linked List
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+  java="class Node {
+    int data;
+    Node next;
+    Node(int d) { data = d; next = null; }
 }
 
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+class CircularLinkedList {
+    Node head;
+
+    public void insertEnd(int val) {
+        Node newNode = new Node(val);
+        if (head == null) {
+            head = newNode;
+            newNode.next = head;
+            return;
+        }
+        Node curr = head;
+        while (curr.next != head) {
+            curr = curr.next;
+        }
+        curr.next = newNode;
+        newNode.next = head;
     }
 }"
-  python="# Python implementation for Circular Linked List
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+  python="class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
 
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+class CircularLinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert_end(self, val):
+        new_node = Node(val)
+        if not self.head:
+            self.head = new_node
+            new_node.next = self.head
+            return
+        curr = self.head
+        while curr.next != self.head:
+            curr = curr.next
+        curr.next = new_node
+        new_node.next = self.head"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
+  best="O(1)"
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="Appending an element at the end requires traversing the entire circle, resulting in O(N) time. However, if an explicit tail pointer is maintained, this can drop to O(1) time."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Infinite Loops:** Failing to set the stopping condition to check if the next node is the head can result in infinite iteration.
+- **Single Node Edge Case:** Special care is needed when inserting or deleting from a list that has exactly one node that points to itself.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "If you only keep track of a tail pointer instead of a head pointer, you can get O(1) insertions at both the head and tail! The head is simply tail.next.",
+    "Always check if head is null before initiating a traversal loop to prevent errors."
   ]}
 />

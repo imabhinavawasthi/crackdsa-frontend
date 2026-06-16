@@ -11,64 +11,70 @@ summary: "An essential guide to Kth Largest Element in an Array, mastering O(log
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Kth Largest Element in an Array**. This topic is a cornerstone of the Heaps & Priority Queues module. A Heap (usually implemented via a Priority Queue) is an extremely specialized tree structure that allows you to instantly extract the minimum or maximum element in O(1) time, while inserts and deletions take O(log N).
+Finding the **Kth Largest Element in an Array** is one of the most fundamental heap problems. It forms the basis of the "Top K" pattern.
+The problem gives an unsorted array of integers and an integer `k`. The goal is to return the `k`th largest element.
 
-### Core Intuition
-Heaps are typically implemented under the hood as a complete binary tree mapped to a flat array. The children of node `i` are at `2i + 1` and `2i + 2`. This guarantees the tree is perfectly balanced.
+### Intuition
+While sorting the array in `O(N log N)` time and simply returning `arr[N-K]` is a valid brute-force approach, we can do better by maintaining a **Min-Heap of size K**.
+
+By pushing elements into a Min-Heap, the smallest element of the heap sits at the root. If we keep the heap size to exactly `k`, then the root will naturally hold the `k`th largest element we've seen so far. If a new element is larger than the root, we pop the root and push the new element.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Kth Largest Element in an Array
-#include <iostream>
-#include <vector>
-#include <queue>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // priority_queue<int> maxHeap;
-        // priority_queue<int, vector<int>, greater<int>> minHeap;
+    int findKthLargest(vector<int>& nums, int k) {
+        priority_queue<int, vector<int>, greater<int>> minHeap;
+        for (int num : nums) {
+            minHeap.push(num);
+            if (minHeap.size() > k) {
+                minHeap.pop();
+            }
+        }
+        return minHeap.top();
     }
 };"
-  java="// Java implementation for Kth Largest Element in an Array
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // PriorityQueue<Integer> minHeap = new PriorityQueue<>();
-        // PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+  java="class Solution {
+    public int findKthLargest(int[] nums, int k) {
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        for (int num : nums) {
+            minHeap.add(num);
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+        return minHeap.peek();
     }
 }"
-  python="# Python implementation for Kth Largest Element in an Array
-import heapq
-
-class Solution:
-    def solve(self, arr: list[int]):
-        # heapq.heapify(arr)  # Min-heap by default
-        pass"
+  python="class Solution:
+    def findKthLargest(self, nums: list[int], k: int) -> int:
+        min_heap = []
+        for num in nums:
+            heapq.heappush(min_heap, num)
+            if len(min_heap) > k:
+                heapq.heappop(min_heap)
+        return min_heap[0]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
-  space="O(N)"
-  description="Peeking at the top element is O(1). Popping or Pushing an element takes O(log N) time because the heap must bubble up or sift down to maintain its properties. Building a heap from an unsorted array takes O(N) time."
+  best="O(N log K)"
+  average="O(N log K)"
+  worst="O(N log K)"
+  space="O(K)"
+  description="We iterate through N elements. Each push and pop operation takes O(log K) time since the heap size is capped at K. The space complexity is bounded by O(K)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Python's heapq:** Python only has a built-in Min-Heap. To simulate a Max-Heap, you must negate all numbers before pushing them in, and negate them again when popping out!
-- **N log N vs N log K:** When finding the Top K elements, do NOT push all N elements into the heap (O(N log N)). Instead, keep the heap size capped at K. When size > K, pop the smallest element. This reduces time complexity to O(N log K).
+- Using a Max-Heap of size N. While this works, popping K times takes O(K log N) after O(N) build heap. The Min-Heap of size K approach is generally preferred, especially for large streaming data, because space complexity is bounded to O(K).
+- Misinterpreting Kth largest for Kth unique largest. Most problems assume duplicates are counted separately unless specified otherwise.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Kth Largest', 'Kth Smallest', or 'Top K' of anything, it is a 99% guarantee that a Heap/Priority Queue is the intended solution.",
-    "If you need to merge multiple sorted arrays or linked lists simultaneously, a Min-Heap keeping track of the current pointers is the most optimal approach.",
-    "The 'Find Median from Data Stream' problem is a classic hard interview question solved beautifully by maintaining two separate heaps: one Max-Heap for the lower half, and one Min-Heap for the upper half."
+    "If the array is extremely large or the data is coming in as a stream, the Min-Heap of size K approach is heavily favored by interviewers because of its O(K) space complexity.",
+    "Mention Quickselect as an alternative O(N) average time approach, but note its O(N^2) worst-case time complexity. Interviewers often want to hear about both."
   ]}
 />

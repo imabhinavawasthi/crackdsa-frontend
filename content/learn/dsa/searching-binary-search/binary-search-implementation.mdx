@@ -11,37 +11,102 @@ summary: "An essential guide to Binary Search Implementation (Iterative & Recurs
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Binary Search Implementation (Iterative & Recursive)**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+Binary search can be implemented in two distinct ways: Iteratively and Recursively. While both approaches achieve the same O(log N) time complexity, they differ significantly in terms of space complexity and practical implementation nuances.
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+### Iterative Implementation
+The iterative approach uses a `while` loop to repeatedly halve the search space. It maintains `left` and `right` pointers and updates them until the target is found or `left > right`. This is generally preferred in technical interviews and production code because it avoids the overhead of function calls and requires only `O(1)` auxiliary space.
+
+### Recursive Implementation
+The recursive approach defines a function that calls itself on either the left or right half of the array. The base cases are when the target is found, or when `left > right` (signifying the target is not in the array). While sometimes considered more elegant and closer to the mathematical definition of divide-and-conquer, it inherently uses `O(log N)` space due to the call stack.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Binary Search Implementation (Iterative & Recursive)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    // Iterative Approach
+    int searchIterative(vector<int>& nums, int target) {
+        int left = 0, right = nums.size() - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) return mid;
+            if (nums[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return -1;
+    }
+
+    // Recursive Approach
+    int searchRecursive(vector<int>& nums, int target) {
+        return helper(nums, target, 0, nums.size() - 1);
+    }
+    
+private:
+    int helper(vector<int>& nums, int target, int left, int right) {
+        if (left > right) return -1; // Base case: not found
+        
+        int mid = left + (right - left) / 2;
+        
+        if (nums[mid] == target) return mid;
+        if (nums[mid] < target) return helper(nums, target, mid + 1, right);
+        return helper(nums, target, left, mid - 1);
     }
 };"
-  java="// Java implementation for Binary Search Implementation (Iterative & Recursive)
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    // Iterative Approach
+    public int searchIterative(int[] nums, int target) {
+        int left = 0, right = nums.length - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) return mid;
+            if (nums[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return -1;
+    }
+
+    // Recursive Approach
+    public int searchRecursive(int[] nums, int target) {
+        return helper(nums, target, 0, nums.length - 1);
+    }
+    
+    private int helper(int[] nums, int target, int left, int right) {
+        if (left > right) return -1; // Base case: not found
+        
+        int mid = left + (right - left) / 2;
+        
+        if (nums[mid] == target) return mid;
+        if (nums[mid] < target) return helper(nums, target, mid + 1, right);
+        return helper(nums, target, left, mid - 1);
     }
 }"
-  python="# Python implementation for Binary Search Implementation (Iterative & Recursive)
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    # Iterative Approach
+    def searchIterative(self, nums: list[int], target: int) -> int:
+        left, right = 0, len(nums) - 1
+        while left <= right:
+            mid = left + (right - left) // 2
+            if nums[mid] == target:
+                return mid
+            if nums[mid] < target:
+                left = mid + 1
+            else:
+                right = mid - 1
+        return -1
+
+    # Recursive Approach
+    def searchRecursive(self, nums: list[int], target: int) -> int:
+        def helper(left: int, right: int) -> int:
+            if left > right:
+                return -1 # Base case: not found
+            
+            mid = left + (right - left) // 2
+            if nums[mid] == target:
+                return mid
+            if nums[mid] < target:
+                return helper(mid + 1, right)
+            return helper(left, mid - 1)
+            
+        return helper(0, len(nums) - 1)"
 />
 
 # Complexity Analysis
@@ -49,20 +114,22 @@ class Solution:
   best="O(1)"
   average="O(log N)"
   worst="O(log N)"
-  space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  space="O(1) / O(log N)"
+  description="Both iterative and recursive have O(log N) time. Iterative uses O(1) space. Recursive uses O(log N) space due to recursion depth on the call stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- In the recursive implementation, forgetting to return the recursive call (`return helper(...)`). This leads to undefined behavior or returning void/null.
+- Missing the base case `if (left > right)` in recursion, which causes a StackOverflow error.
+- Writing `mid = (left + right) / 2` causing integer overflow on large datasets.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "Always prefer iterative implementation in an interview unless specifically asked for recursion. It shows you understand space optimization.",
+    "If you write the recursive solution, immediately bring up the O(log N) call stack space before the interviewer asks.",
+    "Memorize the standard template `while(left <= right)` and `left = mid + 1`, `right = mid - 1` to avoid off-by-one bugs."
   ]}
 />

@@ -11,64 +11,94 @@ summary: "An essential guide to K Closest Points to Origin, mastering O(log N) e
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **K Closest Points to Origin**. This topic is a cornerstone of the Heaps & Priority Queues module. A Heap (usually implemented via a Priority Queue) is an extremely specialized tree structure that allows you to instantly extract the minimum or maximum element in O(1) time, while inserts and deletions take O(log N).
+The **K Closest Points to Origin** problem asks us to find the `k` points closest to the origin `(0, 0)` on a 2D plane. 
 
-### Core Intuition
-Heaps are typically implemented under the hood as a complete binary tree mapped to a flat array. The children of node `i` are at `2i + 1` and `2i + 2`. This guarantees the tree is perfectly balanced.
+### Mathematical Distance
+The Euclidean distance between a point `(x, y)` and the origin is `sqrt(x^2 + y^2)`. Since the square root function is monotonic, comparing `x^2 + y^2` gives the exact same relative order as comparing `sqrt(x^2 + y^2)`. We can skip calculating the square root to avoid precision issues and save computation time.
+
+### The Max-Heap Strategy
+Because we want the "K Closest" (Smallest) distances, we must use a **Max-Heap of size K**. 
+The Max-Heap will keep the largest distance seen so far at its root. When we process a new point, if its distance is smaller than the root's distance, we pop the root and push the new point.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for K Closest Points to Origin
-#include <iostream>
-#include <vector>
-#include <queue>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // priority_queue<int> maxHeap;
-        // priority_queue<int, vector<int>, greater<int>> minHeap;
+    vector<vector<int>> kClosest(vector<vector<int>>& points, int k) {
+        // Max-Heap: pair<distance, vector<int>>
+        priority_queue<pair<int, vector<int>>> maxHeap;
+        
+        for (auto& point : points) {
+            int dist = point[0] * point[0] + point[1] * point[1];
+            maxHeap.push({dist, point});
+            if (maxHeap.size() > k) {
+                maxHeap.pop();
+            }
+        }
+        
+        vector<vector<int>> res;
+        while (!maxHeap.empty()) {
+            res.push_back(maxHeap.top().second);
+            maxHeap.pop();
+        }
+        return res;
     }
 };"
-  java="// Java implementation for K Closest Points to Origin
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // PriorityQueue<Integer> minHeap = new PriorityQueue<>();
-        // PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+  java="class Solution {
+    public int[][] kClosest(int[][] points, int k) {
+        // Max-Heap based on distance
+        PriorityQueue<int[]> maxHeap = new PriorityQueue<>(
+            (a, b) -> (b[0] * b[0] + b[1] * b[1]) - (a[0] * a[0] + a[1] * a[1])
+        );
+        
+        for (int[] point : points) {
+            maxHeap.add(point);
+            if (maxHeap.size() > k) {
+                maxHeap.poll();
+            }
+        }
+        
+        int[][] res = new int[k][2];
+        int i = 0;
+        while (!maxHeap.isEmpty()) {
+            res[i++] = maxHeap.poll();
+        }
+        return res;
     }
 }"
-  python="# Python implementation for K Closest Points to Origin
-import heapq
-
-class Solution:
-    def solve(self, arr: list[int]):
-        # heapq.heapify(arr)  # Min-heap by default
-        pass"
+  python="class Solution:
+    def kClosest(self, points: list[list[int]], k: int) -> list[list[int]]:
+        # Max-Heap (use negative distance)
+        max_heap = []
+        
+        for x, y in points:
+            dist = -(x*x + y*y)
+            heapq.heappush(max_heap, (dist, [x, y]))
+            if len(max_heap) > k:
+                heapq.heappop(max_heap)
+                
+        return [point for dist, point in max_heap]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
-  space="O(N)"
-  description="Peeking at the top element is O(1). Popping or Pushing an element takes O(log N) time because the heap must bubble up or sift down to maintain its properties. Building a heap from an unsorted array takes O(N) time."
+  best="O(N log K)"
+  average="O(N log K)"
+  worst="O(N log K)"
+  space="O(K)"
+  description="Iterating over N points and maintaining a Max-Heap of size K takes O(N log K) time. The heap uses O(K) space."
 />
 
 # Common Pitfalls
 <Warning>
-- **Python's heapq:** Python only has a built-in Min-Heap. To simulate a Max-Heap, you must negate all numbers before pushing them in, and negate them again when popping out!
-- **N log N vs N log K:** When finding the Top K elements, do NOT push all N elements into the heap (O(N log N)). Instead, keep the heap size capped at K. When size > K, pop the smallest element. This reduces time complexity to O(N log K).
+- Calculating the exact Euclidean distance with `sqrt()`. Floating-point arithmetic can introduce subtle bugs and is slower. Always compare squared distances.
+- Getting confused between Min-Heap and Max-Heap. Remember: To find K smallest, use a Max-Heap!
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Kth Largest', 'Kth Smallest', or 'Top K' of anything, it is a 99% guarantee that a Heap/Priority Queue is the intended solution.",
-    "If you need to merge multiple sorted arrays or linked lists simultaneously, a Min-Heap keeping track of the current pointers is the most optimal approach.",
-    "The 'Find Median from Data Stream' problem is a classic hard interview question solved beautifully by maintaining two separate heaps: one Max-Heap for the lower half, and one Min-Heap for the upper half."
+    "If the array is fully available in memory, Quickselect is a fantastic O(N) average time alternative to mention to your interviewer.",
+    "When explaining the Max-Heap, explicitly state: 'The Max-Heap helps us efficiently discard the furthest point among the closest ones we have tracked so far.'"
   ]}
 />

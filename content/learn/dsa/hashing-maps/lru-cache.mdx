@@ -11,60 +11,203 @@ summary: "An essential guide to LRU Cache (HashMap + Doubly Linked List), master
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **LRU Cache (HashMap + Doubly Linked List)**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
+A Least Recently Used (LRU) Cache is a common caching strategy that discards the least recently used items first when the cache reaches its capacity. To achieve $O(1)$ time complexity for both `get` and `put` operations, we need a combination of two data structures:
+1. **Hash Map**: Provides $O(1)$ access to cache items using their keys.
+2. **Doubly Linked List**: Keeps track of the recency of usage. The most recently used items are kept near the "head," while the least recently used drop to the "tail."
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+When we access or update an item, we move its corresponding node to the head of the list. When the cache is full and we need to insert a new item, we remove the node at the tail of the list and delete its key from the hash map.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for LRU Cache (HashMap + Doubly Linked List)
-#include <iostream>
-#include <unordered_map>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class LRUCache {
+    struct Node {
+        int key, val;
+        Node* prev;
+        Node* next;
+        Node(int k, int v) : key(k), val(v), prev(nullptr), next(nullptr) {}
+    };
+    
+    int capacity;
+    unordered_map<int, Node*> cache;
+    Node* head;
+    Node* tail;
+    
+    void removeNode(Node* node) {
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+    }
+    
+    void addToHead(Node* node) {
+        node->next = head->next;
+        node->prev = head;
+        head->next->prev = node;
+        head->next = node;
+    }
+    
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    LRUCache(int cap) : capacity(cap) {
+        head = new Node(-1, -1);
+        tail = new Node(-1, -1);
+        head->next = tail;
+        tail->prev = head;
+    }
+    
+    int get(int key) {
+        if (cache.find(key) == cache.end()) return -1;
+        Node* node = cache[key];
+        removeNode(node);
+        addToHead(node);
+        return node->val;
+    }
+    
+    void put(int key, int value) {
+        if (cache.find(key) != cache.end()) {
+            Node* node = cache[key];
+            node->val = value;
+            removeNode(node);
+            addToHead(node);
+        } else {
+            if (cache.size() >= capacity) {
+                Node* lru = tail->prev;
+                cache.erase(lru->key);
+                removeNode(lru);
+                delete lru;
+            }
+            Node* newNode = new Node(key, value);
+            addToHead(newNode);
+            cache[key] = newNode;
+        }
     }
 };"
-  java="// Java implementation for LRU Cache (HashMap + Doubly Linked List)
-import java.util.*;
+  java="class LRUCache {
+    class Node {
+        int key, val;
+        Node prev, next;
+        Node(int k, int v) { key = k; val = v; }
+    }
+    
+    private int capacity;
+    private Map<Integer, Node> cache;
+    private Node head, tail;
+    
+    private void removeNode(Node node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+    }
+    
+    private void addToHead(Node node) {
+        node.next = head.next;
+        node.prev = head;
+        head.next.prev = node;
+        head.next = node;
+    }
 
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        cache = new HashMap<>();
+        head = new Node(-1, -1);
+        tail = new Node(-1, -1);
+        head.next = tail;
+        tail.prev = head;
+    }
+    
+    public int get(int key) {
+        if (!cache.containsKey(key)) return -1;
+        Node node = cache.get(key);
+        removeNode(node);
+        addToHead(node);
+        return node.val;
+    }
+    
+    public void put(int key, int value) {
+        if (cache.containsKey(key)) {
+            Node node = cache.get(key);
+            node.val = value;
+            removeNode(node);
+            addToHead(node);
+        } else {
+            if (cache.size() >= capacity) {
+                Node lru = tail.prev;
+                cache.remove(lru.key);
+                removeNode(lru);
+            }
+            Node newNode = new Node(key, value);
+            addToHead(newNode);
+            cache.put(key, newNode);
+        }
     }
 }"
-  python="# Python implementation for LRU Cache (HashMap + Doubly Linked List)
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Node:
+    def __init__(self, key=0, val=0):
+        self.key = key
+        self.val = val
+        self.prev = None
+        self.next = None
+
+class LRUCache:
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = {}
+        self.head = Node()
+        self.tail = Node()
+        self.head.next = self.tail
+        self.tail.prev = self.head
+
+    def _remove_node(self, node: Node):
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+    def _add_to_head(self, node: Node):
+        node.next = self.head.next
+        node.prev = self.head
+        self.head.next.prev = node
+        self.head.next = node
+
+    def get(self, key: int) -> int:
+        if key not in self.cache:
+            return -1
+        node = self.cache[key]
+        self._remove_node(node)
+        self._add_to_head(node)
+        return node.val
+
+    def put(self, key: int, value: int) -> None:
+        if key in self.cache:
+            node = self.cache[key]
+            node.val = value
+            self._remove_node(node)
+            self._add_to_head(node)
+        else:
+            if len(self.cache) >= self.capacity:
+                lru = self.tail.prev
+                del self.cache[lru.key]
+                self._remove_node(lru)
+            new_node = Node(key, value)
+            self._add_to_head(new_node)
+            self.cache[key] = new_node"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
   average="O(1)"
-  worst="O(N)"
-  space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  worst="O(1)"
+  space="O(K)"
+  description="Both `get` and `put` operations run in O(1) time because hash map lookups are O(1) on average, and doubly linked list pointer updates are O(1). Space complexity is O(K) where K is the cache capacity."
 />
 
 # Common Pitfalls
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- Using dummy head and tail nodes is highly recommended. Not using them forces you to write multiple `if (head == null)` edge cases, which is extremely bug-prone.
+- Forgetting to delete the LRU key from the **hash map** when evicting a node from the linked list.
+- Memory leaks in languages like C++. Always remember to `delete` nodes you've removed from the cache.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "Mention why a Singly Linked List isn't sufficient: removing an arbitrary node requires access to its predecessor, taking O(N) time in a singly linked list.",
+    "In Python, you can mention `collections.OrderedDict`, which implements LRU Cache natively. But tell the interviewer you'll implement it from scratch to demonstrate your understanding.",
+    "A core sign of a strong candidate is immediately defining the `removeNode` and `addToHead` helper functions to abstract the messy pointer logic."
   ]}
 />

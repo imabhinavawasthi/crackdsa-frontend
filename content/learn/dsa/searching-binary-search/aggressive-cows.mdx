@@ -11,58 +11,171 @@ summary: "An essential guide to Aggressive Cows, mastering O(log N) optimization
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Aggressive Cows**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+"Aggressive Cows" is one of the most famous problems illustrating the "Maximize the Minimum" pattern using Binary Search. 
+You are given an array of stall coordinates and `C` aggressive cows. You need to place all `C` cows in the stalls such that the **minimum distance between any two of them is as large as possible**.
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+### The Monotonic Property
+If we can place all cows with a minimum distance of `d`, we can certainly place them with any minimum distance `< d`. 
+If we cannot place them with a minimum distance of `d`, we definitely cannot place them with any distance `> d`.
+This monotonic behavior allows us to binary search for the optimal distance `d`.
+
+### Search Space
+First, we **must sort the stalls** to simulate placing cows sequentially from left to right.
+- **Minimum possible distance (`low`)**: `1`. The closest two cows can be placed is in adjacent stalls separated by a distance of 1.
+- **Maximum possible distance (`high`)**: `stalls[n-1] - stalls[0]`. This happens when there are exactly 2 cows, and we place them at the two extreme ends.
+
+### The Validation Function
+For a guessed distance `mid`, we try to place the cows greedily.
+We place the first cow in the first stall. Then, we iterate through the stalls. If we find a stall that is at least `mid` distance away from the last placed cow, we place the next cow there. If we successfully place all `C` cows, `mid` is a valid answer!
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Aggressive Cows
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int aggressiveCows(vector<int>& stalls, int k) {
+        // Step 1: Sort the stalls
+        sort(stalls.begin(), stalls.end());
+        
+        int n = stalls.size();
+        int left = 1; // Minimum possible distance
+        int right = stalls[n - 1] - stalls[0]; // Maximum possible distance
+        int ans = -1;
+        
+        // Step 2: Binary Search on Answer
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (canPlaceCows(stalls, k, mid)) {
+                ans = mid;       // Valid distance, let's try for a LARGER one
+                left = mid + 1;  
+            } else {
+                right = mid - 1; // Not valid, we must decrease the distance
+            }
+        }
+        
+        return ans;
+    }
+    
+private:
+    bool canPlaceCows(const vector<int>& stalls, int cowsRequired, int minDistance) {
+        int cowsPlaced = 1;          // Place first cow at the first stall
+        int lastPlacedPosition = stalls[0];
+        
+        for (int i = 1; i < stalls.size(); i++) {
+            if (stalls[i] - lastPlacedPosition >= minDistance) {
+                cowsPlaced++;
+                lastPlacedPosition = stalls[i];
+                
+                // If we've successfully placed all cows, return true
+                if (cowsPlaced >= cowsRequired) return true;
+            }
+        }
+        
+        return false;
     }
 };"
-  java="// Java implementation for Aggressive Cows
+  java="import java.util.Arrays;
+
 class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    public int aggressiveCows(int[] stalls, int k) {
+        // Step 1: Sort the stalls
+        Arrays.sort(stalls);
+        
+        int n = stalls.length;
+        int left = 1; // Minimum possible distance
+        int right = stalls[n - 1] - stalls[0]; // Maximum possible distance
+        int ans = -1;
+        
+        // Step 2: Binary Search on Answer
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (canPlaceCows(stalls, k, mid)) {
+                ans = mid;       // Valid distance, let's try for a LARGER one
+                left = mid + 1;  
+            } else {
+                right = mid - 1; // Not valid, we must decrease the distance
+            }
+        }
+        
+        return ans;
+    }
+    
+    private boolean canPlaceCows(int[] stalls, int cowsRequired, int minDistance) {
+        int cowsPlaced = 1;          // Place first cow at the first stall
+        int lastPlacedPosition = stalls[0];
+        
+        for (int i = 1; i < stalls.length; i++) {
+            if (stalls[i] - lastPlacedPosition >= minDistance) {
+                cowsPlaced++;
+                lastPlacedPosition = stalls[i];
+                
+                // If we've successfully placed all cows, return true
+                if (cowsPlaced >= cowsRequired) return true;
+            }
+        }
+        
+        return false;
     }
 }"
-  python="# Python implementation for Aggressive Cows
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def aggressiveCows(self, stalls: list[int], k: int) -> int:
+        # Step 1: Sort the stalls
+        stalls.sort()
+        
+        n = len(stalls)
+        left = 1 # Minimum possible distance
+        right = stalls[-1] - stalls[0] # Maximum possible distance
+        ans = -1
+        
+        # Step 2: Binary Search on Answer
+        while left <= right:
+            mid = left + (right - left) // 2
+            
+            if self.canPlaceCows(stalls, k, mid):
+                ans = mid       # Valid distance, let's try for a LARGER one
+                left = mid + 1
+            else:
+                right = mid - 1 # Not valid, we must decrease the distance
+                
+        return ans
+        
+    def canPlaceCows(self, stalls: list[int], cowsRequired: int, minDistance: int) -> bool:
+        cowsPlaced = 1 # Place first cow at the first stall
+        lastPlacedPosition = stalls[0]
+        
+        for i in range(1, len(stalls)):
+            if stalls[i] - lastPlacedPosition >= minDistance:
+                cowsPlaced += 1
+                lastPlacedPosition = stalls[i]
+                
+                # If we've successfully placed all cows, return true
+                if cowsPlaced >= cowsRequired:
+                    return True
+                    
+        return False"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
+  best="O(N log N)"
+  average="O(N log N + N log(max_dist))"
+  worst="O(N log N + N log(max_dist))"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="Sorting takes O(N log N). Binary search takes O(log(max_dist)) steps. Each step takes O(N) time. Total time is dominated by whichever is larger. Space is O(1) beyond sorting overhead."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- **Forgetting to sort the array:** The greedy placement logic strictly relies on the array being sorted so that we always jump to the absolute next valid stall.
+- **Incorrectly updating `ans`:** Remember, this is a "Maximize" problem. When `isValid` is true, we want to try pushing the limit higher, so we do `left = mid + 1`. Many students mistakenly do `right = mid - 1` out of habit.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "Whenever you hear 'Maximize the minimum distance', this exact algorithm should instantly come to mind.",
+    "Explain the Greedy choice: 'Placing the first cow at the very first stall is always optimal because it leaves the maximum possible remaining distance for all subsequent cows.'",
+    "This pattern is heavily tested in online assessments (OAs)."
   ]}
 />

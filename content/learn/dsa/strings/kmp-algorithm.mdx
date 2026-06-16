@@ -11,58 +11,167 @@ summary: "An essential guide to KMP Algorithm (Knuth-Morris-Pratt), covering eve
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **KMP Algorithm (Knuth-Morris-Pratt)**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+The **Knuth-Morris-Pratt (KMP)** algorithm is a powerful string searching algorithm that achieves linear time complexity $O(N + M)$ for pattern matching. Unlike the naive approach which re-evaluates characters upon a mismatch, KMP leverages a precomputed array to skip unnecessary comparisons.
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+The core of KMP is the **LPS (Longest Proper Prefix which is also Suffix)** array. This array tells us how much of the pattern we have already matched, allowing us to safely skip backwards when a mismatch occurs without retreating our main text pointer.
+
+For example, if we are searching for `"ABABCABAB"` and a mismatch happens at the last `'B'`, the LPS array tells us that the prefix `"ABAB"` is already matched as a suffix, so we can shift our pattern pointer to the end of `"ABAB"` instead of going all the way back to the beginning.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for KMP Algorithm (Knuth-Morris-Pratt)
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    int strStr(string haystack, string needle) {
+        if (needle.empty()) return 0;
+        int n = haystack.length();
+        int m = needle.length();
+        
+        // Compute LPS Array
+        vector<int> lps(m, 0);
+        int len = 0;
+        for (int i = 1; i < m; ) {
+            if (needle[i] == needle[len]) {
+                len++;
+                lps[i] = len;
+                i++;
+            } else {
+                if (len != 0) {
+                    len = lps[len - 1];
+                } else {
+                    lps[i] = 0;
+                    i++;
+                }
+            }
+        }
+        
+        // Pattern Matching
+        int i = 0, j = 0;
+        while (i < n) {
+            if (haystack[i] == needle[j]) {
+                i++;
+                j++;
+            }
+            if (j == m) {
+                return i - j; // Found match
+            } else if (i < n && haystack[i] != needle[j]) {
+                if (j != 0) {
+                    j = lps[j - 1];
+                } else {
+                    i++;
+                }
+            }
+        }
+        return -1;
     }
 };"
-  java="// Java implementation for KMP Algorithm (Knuth-Morris-Pratt)
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public int strStr(String haystack, String needle) {
+        if (needle.isEmpty()) return 0;
+        int n = haystack.length();
+        int m = needle.length();
+        
+        int[] lps = new int[m];
+        int len = 0;
+        int i = 1;
+        
+        // Compute LPS Array
+        while (i < m) {
+            if (needle.charAt(i) == needle.charAt(len)) {
+                len++;
+                lps[i] = len;
+                i++;
+            } else {
+                if (len != 0) {
+                    len = lps[len - 1];
+                } else {
+                    lps[i] = 0;
+                    i++;
+                }
+            }
+        }
+        
+        // Pattern Matching
+        i = 0;
+        int j = 0;
+        while (i < n) {
+            if (haystack.charAt(i) == needle.charAt(j)) {
+                i++;
+                j++;
+            }
+            if (j == m) {
+                return i - j;
+            } else if (i < n && haystack.charAt(i) != needle.charAt(j)) {
+                if (j != 0) {
+                    j = lps[j - 1];
+                } else {
+                    i++;
+                }
+            }
+        }
+        return -1;
     }
 }"
-  python="# Python implementation for KMP Algorithm (Knuth-Morris-Pratt)
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def strStr(self, haystack: str, needle: str) -> int:
+        if not needle:
+            return 0
+            
+        n, m = len(haystack), len(needle)
+        
+        # Compute LPS Array
+        lps = [0] * m
+        length = 0
+        i = 1
+        
+        while i < m:
+            if needle[i] == needle[length]:
+                length += 1
+                lps[i] = length
+                i += 1
+            else:
+                if length != 0:
+                    length = lps[length - 1]
+                else:
+                    lps[i] = 0
+                    i += 1
+                    
+        # Pattern Matching
+        i, j = 0, 0
+        while i < n:
+            if haystack[i] == needle[j]:
+                i += 1
+                j += 1
+            if j == m:
+                return i - j
+            elif i < n and haystack[i] != needle[j]:
+                if j != 0:
+                    j = lps[j - 1]
+                else:
+                    i += 1
+                    
+        return -1"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  best="O(N + M)"
+  average="O(N + M)"
+  worst="O(N + M)"
+  space="O(M)"
+  description="Building the LPS array takes O(M) time where M is the needle's length. Searching takes O(N) time where N is the haystack's length. Thus, total time is strictly O(N + M). Space complexity is O(M) to store the LPS array."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- **LPS Construction Mismatch:** The logic `len = lps[len - 1]` inside the LPS construction loop is tricky. Novices often reset `len` to 0, which breaks the algorithm. Remember that we want to fall back to the previous longest valid prefix.
+- **Pointer Management:** Ensure the text pointer `i` never moves backwards during the search phase. This is the entire point of the KMP algorithm.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "If an interviewer asks for substring search, start with a naive approach, mention its O(N*M) worst case, and then pivot to KMP to show deep algorithmic knowledge.",
+    "Be prepared to manually trace the construction of an LPS array for a given string, such as 'AABAACAABAA'. It proves you actually understand the algorithm.",
+    "Rolling Hash (Rabin-Karp) is an alternative O(N + M) average time algorithm. Knowing both shows maturity, but KMP has a strict O(N + M) worst-case guarantee."
   ]}
 />

@@ -11,64 +11,121 @@ summary: "An essential guide to Decode String, exploring its applications, optim
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Decode String**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+In the **Decode String** problem, you are given an encoded string where a number `k` followed by `[encoded_string]` means the `encoded_string` is repeated exactly `k` times. For example, `"3[a]2[bc]"` decodes to `"aaabcbc"`, and `"3[a2[c]]"` decodes to `"accaccacc"`.
+
+**Intuition**
+The presence of nested structures—brackets inside brackets—is a massive neon sign pointing to a **Stack**. 
+When we encounter an open bracket `[`, it means we are entering a new inner context. We must save our current state (the current string built so far and the current multiplier `k`) onto the stack. 
+When we encounter a closing bracket `]`, we've finished the inner context. We pop the multiplier and the previous string state from the stack, multiply our inner string, append it to the previous string state, and continue.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Decode String
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    string decodeString(string s) {
+        stack<int> countStack;
+        stack<string> stringStack;
+        string currentString = \"\";
+        int k = 0;
+        
+        for (char c : s) {
+            if (isdigit(c)) {
+                k = k * 10 + (c - '0');
+            } else if (c == '[') {
+                countStack.push(k);
+                stringStack.push(currentString);
+                currentString = \"\";
+                k = 0;
+            } else if (c == ']') {
+                string decodedStr = stringStack.top(); stringStack.pop();
+                int currentK = countStack.top(); countStack.pop();
+                for (int i = 0; i < currentK; i++) {
+                    decodedStr += currentString;
+                }
+                currentString = decodedStr;
+            } else {
+                currentString += c;
+            }
+        }
+        return currentString;
     }
 };"
-  java="// Java implementation for Decode String
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public String decodeString(String s) {
+        Stack<Integer> countStack = new Stack<>();
+        Stack<StringBuilder> stringStack = new Stack<>();
+        StringBuilder currentString = new StringBuilder();
+        int k = 0;
+        
+        for (char c : s.toCharArray()) {
+            if (Character.isDigit(c)) {
+                k = k * 10 + (c - '0');
+            } else if (c == '[') {
+                countStack.push(k);
+                stringStack.push(currentString);
+                currentString = new StringBuilder();
+                k = 0;
+            } else if (c == ']') {
+                StringBuilder decodedStr = stringStack.pop();
+                int currentK = countStack.pop();
+                for (int i = 0; i < currentK; i++) {
+                    decodedStr.append(currentString);
+                }
+                currentString = decodedStr;
+            } else {
+                currentString.append(c);
+            }
+        }
+        return currentString.toString();
     }
 }"
-  python="# Python implementation for Decode String
-from collections import deque
-
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def decodeString(self, s: str) -> str:
+        stack = []
+        current_string = \"\"
+        k = 0
+        
+        for char in s:
+            if char.isdigit():
+                k = k * 10 + int(char)
+            elif char == '[':
+                stack.append((current_string, k))
+                current_string = \"\"
+                k = 0
+            elif char == ']':
+                prev_string, current_k = stack.pop()
+                current_string = prev_string + current_k * current_string
+            else:
+                current_string += char
+                
+        return current_string"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
-  average="O(N)"
-  worst="O(N)"
+  average="O(N * K)"
+  worst="O(N * K)"
   space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  description="Time complexity is O(N) if we don't consider the expansion of strings. But strictly speaking, it's O(Output Length), where K is the maximum multiplier. The string concatenations drive the true runtime. Space complexity is O(N) for the stack storing intermediate states."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **Multi-digit Numbers:** A very common mistake is assuming the multiplier `k` is a single digit. You must construct the number iteratively: `k = k * 10 + int(char)`.
+- **String Concatenation Overhead:** In Java, using immutable `String` for concatenation in a loop results in massive performance hits. Always use `StringBuilder`.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "Any nested structure (like nested JSON, abstract syntax trees, or bracket expressions) should instantly trigger 'Stack' or 'Recursion' in your brain.",
+    "This problem can also be solved recursively. Mentioning this to your interviewer shows strong depth, as an explicit stack is just simulating the call stack.",
+    "Pay attention to edge cases like no numbers, e.g., 'abc', or multiple adjacent components, e.g., '3[a]2[bc]'."
   ]}
 />

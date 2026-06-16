@@ -11,56 +11,81 @@ summary: "An essential guide to Insert into a BST, mastering O(log N) searches a
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Insert into a BST**. This topic is a cornerstone of the Binary Search Trees module. A Binary Search Tree is a special type of binary tree where every node in the left subtree is strictly smaller than the root, and every node in the right subtree is strictly greater.
+Inserting a new node into a **Binary Search Tree (BST)** is beautifully simple: new nodes are *always* added as leaf nodes. You never need to restructure the existing tree (unless you are implementing an auto-balancing tree like an AVL tree, which is rarely asked in standard interviews).
 
 ### Core Intuition
-Because of this property, an **Inorder Traversal** of a valid BST will *always* yield a perfectly sorted sequence! This allows us to perform searches, insertions, and deletions in O(log N) average time, making it incredibly powerful for dynamic data.
+To insert a value:
+1. Perform a standard BST search for the value.
+2. Since the value doesn't exist (assuming all values are unique), your search will eventually hit a `null` pointer.
+3. This `null` position is exactly where the new node belongs! Just attach it to the parent.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Insert into a BST
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    TreeNode* insertIntoBST(TreeNode* root, int val) {
+        if (!root) return new TreeNode(val);
+        
+        TreeNode* curr = root;
+        while (true) {
+            if (val < curr->val) {
+                if (!curr->left) {
+                    curr->left = new TreeNode(val);
+                    break;
+                }
+                curr = curr->left;
+            } else {
+                if (!curr->right) {
+                    curr->right = new TreeNode(val);
+                    break;
+                }
+                curr = curr->right;
+            }
+        }
+        return root;
     }
 };"
-  java="// Java implementation for Insert into a BST
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    public TreeNode insertIntoBST(TreeNode root, int val) {
+        if (root == null) return new TreeNode(val);
+        
+        TreeNode curr = root;
+        while (true) {
+            if (val < curr.val) {
+                if (curr.left == null) {
+                    curr.left = new TreeNode(val);
+                    break;
+                }
+                curr = curr.left;
+            } else {
+                if (curr.right == null) {
+                    curr.right = new TreeNode(val);
+                    break;
+                }
+                curr = curr.right;
+            }
+        }
+        return root;
     }
 }"
-  python="# Python implementation for Insert into a BST
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def insertIntoBST(self, root: TreeNode, val: int) -> TreeNode:
+        if not root:
+            return TreeNode(val)
+            
+        curr = root
+        while True:
+            if val < curr.val:
+                if not curr.left:
+                    curr.left = TreeNode(val)
+                    break
+                curr = curr.left
+            else:
+                if not curr.right:
+                    curr.right = TreeNode(val)
+                    break
+                curr = curr.right
+        return root"
 />
 
 # Complexity Analysis
@@ -68,21 +93,21 @@ class Solution:
   best="O(log N)"
   average="O(log N)"
   worst="O(N)"
-  space="O(H)"
-  description="In a balanced BST, operations take O(log N) time. However, if the tree becomes skewed (like a linked list), the time complexity degrades to O(N). Space complexity is O(H) corresponding to the recursive call stack."
+  space="O(1)"
+  description="We traverse from the root to a leaf, which takes O(H) time where H is the height of the tree. Space complexity is O(1) for the iterative implementation."
 />
 
 # Common Pitfalls
 <Warning>
-- **Local Validation Mistake:** Validating a BST by only checking if `root.left.val < root.val < root.right.val` is INCORRECT. An element deep in the right subtree could be smaller than the main root. You must pass down an allowed `[min, max]` range constraint!
-- **Modifying structure during iteration:** Deleting a node with two children requires finding the inorder successor or predecessor to replace it, which is a notorious source of bugs.
+- Forgetting the edge case where the tree is initially empty (`root == null`).
+- Not linking the newly created node back to its parent. In an iterative approach, you must check if the child is null *before* moving the pointer.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks if a tree is a valid BST, the immediate answer is to either pass down `(min, max)` boundaries recursively, or do an inorder traversal and check if the result is sorted.",
-    "If a problem asks for the 'Kth smallest/largest' element in a BST, you should instantly think of Inorder Traversal with a counter.",
-    "Be careful: does the interviewer allow duplicate values in the BST? If so, decide whether they go to the left or right subtree."
+    "If the interviewer asks about duplicates, clarify whether they should be ignored, placed to the left, or placed to the right.",
+    "Mention that this simple insertion can lead to a skewed tree if elements are inserted in sorted order.",
+    "An iterative solution is preferred to save the O(H) recursion stack space."
   ]}
 />

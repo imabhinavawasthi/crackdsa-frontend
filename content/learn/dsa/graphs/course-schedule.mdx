@@ -11,37 +11,143 @@ summary: "An essential guide to Course Schedule I & II, exploring its applicatio
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Course Schedule I & II**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+The **Course Schedule** problems (often found on LeetCode as Course Schedule I and II) are the canonical applications of Topological Sorting.
+
+You are given a total of `numCourses` and a list of `prerequisites` where `prerequisites[i] = [a, b]` indicates that you must take course `b` first if you want to take course `a`. 
+- **Course Schedule I** asks: *Is it possible to finish all courses?* (Cycle Detection).
+- **Course Schedule II** asks: *Return the ordering of courses you should take to finish all courses.* (Topological Sort).
 
 ### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+We can model this as a **Directed Graph**:
+- Each course is a node.
+- A prerequisite relation `[a, b]` means course `b` must be completed before course `a`. We represent this as a directed edge: `b -> a`.
+- If there is a cycle in this graph (e.g., `A` requires `B`, and `B` requires `A`), it is impossible to finish the courses.
+- If it is a Directed Acyclic Graph (DAG), we can find an order to take the courses using Topological Sorting.
+
+Kahn's Algorithm (BFS) is perfect here because it handles both cycle detection and topological sorting simultaneously.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Course Schedule I & II
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+    // Course Schedule II (Returns the ordering, or empty array if cycle exists)
+    vector<int> findOrder(int numCourses, vector<vector<int>>& prerequisites) {
+        vector<int> adj[numCourses];
+        for (auto it : prerequisites) {
+            adj[it[1]].push_back(it[0]); // Edge from prerequisite to course
+        }
+        
+        int indegree[numCourses] = {0};
+        for (int i = 0; i < numCourses; i++) {
+            for (auto it : adj[i]) {
+                indegree[it]++;
+            }
+        }
+        
+        queue<int> q;
+        for (int i = 0; i < numCourses; i++) {
+            if (indegree[i] == 0) {
+                q.push(i);
+            }
+        }
+        
+        vector<int> topo;
+        while (!q.empty()) {
+            int node = q.front();
+            q.pop();
+            topo.push_back(node);
+            
+            for (auto it : adj[node]) {
+                indegree[it]--;
+                if (indegree[it] == 0) {
+                    q.push(it);
+                }
+            }
+        }
+        
+        if (topo.size() == numCourses) return topo;
+        return {}; // Cycle detected, cannot finish courses
     }
-};"
-  java="// Java implementation for Course Schedule I & II
-import java.util.*;
 
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+    // For Course Schedule I, just return topo.size() == numCourses;
+};"
+  java="class Solution {
+    // Course Schedule II
+    public int[] findOrder(int numCourses, int[][] prerequisites) {
+        ArrayList<ArrayList<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < numCourses; i++) {
+            adj.add(new ArrayList<>());
+        }
+        
+        for (int[] pre : prerequisites) {
+            adj.get(pre[1]).add(pre[0]);
+        }
+        
+        int[] indegree = new int[numCourses];
+        for (int i = 0; i < numCourses; i++) {
+            for (int it : adj.get(i)) {
+                indegree[it]++;
+            }
+        }
+        
+        Queue<Integer> q = new LinkedList<>();
+        for (int i = 0; i < numCourses; i++) {
+            if (indegree[i] == 0) {
+                q.add(i);
+            }
+        }
+        
+        int[] topo = new int[numCourses];
+        int count = 0;
+        
+        while (!q.isEmpty()) {
+            int node = q.poll();
+            topo[count++] = node;
+            
+            for (int it : adj.get(node)) {
+                indegree[it]--;
+                if (indegree[it] == 0) {
+                    q.add(it);
+                }
+            }
+        }
+        
+        if (count == numCourses) return topo;
+        return new int[0];
     }
 }"
-  python="# Python implementation for Course Schedule I & II
+  python="from collections import deque
+
 class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+    # Course Schedule II
+    def findOrder(self, numCourses, prerequisites):
+        adj = [[] for _ in range(numCourses)]
+        for course, pre in prerequisites:
+            adj[pre].append(course)
+            
+        indegree = [0] * numCourses
+        for i in range(numCourses):
+            for neighbor in adj[i]:
+                indegree[neighbor] += 1
+                
+        q = deque()
+        for i in range(numCourses):
+            if indegree[i] == 0:
+                q.append(i)
+                
+        topo = []
+        while q:
+            node = q.popleft()
+            topo.append(node)
+            
+            for neighbor in adj[node]:
+                indegree[neighbor] -= 1
+                if indegree[neighbor] == 0:
+                    q.append(neighbor)
+                    
+        if len(topo) == numCourses:
+            return topo
+        return []"
 />
 
 # Complexity Analysis
@@ -49,21 +155,21 @@ class Solution:
   best="O(V + E)"
   average="O(V + E)"
   worst="O(V + E)"
-  space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  space="O(V + E)"
+  description="Time Complexity is O(V + E) to build the graph and perform Kahn's algorithm. Space Complexity is O(V + E) since we explicitly construct the Adjacency List from the edge list."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- **Edge Direction:** A common mistake is building the edge backwards (`course -> prerequisite`). It MUST be `prerequisite -> course` so you can take the prerequisite first (in-degree 0).
+- **Graph Construction:** The input is usually an edge list. You must manually construct the Adjacency List first.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "Course Schedule problems are the gold standard for testing Topological Sort knowledge in interviews.",
+    "Always state clearly how you are building the graph: 'Since I need to take course B to unlock course A, I will draw a directed edge from B to A.'",
+    "Mention that Kahn's algorithm (BFS) is preferred here because it handles cycle detection effortlessly and is often easier to trace in an interview setting than DFS with three states."
   ]}
 />

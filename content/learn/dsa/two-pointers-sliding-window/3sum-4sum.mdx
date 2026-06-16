@@ -4,65 +4,168 @@ category: "Two Pointers & Sliding Window"
 readTime: "9 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the pointer mechanics behind 3Sum & 4Sum Patterns."
-  - "Learn how to optimize nested loops into a single O(N) pass."
-  - "Master edge cases and off-by-one window boundaries."
-summary: "An essential guide to 3Sum & 4Sum Patterns, exploring its applications, optimal implementations, and how to identify this pattern in interviews."
+  - "Understand how to extend the Two Pointers technique to solve 3Sum and 4Sum."
+  - "Learn how to optimize brute-force O(N^3) and O(N^4) algorithms into O(N^2) and O(N^3)."
+  - "Master the logic for skipping duplicate elements to ensure unique triplets/quadruplets."
+summary: "An essential guide to the K-Sum pattern, focusing on using sorting and Opposite Directional Pointers to solve 3Sum and 4Sum optimally."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **3Sum & 4Sum Patterns**. This topic is a cornerstone of the Two Pointers & Sliding Window module. The Two Pointers and Sliding Window techniques are universally loved by interviewers because they elegantly reduce O(N^2) complexity down to O(N) without requiring extra space.
+The **3Sum and 4Sum** problems are classic extensions of the Two Sum problem. While a Hash Map is often the best solution for Two Sum, applying Hash Maps to 3Sum or 4Sum often results in complex logic to avoid duplicate triplets/quadruplets and requires $O(N)$ extra space.
 
-### Core Intuition
-Instead of using a nested loop to check every possible pair or subarray, we use two pointers (`left` and `right`) to represent a range or a pair of elements. Based on specific conditions, we strategically move one pointer or the other, drastically reducing the search space.
+The elegant, optimal solution relies on **Sorting** the array first, and then using nested loops combined with the **Opposite Directional Pointers** pattern.
+
+### The Core Intuition (3Sum)
+To find three numbers that sum to 0 ($A + B + C = 0$), we can iterate through the array, fixing the first number $A$ at index `i`. 
+Now, our problem reduces to finding two numbers $B$ and $C$ in the remaining subarray `[i+1, N-1]` such that $B + C = -A$. This is exactly the **Two Sum II** problem!
+
+1. **Sort the array:** This allows us to use Opposite Directional Pointers and makes skipping duplicates trivial.
+2. **Fix `A`:** Iterate `i` from $0$ to $N-3$.
+3. **Two Pointers for `B` and `C`:** Initialize `left = i + 1` and `right = N - 1`. Move them towards each other just like in Two Sum II.
+4. **Skip Duplicates:** This is the most crucial part. Since the problem usually requires *unique* triplets:
+   - If `nums[i] == nums[i-1]`, skip the current `i`.
+   - When a valid triplet is found, advance `left` and decrement `right` while skipping any adjacent identical values to prevent duplicate triplets.
+
+### Extending to 4Sum
+4Sum ($A + B + C + D = Target$) is the exact same logic, just with one more fixed variable. We use two nested loops to fix `i` and `j`, and then use `left = j + 1` and `right = N - 1` for the remaining two pointers. The time complexity becomes $O(N^3)$.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for 3Sum & 4Sum Patterns
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    // Example: 3Sum
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int>> result;
+        sort(nums.begin(), nums.end()); // Step 1: Sort
+        
+        for (int i = 0; i < nums.size(); i++) {
+            // Step 2: Skip duplicates for 'A'
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+            
+            // Step 3: Two Pointers for 'B' and 'C'
+            int left = i + 1;
+            int right = nums.size() - 1;
+            
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+                
+                if (sum == 0) {
+                    result.push_back({nums[i], nums[left], nums[right]});
+                    left++;
+                    right--;
+                    
+                    // Step 4: Skip duplicates for 'B' and 'C'
+                    while (left < right && nums[left] == nums[left - 1]) left++;
+                    while (left < right && nums[right] == nums[right + 1]) right--;
+                } 
+                else if (sum < 0) {
+                    left++;
+                } 
+                else {
+                    right--;
+                }
+            }
+        }
+        
+        return result;
     }
 };"
-  java="// Java implementation for 3Sum & 4Sum Patterns
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    // Example: 3Sum
+    public List<List<Integer>> threeSum(int[] nums) {
+        List<List<Integer>> result = new ArrayList<>();
+        Arrays.sort(nums); // Step 1: Sort
+        
+        for (int i = 0; i < nums.length; i++) {
+            // Step 2: Skip duplicates for 'A'
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+            
+            // Step 3: Two Pointers for 'B' and 'C'
+            int left = i + 1;
+            int right = nums.length - 1;
+            
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+                
+                if (sum == 0) {
+                    result.add(Arrays.asList(nums[i], nums[left], nums[right]));
+                    left++;
+                    right--;
+                    
+                    // Step 4: Skip duplicates for 'B' and 'C'
+                    while (left < right && nums[left] == nums[left - 1]) left++;
+                    while (left < right && nums[right] == nums[right + 1]) right--;
+                } 
+                else if (sum < 0) {
+                    left++;
+                } 
+                else {
+                    right--;
+                }
+            }
+        }
+        
+        return result;
     }
 }"
-  python="# Python implementation for 3Sum & 4Sum Patterns
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    # Example: 3Sum
+    def threeSum(self, nums: list[int]) -> list[list[int]]:
+        result = []
+        nums.sort() # Step 1: Sort
+        
+        for i in range(len(nums)):
+            # Step 2: Skip duplicates for 'A'
+            if i > 0 and nums[i] == nums[i - 1]:
+                continue
+                
+            # Step 3: Two Pointers for 'B' and 'C'
+            left = i + 1
+            right = len(nums) - 1
+            
+            while left < right:
+                current_sum = nums[i] + nums[left] + nums[right]
+                
+                if current_sum == 0:
+                    result.append([nums[i], nums[left], nums[right]])
+                    left += 1
+                    right -= 1
+                    
+                    # Step 4: Skip duplicates for 'B' and 'C'
+                    while left < right and nums[left] == nums[left - 1]:
+                        left += 1
+                    while left < right and nums[right] == nums[right + 1]:
+                        right -= 1
+                elif current_sum < 0:
+                    left += 1
+                else:
+                    right -= 1
+                    
+        return result"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(N^2)"
+  average="O(N^2)"
+  worst="O(N^2)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) since both the left and right pointers only move in one direction and visit each element at most twice. Space complexity is O(1) because we only store pointer indices."
+  description="For 3Sum, sorting takes O(N log N). The outer loop runs N times, and the inner two-pointer traversal takes O(N) time. Thus, the total time complexity is O(N log N + N^2) = O(N^2). Space complexity is O(1) auxiliary space (excluding the output array). For 4Sum, time complexity is O(N^3)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Off-by-One Errors:** Miscalculating the window size as `right - left` instead of `right - left + 1`.
-- **Pointer Stagnation:** Creating infinite loops by forgetting to increment/decrement the pointers inside a `while` loop condition.
+- **Duplicate Triplets:** The most common failure in 3Sum is failing to return strictly *unique* triplets. Make sure you skip duplicates for `i`, `left`, AND `right`.
+- **Skipping `left` and `right` too early:** Only skip duplicates for `left` and `right` *after* you have found a valid sum and recorded it. If you skip unconditionally, you might miss pairs like `[-1, -1, 2]` if you skip the second `-1`.
+- **Integer Overflow in 4Sum:** When adding four integers, the sum can easily exceed the 32-bit integer limit. Cast variables to `long` before adding them in C++ and Java.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If the problem asks for a contiguous sequence (subarray or substring), Sliding Window is almost always the answer.",
-    "If the array is sorted and you need to find a pair, start one pointer at the beginning and one at the end.",
-    "For Variable Sliding Windows, the logic is always: Expand the right pointer, and while the condition is violated, shrink the left pointer."
+    "If you see any K-Sum problem where K > 2 and the problem asks for the values (not the indices), always sort the array first.",
+    "A generalized K-Sum algorithm uses recursion to reduce K until K=2, at which point it uses the Two Pointers approach.",
+    "Interviewers love asking how to adapt your 3Sum solution if the problem asked for the '3Sum Closest' to a target. The logic remains identical, but you track a `minDiff` variable instead of strictly checking for `sum == target`."
   ]}
 />

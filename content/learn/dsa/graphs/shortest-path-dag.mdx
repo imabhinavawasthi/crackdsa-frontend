@@ -11,37 +11,168 @@ summary: "An essential guide to Shortest Path in Directed Acyclic Graph (DAG), e
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Shortest Path in Directed Acyclic Graph (DAG)**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+Finding the shortest path in a weighted Directed Acyclic Graph (DAG) can be done efficiently in **`O(V + E)`** time, which is significantly faster than Dijkstra's algorithm `O((V + E) log V)`.
+
+The secret weapon here is **Topological Sorting**. Because the graph is a DAG, we can linearly order the vertices such that for every directed edge `u -> v`, `u` appears before `v`.
 
 ### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+- If we process nodes in Topological Order, we are guaranteed that by the time we process a node, all possible paths to it have already been evaluated.
+- Step 1: Perform a DFS to find the Topological Sort of the graph and store it in a stack.
+- Step 2: Initialize a `dist` array with infinity, and set the distance of the source node to `0`.
+- Step 3: Pop nodes one by one from the stack. For each node, if it has been reached (`dist[node] != infinity`), iterate through its adjacent edges and relax them: `if (dist[node] + weight < dist[adjNode])` then `dist[adjNode] = dist[node] + weight`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Shortest Path in Directed Acyclic Graph (DAG)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
+private:
+    void topoSort(int node, vector<pair<int, int>> adj[], int vis[], stack<int>& st) {
+        vis[node] = 1;
+        for (auto it : adj[node]) {
+            int v = it.first;
+            if (!vis[v]) {
+                topoSort(v, adj, vis, st);
+            }
+        }
+        st.push(node);
+    }
 public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+    vector<int> shortestPath(int N, int M, vector<vector<int>>& edges) {
+        vector<pair<int, int>> adj[N];
+        for (int i = 0; i < M; i++) {
+            int u = edges[i][0];
+            int v = edges[i][1];
+            int wt = edges[i][2];
+            adj[u].push_back({v, wt});
+        }
+        
+        int vis[N] = {0};
+        stack<int> st;
+        for (int i = 0; i < N; i++) {
+            if (!vis[i]) {
+                topoSort(i, adj, vis, st);
+            }
+        }
+        
+        vector<int> dist(N, 1e9);
+        dist[0] = 0; // Assuming source is always 0
+        
+        while (!st.empty()) {
+            int node = st.top();
+            st.pop();
+            
+            if (dist[node] != 1e9) {
+                for (auto it : adj[node]) {
+                    int v = it.first;
+                    int wt = it.second;
+                    if (dist[node] + wt < dist[v]) {
+                        dist[v] = dist[node] + wt;
+                    }
+                }
+            }
+        }
+        
+        for (int i = 0; i < N; i++) {
+            if (dist[i] == 1e9) dist[i] = -1;
+        }
+        return dist;
     }
 };"
-  java="// Java implementation for Shortest Path in Directed Acyclic Graph (DAG)
-import java.util.*;
+  java="class Solution {
+    private void topoSort(int node, ArrayList<ArrayList<Pair>> adj, int[] vis, Stack<Integer> st) {
+        vis[node] = 1;
+        for (Pair it : adj.get(node)) {
+            int v = it.v;
+            if (vis[v] == 0) {
+                topoSort(v, adj, vis, st);
+            }
+        }
+        st.push(node);
+    }
 
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+    class Pair {
+        int v, wt;
+        Pair(int v, int wt) {
+            this.v = v;
+            this.wt = wt;
+        }
+    }
+
+    public int[] shortestPath(int N, int M, int[][] edges) {
+        ArrayList<ArrayList<Pair>> adj = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            adj.add(new ArrayList<>());
+        }
+        for (int i = 0; i < M; i++) {
+            adj.get(edges[i][0]).add(new Pair(edges[i][1], edges[i][2]));
+        }
+
+        int[] vis = new int[N];
+        Stack<Integer> st = new Stack<>();
+        for (int i = 0; i < N; i++) {
+            if (vis[i] == 0) {
+                topoSort(i, adj, vis, st);
+            }
+        }
+
+        int[] dist = new int[N];
+        Arrays.fill(dist, (int) (1e9));
+        dist[0] = 0; // Assuming source is 0
+
+        while (!st.isEmpty()) {
+            int node = st.pop();
+
+            if (dist[node] != 1e9) {
+                for (Pair it : adj.get(node)) {
+                    int v = it.v;
+                    int wt = it.wt;
+                    if (dist[node] + wt < dist[v]) {
+                        dist[v] = dist[node] + wt;
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < N; i++) {
+            if (dist[i] == 1e9) dist[i] = -1;
+        }
+        return dist;
     }
 }"
-  python="# Python implementation for Shortest Path in Directed Acyclic Graph (DAG)
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def topoSort(self, node, adj, vis, st):
+        vis[node] = 1
+        for v, wt in adj[node]:
+            if not vis[v]:
+                self.topoSort(v, adj, vis, st)
+        st.append(node)
+
+    def shortestPath(self, N, M, edges):
+        adj = [[] for _ in range(N)]
+        for u, v, wt in edges:
+            adj[u].append((v, wt))
+            
+        vis = [0] * N
+        st = []
+        for i in range(N):
+            if not vis[i]:
+                self.topoSort(i, adj, vis, st)
+                
+        dist = [float('inf')] * N
+        dist[0] = 0 # Assuming source is 0
+        
+        while st:
+            node = st.pop()
+            
+            if dist[node] != float('inf'):
+                for v, wt in adj[node]:
+                    if dist[node] + wt < dist[v]:
+                        dist[v] = dist[node] + wt
+                        
+        for i in range(N):
+            if dist[i] == float('inf'):
+                dist[i] = -1
+                
+        return dist"
 />
 
 # Complexity Analysis
@@ -49,21 +180,21 @@ class Solution:
   best="O(V + E)"
   average="O(V + E)"
   worst="O(V + E)"
-  space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  space="O(V + E)"
+  description="Time Complexity is O(V + E) for the topological sort plus edge relaxations. Space Complexity is O(V + E) for the adjacency list, and O(V) for stack, visited, and distance arrays."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- **Graph Type:** This algorithm ONLY works if the graph is a Directed Acyclic Graph (DAG). Do not use this if cycles might be present.
+- **Handling Unreachable Nodes:** Ensure you only relax edges of nodes that have already been reached (`dist[node] != infinity`), otherwise you might compute paths relative to infinity.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "This is a massive flex in an interview. When presented with a DAG shortest path problem, mention Dijkstra's algorithm, but then explain why Topological Sort is fundamentally faster.",
+    "Explain that the topological order ensures that when we process node V, we have already processed all nodes U that have an edge to V. Thus, dist[V] is finalized.",
+    "This algorithm elegantly handles negative weights (unlike Dijkstra), as long as there are no cycles (which is guaranteed by definition of a DAG)."
   ]}
 />

@@ -11,37 +11,107 @@ summary: "An essential guide to Cycle in Directed Graph (DFS), exploring its app
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Cycle in Directed Graph (DFS)**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+Detecting a cycle in a **directed graph** is slightly different from an undirected graph. In an undirected graph, encountering an already visited node that is not the direct parent means a cycle exists. However, in a directed graph, finding a visited node does not necessarily imply a cycle (it could just be a cross edge).
+
+For a directed graph, a cycle exists if and only if there is a **back edge**. A back edge is an edge that points from a node to itself or one of its ancestors in the DFS traversal tree.
+
+To keep track of ancestors in the current DFS path, we need to maintain a separate `pathVisited` array (or track nodes in the current recursion stack) along with the standard `visited` array.
 
 ### Core Intuition
-The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+- Use a `visited` array to keep track of generally visited nodes.
+- Use a `pathVisited` array (or `inRecursion` boolean state) to track nodes currently in the recursion stack.
+- When visiting a node, mark it in both `visited` and `pathVisited`.
+- Explore its adjacent nodes:
+  - If an adjacent node is not visited, recursively call DFS.
+  - If an adjacent node is **already visited AND is in the `pathVisited` array**, a cycle is detected!
+- Backtrack: When returning from the DFS call for a node, unmark it in the `pathVisited` array because we are exiting its path.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Cycle in Directed Graph (DFS)
-#include <iostream>
-#include <vector>
-using namespace std;
+  cpp="class Solution {
+private:
+    bool dfsCheck(int node, vector<int> adj[], int vis[], int pathVis[]) {
+        vis[node] = 1;
+        pathVis[node] = 1;
 
-class Solution {
+        for (auto it : adj[node]) {
+            if (!vis[it]) {
+                if (dfsCheck(it, adj, vis, pathVis) == true)
+                    return true;
+            } else if (pathVis[it]) {
+                return true;
+            }
+        }
+
+        pathVis[node] = 0;
+        return false;
+    }
 public:
-    void solve(int V, vector<int> adj[]) {
-        // Implementation here
+    bool isCyclic(int V, vector<int> adj[]) {
+        int vis[V] = {0};
+        int pathVis[V] = {0};
+
+        for (int i = 0; i < V; i++) {
+            if (!vis[i]) {
+                if (dfsCheck(i, adj, vis, pathVis) == true) return true;
+            }
+        }
+        return false;
     }
 };"
-  java="// Java implementation for Cycle in Directed Graph (DFS)
-import java.util.*;
-
-class Solution {
-    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
-        // Implementation here
+  java="class Solution {
+    private boolean dfsCheck(int node, ArrayList<ArrayList<Integer>> adj, int[] vis, int[] pathVis) {
+        vis[node] = 1;
+        pathVis[node] = 1;
+        
+        for (int it : adj.get(node)) {
+            if (vis[it] == 0) {
+                if (dfsCheck(it, adj, vis, pathVis)) return true;
+            } else if (pathVis[it] == 1) {
+                return true;
+            }
+        }
+        
+        pathVis[node] = 0;
+        return false;
+    }
+    
+    public boolean isCyclic(int V, ArrayList<ArrayList<Integer>> adj) {
+        int[] vis = new int[V];
+        int[] pathVis = new int[V];
+        
+        for (int i = 0; i < V; i++) {
+            if (vis[i] == 0) {
+                if (dfsCheck(i, adj, vis, pathVis)) return true;
+            }
+        }
+        return false;
     }
 }"
-  python="# Python implementation for Cycle in Directed Graph (DFS)
-class Solution:
-    def solve(self, V, adj):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def dfsCheck(self, node, adj, vis, pathVis):
+        vis[node] = 1
+        pathVis[node] = 1
+        
+        for neighbor in adj[node]:
+            if not vis[neighbor]:
+                if self.dfsCheck(neighbor, adj, vis, pathVis):
+                    return True
+            elif pathVis[neighbor]:
+                return True
+                
+        pathVis[node] = 0
+        return False
+
+    def isCyclic(self, V, adj):
+        vis = [0] * V
+        pathVis = [0] * V
+        
+        for i in range(V):
+            if not vis[i]:
+                if self.dfsCheck(i, adj, vis, pathVis):
+                    return True
+        return False"
 />
 
 # Complexity Analysis
@@ -50,20 +120,21 @@ class Solution:
   average="O(V + E)"
   worst="O(V + E)"
   space="O(V)"
-  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+  description="Time Complexity is O(V + E) for exploring all nodes and edges. Space Complexity is O(V) for the visited and pathVisited arrays and the recursion stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
-- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+- **Missing path reset:** Forgetting to reset `pathVis[node] = 0` during the backtracking step will lead to false cycle detections across different branches.
+- **Using only one visited array:** In a directed graph, standard cycle detection (for undirected graphs) with just a visited array and a parent pointer will fail.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
-    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
-    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+    "Clearly explain the difference between detecting a cycle in a directed vs undirected graph.",
+    "Mention that back edges are the key to detecting cycles in directed graphs.",
+    "Be ready to implement Kahn's Algorithm (BFS) as an alternative approach for cycle detection in directed graphs.",
+    "In languages like Python, you can use a single integer array with three states: 0 (unvisited), 1 (visiting), 2 (visited) to save space."
   ]}
 />

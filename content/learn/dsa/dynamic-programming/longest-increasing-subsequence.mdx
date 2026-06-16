@@ -11,64 +11,89 @@ summary: "An essential deep-dive into Longest Increasing Subsequence (LIS). This
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Longest Increasing Subsequence (LIS)**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+The **Longest Increasing Subsequence (LIS)** problem requires you to find the length of the longest subsequence of a given array such that all elements of the subsequence are sorted in strictly increasing order.
 
 ### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+Unlike previous 2D problems, LIS operates nicely in a 1D DP state.
+Let `dp[i]` be the length of the longest increasing subsequence that strictly **ends** at index `i`.
+For each element at `i`, we look back at all previous elements `j` from `0` to `i-1`.
+If `nums[i] > nums[j]`, then we can append `nums[i]` to the LIS ending at `j`.
+So, the recurrence relation is:
+`dp[i] = max(dp[i], dp[j] + 1)` for all `0 <= j < i` where `nums[i] > nums[j]`.
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+Finally, the answer is the maximum value across the entire `dp` array.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Longest Increasing Subsequence (LIS)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int lengthOfLIS(vector<int>& nums) {
+        if (nums.empty()) return 0;
+        vector<int> dp(nums.size(), 1);
+        int max_len = 1;
+        
+        for (int i = 1; i < nums.size(); i++) {
+            for (int j = 0; j < i; j++) {
+                if (nums[i] > nums[j]) {
+                    dp[i] = max(dp[i], dp[j] + 1);
+                }
+            }
+            max_len = max(max_len, dp[i]);
+        }
+        return max_len;
     }
 };"
-  java="// Java implementation for Longest Increasing Subsequence (LIS)
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int lengthOfLIS(int[] nums) {
+        if (nums == null || nums.length == 0) return 0;
+        int[] dp = new int[nums.length];
+        Arrays.fill(dp, 1);
+        int maxLen = 1;
+        
+        for (int i = 1; i < nums.length; i++) {
+            for (int j = 0; j < i; j++) {
+                if (nums[i] > nums[j]) {
+                    dp[i] = Math.max(dp[i], dp[j] + 1);
+                }
+            }
+            maxLen = Math.max(maxLen, dp[i]);
+        }
+        return maxLen;
     }
 }"
-  python="# Python implementation for Longest Increasing Subsequence (LIS)
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def lengthOfLIS(self, nums: list[int]) -> int:
+        if not nums:
+            return 0
+        dp = [1] * len(nums)
+        
+        for i in range(1, len(nums)):
+            for j in range(i):
+                if nums[i] > nums[j]:
+                    dp[i] = max(dp[i], dp[j] + 1)
+                    
+        return max(dp)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(N log N)"
+  average="O(N^2)"
+  worst="O(N^2)"
+  space="O(N)"
+  description="The standard DP approach takes O(N^2) time. However, this can be heavily optimized using Binary Search with Patience Sorting to achieve O(N log N) time complexity."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- Returning `dp[n-1]` as the answer. The LIS does not necessarily end at the last element! You must find the maximum value in the entire `dp` array.
+- Initializing the `dp` array with `0`. The minimum LIS for any element on its own is `1`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "If you code the O(N^2) DP solution, the interviewer will 100% ask you to optimize it. Be prepared to discuss the O(N log N) approach using binary search.",
+    "LIS is a foundational pattern. Problems like 'Russian Doll Envelopes' or 'Longest Bitonic Subsequence' are direct variants of LIS."
   ]}
 />

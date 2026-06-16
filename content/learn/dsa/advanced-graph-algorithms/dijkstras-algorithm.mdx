@@ -11,37 +11,98 @@ summary: "An essential guide to Dijkstra's Algorithm, exploring its applications
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Dijkstra's Algorithm**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+Dijkstra's Algorithm is a greedy algorithm used to find the shortest path from a single source node to all other nodes in a graph with non-negative edge weights.
 
 ### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+The algorithm maintains a set of unvisited nodes and calculates the tentative distance from the source to these nodes. It continuously selects the unvisited node with the smallest known distance, marks it as visited, and updates the distances to its adjacent nodes. We typically use a Min-Heap (Priority Queue) to efficiently fetch the node with the smallest distance.
+
+### The Algorithm Steps
+1. Initialize an array `dist` of size `V` with `infinity`, except `dist[source] = 0`.
+2. Push `(0, source)` into a Min-Heap.
+3. While the heap is not empty, extract the node `u` with the minimum distance `d`.
+4. If `d > dist[u]`, it means we already found a shorter path to `u` earlier, so we skip it (lazy deletion).
+5. For each neighbor `v` of `u` with edge weight `w`:
+   - If `dist[u] + w < dist[v]`, update `dist[v] = dist[u] + w` and push `(dist[v], v)` into the heap.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Dijkstra's Algorithm
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    vector<int> dijkstra(int V, vector<vector<int>> adj[], int S) {
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        vector<int> dist(V, 1e9);
+        
+        dist[S] = 0;
+        pq.push({0, S});
+        
+        while (!pq.empty()) {
+            int dis = pq.top().first;
+            int node = pq.top().second;
+            pq.pop();
+            
+            if (dis > dist[node]) continue;
+            
+            for (auto it : adj[node]) {
+                int adjNode = it[0];
+                int edgeWeight = it[1];
+                
+                if (dis + edgeWeight < dist[adjNode]) {
+                    dist[adjNode] = dis + edgeWeight;
+                    pq.push({dist[adjNode], adjNode});
+                }
+            }
+        }
+        return dist;
     }
 };"
-  java="// Java implementation for Dijkstra's Algorithm
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    static int[] dijkstra(int V, ArrayList<ArrayList<ArrayList<Integer>>> adj, int S) {
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+        int[] dist = new int[V];
+        Arrays.fill(dist, (int)(1e9));
+        
+        dist[S] = 0;
+        pq.add(new int[]{0, S});
+        
+        while (!pq.isEmpty()) {
+            int[] current = pq.poll();
+            int dis = current[0], node = current[1];
+            
+            if (dis > dist[node]) continue;
+            
+            for (ArrayList<Integer> edge : adj.get(node)) {
+                int adjNode = edge.get(0);
+                int edgeWeight = edge.get(1);
+                
+                if (dis + edgeWeight < dist[adjNode]) {
+                    dist[adjNode] = dis + edgeWeight;
+                    pq.add(new int[]{dist[adjNode], adjNode});
+                }
+            }
+        }
+        return dist;
     }
 }"
-  python="# Python implementation for Dijkstra's Algorithm
+  python="import heapq
+
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def dijkstra(self, V, adj, S):
+        pq = [(0, S)]
+        dist = [float('inf')] * V
+        dist[S] = 0
+        
+        while pq:
+            dis, node = heapq.heappop(pq)
+            
+            if dis > dist[node]:
+                continue
+                
+            for adjNode, edgeWeight in adj[node]:
+                if dis + edgeWeight < dist[adjNode]:
+                    dist[adjNode] = dis + edgeWeight
+                    heapq.heappush(pq, (dist[adjNode], adjNode))
+                    
+        return dist"
 />
 
 # Complexity Analysis
@@ -50,19 +111,21 @@ class Solution:
   average="O(E log V)"
   worst="O(E log V)"
   space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  description="The time complexity is O(E log V) because in the worst case, each edge gets processed and pushes an entry to the priority queue. The priority queue operations take O(log V) time. Space complexity is O(V + E) for the adjacency list and priority queue."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Negative Weights:** Dijkstra's Algorithm fails or loops infinitely when graphs contain negative edge weights. Use Bellman-Ford instead.
+- **Outdated Queue Elements:** A node might be inserted into the priority queue multiple times with different distances. Always check `if (d > dist[u]) continue;` to skip outdated pairs and avoid redundant work.
+- **Disconnected Graphs:** If the graph is disconnected, nodes unreachable from the source will remain at `infinity`. Ensure your code handles this correctly.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "Clarify with the interviewer if the graph can have negative weights. This justifies your choice of Dijkstra over Bellman-Ford.",
+    "Mention that using a Fibonacci heap can theoretically improve time complexity to O(V log V + E), though standard libraries use Binary Heaps yielding O(E log V) which is practically faster and easier to implement.",
+    "Be ready to trace the algorithm on a small example graph during the interview. It helps communicate your understanding clearly."
   ]}
 />

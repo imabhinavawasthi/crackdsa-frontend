@@ -11,58 +11,86 @@ summary: "An essential guide to Group Anagrams, covering everything from basic c
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Group Anagrams**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+The **Group Anagrams** problem asks you to take an array of strings and group the anagrams together. For example, given `["eat","tea","tan","ate","nat","bat"]`, the output should be groups like `[["bat"],["nat","tan"],["ate","eat","tea"]]`.
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+**The Intuition:**
+We need a way to uniquely identify any group of anagrams. A unique identifier (or key) is required for each group so we can cluster strings together using a Hash Map. 
+
+**Approach 1: Sorted String as Key**
+If we sort each string, all anagrams evaluate to the exact same sorted string. For example, "eat", "tea", and "ate" all sort to "aet". We can use "aet" as a key in our Hash Map, pointing to a list of original strings.
+Time complexity: $O(N \cdot K \log K)$ where $N$ is the number of strings and $K$ is the max length of a string.
+
+**Approach 2: Frequency Array as Key (Optimal)**
+Instead of sorting, we can generate a character count array of size 26 for each string, convert this array into a string representation (e.g., "1#0#0..."), and use that as our Hash Map key.
+Time complexity: $O(N \cdot K)$.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Group Anagrams
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    vector<vector<string>> groupAnagrams(vector<string>& strs) {
+        unordered_map<string, vector<string>> map;
+        for (const string& s : strs) {
+            string key = s;
+            sort(key.begin(), key.end());
+            map[key].push_back(s);
+        }
+        
+        vector<vector<string>> result;
+        for (auto& pair : map) {
+            result.push_back(pair.second);
+        }
+        return result;
     }
 };"
-  java="// Java implementation for Group Anagrams
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        Map<String, List<String>> map = new HashMap<>();
+        for (String s : strs) {
+            char[] chars = s.toCharArray();
+            Arrays.sort(chars);
+            String key = new String(chars);
+            
+            map.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
+        }
+        return new ArrayList<>(map.values());
     }
 }"
-  python="# Python implementation for Group Anagrams
+  python="from collections import defaultdict
+
 class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+    def groupAnagrams(self, strs: list[str]) -> list[list[str]]:
+        anagram_map = defaultdict(list)
+        for s in strs:
+            # Optimal O(N*K) approach using tuple of counts as key
+            counts = [0] * 26
+            for char in s:
+                counts[ord(char) - ord('a')] += 1
+            anagram_map[tuple(counts)].append(s)
+            
+        return list(anagram_map.values())"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  best="O(N \cdot K)"
+  average="O(N \cdot K)"
+  worst="O(N \cdot K)"
+  space="O(N \cdot K)"
+  description="Using a tuple or serialized string of character frequencies as the hash key yields O(N*K) time, where N is the number of words and K is the maximum word length. Sorting yields O(N * K log K)."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- Using array objects directly as dictionary keys. Arrays/lists are usually mutable and unhashable; you must convert them to an immutable form (like a `String` in Java or a `tuple` in Python).
+- Concatenating frequency counts without delimiters (e.g., `11` could mean 1 'a' and 1 'b', or 11 'a's). Always use a delimiter if building a string key manually.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "If word lengths K are very small, sorting the strings O(N * K log K) often performs faster in practice due to lower overhead than building frequency keys.",
+    "Python tuples are immutable and hashable, making them the perfect dictionary key for character counts.",
+    "Mention the trade-offs of space complexity when grouping large datasets; you are storing essentially all characters in the hash map."
   ]}
 />

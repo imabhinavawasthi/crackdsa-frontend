@@ -4,45 +4,132 @@ category: "Sorting & Custom Comparators"
 readTime: "9 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the underlying mechanics and intuition behind Heap Sort."
-  - "Master the stability, time complexity, and space complexity of the algorithm."
-  - "Learn when to apply this specific sorting technique in interviews."
-summary: "An essential deep-dive into Heap Sort, breaking down its algorithmic approach, code implementation, and real-world interview applications."
+  - "Understand the properties of Max-Heaps and Min-Heaps."
+  - "Learn how to implement Heap Sort entirely in-place."
+  - "Master the time and space complexity differences between Heap Sort and Merge Sort."
+summary: "An essential deep-dive into Heap Sort, breaking down its array-based tree representation, the heapify process, and real-world performance."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Heap Sort**. This topic is a cornerstone of the Sorting & Custom Comparators module. While standard library sorting functions exist, understanding how these algorithms work under the hood is critical for recognizing when an interview problem is actually a masked sorting algorithm.
+Welcome to the lesson on **Heap Sort**. Heap Sort is a comparison-based sorting algorithm that marries the excellent $O(N \log N)$ worst-case time guarantee of Merge Sort with the strictly $O(1)$ space requirement of Selection Sort. 
 
 ### Core Intuition
-The primary goal of sorting is to order elements either ascending or descending. Depending on the algorithm, this is achieved by swapping adjacent elements, repeatedly selecting the minimum, or dividing the array recursively.
+Heap Sort is heavily reliant on the **Binary Heap** data structure, which can be elegantly represented using a flat array. In a 0-indexed array, the left child of node `i` is at `2*i + 1` and the right child is at `2*i + 2`.
+
+The sorting process works in two distinct phases:
+1. **Build a Max-Heap:** First, we transform the unsorted array into a valid Max-Heap. In a Max-Heap, every parent node is greater than or equal to its children. This guarantees that the absolute largest element in the entire array is at the root (index `0`).
+2. **Extract and Shrink:** We swap the root element (the maximum) with the very last element in the array. We then reduce the conceptual "size" of the heap by 1, leaving the max element safely stored at the end. Finally, we call `heapify` on the new root to restore the Max-Heap property. We repeat this until the heap is empty, resulting in a sorted array.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Heap Sort
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
+  cpp="class Solution {
+private:
+    void heapify(vector<int>& arr, int n, int i) {
+        int largest = i; // Initialize largest as root
+        int left = 2 * i + 1; // left child index
+        int right = 2 * i + 2; // right child index
 
-class Solution {
+        // If left child is larger than root
+        if (left < n && arr[left] > arr[largest])
+            largest = left;
+
+        // If right child is larger than largest so far
+        if (right < n && arr[right] > arr[largest])
+            largest = right;
+
+        // If largest is not root
+        if (largest != i) {
+            swap(arr[i], arr[largest]);
+            // Recursively heapify the affected sub-tree
+            heapify(arr, n, largest);
+        }
+    }
+
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    void heapSort(vector<int>& arr) {
+        int n = arr.size();
+
+        // Step 1: Build max heap
+        // Start from the last non-leaf node and heapify down
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(arr, n, i);
+        }
+
+        // Step 2: Extract elements from heap one by one
+        for (int i = n - 1; i > 0; i--) {
+            // Move current root to end
+            swap(arr[0], arr[i]);
+            // call max heapify on the reduced heap
+            heapify(arr, i, 0);
+        }
     }
 };"
-  java="// Java implementation for Heap Sort
-import java.util.*;
+  java="class Solution {
+    private void heapify(int[] arr, int n, int i) {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
 
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+        if (left < n && arr[left] > arr[largest])
+            largest = left;
+
+        if (right < n && arr[right] > arr[largest])
+            largest = right;
+
+        if (largest != i) {
+            int swap = arr[i];
+            arr[i] = arr[largest];
+            arr[largest] = swap;
+
+            heapify(arr, n, largest);
+        }
+    }
+
+    public void heapSort(int[] arr) {
+        int n = arr.length;
+
+        // Build max heap
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(arr, n, i);
+        }
+
+        // Extract elements
+        for (int i = n - 1; i > 0; i--) {
+            int temp = arr[0];
+            arr[0] = arr[i];
+            arr[i] = temp;
+
+            heapify(arr, i, 0);
+        }
     }
 }"
-  python="# Python implementation for Heap Sort
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def _heapify(self, arr: list[int], n: int, i: int):
+        largest = i
+        left = 2 * i + 1
+        right = 2 * i + 2
+
+        if left < n and arr[left] > arr[largest]:
+            largest = left
+
+        if right < n and arr[right] > arr[largest]:
+            largest = right
+
+        if largest != i:
+            arr[i], arr[largest] = arr[largest], arr[i]
+            self._heapify(arr, n, largest)
+
+    def heap_sort(self, arr: list[int]) -> None:
+        n = len(arr)
+
+        # Build max heap
+        for i in range(n // 2 - 1, -1, -1):
+            self._heapify(arr, n, i)
+
+        # Extract elements
+        for i in range(n - 1, 0, -1):
+            arr[i], arr[0] = arr[0], arr[i]
+            self._heapify(arr, i, 0)"
 />
 
 # Complexity Analysis
@@ -51,20 +138,21 @@ class Solution:
   average="O(N log N)"
   worst="O(N log N)"
   space="O(1)"
-  description="Sorting time complexity heavily depends on the algorithm. While Merge Sort guarantees O(N log N) worst-case time, Quick Sort can degrade to O(N^2) if the pivot is chosen poorly. Space complexity ranges from O(1) in-place sorts to O(N) auxiliary space."
+  description="Building the initial max-heap takes O(N) time. Extracting the maximum element and re-heapifying takes O(log N) time, and we do this N times, resulting in a strictly O(N log N) time complexity. Because the heap is manipulated entirely within the input array, it uses an optimal O(1) auxiliary space."
 />
 
 # Common Pitfalls
 <Warning>
-- **Stability Issues:** Using an unstable sort (like Quick Sort) when the relative order of equal elements must be preserved. (Use Merge Sort or Insertion Sort instead).
-- **Stack Overflow:** Deep recursion in Merge Sort or Quick Sort on massive arrays can cause Call Stack limits to trigger.
+- **Using a Min-Heap for Ascending Sort:** A common mistake is thinking you need a Min-Heap to sort in ascending order. You actually need a **Max-Heap**, because you move the extracted max elements to the *back* of the array.
+- **Off-by-One Errors:** Miscalculating the last non-leaf node index `(n/2 - 1)` or misidentifying left/right children `(2*i + 1, 2*i + 2)`.
+- **Assuming Stability:** Heap Sort is NOT stable. The process of heavily swapping nodes across the tree structure inherently scrambles the relative order of equal elements.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array contains numbers exactly in the range 1 to N, it is a dead giveaway to use Cycle Sort for an O(N) time and O(1) space solution.",
-    "If you only need to sort numbers within a very small, restricted range (e.g., ages from 1 to 100), Counting Sort is the most optimal approach.",
-    "Always clarify if you are allowed to mutate the input array. If not, you must account for the O(N) space of copying the array."
+    "If an interviewer strictly demands an O(N log N) time solution with O(1) space, Heap Sort is your only real answer (Quick Sort takes O(log N) space, Merge Sort takes O(N) space).",
+    "Heap Sort is rarely faster than Quick Sort in practice due to poor cache locality (accessing array elements at 2*i distances often leads to cache misses).",
+    "If you only need to find the 'K largest elements' in a massive array, do not sort the whole thing. Maintain a Min-Heap of size K instead!"
   ]}
 />

@@ -11,55 +11,109 @@ summary: "An essential guide to Stack Basics, exploring its applications, implem
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Stack Basics**. This topic is a cornerstone of the Stack & Queue module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+A **Stack** is a linear data structure that follows a particular order in which operations are performed. The order is **LIFO (Last In First Out)** or **FILO (First In Last Out)**. This means that the last element added to the stack will be the first one to be removed. Think of it like a stack of plates in a cafeteria—you can only add a plate to the top, and you can only take a plate from the top.
+
+Stacks are incredibly useful for maintaining state in recursive algorithms, processing nested structures (like valid parentheses, HTML tags), evaluating expressions (like Reverse Polish Notation), and managing depth-first search (DFS) traversals.
+
+The primary operations for a stack are:
+- **Push:** Adds an element to the top of the stack.
+- **Pop:** Removes the top element from the stack.
+- **Peek / Top:** Returns the top element without removing it.
+- **isEmpty:** Checks whether the stack is empty.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Stack Basics
-#include <iostream>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Stack {
+private:
+    vector<int> elements;
 public:
-    void solve() {
-        // Implementation here
+    void push(int x) {
+        elements.push_back(x);
+    }
+    void pop() {
+        if (!elements.empty()) {
+            elements.pop_back();
+        }
+    }
+    int top() {
+        if (!elements.empty()) {
+            return elements.back();
+        }
+        return -1; // Or throw an exception
+    }
+    bool isEmpty() {
+        return elements.empty();
     }
 };"
-  java="// Java implementation for Stack Basics
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Stack {
+    private List<Integer> elements = new ArrayList<>();
+    
+    public void push(int x) {
+        elements.add(x);
+    }
+    
+    public void pop() {
+        if (!elements.isEmpty()) {
+            elements.remove(elements.size() - 1);
+        }
+    }
+    
+    public int top() {
+        if (!elements.isEmpty()) {
+            return elements.get(elements.size() - 1);
+        }
+        return -1; // Or throw an exception
+    }
+    
+    public boolean isEmpty() {
+        return elements.isEmpty();
     }
 }"
-  python="# Python implementation for Stack Basics
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Stack:
+    def __init__(self):
+        self.elements = []
+        
+    def push(self, x: int) -> None:
+        self.elements.append(x)
+        
+    def pop(self) -> None:
+        if self.elements:
+            self.elements.pop()
+            
+    def top(self) -> int:
+        if self.elements:
+            return self.elements[-1]
+        return -1 # Or raise an exception
+        
+    def is_empty(self) -> bool:
+        return len(self.elements) == 0"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  average="O(1)"
+  worst="O(1)"
+  space="O(N)"
+  description="Push, pop, and peek operations all execute in O(1) time complexity since we only modify or access the end of the dynamic array. Space complexity is O(N) where N is the number of elements in the stack."
 />
 
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Popping an Empty Stack:** Trying to call `pop()` or `top()` on an empty stack is a common cause of runtime exceptions. Always check `isEmpty()` before accessing elements.
+- **Memory Leaks:** In lower-level languages like C or C++, manually implemented stacks using linked lists require explicit memory deallocation when popping nodes.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Stacks are your go-to data structure when you need to process data in a reverse order (LIFO).",
+    "Whenever you encounter problems with nested structures, paired items, or parsing strings (like bracket matching), immediately think of a stack.",
+    "If a problem can be solved recursively, it can often be solved iteratively using an explicit stack. This is useful if you want to avoid call stack overflow errors."
   ]}
 />

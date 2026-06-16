@@ -11,42 +11,86 @@ summary: "An essential guide to Min & Max Heaps (Implementation), mastering O(lo
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Min & Max Heaps (Implementation)**. This topic is a cornerstone of the Heaps & Priority Queues module. A Heap (usually implemented via a Priority Queue) is an extremely specialized tree structure that allows you to instantly extract the minimum or maximum element in O(1) time, while inserts and deletions take O(log N).
+Heaps are typically implemented using a plain array rather than a node-based tree structure. Because a heap is a **complete binary tree**, we can map it to an array mathematically without any gaps.
 
-### Core Intuition
-Heaps are typically implemented under the hood as a complete binary tree mapped to a flat array. The children of node `i` are at `2i + 1` and `2i + 2`. This guarantees the tree is perfectly balanced.
+For a node at index `i` (0-indexed):
+- Its **Left Child** is at index `2i + 1`
+- Its **Right Child** is at index `2i + 2`
+- Its **Parent** is at index `(i - 1) / 2` (integer division)
+
+### Core Operations
+1. **Insert (Push)**: Add the new element at the end of the array. Then, repeatedly swap it with its parent until the heap property is restored. This is called **sift-up** or **bubble-up**.
+2. **Extract Min/Max (Pop)**: Remove the root element. Replace it with the last element in the array. Then, repeatedly swap it with its smallest/largest child until the heap property is restored. This is called **sift-down** or **bubble-down**.
+
+Modern languages provide built-in Priority Queues, so you rarely need to implement a heap from scratch in an interview, but knowing the underlying mechanics is essential.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Min & Max Heaps (Implementation)
-#include <iostream>
+  cpp="#include <iostream>
 #include <vector>
 #include <queue>
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // priority_queue<int> maxHeap;
-        // priority_queue<int, vector<int>, greater<int>> minHeap;
+    void heapExamples() {
+        // Max-Heap (Default in C++)
+        priority_queue<int> maxHeap;
+        maxHeap.push(10);
+        maxHeap.push(30);
+        maxHeap.push(20);
+        cout << \"Max: \" << maxHeap.top() << endl; // 30
+        maxHeap.pop();
+
+        // Min-Heap in C++
+        priority_queue<int, vector<int>, greater<int>> minHeap;
+        minHeap.push(10);
+        minHeap.push(30);
+        minHeap.push(20);
+        cout << \"Min: \" << minHeap.top() << endl; // 10
+        minHeap.pop();
     }
 };"
-  java="// Java implementation for Min & Max Heaps (Implementation)
-import java.util.*;
+  java="import java.util.*;
 
 class Solution {
-    public void solve(int[] arr) {
-        // PriorityQueue<Integer> minHeap = new PriorityQueue<>();
-        // PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+    public void heapExamples() {
+        // Min-Heap (Default in Java)
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        minHeap.add(10);
+        minHeap.add(30);
+        minHeap.add(20);
+        System.out.println(\"Min: \" + minHeap.peek()); // 10
+        minHeap.poll();
+
+        // Max-Heap in Java
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+        maxHeap.add(10);
+        maxHeap.add(30);
+        maxHeap.add(20);
+        System.out.println(\"Max: \" + maxHeap.peek()); // 30
+        maxHeap.poll();
     }
 }"
-  python="# Python implementation for Min & Max Heaps (Implementation)
-import heapq
+  python="import heapq
 
 class Solution:
-    def solve(self, arr: list[int]):
-        # heapq.heapify(arr)  # Min-heap by default
-        pass"
+    def heap_examples(self):
+        # Min-Heap (Default in Python)
+        min_heap = []
+        heapq.heappush(min_heap, 10)
+        heapq.heappush(min_heap, 30)
+        heapq.heappush(min_heap, 20)
+        print(\"Min:\", min_heap[0]) # 10
+        heapq.heappop(min_heap)
+
+        # Max-Heap in Python (Multiply by -1)
+        max_heap = []
+        heapq.heappush(max_heap, -10)
+        heapq.heappush(max_heap, -30)
+        heapq.heappush(max_heap, -20)
+        print(\"Max:\", -max_heap[0]) # 30
+        heapq.heappop(max_heap)"
 />
 
 # Complexity Analysis
@@ -55,20 +99,19 @@ class Solution:
   average="O(log N)"
   worst="O(log N)"
   space="O(N)"
-  description="Peeking at the top element is O(1). Popping or Pushing an element takes O(log N) time because the heap must bubble up or sift down to maintain its properties. Building a heap from an unsorted array takes O(N) time."
+  description="Pushing or popping takes O(log N) time as the element must travel up or down the height of the tree. Peeking takes O(1) time. Space complexity is O(N) to store the N elements."
 />
 
 # Common Pitfalls
 <Warning>
-- **Python's heapq:** Python only has a built-in Min-Heap. To simulate a Max-Heap, you must negate all numbers before pushing them in, and negate them again when popping out!
-- **N log N vs N log K:** When finding the Top K elements, do NOT push all N elements into the heap (O(N log N)). Instead, keep the heap size capped at K. When size > K, pop the smallest element. This reduces time complexity to O(N log K).
+- In Java, `PriorityQueue` is a Min-Heap by default. In C++, `priority_queue` is a Max-Heap by default. Be careful not to mix them up!
+- When maintaining a size-K heap, always check the size *after* insertion before popping, to avoid removing the element you just inserted if it should stay.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Kth Largest', 'Kth Smallest', or 'Top K' of anything, it is a 99% guarantee that a Heap/Priority Queue is the intended solution.",
-    "If you need to merge multiple sorted arrays or linked lists simultaneously, a Min-Heap keeping track of the current pointers is the most optimal approach.",
-    "The 'Find Median from Data Stream' problem is a classic hard interview question solved beautifully by maintaining two separate heaps: one Max-Heap for the lower half, and one Min-Heap for the upper half."
+    "If you only need to keep the 'Top K' elements from a large stream, a heap of size K prevents memory overflow and optimizes the time complexity from O(N log N) to O(N log K).",
+    "To store custom objects in a heap, you must define a custom comparator or implement Comparable (in Java) / overload operators (in C++)."
   ]}
 />

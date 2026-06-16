@@ -11,57 +11,100 @@ summary: "An essential guide to Difference Array technique, exploring its applic
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Difference Array technique**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+The **Difference Array** technique is a powerful optimization used when we need to apply multiple range update operations (e.g., adding a value $V$ to all elements from index $L$ to $R$) to an array, and only query the final array after all updates are done.
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+Normally, updating a range $[L, R]$ takes $O(N)$ time. If we have $Q$ updates, the total time is $O(Q \times N)$.
+A Difference Array, `diff`, stores the difference between adjacent elements: `diff[i] = A[i] - A[i-1]`.
+
+To add $V$ to the range $[L, R]$, we simply perform two $O(1)$ operations:
+1. `diff[L] += V` (This adds $V$ to $A[L]$ and all subsequent elements when we rebuild the array).
+2. `diff[R + 1] -= V` (This cancels out the addition for elements starting from $R+1$).
+
+After applying all $Q$ operations in $O(Q)$ time, we rebuild the final array by computing the **Prefix Sum** of the `diff` array in $O(N)$ time. Total time: $O(Q + N)$.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Difference Array technique
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class DifferenceArray {
+    vector<int> diff;
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    DifferenceArray(int n) {
+        diff.assign(n + 1, 0);
+    }
+    
+    void updateRange(int l, int r, int val) {
+        diff[l] += val;
+        diff[r + 1] -= val;
+    }
+    
+    vector<int> getResult() {
+        vector<int> result(diff.size() - 1);
+        int currentSum = 0;
+        for (int i = 0; i < result.size(); i++) {
+            currentSum += diff[i];
+            result[i] = currentSum;
+        }
+        return result;
     }
 };"
-  java="// Java implementation for Difference Array technique
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class DifferenceArray {
+    private int[] diff;
+    
+    public DifferenceArray(int n) {
+        diff = new int[n + 1];
+    }
+    
+    public void updateRange(int l, int r, int val) {
+        diff[l] += val;
+        diff[r + 1] -= val;
+    }
+    
+    public int[] getResult() {
+        int[] result = new int[diff.length - 1];
+        int currentSum = 0;
+        for (int i = 0; i < result.length; i++) {
+            currentSum += diff[i];
+            result[i] = currentSum;
+        }
+        return result;
     }
 }"
-  python="# Python implementation for Difference Array technique
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class DifferenceArray:
+    def __init__(self, n: int):
+        self.diff = [0] * (n + 1)
+        
+    def updateRange(self, l: int, r: int, val: int):
+        self.diff[l] += val
+        self.diff[r + 1] -= val
+        
+    def getResult(self) -> List[int]:
+        result = [0] * (len(self.diff) - 1)
+        current_sum = 0
+        for i in range(len(result)):
+            current_sum += self.diff[i]
+            result[i] = current_sum
+        return result"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  best="O(Q + N)"
+  average="O(Q + N)"
+  worst="O(Q + N)"
+  space="O(N)"
+  description="Each of the Q range updates takes an instant O(1) time. Reconstructing the final array requires a single O(N) pass. The space complexity is O(N) to store the auxiliary difference array."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- Forgetting to allocate `N + 1` size for the difference array. When an update covers up to the last element (`R = N - 1`), you must access `diff[R + 1]`, which will cause an index out of bounds error if the array size is exactly `N`.
+- Trying to query individual array elements *during* the update phase. The Difference Array is strictly an offline algorithm—you cannot accurately read the array's state until you reconstruct it with a prefix sum pass.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "If you see a problem about 'booking flights', 'scheduling meetings', or 'applying overlapping intervals', Difference Array (or Line Sweep) is often the golden key.",
+    "Explain to the interviewer the relationship between Prefix Sums and Difference Arrays: they are inverse operations. Summing a difference array gives the original array, and differencing a prefix sum array gives the original array.",
+    "Mention that if the range limits are massive (e.g., up to 10^9), you should use a Hash Map (like `TreeMap` in Java or `map` in C++) to store only the points of change instead of a massive array."
   ]}
 />

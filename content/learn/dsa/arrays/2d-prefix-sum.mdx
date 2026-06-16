@@ -11,57 +11,87 @@ summary: "An essential guide to 2D Prefix Sum, exploring its applications, imple
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **2D Prefix Sum**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+The **2D Prefix Sum** is an extension of the 1D Prefix Sum, applied to a 2D matrix or grid. It allows us to answer 2D range sum queries (sum of elements inside a specific rectangular subgrid) in **constant $O(1)$ time** after an initial $O(M \times N)$ precomputation step, where $M$ is the number of rows and $N$ is the number of columns.
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+The 2D prefix sum array `prefix` is defined such that `prefix[r][c]` contains the sum of all elements in the rectangle bounded by the top-left corner `(0, 0)` and the bottom-right corner `(r, c)`.
+
+To build this, we use the Inclusion-Exclusion Principle:
+`prefix[r][c] = matrix[r][c] + prefix[r-1][c] + prefix[r][c-1] - prefix[r-1][c-1]`
+
+To query the sum of a rectangle from top-left `(r1, c1)` to bottom-right `(r2, c2)`, we again use Inclusion-Exclusion:
+`Sum = prefix[r2][c2] - prefix[r1-1][c2] - prefix[r2][c1-1] + prefix[r1-1][c1-1]`
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for 2D Prefix Sum
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class NumMatrix {
+    vector<vector<int>> prefix;
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    NumMatrix(vector<vector<int>>& matrix) {
+        if (matrix.empty() || matrix[0].empty()) return;
+        int m = matrix.size(), n = matrix[0].size();
+        prefix.assign(m + 1, vector<int>(n + 1, 0));
+        for (int r = 0; r < m; r++) {
+            for (int c = 0; c < n; c++) {
+                prefix[r + 1][c + 1] = matrix[r][c] + prefix[r][c + 1] + prefix[r + 1][c] - prefix[r][c];
+            }
+        }
+    }
+    
+    int sumRegion(int row1, int col1, int row2, int col2) {
+        return prefix[row2 + 1][col2 + 1] - prefix[row1][col2 + 1] - prefix[row2 + 1][col1] + prefix[row1][col1];
     }
 };"
-  java="// Java implementation for 2D Prefix Sum
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class NumMatrix {
+    private int[][] prefix;
+
+    public NumMatrix(int[][] matrix) {
+        if (matrix.length == 0 || matrix[0].length == 0) return;
+        int m = matrix.length, n = matrix[0].length;
+        prefix = new int[m + 1][n + 1];
+        for (int r = 0; r < m; r++) {
+            for (int c = 0; c < n; c++) {
+                prefix[r + 1][c + 1] = matrix[r][c] + prefix[r][c + 1] + prefix[r + 1][c] - prefix[r][c];
+            }
+        }
+    }
+    
+    public int sumRegion(int row1, int col1, int row2, int col2) {
+        return prefix[row2 + 1][col2 + 1] - prefix[row1][col2 + 1] - prefix[row2 + 1][col1] + prefix[row1][col1];
     }
 }"
-  python="# Python implementation for 2D Prefix Sum
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class NumMatrix:
+    def __init__(self, matrix: List[List[int]]):
+        if not matrix or not matrix[0]: return
+        m, n = len(matrix), len(matrix[0])
+        self.prefix = [[0] * (n + 1) for _ in range(m + 1)]
+        for r in range(m):
+            for c in range(n):
+                self.prefix[r + 1][c + 1] = matrix[r][c] + self.prefix[r][c + 1] + self.prefix[r + 1][c] - self.prefix[r][c]
+
+    def sumRegion(self, row1: int, col1: int, row2: int, col2: int) -> int:
+        return self.prefix[row2 + 1][col2 + 1] - self.prefix[row1][col2 + 1] - self.prefix[row2 + 1][col1] + self.prefix[row1][col1]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
+  space="O(M \times N)"
+  description="Precomputation takes O(M \times N) time and space to build the 2D prefix sum grid. After precomputation, any rectangular region's sum can be computed in an instant O(1) time."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Index Off-by-One Errors:** It is highly recommended to pad the prefix matrix with an extra row and column of zeros. This 1-indexed approach completely eliminates nasty bounds checking when subtracting `prefix[r1-1]` or `prefix[c1-1]`.
+- **Double Counting / Double Subtracting:** The Inclusion-Exclusion formula is prone to typos. Ensure you subtract the two overlapping rectangles correctly and *add back* the doubly subtracted corner region!
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "If a problem asks for finding the largest square or rectangle of 1s in a grid, 2D Prefix Sum combined with binary search is often a viable fallback solution if you forget the optimal DP/Monotonic Stack approach.",
+    "Draw out the rectangles! Interviewers love seeing the visual representation of how `prefix[r-1][c-1]` gets subtracted twice and thus needs to be added back.",
+    "Discuss edge cases: empty matrices `[]` or `[[]]` can crash the initialization. Always guard your constructors against empty inputs."
   ]}
 />

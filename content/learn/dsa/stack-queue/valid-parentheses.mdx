@@ -11,64 +11,99 @@ summary: "An essential guide to Valid Parentheses, exploring its applications, o
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Valid Parentheses**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+The **Valid Parentheses** problem is one of the most frequently asked questions in coding interviews and is the quintessential stack problem. Given a string containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, you need to determine if the input string is valid.
+
+An input string is valid if:
+1. Open brackets must be closed by the same type of brackets.
+2. Open brackets must be closed in the correct order.
+3. Every close bracket has a corresponding open bracket of the same type.
+
+**Intuition**
+Since brackets must be closed in the reverse order of how they were opened, a LIFO data structure—a Stack—is perfect. As we iterate through the string, if we see an open bracket, we push it onto the stack. If we see a close bracket, we check the top of the stack. If it matches the corresponding open bracket, we pop it. If not, the string is invalid. Finally, if the stack is empty after full traversal, the string is valid.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Valid Parentheses
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    bool isValid(string s) {
+        stack<char> st;
+        for (char c : s) {
+            if (c == '(' || c == '{' || c == '[') {
+                st.push(c);
+            } else {
+                if (st.empty()) return false;
+                char top = st.top();
+                if ((c == ')' && top != '(') ||
+                    (c == '}' && top != '{') ||
+                    (c == ']' && top != '[')) {
+                    return false;
+                }
+                st.pop();
+            }
+        }
+        return st.empty();
     }
 };"
-  java="// Java implementation for Valid Parentheses
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();
+        for (char c : s.toCharArray()) {
+            if (c == '(' || c == '{' || c == '[') {
+                stack.push(c);
+            } else {
+                if (stack.isEmpty()) return false;
+                char top = stack.pop();
+                if ((c == ')' && top != '(') ||
+                    (c == '}' && top != '{') ||
+                    (c == ']' && top != '[')) {
+                    return false;
+                }
+            }
+        }
+        return stack.isEmpty();
     }
 }"
-  python="# Python implementation for Valid Parentheses
-from collections import deque
-
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def isValid(self, s: str) -> bool:
+        stack = []
+        mapping = {')': '(', '}': '{', ']': '['}
+        
+        for char in s:
+            if char in mapping:
+                top_element = stack.pop() if stack else '#'
+                if mapping[char] != top_element:
+                    return False
+            else:
+                stack.append(char)
+                
+        return not stack"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  description="We traverse the string of length N exactly once, performing push and pop operations which take O(1) time. Space complexity is O(N) because, in the worst case (e.g., all open brackets), we might store the entire string in the stack."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **Forgetting to check if the stack is empty:** If the string starts with a closing bracket like `)]}`, attempting to pop an empty stack will throw an error or cause unexpected behavior.
+- **Returning true immediately instead of checking if stack is empty at the end:** A string like `((()` will finish iterating without returning false, but it's invalid. You must `return stack.isEmpty()` at the end, not just `return true`.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "Using a hash map for brackets matching (like in the Python solution) makes the code much cleaner and easier to extend if an interviewer asks you to support new bracket types.",
+    "If the length of the string is odd, you can immediately return false to optimize the runtime.",
+    "This logic generalizes broadly to compilers, abstract syntax trees (ASTs), and HTML tag validation, making it an excellent discussion point during interviews."
   ]}
 />

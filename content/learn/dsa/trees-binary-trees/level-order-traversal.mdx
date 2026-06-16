@@ -11,86 +11,121 @@ summary: "An essential guide to Level Order Traversal, mastering tree traversal 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Level Order Traversal**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+**Level Order Traversal** is the tree equivalent of **Breadth-First Search (BFS)**. Instead of diving deep into the tree, Level Order Traversal explores the tree level by level, from top to bottom, and left to right within each level.
+
+### The BFS Mechanism
+To implement BFS iteratively, we use a **Queue** (First-In, First-Out) data structure.
+1. Push the root node into the queue.
+2. While the queue is not empty, pop the front node, process it, and push its children (left, then right) into the queue.
+3. To process nodes level by level (often required in array-of-array outputs), capture the `size` of the queue at the start of the loop and iterate exactly `size` times.
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Level Order Traversal
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        vector<vector<int>> result;
+        if (!root) return result;
+        
+        queue<TreeNode*> q;
+        q.push(root);
+        
+        while (!q.empty()) {
+            int size = q.size();
+            vector<int> currentLevel;
+            
+            for (int i = 0; i < size; ++i) {
+                TreeNode* node = q.front();
+                q.pop();
+                currentLevel.push_back(node->val);
+                
+                if (node->left) q.push(node->left);
+                if (node->right) q.push(node->right);
+            }
+            result.push_back(currentLevel);
+        }
+        
+        return result;
     }
 };"
-  java="// Java implementation for Level Order Traversal
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
-    }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> result = new ArrayList<>();
+        if (root == null) return result;
+        
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            List<Integer> currentLevel = new ArrayList<>();
+            
+            for (int i = 0; i < size; i++) {
+                TreeNode node = queue.poll();
+                currentLevel.add(node.val);
+                
+                if (node.left != null) queue.offer(node.left);
+                if (node.right != null) queue.offer(node.right);
+            }
+            result.add(currentLevel);
+        }
+        
+        return result;
     }
 }"
-  python="# Python implementation for Level Order Traversal
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+  python="from collections import deque
 
 class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        if not root:
+            return []
+            
+        result = []
+        queue = deque([root])
+        
+        while queue:
+            level_size = len(queue)
+            current_level = []
+            
+            for _ in range(level_size):
+                node = queue.popleft()
+                current_level.append(node.val)
+                
+                if node.left:
+                    queue.append(node.left)
+                if node.right:
+                    queue.append(node.right)
+                    
+            result.append(current_level)
+            
+        return result"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  space="O(W)"
+  description="Time complexity is O(N) as every node is pushed and popped exactly once. Space complexity is O(W) where W is the maximum width of the tree, which can be up to N/2 in a perfectly balanced tree (effectively O(N))."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **Forgetting the Level Size:** If you need to group nodes by level, you must store `queue.size()` in a variable before entering the inner loop. Evaluating `queue.size()` directly in the loop condition will fail because the size changes dynamically as you push children!
+- **Using arrays instead of deques in Python:** `list.pop(0)` is an O(N) operation. Always use `collections.deque` for O(1) pops from the front.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "BFS is the undisputed king of 'shortest path' problems. If a tree or graph problem asks for the shortest path to a condition, start with BFS.",
+    "Whenever you see 'level by level' or 'right side view', immediately reach for a Queue.",
+    "A tree's maximum width dictates the space complexity of BFS, whereas maximum depth dictates the space complexity of DFS."
   ]}
 />

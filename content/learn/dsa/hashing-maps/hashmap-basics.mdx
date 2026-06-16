@@ -11,60 +11,155 @@ summary: "An essential guide to Hash Map (HashMap) Basics, mastering O(1) lookup
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Hash Map (HashMap) Basics**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+A **Hash Map** (or Dictionary, Map, Hash Table) is one of the most crucial data structures you will encounter. It stores data in key-value pairs, providing remarkably fast data retrieval. 
+
+At its core, a Hash Map uses a mathematical function called a **Hash Function** to compute an index (or "hash code") into an array of buckets or slots, from which the desired value can be found. 
+
+### Why are Hash Maps so powerful?
+- **O(1) Average Time Complexity**: Looking up, inserting, or deleting a value based on its key takes constant time on average.
+- **Key-Value Mapping**: Perfect for problems where you need to associate an identifier (like a user ID, a string, or a coordinate) with a specific value or object.
+- **Deduplication**: Automatically handles unique keys. If you insert a value with an existing key, it simply updates the value.
+
+### How it works under the hood
+1. **Hashing**: You pass a key into the hash function.
+2. **Indexing**: The hash function spits out an integer. We take `integer % array_size` to find the exact array index.
+3. **Storage**: We store the key-value pair at that index. If another key maps to the same index, a **Collision** occurs (handled typically via chaining with linked lists or open addressing).
+
+---
 
 # Code Implementation
+
+Here is how you initialize, insert, access, and iterate over a Hash Map in C++, Java, and Python.
+
 <CodeBlock
-  cpp="// C++ implementation for Hash Map (HashMap) Basics
+  cpp="```cpp
 #include <iostream>
 #include <unordered_map>
-#include <vector>
+#include <string>
+
 using namespace std;
 
-class Solution {
-public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+int main() {
+    // 1. Initialization
+    unordered_map<string, int> ageMap;
+    
+    // 2. Insertion
+    ageMap[\"Alice\"] = 25;
+    ageMap[\"Bob\"] = 30;
+    
+    // 3. Access & Update
+    cout << \"Alice's age: \" << ageMap[\"Alice\"] << endl;
+    ageMap[\"Alice\"] = 26; // Update
+    
+    // 4. Check if key exists
+    if (ageMap.find(\"Charlie\") == ageMap.end()) {
+        cout << \"Charlie not found!\" << endl;
     }
-};"
-  java="// Java implementation for Hash Map (HashMap) Basics
-import java.util.*;
+    
+    // 5. Deletion
+    ageMap.erase(\"Bob\");
+    
+    // 6. Iteration
+    for (auto const& [key, val] : ageMap) {
+        cout << key << \": \" << val << endl;
+    }
+    
+    return 0;
+}
+```"
+  java="```java
+import java.util.HashMap;
+import java.util.Map;
 
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+public class HashMapBasics {
+    public static void main(String[] args) {
+        // 1. Initialization
+        HashMap<String, Integer> ageMap = new HashMap<>();
+        
+        // 2. Insertion
+        ageMap.put(\"Alice\", 25);
+        ageMap.put(\"Bob\", 30);
+        
+        // 3. Access & Update
+        System.out.println(\"Alice's age: \" + ageMap.get(\"Alice\"));
+        ageMap.put(\"Alice\", 26); // Update
+        
+        // 4. Check if key exists
+        if (!ageMap.containsKey(\"Charlie\")) {
+            System.out.println(\"Charlie not found!\");
+        }
+        
+        // 5. Deletion
+        ageMap.remove(\"Bob\");
+        
+        // 6. Iteration
+        for (Map.Entry<String, Integer> entry : ageMap.entrySet()) {
+            System.out.println(entry.getKey() + \": \" + entry.getValue());
+        }
     }
-}"
-  python="# Python implementation for Hash Map (HashMap) Basics
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+}
+```"
+  python="```python
+def hash_map_basics():
+    # 1. Initialization
+    age_map = {}
+    
+    # 2. Insertion
+    age_map[\"Alice\"] = 25
+    age_map[\"Bob\"] = 30
+    
+    # 3. Access & Update
+    print(f\"Alice's age: {age_map['Alice']}\")
+    age_map[\"Alice\"] = 26 # Update
+    
+    # 4. Check if key exists
+    if \"Charlie\" not in age_map:
+        print(\"Charlie not found!\")
+        
+    # 5. Deletion
+    del age_map[\"Bob\"]
+    # Alternatively: age_map.pop(\"Bob\", None)
+    
+    # 6. Iteration
+    for key, val in age_map.items():
+        print(f\"{key}: {val}\")
+
+if __name__ == \"__main__\":
+    hash_map_basics()
+```"
 />
 
+---
+
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
   average="O(1)"
   worst="O(N)"
   space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  description="In the best and average cases, computing the hash and accessing the array index takes O(1) time. In the worst case, if many keys collide and land in the same bucket, lookup degrades to O(N) (where N is the number of keys). Space complexity is O(N) to store the N key-value pairs."
 />
 
+---
+
 # Common Pitfalls
+
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- **Modifying Mutable Keys:** Never use mutable objects (like lists or other maps) as keys. If the object changes after being inserted, its hash code changes, and you'll lose the value in the map!
+- **C++ unordered_map Worst-Case Hacks:** In competitive programming, attackers can feed specific test cases to cause O(N) worst-case collisions in `unordered_map`. Use `map` (which is a Red-Black Tree, O(log N)) or a custom hash function if you encounter TLE.
+- **Null Values in Java:** `HashMap` allows one `null` key and multiple `null` values. However, `ConcurrentHashMap` and `Hashtable` do NOT allow `null` keys or values.
 </Warning>
 
+---
+
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "Anytime you see a brute force solution requiring nested loops to find pairs or duplicates, ask yourself: 'Can I use a Hash Map to trade O(N) time for O(N) space?'",
+    "Be prepared to explain the difference between a Map/Dictionary and a Set. (Map stores Key-Value pairs; Set only stores unique Keys).",
+    "Interviewers love asking what happens when a Hash Map gets 'full'. Mention the 'Load Factor' and how the underlying array resizes (usually doubling in size) and rehashes all elements."
   ]}
 />

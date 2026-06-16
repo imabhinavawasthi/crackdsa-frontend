@@ -11,55 +11,131 @@ summary: "An essential guide to Insert Interval, exploring its applications, imp
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Insert Interval**. This topic is a cornerstone of the Intervals module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Insert Interval** problem asks you to insert a new interval into a list of *non-overlapping* and *already sorted* intervals, merging if necessary to maintain the non-overlapping property.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Since the given list of intervals is already sorted by start time and contains no overlaps, we do not need an $O(N \log N)$ sorting step. We can achieve an optimal $O(N)$ solution by breaking the problem down into three sequential phases:
+
+1. **Before the overlap**: Any interval in the list that ends *before* the new interval starts has absolutely no chance of overlapping. We can safely add all these intervals directly to our result.
+2. **During the overlap (The Merge Phase)**: We iterate through all intervals that overlap with the new interval. An interval overlaps if its start time is less than or equal to the new interval's end time. We continually update the new interval's bounds to encompass all overlapping intervals: `newStart = min(newStart, currentStart)` and `newEnd = max(newEnd, currentEnd)`.
+3. **After the overlap**: Once we've moved past all overlapping intervals, we add the merged new interval to our result. Then, we add all remaining intervals in the list, as they are guaranteed to start *after* our merged interval ends.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Insert Interval
-#include <iostream>
+  cpp="#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    vector<vector<int>> insert(vector<vector<int>>& intervals, vector<int>& newInterval) {
+        vector<vector<int>> result;
+        int i = 0;
+        int n = intervals.size();
+        
+        // Phase 1: Add all intervals that end before the new interval starts
+        while (i < n && intervals[i][1] < newInterval[0]) {
+            result.push_back(intervals[i]);
+            i++;
+        }
+        
+        // Phase 2: Merge overlapping intervals
+        while (i < n && intervals[i][0] <= newInterval[1]) {
+            newInterval[0] = min(newInterval[0], intervals[i][0]);
+            newInterval[1] = max(newInterval[1], intervals[i][1]);
+            i++;
+        }
+        // Add the fully merged new interval
+        result.push_back(newInterval);
+        
+        // Phase 3: Add the remaining intervals
+        while (i < n) {
+            result.push_back(intervals[i]);
+            i++;
+        }
+        
+        return result;
     }
 };"
-  java="// Java implementation for Insert Interval
+  java="import java.util.*;
+
 class Solution {
-    public void solve() {
-        // Implementation here
+    public int[][] insert(int[][] intervals, int[] newInterval) {
+        List<int[]> result = new ArrayList<>();
+        int i = 0;
+        int n = intervals.length;
+
+        // Phase 1: Skip all intervals that come before the newInterval
+        while (i < n && intervals[i][1] < newInterval[0]) {
+            result.add(intervals[i]);
+            i++;
+        }
+
+        // Phase 2: Merge all overlapping intervals to form one giant newInterval
+        while (i < n && intervals[i][0] <= newInterval[1]) {
+            newInterval[0] = Math.min(newInterval[0], intervals[i][0]);
+            newInterval[1] = Math.max(newInterval[1], intervals[i][1]);
+            i++;
+        }
+        result.add(newInterval);
+
+        // Phase 3: Add all the remaining intervals
+        while (i < n) {
+            result.add(intervals[i]);
+            i++;
+        }
+
+        return result.toArray(new int[result.size()][]);
     }
 }"
-  python="# Python implementation for Insert Interval
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def insert(self, intervals: list[list[int]], newInterval: list[int]) -> list[list[int]]:
+        result = []
+        i = 0
+        n = len(intervals)
+        
+        # Phase 1: Add intervals ending before newInterval starts
+        while i < n and intervals[i][1] < newInterval[0]:
+            result.append(intervals[i])
+            i += 1
+            
+        # Phase 2: Merge overlapping intervals
+        while i < n and intervals[i][0] <= newInterval[1]:
+            newInterval[0] = min(newInterval[0], intervals[i][0])
+            newInterval[1] = max(newInterval[1], intervals[i][1])
+            i += 1
+            
+        result.append(newInterval)
+        
+        # Phase 3: Add remaining intervals
+        while i < n:
+            result.append(intervals[i])
+            i += 1
+            
+        return result"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(N)"
+  description="The time complexity is strictly O(N) because we perform a single pass over the intervals array, processing each element at most once without sorting. The space complexity is O(N) since we create a new array/list to store the result, returning at most N+1 intervals."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Re-sorting the array. Appending the interval and sorting the whole array results in an $O(N \log N)$ solution, which is suboptimal and a red flag for interviewers.
+- Getting stuck on overlap bounds. Remember the clean condition: an interval overlaps if it starts *before or exactly when* the `newInterval` ends, AND it ends *after or exactly when* the `newInterval` starts.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Highlight the three distinct phases (Before, During, After) to your interviewer. It makes your code drastically easier for them to understand.",
+    "A common follow-up is determining how to do this in-place. Discuss the trade-offs: removing elements from the middle of an array takes O(N) time, making the overall time O(N^2), so returning a new array is generally preferred.",
+    "If the array is extremely massive, you could theoretically use Binary Search to find the insertion bounds in O(log N) time, but returning a newly constructed array still mandates O(N) time overall."
   ]}
 />

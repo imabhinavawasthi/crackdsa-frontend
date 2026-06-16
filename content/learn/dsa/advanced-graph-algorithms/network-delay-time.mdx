@@ -11,37 +11,118 @@ summary: "An essential guide to Network Delay Time, exploring its applications, 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Network Delay Time**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+The **Network Delay Time** problem is a classic application of the single-source shortest path algorithms. Given a network of `n` nodes, labeled from `1` to `n`, and a list of directed edges `times` where `times[i] = (u, v, w)` representing the time `w` it takes for a signal to travel from node `u` to node `v`. 
+
+We start sending a signal from a given node `k`. The goal is to determine the minimum time it takes for all `n` nodes to receive the signal. If it's impossible for all nodes to receive the signal, we return `-1`.
 
 ### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+This problem directly maps to finding the shortest path from a source node (`k`) to all other nodes. The "delay time" to reach any node is the shortest distance from `k` to that node. 
+Once the shortest paths to all nodes are computed, the time for the *last* node to receive the signal is simply the maximum of these shortest paths. Thus, Dijkstra's Algorithm is the perfect tool for this problem, as all edge weights (times) are non-negative.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Network Delay Time
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int networkDelayTime(vector<vector<int>>& times, int n, int k) {
+        vector<vector<pair<int, int>>> adj(n + 1);
+        for (auto& t : times) {
+            adj[t[0]].push_back({t[1], t[2]});
+        }
+        
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        vector<int> dist(n + 1, 1e9);
+        
+        dist[k] = 0;
+        pq.push({0, k});
+        
+        while (!pq.empty()) {
+            auto [time, u] = pq.top();
+            pq.pop();
+            
+            if (time > dist[u]) continue;
+            
+            for (auto& edge : adj[u]) {
+                int v = edge.first;
+                int w = edge.second;
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    pq.push({dist[v], v});
+                }
+            }
+        }
+        
+        int maxTime = 0;
+        for (int i = 1; i <= n; i++) {
+            if (dist[i] == 1e9) return -1;
+            maxTime = max(maxTime, dist[i]);
+        }
+        return maxTime;
     }
 };"
-  java="// Java implementation for Network Delay Time
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int networkDelayTime(int[][] times, int n, int k) {
+        List<List<int[]>> adj = new ArrayList<>();
+        for (int i = 0; i <= n; i++) adj.add(new ArrayList<>());
+        for (int[] t : times) {
+            adj.get(t[0]).add(new int[]{t[1], t[2]});
+        }
+        
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+        int[] dist = new int[n + 1];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        
+        dist[k] = 0;
+        pq.add(new int[]{0, k});
+        
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int time = curr[0], u = curr[1];
+            
+            if (time > dist[u]) continue;
+            
+            for (int[] edge : adj.get(u)) {
+                int v = edge[0], w = edge[1];
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    pq.add(new int[]{dist[v], v});
+                }
+            }
+        }
+        
+        int maxTime = 0;
+        for (int i = 1; i <= n; i++) {
+            if (dist[i] == Integer.MAX_VALUE) return -1;
+            maxTime = Math.max(maxTime, dist[i]);
+        }
+        return maxTime;
     }
 }"
-  python="# Python implementation for Network Delay Time
+  python="import heapq
+from collections import defaultdict
+
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def networkDelayTime(self, times: list[list[int]], n: int, k: int) -> int:
+        adj = defaultdict(list)
+        for u, v, w in times:
+            adj[u].append((v, w))
+            
+        pq = [(0, k)]
+        dist = {i: float('inf') for i in range(1, n + 1)}
+        dist[k] = 0
+        
+        while pq:
+            time, u = heapq.heappop(pq)
+            
+            if time > dist[u]:
+                continue
+                
+            for v, w in adj[u]:
+                if dist[u] + w < dist[v]:
+                    dist[v] = dist[u] + w
+                    heapq.heappush(pq, (dist[v], v))
+                    
+        max_time = max(dist.values())
+        return max_time if max_time < float('inf') else -1"
 />
 
 # Complexity Analysis
@@ -50,19 +131,21 @@ class Solution:
   average="O(E log V)"
   worst="O(E log V)"
   space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  description="Dijkstra's algorithm takes O(E log V) time due to priority queue operations. Graph construction and tracking distance array takes O(V + E) space. Here V = n and E = times.length."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **1-Based Indexing:** The nodes are numbered from `1` to `n`. Make sure to initialize the arrays with size `n + 1` to prevent `IndexOutOfBounds` exceptions.
+- **Disconnected Components:** Don't forget to check if there are any nodes that remain at `infinity` after Dijkstra finishes. If so, return `-1`.
+- **Finding Maximum Time:** The answer isn't the distance to just a specific node, but the maximum distance across all nodes from the source.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "If the interviewer modifies the problem to have negative edges, explicitly state that Dijkstra is no longer valid and suggest using Bellman-Ford.",
+    "Explain your space complexity breakdown clearly: O(N) for distances + O(E) for adjacency list = O(N + E).",
+    "Identify this as the 'Single Source Shortest Path' archetype quickly to demonstrate pattern recognition."
   ]}
 />

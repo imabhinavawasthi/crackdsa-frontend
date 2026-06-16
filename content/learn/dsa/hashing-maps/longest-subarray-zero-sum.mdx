@@ -11,60 +11,95 @@ summary: "An essential guide to Longest Subarray with Zero Sum, mastering O(1) l
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Longest Subarray with Zero Sum**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
+Finding the longest subarray with a sum of zero is a direct application of the Prefix Sum and Hashing technique. As we traverse the array, we maintain a running prefix sum. 
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+The key insight is that if the same prefix sum appears at two different indices, say $i$ and $j$ (where $i < j$), the sum of the elements between index $i+1$ and index $j$ must be exactly zero. To find the *longest* such subarray, we need to record the *first occurrence* of each prefix sum we encounter. When we see a prefix sum again, we calculate the length of the subarray as $j - i$, and update our maximum length if this new length is greater.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Longest Subarray with Zero Sum
-#include <iostream>
-#include <unordered_map>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int maxLen(vector<int>& arr) {
+        unordered_map<int, int> first_occurrence;
+        int max_len = 0;
+        int current_sum = 0;
+        
+        for (int i = 0; i < arr.size(); ++i) {
+            current_sum += arr[i];
+            
+            if (current_sum == 0) {
+                max_len = i + 1;
+            } else if (first_occurrence.find(current_sum) != first_occurrence.end()) {
+                max_len = max(max_len, i - first_occurrence[current_sum]);
+            } else {
+                first_occurrence[current_sum] = i;
+            }
+        }
+        
+        return max_len;
     }
 };"
-  java="// Java implementation for Longest Subarray with Zero Sum
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int maxLen(int arr[]) {
+        HashMap<Integer, Integer> firstOccurrence = new HashMap<>();
+        int maxLength = 0;
+        int currentSum = 0;
+        
+        for (int i = 0; i < arr.length; i++) {
+            currentSum += arr[i];
+            
+            if (currentSum == 0) {
+                maxLength = i + 1;
+            } else if (firstOccurrence.containsKey(currentSum)) {
+                maxLength = Math.max(maxLength, i - firstOccurrence.get(currentSum));
+            } else {
+                firstOccurrence.put(currentSum, i);
+            }
+        }
+        
+        return maxLength;
     }
 }"
-  python="# Python implementation for Longest Subarray with Zero Sum
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def maxLen(self, arr: List[int]) -> int:
+        first_occurrence = {}
+        max_length = 0
+        current_sum = 0
+        
+        for i, num in enumerate(arr):
+            current_sum += num
+            
+            if current_sum == 0:
+                max_length = i + 1
+            elif current_sum in first_occurrence:
+                max_length = max(max_length, i - first_occurrence[current_sum])
+            else:
+                first_occurrence[current_sum] = i
+                
+        return max_length"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(1)"
+  best="O(N)"
+  average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  description="We iterate through the array once, performing O(1) hash map operations at each step. This gives a time complexity of O(N). The space complexity is O(N) as we might store up to N distinct prefix sums in the worst case."
 />
 
 # Common Pitfalls
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- Updating the index of a previously seen prefix sum. We must only store its *first* occurrence to maximize the subarray length.
+- Failing to handle the case where the prefix sum itself is zero. A subarray from index `0` to `i` with sum `0` has a length of `i + 1`.
+- Not accounting for arrays consisting of only positive numbers (where no zero-sum subarray is possible). The logic handles this gracefully if implemented correctly.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "Mention why we only store the first occurrence of each sum: to maximize the distance `j - i`.",
+    "Clarify how you handle the base case where a zero-sum subarray starts from the very first element.",
+    "This logic can be extended to find the longest subarray with sum K by checking for `current_sum - K` instead."
   ]}
 />

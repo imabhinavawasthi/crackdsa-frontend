@@ -145,9 +145,15 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
                   </div>
                 )}
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-gray-900 dark:text-white">₹{course.price}</span>
-                  {course.original_price > course.price && (
-                    <span className="text-lg text-gray-400 line-through font-bold">₹{course.original_price}</span>
+                  {course.price === 0 ? (
+                    <span className="text-4xl font-black text-emerald-500">Free</span>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-black text-gray-900 dark:text-white">₹{course.price}</span>
+                      {course.original_price > course.price && (
+                        <span className="text-lg text-gray-400 line-through font-bold">₹{course.original_price}</span>
+                      )}
+                    </>
                   )}
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-2 flex items-center gap-1.5">

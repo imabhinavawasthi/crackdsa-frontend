@@ -11,58 +11,135 @@ summary: "An essential guide to Search a 2D Matrix, mastering O(log N) optimizat
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Search a 2D Matrix**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+Searching in a 2D matrix that possesses sorted properties is a classic application of binary search. The most common variation of this problem defines the matrix as follows:
+1. Each row is sorted in non-decreasing order.
+2. The first integer of each row is greater than the last integer of the previous row.
 
 ### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+If you look closely at these two properties, they imply that if you were to flatten this 2D matrix into a 1D array, it would be perfectly sorted. 
+However, flattening it would take `O(M * N)` time and `O(M * N)` space, defeating the purpose of an efficient search.
+
+Instead of actually flattening it, we can virtually treat the 2D matrix as a 1D array. 
+For a matrix of size `M x N`:
+- The 1D array length is `M * N`.
+- Valid indices range from `0` to `(M * N) - 1`.
+- A 1D index `idx` can be mapped back to a 2D coordinate `(row, col)` using division and modulo operations:
+  - `row = idx / N` (where N is the number of columns)
+  - `col = idx % N`
+
+With this mapping, we can perform a standard binary search exactly as we would on a 1D array.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Search a 2D Matrix
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    bool searchMatrix(vector<vector<int>>& matrix, int target) {
+        if (matrix.empty() || matrix[0].empty()) return false;
+        
+        int m = matrix.size();
+        int n = matrix[0].size();
+        
+        // Treat as a 1D array from 0 to m*n - 1
+        int left = 0;
+        int right = m * n - 1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            // Map 1D index 'mid' to 2D coordinates
+            int row = mid / n;
+            int col = mid % n;
+            int midValue = matrix[row][col];
+            
+            if (midValue == target) {
+                return true;
+            } else if (midValue < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return false;
     }
 };"
-  java="// Java implementation for Search a 2D Matrix
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public boolean searchMatrix(int[][] matrix, int target) {
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0) return false;
+        
+        int m = matrix.length;
+        int n = matrix[0].length;
+        
+        int left = 0;
+        int right = m * n - 1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            // Map 1D index 'mid' to 2D coordinates
+            int row = mid / n;
+            int col = mid % n;
+            int midValue = matrix[row][col];
+            
+            if (midValue == target) {
+                return true;
+            } else if (midValue < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return false;
     }
 }"
-  python="# Python implementation for Search a 2D Matrix
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def searchMatrix(self, matrix: list[list[int]], target: int) -> bool:
+        if not matrix or not matrix[0]:
+            return False
+            
+        m, n = len(matrix), len(matrix[0])
+        left, right = 0, m * n - 1
+        
+        while left <= right:
+            mid = left + (right - left) // 2
+            
+            # Map 1D index 'mid' to 2D coordinates
+            row = mid // n
+            col = mid % n
+            midValue = matrix[row][col]
+            
+            if midValue == target:
+                return True
+            elif midValue < target:
+                left = mid + 1
+            else:
+                right = mid - 1
+                
+        return False"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
+  average="O(log(M * N))"
+  worst="O(log(M * N))"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="The time complexity is O(log(M*N)) which is equivalent to O(log M + log N). We do not use any extra space, making the space complexity O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- Using `idx / m` instead of `idx / n`. The division and modulo must ALWAYS be by the number of COLUMNS (`n`), because that determines when the 1D array wraps around to the next row.
+- Not handling edge cases where the matrix is completely empty `[]` or contains empty rows `[[]]`. Always do a sanity check at the start.
+- Integer overflow: If `m * n` is incredibly large, `right` could overflow a standard 32-bit integer.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "If the matrix only guarantees that rows and columns are sorted (but row N does not necessarily start greater than row N-1 ends), this 1D mapping fails.",
+    "For the case mentioned above (Search a 2D Matrix II), you must start from the top-right or bottom-left corner and walk matrix step-by-step in O(M + N) time.",
+    "Be sure to explicitly state why the matrix can be mapped to a 1D array before writing the code."
   ]}
 />

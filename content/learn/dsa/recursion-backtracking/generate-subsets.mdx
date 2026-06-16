@@ -11,73 +11,42 @@ summary: "An essential guide to Generate all Subsets (Power Set), exploring recu
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Generate all Subsets (Power Set)**. This topic is a cornerstone of the Recursion & Backtracking module. Recursion is the foundation for Trees, Graphs, and Dynamic Programming. If you can't visualize a recursion tree, those advanced topics will be impossible to master.
+The **Power Set** of a set is the set of all its subsets, including the empty set and the set itself. For an array of size $N$, there are exactly $2^N$ possible subsets.
 
-### Core Intuition
-Recursion is simply a function calling itself with a slightly smaller input until it hits a Base Case. 
-**Backtracking** is a specialized form of recursion. It's an algorithmic technique for solving problems recursively by trying to build a solution incrementally, one piece at a time, removing those solutions that fail to satisfy the constraints of the problem at any point in time.
+There are two primary ways to conceptualize subset generation:
+1. **The Include/Exclude Pick Strategy:** At every element, you make a binary choice: either include the element in the current subset, or exclude it.
+2. **The Backtracking Loop Strategy:** You build subsets incrementally. At every node in the recursion tree, you push the current subset to the result, and then loop over the remaining elements to branch out further. 
+
+Both methods are standard and perfectly acceptable in interviews, but the Backtracking Loop strategy is often easier to adapt to related problems like Combination Sum.
 
 # Code Implementation
+Here we use the standard Backtracking Loop strategy.
+
 <CodeBlock
-  cpp="// C++ implementation for Generate all Subsets (Power Set)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-    
-private:
-    void backtrack() {
-        // Recursive helper
-    }
-};"
-  java="// Java implementation for Generate all Subsets (Power Set)
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-    
-    private void backtrack() {
-        // Recursive helper
-    }
-}"
-  python="# Python implementation for Generate all Subsets (Power Set)
-class Solution:
-    def solve(self):
-        def backtrack():
-            # Recursive helper
-            pass
-            
-        # Implementation here
-        pass"
+  cpp="class Solution {\npublic:\n    vector<vector<int>> subsets(vector<int>& nums) {\n        vector<vector<int>> res;\n        vector<int> path;\n        backtrack(nums, 0, path, res);\n        return res;\n    }\n    \nprivate:\n    void backtrack(vector<int>& nums, int start, vector<int>& path, vector<vector<int>>& res) {\n        // Add the current subset to the result\n        res.push_back(path);\n        \n        // Explore all possible next elements\n        for (int i = start; i < nums.size(); i++) {\n            path.push_back(nums[i]);       // Choose\n            backtrack(nums, i + 1, path, res); // Explore\n            path.pop_back();               // Un-choose\n        }\n    }\n};"
+  java="class Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        List<List<Integer>> res = new ArrayList<>();\n        backtrack(nums, 0, new ArrayList<>(), res);\n        return res;\n    }\n    \n    private void backtrack(int[] nums, int start, List<Integer> path, List<List<Integer>> res) {\n        // Add the current subset (must make a copy!)\n        res.add(new ArrayList<>(path));\n        \n        for (int i = start; i < nums.length; i++) {\n            path.add(nums[i]);             // Choose\n            backtrack(nums, i + 1, path, res); // Explore\n            path.remove(path.size() - 1);  // Un-choose\n        }\n    }\n}"
+  python="class Solution:\n    def subsets(self, nums: list[int]) -> list[list[int]]:\n        res = []\n        \n        def backtrack(start, path):\n            # Add a COPY of the path to the result\n            res.append(path[:])\n            \n            for i in range(start, len(nums)):\n                path.append(nums[i])       # Choose\n                backtrack(i + 1, path)     # Explore\n                path.pop()                 # Un-choose\n                \n        backtrack(0, [])\n        return res"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(2^N)"
-  average="O(2^N)"
-  worst="O(N!)"
+  best="O(N * 2^N)"
+  average="O(N * 2^N)"
+  worst="O(N * 2^N)"
   space="O(N)"
-  description="Combinatorial backtracking generates massive state spaces. Generating subsets is O(2^N), while generating permutations is O(N!). Space complexity is typically bounded by the maximum recursion depth, which is usually O(N)."
+  description="Time complexity is O(N * 2^N) because there are 2^N subsets, and for each subset, it takes O(N) time to copy the path array into the result list. Space complexity is O(N) for the call stack, excluding the O(N * 2^N) space needed for the output."
 />
 
 # Common Pitfalls
 <Warning>
-- **Missing Base Case:** A recursion function without a base case (or an unreachable one) will crash with a `StackOverflowError` instantly.
-- **Pass By Reference Mutations:** In Python and C++, if you append a list/vector to your results array, you must append a *copy* (`path[:]` or `new ArrayList<>(path)`). Otherwise, future backtracking steps will clear out your stored answers!
+- **Passing by reference without copying:** If you push `path` directly into `res` without duplicating it (`path[:]` or `new ArrayList<>(path)`), your final list will just contain references to the same empty array.
+- Forgetting that the base case is implicit in the `for` loop condition (`i < nums.size()`).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks you to 'return all possible combinations', 'find all paths', or 'generate all subsets', it is a 100% guarantee that it requires Backtracking.",
-    "Draw the recursion tree out loud for the interviewer for N=3. This proves you understand the state transitions and aren't just memorizing code.",
-    "State the time complexity carefully. Say 'O(2^N * N)' where the extra N is the time it takes to copy the subset into the final result list."
+    "If asked 'How would you handle duplicate elements in the input array?' (Subsets II), mention that you would first sort the array, and then add a condition `if (i > start && nums[i] == nums[i-1]) continue;` to skip duplicates.",
+    "Mentioning the O(N * 2^N) time complexity specifically instead of just O(2^N) shows deep understanding of how array copying works under the hood."
   ]}
 />

@@ -11,73 +11,42 @@ summary: "An essential guide to Permutations (Array & String), exploring recursi
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Permutations (Array & String)**. This topic is a cornerstone of the Recursion & Backtracking module. Recursion is the foundation for Trees, Graphs, and Dynamic Programming. If you can't visualize a recursion tree, those advanced topics will be impossible to master.
+Generating **Permutations** requires us to find all possible orderings of a given set of items. Unlike subsets, where order doesn't matter and we only move "forward" through the array, finding permutations means that at every step, we can pick *any* element from the array as long as we haven't picked it yet.
 
-### Core Intuition
-Recursion is simply a function calling itself with a slightly smaller input until it hits a Base Case. 
-**Backtracking** is a specialized form of recursion. It's an algorithmic technique for solving problems recursively by trying to build a solution incrementally, one piece at a time, removing those solutions that fail to satisfy the constraints of the problem at any point in time.
+To achieve this, we use the backtracking template but with two critical differences from Subsets:
+1. The `for` loop always starts at `0`, not at an `index`.
+2. We must maintain a `used` boolean array (or a set/bitmask) to keep track of which elements are currently in our `path` so we don't reuse them.
+
+When the size of our `path` equals the size of the input array, we have formed a complete permutation and can add it to our results.
 
 # Code Implementation
+Here is the standard backtracking approach using a boolean `used` array.
+
 <CodeBlock
-  cpp="// C++ implementation for Permutations (Array & String)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-    
-private:
-    void backtrack() {
-        // Recursive helper
-    }
-};"
-  java="// Java implementation for Permutations (Array & String)
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-    
-    private void backtrack() {
-        // Recursive helper
-    }
-}"
-  python="# Python implementation for Permutations (Array & String)
-class Solution:
-    def solve(self):
-        def backtrack():
-            # Recursive helper
-            pass
-            
-        # Implementation here
-        pass"
+  cpp="class Solution {\npublic:\n    vector<vector<int>> permute(vector<int>& nums) {\n        vector<vector<int>> res;\n        vector<int> path;\n        vector<bool> used(nums.size(), false);\n        backtrack(nums, path, used, res);\n        return res;\n    }\n    \nprivate:\n    void backtrack(vector<int>& nums, vector<int>& path, vector<bool>& used, vector<vector<int>>& res) {\n        // Base case: permutation is complete\n        if (path.size() == nums.size()) {\n            res.push_back(path);\n            return;\n        }\n        \n        for (int i = 0; i < nums.size(); i++) {\n            if (used[i]) continue; // Skip already used elements\n            \n            used[i] = true;\n            path.push_back(nums[i]); // Choose\n            \n            backtrack(nums, path, used, res); // Explore\n            \n            path.pop_back(); // Un-choose\n            used[i] = false;\n        }\n    }\n};"
+  java="class Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> res = new ArrayList<>();\n        boolean[] used = new boolean[nums.length];\n        backtrack(nums, new ArrayList<>(), used, res);\n        return res;\n    }\n    \n    private void backtrack(int[] nums, List<Integer> path, boolean[] used, List<List<Integer>> res) {\n        if (path.size() == nums.length) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        \n        for (int i = 0; i < nums.length; i++) {\n            if (used[i]) continue;\n            \n            used[i] = true;\n            path.add(nums[i]);\n            \n            backtrack(nums, path, used, res);\n            \n            path.remove(path.size() - 1);\n            used[i] = false;\n        }\n    }\n}"
+  python="class Solution:\n    def permute(self, nums: list[int]) -> list[list[int]]:\n        res = []\n        used = [False] * len(nums)\n        \n        def backtrack(path):\n            if len(path) == len(nums):\n                res.append(path[:])\n                return\n                \n            for i in range(len(nums)):\n                if used[i]:\n                    continue\n                    \n                used[i] = True\n                path.append(nums[i])\n                \n                backtrack(path)\n                \n                path.pop()\n                used[i] = False\n                \n        backtrack([])\n        return res"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(2^N)"
-  average="O(2^N)"
-  worst="O(N!)"
+  best="O(N * N!)"
+  average="O(N * N!)"
+  worst="O(N * N!)"
   space="O(N)"
-  description="Combinatorial backtracking generates massive state spaces. Generating subsets is O(2^N), while generating permutations is O(N!). Space complexity is typically bounded by the maximum recursion depth, which is usually O(N)."
+  description="There are N! permutations. For each permutation, we take O(N) time to copy the path into the result list, leading to O(N * N!) time. Space complexity is O(N) for the Call Stack and the used array."
 />
 
 # Common Pitfalls
 <Warning>
-- **Missing Base Case:** A recursion function without a base case (or an unreachable one) will crash with a `StackOverflowError` instantly.
-- **Pass By Reference Mutations:** In Python and C++, if you append a list/vector to your results array, you must append a *copy* (`path[:]` or `new ArrayList<>(path)`). Otherwise, future backtracking steps will clear out your stored answers!
+- Using `.contains()` on a List/Array to check if an element is used instead of a boolean array. This turns a $O(1)$ check into an $O(N)$ check, ruining the time complexity.
+- Forgetting to reset `used[i] = false` during the un-choose (backtracking) step.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks you to 'return all possible combinations', 'find all paths', or 'generate all subsets', it is a 100% guarantee that it requires Backtracking.",
-    "Draw the recursion tree out loud for the interviewer for N=3. This proves you understand the state transitions and aren't just memorizing code.",
-    "State the time complexity carefully. Say 'O(2^N * N)' where the extra N is the time it takes to copy the subset into the final result list."
+    "If the array contains duplicates (Permutations II), you must sort the array first and add the condition: `if (i > 0 && nums[i] == nums[i-1] && !used[i-1]) continue;` to avoid generating duplicate permutations.",
+    "Mentioning the alternative swapping method (swapping elements in-place to avoid the `used` array) is a great bonus, but the boolean array approach is easier to write and less error-prone under pressure."
   ]}
 />

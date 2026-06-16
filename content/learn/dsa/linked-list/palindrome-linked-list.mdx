@@ -11,57 +11,132 @@ summary: "An essential guide to Palindrome Linked List, exploring safe pointer r
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Palindrome Linked List**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+Checking if a linked list is a palindrome tests your ability to combine multiple linked list techniques. A palindrome reads the same forwards and backwards. Since a singly linked list can only be traversed forward, this poses an interesting challenge.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+### The Optimal Strategy
+To achieve O(1) space complexity, follow these steps:
+1. **Find the Middle:** Use the fast and slow pointer technique to find the middle of the linked list.
+2. **Reverse the Second Half:** Reverse the second half of the linked list starting from the middle node.
+3. **Compare Halves:** Iterate through the first half and the reversed second half, comparing their values.
+4. **Restore the List (Optional but recommended):** Reverse the second half again to restore the list to its original state.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Palindrome Linked List
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    bool isPalindrome(ListNode* head) {
+        if (head == nullptr || head->next == nullptr) return true;
+        
+        ListNode* slow = head;
+        ListNode* fast = head;
+        while (fast->next != nullptr && fast->next->next != nullptr) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        
+        ListNode* secondHalf = reverseList(slow->next);
+        ListNode* p1 = head;
+        ListNode* p2 = secondHalf;
+        bool isPal = true;
+        
+        while (p2 != nullptr) {
+            if (p1->val != p2->val) {
+                isPal = false;
+                break;
+            }
+            p1 = p1->next;
+            p2 = p2->next;
+        }
+        
+        slow->next = reverseList(secondHalf); // Restore list
+        return isPal;
+    }
+    
+private:
+    ListNode* reverseList(ListNode* head) {
+        ListNode* prev = nullptr;
+        while (head != nullptr) {
+            ListNode* nextNode = head->next;
+            head->next = prev;
+            prev = head;
+            head = nextNode;
+        }
+        return prev;
     }
 };"
-  java="// Java implementation for Palindrome Linked List
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+  java="public class Solution {
+    public boolean isPalindrome(ListNode head) {
+        if (head == null || head.next == null) return true;
+        
+        ListNode slow = head;
+        ListNode fast = head;
+        while (fast.next != null && fast.next.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        
+        ListNode secondHalf = reverseList(slow.next);
+        ListNode p1 = head;
+        ListNode p2 = secondHalf;
+        boolean isPal = true;
+        
+        while (p2 != null) {
+            if (p1.val != p2.val) {
+                isPal = false;
+                break;
+            }
+            p1 = p1.next;
+            p2 = p2.next;
+        }
+        
+        slow.next = reverseList(secondHalf); // Restore list
+        return isPal;
+    }
+    
+    private ListNode reverseList(ListNode head) {
+        ListNode prev = null;
+        while (head != null) {
+            ListNode nextNode = head.next;
+            head.next = prev;
+            prev = head;
+            head = nextNode;
+        }
+        return prev;
     }
 }"
-  python="# Python implementation for Palindrome Linked List
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+  python="class Solution:
+    def isPalindrome(self, head: Optional[ListNode]) -> bool:
+        if not head or not head.next:
+            return True
+            
+        slow = fast = head
+        while fast.next and fast.next.next:
+            slow = slow.next
+            fast = fast.next.next
+            
+        second_half = self.reverse_list(slow.next)
+        p1 = head
+        p2 = second_half
+        is_pal = True
+        
+        while p2:
+            if p1.val != p2.val:
+                is_pal = False
+                break
+            p1 = p1.next
+            p2 = p2.next
+            
+        slow.next = self.reverse_list(second_half)
+        return is_pal
+        
+    def reverse_list(self, head: ListNode) -> ListNode:
+        prev = None
+        while head:
+            next_node = head.next
+            head.next = prev
+            prev = head
+            head = next_node
+        return prev"
 />
 
 # Complexity Analysis
@@ -70,20 +145,19 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="Finding the middle takes O(N/2), reversing takes O(N/2), and comparing takes O(N/2). Overall time complexity is strictly O(N). Because we modify pointers in place without allocating new nodes, the space complexity is optimal O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Failing to restore the list:** In a real-world scenario, modifying an input structure without restoring it can break other parts of a system.
+- **Odd vs Even Lengths:** Be very careful with the middle pointer. When the list has an odd number of nodes, the actual middle node doesn't need to be compared.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "Before diving into the optimal solution, quickly mention the O(N) space brute force approach (copying elements into an array and using two pointers from ends).",
+    "Emphasize that you are restoring the original list structure before returning the result. This shows strong software engineering maturity."
   ]}
 />

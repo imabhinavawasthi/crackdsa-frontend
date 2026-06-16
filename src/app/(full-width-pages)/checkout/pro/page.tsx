@@ -156,7 +156,7 @@ export default function ProCheckoutPage() {
     setIsProcessing(true);
     try {
       // 1. Create Order on Backend
-      const order = await createOrder("pro_subscription", selectedPlan, appliedCoupon?.code);
+      const order = await createOrder("pro_subscription", selectedPlan, appliedCoupon?.code, PLANS[selectedPlan].title);
       
       // 2. Open Razorpay Modal
       const options = {

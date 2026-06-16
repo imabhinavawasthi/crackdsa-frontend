@@ -11,34 +11,76 @@ summary: "An essential guide to Jump Game Strategies, exploring its applications
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Jump Game Strategies**. This topic is a cornerstone of the Greedy Algorithms module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Jump Game** is a classic problem pattern that elegantly demonstrates how a greedy approach can outperform dynamic programming. You are given an array of non-negative integers where each element represents your maximum jump length at that position. You start at the first index, and the goal is to determine if you can reach the last index.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### The Greedy Strategy
+While a DP solution would recursively check all possible jump combinations, a Greedy solution tracks only the **maximum reachable index**.
+1. Initialize a variable `maxReach = 0`.
+2. Iterate through the array. For each index `i`:
+   - If `i > maxReach`, it means you cannot even reach the current index, so you definitely cannot reach the end. Return `false`.
+   - Otherwise, update `maxReach = max(maxReach, i + nums[i])`.
+   - If `maxReach` becomes greater than or equal to the last index, return `true`.
+
+This is a beautiful example of the Greedy Choice Property: your only concern at each step is expanding your boundary of reachability as far right as possible.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Jump Game Strategies
-#include <iostream>
+  cpp="#include <vector>
+#include <algorithm>
 using namespace std;
 
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    bool canJump(vector<int>& nums) {
+        int maxReach = 0;
+        int n = nums.size();
+        
+        for (int i = 0; i < n; i++) {
+            // If the current index is beyond our maximum reach, we're stuck
+            if (i > maxReach) {
+                return false;
+            }
+            // Update the maximum reach we can achieve from this index or prior
+            maxReach = max(maxReach, i + nums[i]);
+            
+            // Early exit if we can already reach the end
+            if (maxReach >= n - 1) {
+                return true;
+            }
+        }
+        return true;
     }
 };"
-  java="// Java implementation for Jump Game Strategies
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public boolean canJump(int[] nums) {
+        int maxReach = 0;
+        int n = nums.length;
+        
+        for (int i = 0; i < n; i++) {
+            if (i > maxReach) {
+                return false;
+            }
+            maxReach = Math.max(maxReach, i + nums[i]);
+            if (maxReach >= n - 1) {
+                return true;
+            }
+        }
+        return true;
     }
 }"
-  python="# Python implementation for Jump Game Strategies
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def canJump(self, nums: list[int]) -> bool:
+        max_reach = 0
+        n = len(nums)
+        
+        for i in range(n):
+            if i > max_reach:
+                return False
+            max_reach = max(max_reach, i + nums[i])
+            if max_reach >= n - 1:
+                return True
+                
+        return True"
 />
 
 # Complexity Analysis
@@ -47,19 +89,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="We traverse the array exactly once, performing O(1) operations per element. The space complexity is O(1) as we only use a single integer variable to track the maximum reach."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Misunderstanding the array values. `nums[i]` is the *maximum* jump length, not the *exact* jump length. You can jump any distance from `1` to `nums[i]`.
+- Overcomplicating the solution with DFS/BFS or Dynamic Programming, leading to O(N^2) time complexity or O(N) space complexity.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Always point out the DP vs Greedy transition. Say: 'We could use memoization to remember if an index is good, but since we only care about the furthest reachable point, keeping a single integer state is sufficient.'",
+    "Mention the 'early exit' optimization: `if (maxReach >= n - 1) return true;` which saves unnecessary iterations.",
+    "If asked for Jump Game II (minimum jumps to reach the end), explain that the greedy strategy shifts to tracking the current jump boundary and the next jump boundary."
   ]}
 />

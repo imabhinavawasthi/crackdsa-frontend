@@ -11,58 +11,172 @@ summary: "An essential guide to Split Array Largest Sum, mastering O(log N) opti
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Split Array Largest Sum**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+This problem asks us to split an array into `k` contiguous sub-arrays such that the **largest sum among these sub-arrays is minimized**. 
+This is the textbook definition of a "Minimize the Maximum" problem, making it a perfect candidate for Binary Search on the Answer Space.
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+### Search Space
+Instead of trying all combinations of splits (which is `O(2^N)` or `O(N^2)` with DP), we guess the answer! We binary search for the *maximum allowed sum for any single sub-array*.
+- **Minimum possible answer (`low`)**: The largest single element in the array. Why? Because even if we split the array such that every element is its own sub-array, the largest sum will be the maximum element.
+- **Maximum possible answer (`high`)**: The sum of all elements in the array. Why? Because if `k=1`, we don't split the array at all, and the largest sum is simply the total sum.
+
+### The Validation Function
+For a guessed max sum `mid`, we greedily add elements to a sub-array. If adding the next element exceeds `mid`, we are forced to close the current sub-array and start a new one. At the end, we count how many sub-arrays we created. 
+- If `subarrays <= k`, it means `mid` was generous enough, and we might be able to squeeze the max sum even lower.
+- If `subarrays > k`, it means `mid` was too restrictive, forcing us to make too many splits. We must increase `mid`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Split Array Largest Sum
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int splitArray(vector<int>& nums, int k) {
+        int maxElement = 0;
+        long long totalSum = 0;
+        
+        for (int num : nums) {
+            maxElement = max(maxElement, num);
+            totalSum += num;
+        }
+        
+        long long left = maxElement;
+        long long right = totalSum;
+        long long ans = right;
+        
+        while (left <= right) {
+            long long mid = left + (right - left) / 2;
+            
+            if (canSplit(nums, k, mid)) {
+                ans = mid;       // Valid, but let's try to minimize it
+                right = mid - 1; 
+            } else {
+                left = mid + 1;  // Not valid, we need a larger allowed sum
+            }
+        }
+        
+        return ans;
+    }
+    
+private:
+    bool canSplit(const vector<int>& nums, int k, long long maxSum) {
+        int subarrays = 1; // We always have at least one subarray
+        long long currentSum = 0;
+        
+        for (int num : nums) {
+            if (currentSum + num > maxSum) {
+                // Must start a new subarray
+                subarrays++;
+                currentSum = num;
+                
+                if (subarrays > k) return false;
+            } else {
+                currentSum += num;
+            }
+        }
+        
+        return true;
     }
 };"
-  java="// Java implementation for Split Array Largest Sum
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int splitArray(int[] nums, int k) {
+        int maxElement = 0;
+        long totalSum = 0;
+        
+        for (int num : nums) {
+            maxElement = Math.max(maxElement, num);
+            totalSum += num;
+        }
+        
+        long left = maxElement;
+        long right = totalSum;
+        long ans = right;
+        
+        while (left <= right) {
+            long mid = left + (right - left) / 2;
+            
+            if (canSplit(nums, k, mid)) {
+                ans = mid;       // Valid, but let's try to minimize it
+                right = mid - 1; 
+            } else {
+                left = mid + 1;  // Not valid, we need a larger allowed sum
+            }
+        }
+        
+        return (int)ans;
+    }
+    
+    private boolean canSplit(int[] nums, int k, long maxSum) {
+        int subarrays = 1; // We always have at least one subarray
+        long currentSum = 0;
+        
+        for (int num : nums) {
+            if (currentSum + num > maxSum) {
+                // Must start a new subarray
+                subarrays++;
+                currentSum = num;
+                
+                if (subarrays > k) return false;
+            } else {
+                currentSum += num;
+            }
+        }
+        
+        return true;
     }
 }"
-  python="# Python implementation for Split Array Largest Sum
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def splitArray(self, nums: list[int], k: int) -> int:
+        left = max(nums)
+        right = sum(nums)
+        ans = right
+        
+        while left <= right:
+            mid = left + (right - left) // 2
+            
+            if self.canSplit(nums, k, mid):
+                ans = mid       # Valid, but let's try to minimize it
+                right = mid - 1
+            else:
+                left = mid + 1  # Not valid, we need a larger allowed sum
+                
+        return ans
+        
+    def canSplit(self, nums: list[int], k: int, maxSum: int) -> bool:
+        subarrays = 1
+        currentSum = 0
+        
+        for num in nums:
+            if currentSum + num > maxSum:
+                # Must start a new subarray
+                subarrays += 1
+                currentSum = num
+                
+                if subarrays > k:
+                    return False
+            else:
+                currentSum += num
+                
+        return True"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
+  average="O(N * log(Sum))"
+  worst="O(N * log(Sum))"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="The search space is from max(nums) to sum(nums). The binary search takes O(log(sum(nums))) steps. Each step takes O(N) to traverse the array. Total time is O(N * log(sum(nums))). Space is O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- Initializing `left = 0`. If `left` is 0 and you check `mid=0`, the validation function will fail if there are any non-zero elements, but conceptually it's wrong because the max sum must be AT LEAST the largest single element in the array.
+- Initializing `subarrays = 0` inside the validation function. Before any iteration begins, you are essentially filling the 1st sub-array, so it must start at `1`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "Recognize that 'Split Array Largest Sum', 'Allocate Minimum Number of Pages', and 'Capacity To Ship Packages Within D Days' are identically the exact same problem with different wording.",
+    "Be sure to use `long` or `long long` for `totalSum` and `mid` in Java and C++ to avoid integer overflow issues during addition.",
+    "If the interviewer asks for a Dynamic Programming solution, mention that DP takes O(N^2 * K) and is significantly slower than this O(N log S) approach."
   ]}
 />

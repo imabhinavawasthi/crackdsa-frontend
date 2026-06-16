@@ -11,64 +11,103 @@ summary: "An essential guide to Largest Rectangle in Histogram, exploring its ap
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Largest Rectangle in Histogram**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+**Largest Rectangle in Histogram** is considered one of the hardest stack problems, but it boils down to finding the **Next Smaller Element** and **Previous Smaller Element** for every bar.
+
+**Intuition**
+For any given bar at index `i` with height `h`, the maximum rectangle that can be formed using this bar as the *minimum height* extends to the left until it hits a shorter bar, and extends to the right until it hits a shorter bar.
+
+Therefore, for every bar, we need:
+1. `left_smaller_index`
+2. `right_smaller_index`
+The area is then: `h * (right_smaller_index - left_smaller_index - 1)`.
+
+Instead of calculating these arrays in three passes, we can use a **Monotonic Increasing Stack** to do it in one pass! If we encounter a bar that is shorter than the top of our stack, it means the current bar is the `right_smaller_index` for the stack's top. The `left_smaller_index` is simply the new top of the stack after we pop!
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Largest Rectangle in Histogram
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int largestRectangleArea(vector<int>& heights) {
+        int maxArea = 0;
+        stack<int> st; // stores indices
+        int n = heights.size();
+        
+        for (int i = 0; i <= n; i++) {
+            // We use a dummy height of 0 at the end to force all remaining bars to pop
+            int currentHeight = (i == n) ? 0 : heights[i];
+            
+            while (!st.empty() && currentHeight < heights[st.top()]) {
+                int height = heights[st.top()];
+                st.pop();
+                int width = st.empty() ? i : (i - st.top() - 1);
+                maxArea = max(maxArea, height * width);
+            }
+            st.push(i);
+        }
+        return maxArea;
     }
 };"
-  java="// Java implementation for Largest Rectangle in Histogram
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int largestRectangleArea(int[] heights) {
+        int maxArea = 0;
+        Stack<Integer> stack = new Stack<>();
+        int n = heights.length;
+        
+        for (int i = 0; i <= n; i++) {
+            int currentHeight = (i == n) ? 0 : heights[i];
+            
+            while (!stack.isEmpty() && currentHeight < heights[stack.peek()]) {
+                int height = heights[stack.pop()];
+                int width = stack.isEmpty() ? i : (i - stack.peek() - 1);
+                maxArea = Math.max(maxArea, height * width);
+            }
+            stack.push(i);
+        }
+        return maxArea;
     }
 }"
-  python="# Python implementation for Largest Rectangle in Histogram
-from collections import deque
-
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def largestRectangleArea(self, heights: list[int]) -> int:
+        max_area = 0
+        stack = [] # stores indices
+        heights.append(0) # Dummy bar to pop remaining elements
+        
+        for i, current_height in enumerate(heights):
+            while stack and current_height < heights[stack[-1]]:
+                height = heights[stack.pop()]
+                width = i if not stack else (i - stack[-1] - 1)
+                max_area = max(max_area, height * width)
+            stack.append(i)
+            
+        heights.pop() # Clean up the dummy bar
+        return max_area"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  description="O(N) Time Complexity because every bar is pushed to the stack once and popped once. O(N) Space Complexity because in the worst case (strictly increasing histogram), the stack will store all N elements."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **Remaining Elements in Stack:** After the loop, the stack might still contain elements (e.g., if the histogram was entirely increasing). A very elegant trick is appending a dummy `0` to the end of the array, which automatically forces all remaining bars to be popped and processed!
+- **Width Calculation:** The width is `i - stack.top() - 1`, not `i - popped_index`. If the stack is empty, it means the popped bar was the smallest seen so far, so the width is simply `i`.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "If you struggle with the one-pass approach in an interview, do the three-pass approach first: find left smaller array, find right smaller array, then calculate max area. It is still O(N) time and much easier to reason about.",
+    "The dummy 0 trick is a massive flex in interviews. It shows you know how to write clean, concise edge-case handling.",
+    "This problem is the direct prerequisite for 'Maximal Rectangle', which applies this exact algorithm to every row in a 2D matrix."
   ]}
 />

@@ -11,57 +11,70 @@ summary: "An essential guide to Count Set Bits (Brian Kernighan's Algorithm), br
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Count Set Bits (Brian Kernighan's Algorithm)**. Mathematical algorithms are extremely common in competitive programming and frequently appear as optimization steps in technical interviews.
+Counting the number of set bits (1s) in the binary representation of an integer is a frequent sub-problem in algorithmic challenges. The naive way to do this is to continuously shift the number to the right and check if the least significant bit is 1. That takes $O(\log n)$ operations, where $\log n$ is the number of bits.
 
-### Core Intuition
-The primary goal here is to optimize mathematical operations that would normally take O(N) or O(N^2) time down to O(log N) or O(sqrt N) using mathematical properties and number theory.
+### Brian Kernighan's Algorithm
+Brian Kernighan's Algorithm offers a brilliant optimization. It relies on a simple yet powerful bitwise observation:
+**Subtracting $1$ from a binary number flips all the bits after the rightmost set bit, including the rightmost set bit itself.**
+
+Therefore, if we evaluate `n & (n - 1)`, it effectively **turns off the rightmost set bit** of `n`.
+By doing this repeatedly in a loop and counting how many times we can do it before `n` becomes $0$, we get the exact number of set bits.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Count Set Bits (Brian Kernighan's Algorithm)
-#include <iostream>
-using namespace std;
-
+  cpp={`// C++ implementation for Brian Kernighan's Algorithm
 class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int countSetBits(int n) {
+        int count = 0;
+        while (n != 0) {
+            n = n & (n - 1); // Turn off rightmost set bit
+            count++;
+        }
+        return count;
     }
-};"
-  java="// Java implementation for Count Set Bits (Brian Kernighan's Algorithm)
+};`}
+  java={`// Java implementation for Brian Kernighan's Algorithm
 class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    public int countSetBits(int n) {
+        int count = 0;
+        while (n != 0) {
+            n = n & (n - 1); // Turn off rightmost set bit
+            count++;
+        }
+        return count;
     }
-}"
-  python="# Python implementation for Count Set Bits (Brian Kernighan's Algorithm)
+}`}
+  python={`# Python implementation for Brian Kernighan's Algorithm
 class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+    def count_set_bits(self, n: int) -> int:
+        count = 0
+        while n:
+            n &= (n - 1) # Turn off rightmost set bit
+            count += 1
+        return count`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
-  worst="O(log N)"
+  best="O(1)"
+  average="O(K)"
+  worst="O(K)"
   space="O(1)"
-  description="Math algorithms typically run in O(log N) (like Euclidean GCD or Binary Exponentiation) or O(sqrt N) (like Primality Testing). Space is heavily optimized to O(1) iterative variables."
+  description="The time complexity is strictly proportional to K, where K is the number of set bits (1s) in the number. In the worst case (all bits are 1), it takes O(log n) time, but practically it is faster than the naive approach."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Mathematical operations easily exceed standard 32-bit integer limits. Always use 64-bit integers (`long long` in C++, `long` in Java) for intermediate accumulations.
-- **Modulo Properties:** Forgetting to apply modulo at every step of addition/multiplication, not just at the end.
+- **Negative Numbers:** In languages like Java or C++, negative integers are stored in Two's Complement. If `n` is negative, a simple right-shift might loop infinitely unless using logical shift. Brian Kernighan's algorithm handles negative numbers gracefully as long as you loop until `n == 0`.
+- **Python's Infinite Precision:** Python integers have arbitrary precision. If you are simulating a 32-bit integer, you must explicitly mask the number with `n & 0xFFFFFFFF` before applying the algorithm.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array size is incredibly massive (e.g. 10^9), an O(N) linear scan will Time Out. This is a dead giveaway that you need an O(log N) math or binary search approach.",
-    "Always state the constraints out loud. If numbers are up to 10^18, explicitly tell the interviewer you will use 64-bit integer types to prevent overflow."
+    "Brian Kernighan's algorithm is faster than the standard right-shift approach for numbers with sparse set bits.",
+    "Built-in functions like __builtin_popcount in C++ or Integer.bitCount in Java usually use hardware instructions and execute in O(1) time. Mentioning this shows deep language knowledge.",
+    "You can easily use this property to check if a number is a power of 2 by simply evaluating `n > 0 && (n & (n - 1)) == 0`."
   ]}
 />

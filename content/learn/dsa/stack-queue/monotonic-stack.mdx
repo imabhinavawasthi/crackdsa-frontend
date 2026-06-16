@@ -11,55 +11,92 @@ summary: "An essential guide to Monotonic Stack, exploring its applications, imp
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Monotonic Stack**. This topic is a cornerstone of the Stack & Queue module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+A **Monotonic Stack** is simply a stack whose elements are strictly increasing or strictly decreasing. It is not a new data structure, but rather a specific *way* of using a stack.
+
+Why is this useful? By enforcing monotonicity, the stack automatically keeps track of the "next greater" or "next smaller" elements for any given item in an array in **O(N)** time instead of O(N²).
+
+**Two Types of Monotonic Stacks:**
+1. **Monotonic Increasing Stack:** Elements from the bottom to the top of the stack are strictly increasing. If a new element is smaller than the top of the stack, we pop the top until the stack is increasing again. This is used to find the **Next Smaller Element**.
+2. **Monotonic Decreasing Stack:** Elements from the bottom to the top are strictly decreasing. If a new element is larger than the top of the stack, we pop until the stack is decreasing again. This is used to find the **Next Greater Element**.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Monotonic Stack
-#include <iostream>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class MonotonicStack {
 public:
-    void solve() {
-        // Implementation here
+    vector<int> nextGreaterElement(vector<int>& arr) {
+        int n = arr.size();
+        vector<int> result(n, -1);
+        stack<int> st; // stores indices
+        
+        for (int i = 0; i < n; i++) {
+            // We want a decreasing stack, so if we find a greater element, we pop
+            while (!st.empty() && arr[i] > arr[st.top()]) {
+                result[st.top()] = arr[i];
+                st.pop();
+            }
+            st.push(i);
+        }
+        return result;
     }
 };"
-  java="// Java implementation for Monotonic Stack
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class MonotonicStack {
+    public int[] nextGreaterElement(int[] arr) {
+        int n = arr.length;
+        int[] result = new int[n];
+        Arrays.fill(result, -1);
+        Stack<Integer> stack = new Stack<>(); // stores indices
+        
+        for (int i = 0; i < n; i++) {
+            // We want a decreasing stack, so if we find a greater element, we pop
+            while (!stack.isEmpty() && arr[i] > arr[stack.peek()]) {
+                result[stack.pop()] = arr[i];
+            }
+            stack.push(i);
+        }
+        return result;
     }
 }"
-  python="# Python implementation for Monotonic Stack
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class MonotonicStack:
+    def next_greater_element(self, arr: list[int]) -> list[int]:
+        n = len(arr)
+        result = [-1] * n
+        stack = [] # stores indices
+        
+        for i in range(n):
+            # We want a decreasing stack, so if we find a greater element, we pop
+            while stack and arr[i] > arr[stack[-1]]:
+                popped_index = stack.pop()
+                result[popped_index] = arr[i]
+            stack.append(i)
+            
+        return result"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(N)"
+  description="The overall time complexity is O(N). Even though there is a while loop inside the for loop, every element is pushed onto the stack exactly once and popped at most once. Therefore, the total number of operations across all loop iterations is bounded by 2N."
 />
 
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Storing Values Instead of Indices:** It is almost always better to store the *indices* of the array in the stack rather than the values themselves. Storing indices gives you access to both the value (via `arr[index]`) and the position (which is needed to calculate distances or update a result array).
+- **Infinite Loops:** Forgetting to pop elements inside the while loop will cause an infinite loop. Always ensure the condition that breaks the loop is eventually met by popping.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If the problem phrasing includes words like 'next greater', 'next smaller', 'nearest larger', or 'daily temperatures', immediately write down 'Monotonic Stack'.",
+    "Be ready to explain the O(N) time complexity to your interviewer, using the phrase 'amortized analysis'—each element enters and leaves the stack at most once.",
+    "Practice initializing your result array with `-1` or `0` to handle elements that never find a 'next greater/smaller' without needing a post-loop cleanup phase."
   ]}
 />

@@ -11,64 +11,87 @@ summary: "An essential guide to Serialize and Deserialize Binary Tree, mastering
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Serialize and Deserialize Binary Tree**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
+Serialization is the process of converting a data structure or object into a sequence of bits or string so that it can be stored in a file or memory buffer, or transmitted across a network connection link to be reconstructed later in the same or another computer environment.
+
+For a Binary Tree, serialization means converting the tree into a string. Deserialization is the reverse process: parsing the string back into the original tree structure.
+
+The most common approach is using a **Pre-order Traversal (DFS)**. When we visit a node, we append its value to our string. If the node is null, we append a special marker (like `N` or `#`) to signify the end of a branch. This preserves the exact structure of the tree, allowing us to unambiguously reconstruct it.
 
 ### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+1. **Serialize (Encode):** Perform a pre-order traversal. Add a delimiter (e.g., `,`) between values. Use `#` for null nodes.
+2. **Deserialize (Decode):** Split the string by the delimiter. Use a queue or an iterator. Read values one by one, recursively building the tree top-down, precisely mimicking the pre-order traversal.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Serialize and Deserialize Binary Tree
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Codec {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    string serialize(TreeNode* root) {
+        if (!root) return &quot;#,&quot;;
+        return to_string(root->val) + &quot;,&quot; + serialize(root->left) + serialize(root->right);
+    }
+
+    TreeNode* deserialize(string data) {
+        queue<string> q;
+        string s = &quot;&quot;;
+        for (char c : data) {
+            if (c == ',') {
+                q.push(s);
+                s = &quot;&quot;;
+            } else {
+                s += c;
+            }
+        }
+        return buildTree(q);
+    }
+private:
+    TreeNode* buildTree(queue<string>& q) {
+        string s = q.front(); q.pop();
+        if (s == &quot;#&quot;) return nullptr;
+        TreeNode* root = new TreeNode(stoi(s));
+        root->left = buildTree(q);
+        root->right = buildTree(q);
+        return root;
     }
 };"
-  java="// Java implementation for Serialize and Deserialize Binary Tree
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
+  java="public class Codec {
+    public String serialize(TreeNode root) {
+        if (root == null) return &quot;#,&quot;;
+        return root.val + &quot;,&quot; + serialize(root.left) + serialize(root.right);
     }
-}
 
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+    public TreeNode deserialize(String data) {
+        Queue<String> q = new LinkedList<>(Arrays.asList(data.split(&quot;,&quot;)));
+        return buildTree(q);
+    }
+
+    private TreeNode buildTree(Queue<String> q) {
+        String s = q.poll();
+        if (s.equals(&quot;#&quot;)) return null;
+        TreeNode root = new TreeNode(Integer.parseInt(s));
+        root.left = buildTree(q);
+        root.right = buildTree(q);
+        return root;
     }
 }"
-  python="# Python implementation for Serialize and Deserialize Binary Tree
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+  python="class Codec:
+    def serialize(self, root):
+        if not root:
+            return '#,'
+        return str(root.val) + ',' + self.serialize(root.left) + self.serialize(root.right)
 
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+    def deserialize(self, data):
+        def buildTree(q):
+            val = q.pop(0)
+            if val == '#':
+                return None
+            node = TreeNode(int(val))
+            node.left = buildTree(q)
+            node.right = buildTree(q)
+            return node
+            
+        data_list = data.split(',')
+        data_list.pop() # remove last empty string from trailing comma
+        return buildTree(data_list)"
 />
 
 # Complexity Analysis
@@ -76,21 +99,22 @@ class Solution:
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  space="O(N)"
+  description="Time complexity is O(N) because we visit each node exactly once during both serialization and deserialization. Space complexity is O(N) due to the string size, recursion stack in a skewed tree, and the queue used during deserialization."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- Forgetting to serialize the `null` pointers. Without them, you cannot determine the tree's structure.
+- Not handling negative numbers properly if building a custom string parser instead of using standard split functions.
+- Missing delimiters. For values with multiple digits like `12` and `3`, omitting delimiters creates ambiguity (`123`).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "Discuss both BFS and DFS approaches. BFS (Level Order) produces a shorter string for sparse trees if trailing nulls are omitted, but DFS is usually much easier to code.",
+    "Mention how the choice of delimiter (like comma) prevents issues with multi-digit or negative numbers.",
+    "In languages like Python, passing an iterator into the recursive deserializer is extremely elegant and memory efficient compared to passing indices."
   ]}
 />

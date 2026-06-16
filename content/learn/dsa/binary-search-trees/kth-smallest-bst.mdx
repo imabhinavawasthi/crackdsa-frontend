@@ -11,78 +11,104 @@ summary: "An essential guide to Kth Smallest Element in a BST, mastering O(log N
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Kth Smallest Element in a BST**. This topic is a cornerstone of the Binary Search Trees module. A Binary Search Tree is a special type of binary tree where every node in the left subtree is strictly smaller than the root, and every node in the right subtree is strictly greater.
+Finding the Kth smallest element in a **Binary Search Tree (BST)** is one of the most classic interview questions because it elegantly combines tree traversal with the BST's inherent sorting property.
 
 ### Core Intuition
-Because of this property, an **Inorder Traversal** of a valid BST will *always* yield a perfectly sorted sequence! This allows us to perform searches, insertions, and deletions in O(log N) average time, making it incredibly powerful for dynamic data.
+An **Inorder Traversal** (Left -> Root -> Right) of a BST visits the nodes in perfectly ascending order. Therefore, to find the Kth smallest element, we simply need to perform an inorder traversal and stop exactly at the $K$-th node we visit!
+
+Instead of storing all elements in an array and then accessing the $K-1$ index (which takes $O(N)$ space), we can optimize the space by keeping a counter variable. Once the counter reaches $K$, we've found our answer.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Kth Smallest Element in a BST
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    int kthSmallest(TreeNode* root, int k) {
+        int count = 0;
+        int result = -1;
+        inorder(root, k, count, result);
+        return result;
+    }
+    
+private:
+    void inorder(TreeNode* node, int k, int& count, int& result) {
+        if (!node) return;
+        
+        inorder(node->left, k, count, result);
+        
+        count++;
+        if (count == k) {
+            result = node->val;
+            return;
+        }
+        
+        inorder(node->right, k, count, result);
     }
 };"
-  java="// Java implementation for Kth Smallest Element in a BST
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    private int count = 0;
+    private int result = -1;
+    
+    public int kthSmallest(TreeNode root, int k) {
+        inorder(root, k);
+        return result;
+    }
+    
+    private void inorder(TreeNode node, int k) {
+        if (node == null) return;
+        
+        inorder(node.left, k);
+        
+        count++;
+        if (count == k) {
+            result = node.val;
+            return;
+        }
+        
+        inorder(node.right, k);
     }
 }"
-  python="# Python implementation for Kth Smallest Element in a BST
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def kthSmallest(self, root: TreeNode, k: int) -> int:
+        self.count = 0
+        self.result = -1
+        
+        def inorder(node):
+            if not node:
+                return
+                
+            inorder(node.left)
+            
+            self.count += 1
+            if self.count == k:
+                self.result = node.val
+                return
+                
+            inorder(node.right)
+            
+        inorder(root)
+        return self.result"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
+  best="O(H + K)"
+  average="O(H + K)"
   worst="O(N)"
   space="O(H)"
-  description="In a balanced BST, operations take O(log N) time. However, if the tree becomes skewed (like a linked list), the time complexity degrades to O(N). Space complexity is O(H) corresponding to the recursive call stack."
+  description="Time complexity is O(H + K) because we must traverse down to the leftmost leaf O(H), and then visit K nodes. In the worst case (e.g., skewed tree or K=N), this becomes O(N). Space complexity is O(H) to account for the recursive call stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Local Validation Mistake:** Validating a BST by only checking if `root.left.val < root.val < root.right.val` is INCORRECT. An element deep in the right subtree could be smaller than the main root. You must pass down an allowed `[min, max]` range constraint!
-- **Modifying structure during iteration:** Deleting a node with two children requires finding the inorder successor or predecessor to replace it, which is a notorious source of bugs.
+- Storing the entire inorder traversal in an array, taking O(N) space. You should always aim for O(H) space by using an early-exit counter.
+- Forgetting to stop the traversal once the Kth element is found, leading to unnecessary computation on the right subtrees.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks if a tree is a valid BST, the immediate answer is to either pass down `(min, max)` boundaries recursively, or do an inorder traversal and check if the result is sorted.",
-    "If a problem asks for the 'Kth smallest/largest' element in a BST, you should instantly think of Inorder Traversal with a counter.",
-    "Be careful: does the interviewer allow duplicate values in the BST? If so, decide whether they go to the left or right subtree."
+    "If the interviewer asks 'What if the BST is modified often and you need to find the Kth smallest frequently?', mention augmenting the BST node to keep track of the size of its left subtree. This allows O(log N) lookup time!",
+    "Using an iterative approach with an explicit Stack is a fantastic way to impress your interviewer, as it avoids recursion and demonstrates deep stack understanding.",
+    "If asked for the Kth *largest* element, simply do a Reverse Inorder Traversal (Right -> Root -> Left)."
   ]}
 />

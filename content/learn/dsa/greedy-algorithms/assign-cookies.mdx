@@ -11,65 +11,100 @@ summary: "An essential guide to Assign Cookies, mastering the art of local optim
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Assign Cookies**. This topic is a cornerstone of the Greedy Algorithms module. A Greedy Algorithm builds up a solution piece by piece, always choosing the next piece that offers the most obvious and immediate benefit.
+The **Assign Cookies** problem is a fantastic introductory Greedy algorithm. You are given two arrays: one representing the greed factors of children `g`, and another representing the sizes of cookies `s`. A child will only be content if they receive a cookie with a size greater than or equal to their greed factor (`s[j] >= g[i]`). You want to maximize the number of content children.
 
-### Core Intuition
-The tricky part of Greedy algorithms isn't the code—it's proving that it works. Unlike Dynamic Programming which exhaustively searches all paths and guarantees correctness, Greedy only searches one path. You must prove the *Greedy Choice Property*: making a locally optimal choice guarantees a globally optimal solution.
+### The Greedy Strategy
+To maximize the number of content children, we should always try to satisfy the **least greedy children first**, using the **smallest possible cookie** that meets their demand. 
+Why? Because giving a massive cookie to a child with a small greed factor is a waste. That massive cookie could have been used to satisfy a much greedier child!
+
+1. Sort the children's greed factors `g` in ascending order.
+2. Sort the cookie sizes `s` in ascending order.
+3. Use two pointers, one for the children and one for the cookies. 
+4. If the current cookie can satisfy the current child, move both pointers. If not, the cookie is too small for this child (and all subsequent children), so just move the cookie pointer to try a bigger cookie.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Assign Cookies
-#include <iostream>
-#include <vector>
+  cpp="#include <vector>
 #include <algorithm>
 using namespace std;
 
 class Solution {
 public:
-    int solve(vector<int>& arr) {
-        // sort(arr.begin(), arr.end());
-        // Implementation here
-        return 0;
+    int findContentChildren(vector<int>& g, vector<int>& s) {
+        sort(g.begin(), g.end());
+        sort(s.begin(), s.end());
+        
+        int child_i = 0;
+        int cookie_j = 0;
+        
+        while (child_i < g.size() && cookie_j < s.size()) {
+            if (s[cookie_j] >= g[child_i]) {
+                // Cookie fits, child is happy
+                child_i++;
+            }
+            // Always move to the next cookie
+            cookie_j++;
+        }
+        
+        return child_i; // child_i represents the number of content children
     }
 };"
-  java="// Java implementation for Assign Cookies
-import java.util.*;
+  java="import java.util.Arrays;
 
 class Solution {
-    public int solve(int[] arr) {
-        // Arrays.sort(arr);
-        // Implementation here
-        return 0;
+    public int findContentChildren(int[] g, int[] s) {
+        Arrays.sort(g);
+        Arrays.sort(s);
+        
+        int childI = 0;
+        int cookieJ = 0;
+        
+        while (childI < g.length && cookieJ < s.length) {
+            if (s[cookieJ] >= g[childI]) {
+                childI++;
+            }
+            cookieJ++;
+        }
+        
+        return childI;
     }
 }"
-  python="# Python implementation for Assign Cookies
-class Solution:
-    def solve(self, arr: list[int]) -> int:
-        # arr.sort()
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def findContentChildren(self, g: list[int], s: list[int]) -> int:
+        g.sort()
+        s.sort()
+        
+        child_i = 0
+        cookie_j = 0
+        
+        while child_i < len(g) and cookie_j < len(s):
+            if s[cookie_j] >= g[child_i]:
+                child_i += 1
+            cookie_j += 1
+            
+        return child_i"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N log N)"
-  average="O(N log N)"
-  worst="O(N log N)"
+  best="O(N log N + M log M)"
+  average="O(N log N + M log M)"
+  worst="O(N log N + M log M)"
   space="O(1)"
-  description="Greedy algorithms are almost always paired with sorting. Therefore, the time complexity is dominated by the initial sort: O(N log N). The greedy iteration itself is usually O(N). Space complexity is typically O(1) assuming an in-place sort."
+  description="Sorting both arrays takes O(N log N + M log M) where N is the number of children and M is the number of cookies. The two-pointer traversal takes O(N + M) time. Space complexity is O(1) assuming in-place sorting."
 />
 
 # Common Pitfalls
 <Warning>
-- **Premature Greediness:** Assuming a greedy approach works without testing edge cases. Often, what looks like a Greedy problem is actually a DP problem (e.g., 0/1 Knapsack is DP, Fractional Knapsack is Greedy).
-- **Sorting State:** Forgetting to sort the input arrays before applying the greedy logic!
+- Forgetting to sort both arrays! The greedy two-pointer logic entirely relies on both arrays being processed from smallest to largest.
+- Trying to iterate with nested loops resulting in an O(N*M) solution. A simple two-pointer approach is much more efficient.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for 'minimum steps', 'maximum profit', or 'optimal scheduling', and Dynamic Programming feels too slow (e.g. constraints up to 10^5), it's highly likely a Greedy problem.",
-    "Interval overlapping problems (like 'Merge Intervals' or 'Minimum Arrows') are classic greedy problems. Always sort them by their start or end times first.",
-    "Be vocal about your proofs. Say to the interviewer: 'I believe a greedy approach works here because making this choice now will never restrict us from making a better choice later.'"
+    "Mention why sorting is required: 'To minimize waste, we must match the smallest acceptable cookie to the least greedy child.'",
+    "This is a classic 'Matching' or 'Assignment' greedy problem. The two-pointer technique after sorting is a highly reusable pattern.",
+    "If asked about edge cases, point out that the algorithm handles empty arrays gracefully because the while loop condition will immediately fail."
   ]}
 />

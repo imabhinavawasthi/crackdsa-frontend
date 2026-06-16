@@ -11,34 +11,24 @@ summary: "An essential guide to Recursion Basics & Call Stack, exploring its app
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Recursion Basics & Call Stack**. This topic is a cornerstone of the Recursion & Backtracking module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Recursion is a programming technique where a function calls itself to solve a smaller instance of the same problem. Think of it as a set of Russian nesting dolls. To solve the larger problem, you break it down into identical, but smaller, problems until you reach a state that is simple enough to be solved directly (the base case).
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### The Call Stack
+Every time a function is called, the system sets aside space in memory for it to run. This space is called a **stack frame**, and it stores local variables and the execution context. When a function calls itself, a new stack frame is placed on top of the old one in a structure known as the **Call Stack**. The Call Stack operates on a Last-In, First-Out (LIFO) principle.
+
+Once the base case is reached, the function stops calling itself and returns a value to the caller. The top stack frame is popped off, and execution resumes in the previous frame.
+
+### Key Components of Recursion
+1. **Base Case:** The condition that stops the recursion. Without it, you'll encounter a Stack Overflow.
+2. **Recursive Step:** The part of the function where the problem is reduced and the function calls itself.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Recursion Basics & Call Stack
-#include <iostream>
-using namespace std;
+Let's see a simple example of recursion: printing numbers from $N$ down to $1$.
 
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-};"
-  java="// Java implementation for Recursion Basics & Call Stack
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-}"
-  python="# Python implementation for Recursion Basics & Call Stack
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+<CodeBlock
+  cpp="void printNumbers(int n) {\n    // Base case\n    if (n == 0) return;\n    \n    // Do work\n    cout << n << \" \";\n    \n    // Recursive call\n    printNumbers(n - 1);\n}"
+  java="public void printNumbers(int n) {\n    // Base case\n    if (n == 0) return;\n    \n    // Do work\n    System.out.print(n + \" \");\n    \n    // Recursive call\n    printNumbers(n - 1);\n}"
+  python="def print_numbers(n):\n    # Base case\n    if n == 0:\n        return\n    \n    # Do work\n    print(n, end=' ')\n    \n    # Recursive call\n    print_numbers(n - 1)"
 />
 
 # Complexity Analysis
@@ -46,20 +36,21 @@ class Solution:
   best="O(1)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(N)"
+  description="The time complexity is O(N) because the function is called N times. The space complexity is O(N) because the call stack holds N frames at its peak before reaching the base case."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Missing or incorrect base cases leading to infinite recursion (`StackOverflowError`).
+- Performing the recursive call without actually reducing the input size.
+- Not returning the result of the recursive call in functions that are supposed to return a value.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If you feel stuck on a recursive problem, try tracing the execution of a very small input manually.",
+    "Always state the space complexity caused by the Call Stack explicitly. Many candidates say 'O(1) space' while ignoring the O(N) stack frames."
   ]}
 />

@@ -11,73 +11,42 @@ summary: "An essential guide to Parameterized vs Functional Recursion, exploring
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Parameterized vs Functional Recursion**. This topic is a cornerstone of the Recursion & Backtracking module. Recursion is the foundation for Trees, Graphs, and Dynamic Programming. If you can't visualize a recursion tree, those advanced topics will be impossible to master.
+There are two primary paradigms when writing recursive functions: **Parameterized Recursion** and **Functional Recursion**. Understanding the difference is crucial for writing clean, bug-free recursive code.
 
-### Core Intuition
-Recursion is simply a function calling itself with a slightly smaller input until it hits a Base Case. 
-**Backtracking** is a specialized form of recursion. It's an algorithmic technique for solving problems recursively by trying to build a solution incrementally, one piece at a time, removing those solutions that fail to satisfy the constraints of the problem at any point in time.
+### Parameterized Recursion
+In Parameterized Recursion, the result is accumulated as arguments (parameters) passed from one recursive call to the next. The function itself often doesn't return anything (e.g., returns `void`). The final answer is typically printed or stored in a global/reference variable when the base case is hit.
+
+### Functional Recursion
+In Functional Recursion, the recursive function is expected to return a value. The current function call computes a piece of the answer, delegates the rest of the problem to a recursive call, and combines its own piece with the returned result. This approach generally leads to cleaner code that avoids side effects.
 
 # Code Implementation
+Let's see both approaches by calculating the sum of the first $N$ numbers.
+
 <CodeBlock
-  cpp="// C++ implementation for Parameterized vs Functional Recursion
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-    
-private:
-    void backtrack() {
-        // Recursive helper
-    }
-};"
-  java="// Java implementation for Parameterized vs Functional Recursion
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-    
-    private void backtrack() {
-        // Recursive helper
-    }
-}"
-  python="# Python implementation for Parameterized vs Functional Recursion
-class Solution:
-    def solve(self):
-        def backtrack():
-            # Recursive helper
-            pass
-            
-        # Implementation here
-        pass"
+  cpp="// Parameterized Recursion\nvoid sumParameterized(int i, int sum) {\n    if (i < 1) {\n        cout << sum << endl;\n        return;\n    }\n    sumParameterized(i - 1, sum + i);\n}\n\n// Functional Recursion\nint sumFunctional(int n) {\n    if (n == 0) return 0;\n    return n + sumFunctional(n - 1);\n}"
+  java="// Parameterized Recursion\npublic void sumParameterized(int i, int sum) {\n    if (i < 1) {\n        System.out.println(sum);\n        return;\n    }\n    sumParameterized(i - 1, sum + i);\n}\n\n// Functional Recursion\npublic int sumFunctional(int n) {\n    if (n == 0) return 0;\n    return n + sumFunctional(n - 1);\n}"
+  python="# Parameterized Recursion\ndef sum_parameterized(i, current_sum):\n    if i < 1:\n        print(current_sum)\n        return\n    sum_parameterized(i - 1, current_sum + i)\n\n# Functional Recursion\ndef sum_functional(n):\n    if n == 0:\n        return 0\n    return n + sum_functional(n - 1)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(2^N)"
-  average="O(2^N)"
-  worst="O(N!)"
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
   space="O(N)"
-  description="Combinatorial backtracking generates massive state spaces. Generating subsets is O(2^N), while generating permutations is O(N!). Space complexity is typically bounded by the maximum recursion depth, which is usually O(N)."
+  description="Both approaches require N recursive calls, leading to an O(N) time complexity and an O(N) space complexity due to the call stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Missing Base Case:** A recursion function without a base case (or an unreachable one) will crash with a `StackOverflowError` instantly.
-- **Pass By Reference Mutations:** In Python and C++, if you append a list/vector to your results array, you must append a *copy* (`path[:]` or `new ArrayList<>(path)`). Otherwise, future backtracking steps will clear out your stored answers!
+- In Functional Recursion, forgetting to `return` the result of the recursive call.
+- In Parameterized Recursion, mixing up pass-by-value and pass-by-reference can lead to unintended side effects or lost data.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks you to 'return all possible combinations', 'find all paths', or 'generate all subsets', it is a 100% guarantee that it requires Backtracking.",
-    "Draw the recursion tree out loud for the interviewer for N=3. This proves you understand the state transitions and aren't just memorizing code.",
-    "State the time complexity carefully. Say 'O(2^N * N)' where the extra N is the time it takes to copy the subset into the final result list."
+    "Functional recursion is highly preferred in interviews because it's easier to reason about, test, and adapt to dynamic programming (memoization).",
+    "Use Parameterized Recursion only when you are building paths or subsets and need to push complete combinations into a result list."
   ]}
 />

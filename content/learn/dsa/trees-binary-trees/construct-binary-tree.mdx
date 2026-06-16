@@ -11,86 +11,125 @@ summary: "An essential guide to Construct Binary Tree from Traversals, mastering
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Construct Binary Tree from Traversals**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+Constructing a Binary Tree requires two traversal arrays. The most common variation is constructing a tree from its **Preorder and Inorder** traversals.
+
+### The Mechanics
+To reconstruct a unique binary tree, you need:
+1. **Preorder (or Postorder) array:** This tells you the **Root**. In a Preorder array, the first element is always the root. In Postorder, the last element is the root.
+2. **Inorder array:** This tells you the **Structure**. Once you find the root in the Inorder array, everything to its left belongs to the left subtree, and everything to its right belongs to the right subtree.
+
+### The Algorithm (Preorder + Inorder)
+1. Pick the first element from the `preorder` array. This is our root.
+2. Find the index of this root in the `inorder` array.
+3. The number of elements to the left of this index tells us the size of the left subtree.
+4. Recursively build the `root.left` passing the appropriate array boundaries.
+5. Recursively build the `root.right` passing the remaining array boundaries.
+
+*Optimization:* Searching for the root in the inorder array takes O(N) time, leading to an O(N^2) algorithm. We optimize this to O(N) by storing the inorder values and their indices in a HashMap!
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Construct Binary Tree from Traversals
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
+    unordered_map<int, int> inorderMap;
+    int preorderIndex = 0;
+    
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
+        for (int i = 0; i < inorder.size(); i++) {
+            inorderMap[inorder[i]] = i;
+        }
+        return construct(preorder, 0, inorder.size() - 1);
+    }
+    
+private:
+    TreeNode* construct(vector<int>& preorder, int left, int right) {
+        if (left > right) return nullptr;
+        
+        int rootValue = preorder[preorderIndex++];
+        TreeNode* root = new TreeNode(rootValue);
+        
+        int mid = inorderMap[rootValue];
+        
+        root->left = construct(preorder, left, mid - 1);
+        root->right = construct(preorder, mid + 1, right);
+        
+        return root;
     }
 };"
-  java="// Java implementation for Construct Binary Tree from Traversals
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
+  java="class Solution {
+    Map<Integer, Integer> inorderMap = new HashMap<>();
+    int preorderIndex = 0;
+    
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        for (int i = 0; i < inorder.length; i++) {
+            inorderMap.put(inorder[i], i);
+        }
+        return construct(preorder, 0, inorder.length - 1);
     }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+    
+    private TreeNode construct(int[] preorder, int left, int right) {
+        if (left > right) return null;
+        
+        int rootValue = preorder[preorderIndex++];
+        TreeNode root = new TreeNode(rootValue);
+        
+        int mid = inorderMap.get(rootValue);
+        
+        root.left = construct(preorder, left, mid - 1);
+        root.right = construct(preorder, mid + 1, right);
+        
+        return root;
     }
 }"
-  python="# Python implementation for Construct Binary Tree from Traversals
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def buildTree(self, preorder: List[int], inorder: List[int]) -> Optional[TreeNode]:
+        inorder_map = {val: idx for idx, val in enumerate(inorder)}
+        self.preorder_index = 0
+        
+        def construct(left, right):
+            if left > right:
+                return None
+                
+            root_val = preorder[self.preorder_index]
+            self.preorder_index += 1
+            root = TreeNode(root_val)
+            
+            mid = inorder_map[root_val]
+            
+            # Left and Right must be built in this exact order!
+            root.left = construct(left, mid - 1)
+            root.right = construct(mid + 1, right)
+            
+            return root
+            
+        return construct(0, len(inorder) - 1)"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  space="O(N)"
+  description="Time complexity is O(N) because the HashMap allows O(1) lookups, and we visit each node once. Space complexity is O(N) to store the HashMap mapping values to indices."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **Passing Slices Instead of Indices:** In Python, doing `inorder[:mid]` and `inorder[mid+1:]` creates new arrays at every step, ruining the space and time complexity. Always pass `left` and `right` integer boundaries!
+- **Wrong Recursion Order (Postorder variation):** If you are constructing from Postorder + Inorder, the root is at the end of the postorder array. Because you read the postorder array backwards, you MUST construct `root.right` before `root.left`!
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "Remember: You CANNOT uniquely construct a binary tree using Preorder and Postorder traversals. You MUST have the Inorder traversal to determine the left/right boundaries.",
+    "Using a HashMap for O(1) inorder lookups is the critical optimization interviewers look for.",
+    "If the array elements are not guaranteed to be unique, the HashMap approach will fail. Clarify this constraint with your interviewer!"
   ]}
 />

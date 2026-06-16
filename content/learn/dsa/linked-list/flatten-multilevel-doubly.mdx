@@ -11,56 +11,105 @@ summary: "An essential guide to Flatten a Multilevel Doubly Linked List, explori
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Flatten a Multilevel Doubly Linked List**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+In a **Multilevel Doubly Linked List**, nodes can optionally point to a separate `child` doubly linked list, creating a multi-tiered hierarchy. The challenge is to flatten this structure so all nodes reside on a single, one-dimensional level. 
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+The flattening process dictates that a child list must be entirely integrated into the parent list directly *after* the node that spawned it, but *before* that parent node's original `next` node.
+
+This is effectively a **Depth-First Search (DFS)**. While you can solve it recursively or with a Stack, there is an elegant $O(1)$ space iterative solution. Whenever you encounter a node with a child, you splice the entire child list between the current node and the `next` node. You achieve this by traversing down to find the child list's tail, connecting it to `next`, and then continuing your main iteration.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Flatten a Multilevel Doubly Linked List
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
+    Node* flatten(Node* head) {
+        if (!head) return nullptr;
+        
+        Node* curr = head;
+        while (curr) {
+            // If the node has a child, we must flatten it
+            if (curr->child) {
+                Node* next = curr->next;
+                Node* child = curr->child;
+                
+                // Connect current to child
+                curr->next = child;
+                child->prev = curr;
+                curr->child = nullptr; // Don't forget to nullify the child pointer
+                
+                // Traverse to the tail of the child sublist
+                Node* tail = child;
+                while (tail->next) {
+                    tail = tail->next;
+                }
+                
+                // Connect the child's tail to the original next node
+                tail->next = next;
+                if (next) {
+                    next->prev = tail;
+                }
+            }
+            // Move on to the next node
+            curr = curr->next;
+        }
+        
         return head;
     }
 };"
-  java="// Java implementation for Flatten a Multilevel Doubly Linked List
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
+  java="class Solution {
+    public Node flatten(Node head) {
+        if (head == null) return null;
+        
+        Node curr = head;
+        while (curr != null) {
+            if (curr.child != null) {
+                Node next = curr.next;
+                Node child = curr.child;
+                
+                curr.next = child;
+                child.prev = curr;
+                curr.child = null;
+                
+                Node tail = child;
+                while (tail.next != null) {
+                    tail = tail.next;
+                }
+                
+                tail.next = next;
+                if (next != null) {
+                    next.prev = tail;
+                }
+            }
+            curr = curr.next;
+        }
+        
         return head;
     }
 }"
-  python="# Python implementation for Flatten a Multilevel Doubly Linked List
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
+  python="class Solution:
+    def flatten(self, head: 'Optional[Node]') -> 'Optional[Node]':
+        if not head:
+            return None
+            
+        curr = head
+        while curr:
+            if curr.child:
+                nxt = curr.next
+                child = curr.child
+                
+                curr.next = child
+                child.prev = curr
+                curr.child = None
+                
+                tail = child
+                while tail.next:
+                    tail = tail.next
+                    
+                tail.next = nxt
+                if nxt:
+                    nxt.prev = tail
+                    
+            curr = curr.next
+            
         return head"
 />
 
@@ -70,20 +119,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="Time Complexity is strictly O(N), where N is the total number of nodes across all levels. Although we have an inner while loop to find the tail, each node is visited at most twice. Space complexity is O(1) as we are modifying pointers in place without utilizing a recursion stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Forgetting to nullify `curr.child`:** The problem specifically requires the resulting list to be a standard doubly linked list. If you forget to set `curr.child = null`, the autograder will fail.
+- **Handling `next == null`:** The parent node might not have a `next` node (e.g., it's the tail of its current level). Attempting to access `next.prev` in this case will trigger a Null Pointer Exception. Always check `if (next != null)`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "If you first think of Recursion/Stack, articulate it, but immediately recognize that the recursion depth will cost O(N) space. Transitioning to the Iterative Tail-Finding approach guarantees maximum score.",
+    "Draw a 3-node example: Parent -> Next, with Parent having a Child. Visualizing the pointer swaps proves to the interviewer you won't lose references.",
+    "Pay special attention to doubly-linked list properties. Unlike singly linked lists, every forward link requires a symmetrical backward link (`prev`)."
   ]}
 />

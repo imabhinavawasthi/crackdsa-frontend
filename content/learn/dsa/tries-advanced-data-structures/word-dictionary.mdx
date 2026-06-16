@@ -11,55 +11,181 @@ summary: "An essential guide to Word Dictionary, exploring its applications, imp
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Word Dictionary**. This topic is a cornerstone of the Tries & Advanced Data Structures module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Word Dictionary** is an extension of the classic Trie data structure, typically designed to handle search operations with wildcard matchings (like the `.` character matching any single lowercase letter). 
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+While a standard hash set gives `O(1)` lookups for exact words, it completely fails when you need wildcard matching. If you have "bad", "dad", and "mad" in a set, searching for ".ad" requires checking every word. 
+
+By utilizing a **Trie (Prefix Tree)**, we group words by their common prefixes. When a wildcard `.` is encountered, we simply use DFS (Depth-First Search) to recursively branch out and search *every possible child node* from our current position. If any of those branches return a successful match, our search succeeds.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Word Dictionary
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class TrieNode {
 public:
-    void solve() {
-        // Implementation here
+    TrieNode* children[26];
+    bool isEndOfWord;
+    
+    TrieNode() {
+        isEndOfWord = false;
+        for (int i = 0; i < 26; i++) {
+            children[i] = nullptr;
+        }
+    }
+};
+
+class WordDictionary {
+private:
+    TrieNode* root;
+    
+    bool searchHelper(string& word, int index, TrieNode* node) {
+        if (index == word.length()) {
+            return node->isEndOfWord;
+        }
+        
+        char c = word[index];
+        if (c == '.') {
+            for (int i = 0; i < 26; i++) {
+                if (node->children[i] && searchHelper(word, index + 1, node->children[i])) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            if (!node->children[c - 'a']) return false;
+            return searchHelper(word, index + 1, node->children[c - 'a']);
+        }
+    }
+
+public:
+    WordDictionary() {
+        root = new TrieNode();
+    }
+    
+    void addWord(string word) {
+        TrieNode* curr = root;
+        for (char c : word) {
+            int idx = c - 'a';
+            if (!curr->children[idx]) {
+                curr->children[idx] = new TrieNode();
+            }
+            curr = curr->children[idx];
+        }
+        curr->isEndOfWord = true;
+    }
+    
+    bool search(string word) {
+        return searchHelper(word, 0, root);
     }
 };"
-  java="// Java implementation for Word Dictionary
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class TrieNode {
+    TrieNode[] children;
+    boolean isEndOfWord;
+    
+    public TrieNode() {
+        children = new TrieNode[26];
+        isEndOfWord = false;
+    }
+}
+
+class WordDictionary {
+    private TrieNode root;
+
+    public WordDictionary() {
+        root = new TrieNode();
+    }
+    
+    public void addWord(String word) {
+        TrieNode curr = root;
+        for (char c : word.toCharArray()) {
+            int idx = c - 'a';
+            if (curr.children[idx] == null) {
+                curr.children[idx] = new TrieNode();
+            }
+            curr = curr.children[idx];
+        }
+        curr.isEndOfWord = true;
+    }
+    
+    public boolean search(String word) {
+        return searchHelper(word, 0, root);
+    }
+    
+    private boolean searchHelper(String word, int index, TrieNode node) {
+        if (index == word.length()) {
+            return node.isEndOfWord;
+        }
+        
+        char c = word.charAt(index);
+        if (c == '.') {
+            for (int i = 0; i < 26; i++) {
+                if (node.children[i] != null && searchHelper(word, index + 1, node.children[i])) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            int idx = c - 'a';
+            if (node.children[idx] == null) return false;
+            return searchHelper(word, index + 1, node.children[idx]);
+        }
     }
 }"
-  python="# Python implementation for Word Dictionary
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end_of_word = False
+
+class WordDictionary:
+    def __init__(self):
+        self.root = TrieNode()
+
+    def addWord(self, word: str) -> None:
+        curr = self.root
+        for char in word:
+            if char not in curr.children:
+                curr.children[char] = TrieNode()
+            curr = curr.children[char]
+        curr.is_end_of_word = True
+
+    def search(self, word: str) -> bool:
+        def dfs(index, node):
+            if index == len(word):
+                return node.is_end_of_word
+            
+            char = word[index]
+            if char == '.':
+                for child_node in node.children.values():
+                    if dfs(index + 1, child_node):
+                        return True
+                return False
+            else:
+                if char not in node.children:
+                    return False
+                return dfs(index + 1, node.children[char])
+                
+        return dfs(0, self.root)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(L)"
+  average="O(M)"
+  worst="O(26^L)"
+  space="O(N * L)"
+  description="Adding takes O(L). An exact search takes O(L). The worst case for wildcard matching is O(26^L) if every character is a dot and the tree is dense, exploring all paths."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Implementing wildcard search using string slicing (`word.substring()`) inside recursion, which severely degrades performance via memory allocation overhead. Always use an integer index.
+- Not returning `false` after the wildcard loop completes without any matches.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If you encounter a wildcard matching or spell checking problem, default to building a Trie intertwined with DFS.",
+    "State explicitly to the interviewer why a HashMap is insufficient for wildcards (it would take O(N * L) instead of O(26^L), but 26^L is severely pruned in reality).",
+    "Keep node structure lean; avoid storing unneeded variables."
   ]}
 />

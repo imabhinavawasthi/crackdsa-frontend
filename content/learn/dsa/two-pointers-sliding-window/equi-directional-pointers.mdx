@@ -4,43 +4,87 @@ category: "Two Pointers & Sliding Window"
 readTime: "9 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the pointer mechanics behind Equi-Directional Pointers (Remove Duplicates)."
-  - "Learn how to optimize nested loops into a single O(N) pass."
-  - "Master edge cases and off-by-one window boundaries."
-summary: "An essential guide to Equi-Directional Pointers (Remove Duplicates), exploring its applications, optimal implementations, and how to identify this pattern in interviews."
+  - "Understand the mechanics behind Equi-Directional Pointers."
+  - "Learn how to perform in-place array modifications without extra space."
+  - "Master the slow-runner and fast-runner approach for array compaction."
+summary: "An essential guide to Equi-Directional Pointers, exploring how to iterate through arrays with two pointers moving in the same direction to solve in-place modification problems."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Equi-Directional Pointers (Remove Duplicates)**. This topic is a cornerstone of the Two Pointers & Sliding Window module. The Two Pointers and Sliding Window techniques are universally loved by interviewers because they elegantly reduce O(N^2) complexity down to O(N) without requiring extra space.
+The **Equi-Directional Pointers** pattern (often called Slow and Fast Pointers, though distinct from cycle detection) is a variation of the Two Pointers technique where both pointers start at the same side of the array and move in the same direction, but at different speeds or based on different conditions.
 
-### Core Intuition
-Instead of using a nested loop to check every possible pair or subarray, we use two pointers (`left` and `right`) to represent a range or a pair of elements. Based on specific conditions, we strategically move one pointer or the other, drastically reducing the search space.
+This technique is predominantly used for **in-place array modifications**, such as removing duplicates from a sorted array, moving all zeros to the end, or filtering out specific elements, all while maintaining $O(1)$ space complexity.
+
+### The Core Intuition
+Imagine you have an array and you need to filter it. Instead of creating a new array to store the filtered results (which takes $O(N)$ space), you can conceptually divide the original array into two regions:
+1. **Processed Region:** `[0, slow - 1]`. This region contains the final, correct elements.
+2. **Unprocessed Region:** `[fast, N - 1]`. This region contains elements you haven't looked at yet.
+
+The `fast` pointer acts as an explorer, examining every element one by one. The `slow` pointer acts as a gatekeeper. Whenever the `fast` pointer finds an element that *should* be kept, it hands it to the `slow` pointer. The `slow` pointer writes the element to its current position and then increments.
+
+By the time the `fast` pointer reaches the end of the array, the processed region `[0, slow - 1]` contains the entire final result. The length of the new valid array is simply `slow`.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Equi-Directional Pointers (Remove Duplicates)
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    // Example: Remove Duplicates from Sorted Array
+    int removeDuplicates(vector<int>& nums) {
+        if (nums.empty()) return 0;
+        
+        // 'slow' points to the index where the NEXT unique element should be written
+        int slow = 1; 
+        
+        // 'fast' explores the array to find new unique elements
+        for (int fast = 1; fast < nums.size(); fast++) {
+            // If we find a new unique element
+            if (nums[fast] != nums[fast - 1]) {
+                nums[slow] = nums[fast]; // Write it to the 'slow' index
+                slow++;                  // Increment the gatekeeper
+            }
+        }
+        
+        return slow; // The length of the array without duplicates
     }
 };"
-  java="// Java implementation for Equi-Directional Pointers (Remove Duplicates)
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    // Example: Remove Duplicates from Sorted Array
+    public int removeDuplicates(int[] nums) {
+        if (nums.length == 0) return 0;
+        
+        // 'slow' points to the index where the NEXT unique element should be written
+        int slow = 1; 
+        
+        // 'fast' explores the array to find new unique elements
+        for (int fast = 1; fast < nums.length; fast++) {
+            // If we find a new unique element
+            if (nums[fast] != nums[fast - 1]) {
+                nums[slow] = nums[fast]; // Write it to the 'slow' index
+                slow++;                  // Increment the gatekeeper
+            }
+        }
+        
+        return slow; // The length of the array without duplicates
     }
 }"
-  python="# Python implementation for Equi-Directional Pointers (Remove Duplicates)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    # Example: Remove Duplicates from Sorted Array
+    def removeDuplicates(self, nums: list[int]) -> int:
+        if not nums:
+            return 0
+            
+        # 'slow' points to the index where the NEXT unique element should be written
+        slow = 1
+        
+        # 'fast' explores the array to find new unique elements
+        for fast in range(1, len(nums)):
+            # If we find a new unique element
+            if nums[fast] != nums[fast - 1]:
+                nums[slow] = nums[fast] # Write it to the 'slow' index
+                slow += 1               # Increment the gatekeeper
+                
+        return slow # The length of the array without duplicates"
 />
 
 # Complexity Analysis
@@ -49,20 +93,21 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) since both the left and right pointers only move in one direction and visit each element at most twice. Space complexity is O(1) because we only store pointer indices."
+  description="The fast pointer iterates through the array exactly once, meaning we visit each element a constant number of times. This guarantees a linear O(N) time complexity. Space complexity is O(1) as we perform all modifications in-place using only two integer pointers."
 />
 
 # Common Pitfalls
 <Warning>
-- **Off-by-One Errors:** Miscalculating the window size as `right - left` instead of `right - left + 1`.
-- **Pointer Stagnation:** Creating infinite loops by forgetting to increment/decrement the pointers inside a `while` loop condition.
+- **Pointer Initialization:** A common mistake is starting both `slow` and `fast` at `0`. In 'remove duplicates', the first element is always unique by definition, so we start both at `1` and compare `fast` with `fast - 1`. 
+- **Overwriting Data Too Early:** If `slow` ever advances past `fast`, you would be overwriting unexamined data. This algorithm relies on the invariant that `slow <= fast` at all times.
+- **Returning the Array vs. Length:** In-place modification problems often require returning the *new length* of the valid portion of the array, not the array itself. The elements past the new length don't matter.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If the problem asks for a contiguous sequence (subarray or substring), Sliding Window is almost always the answer.",
-    "If the array is sorted and you need to find a pair, start one pointer at the beginning and one at the end.",
-    "For Variable Sliding Windows, the logic is always: Expand the right pointer, and while the condition is violated, shrink the left pointer."
+    "Whenever a problem explicitly forbids allocating a new array and asks you to modify the input array 'in-place', Equi-Directional Pointers should be your first thought.",
+    "This pattern is heavily used in 'Remove Element', 'Move Zeroes', and 'Remove Duplicates' style questions.",
+    "Be prepared to explain why the data past the 'slow' pointer after the algorithm finishes is garbage data, and why that is perfectly acceptable."
   ]}
 />

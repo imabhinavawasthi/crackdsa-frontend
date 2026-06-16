@@ -11,58 +11,160 @@ summary: "An essential guide to Bridges in Graph (Tarjan's), exploring its appli
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Bridges in Graph (Tarjan's)**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+A **Bridge** (or cut edge) is an edge in a graph whose removal increases the number of connected components. In network routing, bridges represent critical connections whose failure isolates parts of the network.
 
-### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+**Tarjan's Algorithm** for finding bridges uses a single Depth First Search (DFS) pass and maintains two arrays:
+1. `tin[u]` (Time In): The timestamp when node `u` was first visited.
+2. `low[u]` (Lowest Time): The lowest timestamp reachable from node `u` (including itself) using any path that goes down the DFS tree, and at most one back-edge (an edge pointing to an ancestor).
+
+During DFS from $u$ to a neighbor $v$:
+- If $v$ is already visited (and is not the parent), it's a back-edge. Update `low[u] = min(low[u], tin[v])`.
+- If $v$ is unvisited, we traverse it and then update `low[u] = min(low[u], low[v])`. 
+- **Bridge Condition:** After traversing $v$, if `low[v] > tin[u]`, it means the only way to reach $v$ (and its descendants) from $u$ is via the edge $(u, v)$. Therefore, $(u, v)$ is a bridge.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Bridges in Graph (Tarjan's)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp={`class Solution {
+private:
+    int timer = 1;
+    void dfs(int node, int parent, vector<int>& visited, vector<int> adj[], 
+             vector<int>& tin, vector<int>& low, vector<vector<int>>& bridges) {
+        visited[node] = 1;
+        tin[node] = low[node] = timer++;
+        
+        for (auto it : adj[node]) {
+            if (it == parent) continue; // Ignore the edge to parent
+            
+            if (!visited[it]) {
+                dfs(it, node, visited, adj, tin, low, bridges);
+                low[node] = min(low[node], low[it]);
+                
+                // Bridge Condition
+                if (low[it] > tin[node]) {
+                    bridges.push_back({node, it});
+                }
+            } else {
+                // Back-edge found
+                low[node] = min(low[node], tin[it]);
+            }
+        }
+    }
 public:
-    void solve() {
-        // Implementation here
+    vector<vector<int>> criticalConnections(int n, vector<vector<int>>& connections) {
+        vector<int> adj[n];
+        for (auto& conn : connections) {
+            adj[conn[0]].push_back(conn[1]);
+            adj[conn[1]].push_back(conn[0]);
+        }
+        
+        vector<int> visited(n, 0);
+        vector<int> tin(n);
+        vector<int> low(n);
+        vector<vector<int>> bridges;
+        
+        dfs(0, -1, visited, adj, tin, low, bridges);
+        return bridges;
     }
-};"
-  java="// Java implementation for Bridges in Graph (Tarjan's)
-import java.util.*;
+};`}
+  java={`class Solution {
+    private int timer = 1;
 
-class Solution {
-    public void solve() {
-        // Implementation here
+    private void dfs(int node, int parent, boolean[] visited, List<List<Integer>> adj, 
+                     int[] tin, int[] low, List<List<Integer>> bridges) {
+        visited[node] = true;
+        tin[node] = low[node] = timer++;
+
+        for (Integer it : adj.get(node)) {
+            if (it == parent) continue; // Ignore the edge to parent
+
+            if (!visited[it]) {
+                dfs(it, node, visited, adj, tin, low, bridges);
+                low[node] = Math.min(low[node], low[it]);
+
+                // Bridge Condition
+                if (low[it] > tin[node]) {
+                    bridges.add(Arrays.asList(node, it));
+                }
+            } else {
+                // Back-edge found
+                low[node] = Math.min(low[node], tin[it]);
+            }
+        }
     }
-}"
-  python="# Python implementation for Bridges in Graph (Tarjan's)
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+
+    public List<List<Integer>> criticalConnections(int n, List<List<Integer>> connections) {
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+        for (List<Integer> conn : connections) {
+            adj.get(conn.get(0)).add(conn.get(1));
+            adj.get(conn.get(1)).add(conn.get(0));
+        }
+
+        boolean[] visited = new boolean[n];
+        int[] tin = new int[n];
+        int[] low = new int[n];
+        List<List<Integer>> bridges = new ArrayList<>();
+
+        dfs(0, -1, visited, adj, tin, low, bridges);
+        return bridges;
+    }
+}`}
+  python={`class Solution:
+    def criticalConnections(self, n: int, connections: list[list[int]]) -> list[list[int]]:
+        adj = [[] for _ in range(n)]
+        for u, v in connections:
+            adj[u].append(v)
+            adj[v].append(u)
+            
+        visited = [False] * n
+        tin = [0] * n
+        low = [0] * n
+        bridges = []
+        self.timer = 1
+        
+        def dfs(node, parent):
+            visited[node] = True
+            tin[node] = low[node] = self.timer
+            self.timer += 1
+            
+            for it in adj[node]:
+                if it == parent:
+                    continue
+                    
+                if not visited[it]:
+                    dfs(it, node)
+                    low[node] = min(low[node], low[it])
+                    
+                    # Bridge Condition
+                    if low[it] > tin[node]:
+                        bridges.append([node, it])
+                else:
+                    # Back-edge found
+                    low[node] = min(low[node], tin[it])
+                    
+        dfs(0, -1)
+        return bridges`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(E log V)"
-  average="O(E log V)"
-  worst="O(E log V)"
+  best="O(V + E)"
+  average="O(V + E)"
+  worst="O(V + E)"
   space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  description="Tarjan's algorithm requires a single DFS pass. Hence, the time complexity is strictly linear with respect to nodes and edges. Space involves adjacency lists and recursive call stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Back-edge Update:** When a visited neighbor is encountered, update using `tin[it]` (the time the neighbor was visited), not `low[it]`. Using `low` is mathematically flawed for bridges.
+- **Skipping Parent:** Do not forget `if (it == parent) continue;`. Otherwise, the algorithm considers the immediate incoming edge as a valid cycle.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "If the interviewer asks to find cycles instead, remind them that Tarjan's algorithm effectively operates by finding edges that are NOT part of any cycle.",
+    "Highlight that this approach heavily uses the concept of back-edges, which are edges pointing to a node already in the recursive call stack."
   ]}
 />

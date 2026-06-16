@@ -11,56 +11,98 @@ summary: "An essential guide to Delete Node in a BST, mastering O(log N) searche
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Delete Node in a BST**. This topic is a cornerstone of the Binary Search Trees module. A Binary Search Tree is a special type of binary tree where every node in the left subtree is strictly smaller than the root, and every node in the right subtree is strictly greater.
+Deleting a node from a **Binary Search Tree (BST)** is the most complex of the fundamental operations because we must maintain the strict BST property after the node is removed. 
 
 ### Core Intuition
-Because of this property, an **Inorder Traversal** of a valid BST will *always* yield a perfectly sorted sequence! This allows us to perform searches, insertions, and deletions in O(log N) average time, making it incredibly powerful for dynamic data.
+When deleting a node, we encounter three possible cases:
+1. **The node is a leaf (no children):** Simply remove it by returning `null` to its parent.
+2. **The node has one child:** Remove the node and directly connect its parent to its only child.
+3. **The node has two children (The Hard Case):** We cannot simply delete it because it holds two subtrees together. Instead, we:
+   - Find its **Inorder Successor** (the smallest node in its right subtree).
+   - Replace the value of the node we want to delete with the successor's value.
+   - Recursively delete the successor node from the right subtree (which is guaranteed to fall into Case 1 or Case 2, as a successor cannot have a left child!).
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Delete Node in a BST
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    TreeNode* deleteNode(TreeNode* root, int key) {
+        if (!root) return nullptr;
+        
+        if (key < root->val) {
+            root->left = deleteNode(root->left, key);
+        } else if (key > root->val) {
+            root->right = deleteNode(root->right, key);
+        } else {
+            // Node found
+            if (!root->left) return root->right;
+            if (!root->right) return root->left;
+            
+            // Case 3: Two children
+            TreeNode* minNode = findMin(root->right);
+            root->val = minNode->val;
+            root->right = deleteNode(root->right, minNode->val);
+        }
+        return root;
+    }
+    
+private:
+    TreeNode* findMin(TreeNode* node) {
+        while (node->left) node = node->left;
+        return node;
     }
 };"
-  java="// Java implementation for Delete Node in a BST
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    public TreeNode deleteNode(TreeNode root, int key) {
+        if (root == null) return null;
+        
+        if (key < root.val) {
+            root.left = deleteNode(root.left, key);
+        } else if (key > root.val) {
+            root.right = deleteNode(root.right, key);
+        } else {
+            // Node found
+            if (root.left == null) return root.right;
+            if (root.right == null) return root.left;
+            
+            // Case 3: Two children
+            TreeNode minNode = findMin(root.right);
+            root.val = minNode.val;
+            root.right = deleteNode(root.right, minNode.val);
+        }
+        return root;
+    }
+    
+    private TreeNode findMin(TreeNode node) {
+        while (node.left != null) node = node.left;
+        return node;
     }
 }"
-  python="# Python implementation for Delete Node in a BST
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def deleteNode(self, root: TreeNode, key: int) -> TreeNode:
+        if not root:
+            return None
+            
+        if key < root.val:
+            root.left = self.deleteNode(root.left, key)
+        elif key > root.val:
+            root.right = self.deleteNode(root.right, key)
+        else:
+            if not root.left:
+                return root.right
+            if not root.right:
+                return root.left
+                
+            min_node = self.findMin(root.right)
+            root.val = min_node.val
+            root.right = self.deleteNode(root.right, min_node.val)
+            
+        return root
+        
+    def findMin(self, node: TreeNode) -> TreeNode:
+        while node.left:
+            node = node.left
+        return node"
 />
 
 # Complexity Analysis
@@ -69,20 +111,20 @@ class Solution:
   average="O(log N)"
   worst="O(N)"
   space="O(H)"
-  description="In a balanced BST, operations take O(log N) time. However, if the tree becomes skewed (like a linked list), the time complexity degrades to O(N). Space complexity is O(H) corresponding to the recursive call stack."
+  description="Finding the node takes O(H) time. If it has two children, finding the successor takes an additional O(H) time. Thus, the total time complexity is O(H). The space complexity is O(H) due to the recursive call stack."
 />
 
 # Common Pitfalls
 <Warning>
-- **Local Validation Mistake:** Validating a BST by only checking if `root.left.val < root.val < root.right.val` is INCORRECT. An element deep in the right subtree could be smaller than the main root. You must pass down an allowed `[min, max]` range constraint!
-- **Modifying structure during iteration:** Deleting a node with two children requires finding the inorder successor or predecessor to replace it, which is a notorious source of bugs.
+- Forgetting to reassign the pointers `root.left = ...` and `root.right = ...` when unwinding the recursion.
+- In Case 3, blindly trying to rewire pointers instead of swapping values. Swapping values and delegating the deletion of the leaf/single-child successor is vastly simpler and less error-prone.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks if a tree is a valid BST, the immediate answer is to either pass down `(min, max)` boundaries recursively, or do an inorder traversal and check if the result is sorted.",
-    "If a problem asks for the 'Kth smallest/largest' element in a BST, you should instantly think of Inorder Traversal with a counter.",
-    "Be careful: does the interviewer allow duplicate values in the BST? If so, decide whether they go to the left or right subtree."
+    "You can optionally use the Inorder Predecessor (largest node in the left subtree) instead of the Successor. Both approaches are perfectly valid.",
+    "Be sure to articulate the three distinct cases clearly before writing any code. It shows structured thinking.",
+    "Always remember to return `root` at the end of the recursive function to reconstruct the tree properly."
   ]}
 />

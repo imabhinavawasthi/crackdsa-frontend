@@ -11,35 +11,69 @@ summary: "An essential guide to Sliding Window on Arrays, exploring its applicat
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Sliding Window on Arrays**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+The **Sliding Window** is an algorithmic technique used for finding subarrays or substrings that satisfy a specific condition. It significantly optimizes brute-force nested loop approaches ($O(N^2)$) by converting them into single-pass linear time operations ($O(N)$).
 
-### Core Intuition
-The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+Imagine a window positioned over an array. The window represents our current subarray. We expand the window by moving the right edge (`right` pointer) to include new elements. If the window violates the target condition, we shrink it from the left by moving the left edge (`left` pointer) until the condition is met again.
+
+Sliding Window is ideal for:
+1. **Fixed Size Windows:** e.g., "Find the maximum sum of a subarray of size K".
+2. **Dynamic Size Windows:** e.g., "Find the smallest subarray with sum $\geq S$".
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Sliding Window on Arrays
-#include <iostream>
-#include <vector>
-using namespace std;
-
+  cpp="// Dynamic Sliding Window: Smallest Subarray with Sum >= target
 class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int minSubArrayLen(int target, vector<int>& nums) {
+        int left = 0, current_sum = 0;
+        int min_length = INT_MAX;
+        
+        for (int right = 0; right < nums.size(); right++) {
+            current_sum += nums[right];
+            
+            while (current_sum >= target) {
+                min_length = min(min_length, right - left + 1);
+                current_sum -= nums[left];
+                left++;
+            }
+        }
+        return min_length == INT_MAX ? 0 : min_length;
     }
 };"
-  java="// Java implementation for Sliding Window on Arrays
+  java="// Dynamic Sliding Window: Smallest Subarray with Sum >= target
 class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    public int minSubArrayLen(int target, int[] nums) {
+        int left = 0, currentSum = 0;
+        int minLength = Integer.MAX_VALUE;
+        
+        for (int right = 0; right < nums.length; right++) {
+            currentSum += nums[right];
+            
+            while (currentSum >= target) {
+                minLength = Math.min(minLength, right - left + 1);
+                currentSum -= nums[left];
+                left++;
+            }
+        }
+        return minLength == Integer.MAX_VALUE ? 0 : minLength;
     }
 }"
-  python="# Python implementation for Sliding Window on Arrays
+  python="# Dynamic Sliding Window: Smallest Subarray with Sum >= target
 class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def minSubArrayLen(self, target: int, nums: List[int]) -> int:
+        left = 0
+        current_sum = 0
+        min_length = float('inf')
+        
+        for right in range(len(nums)):
+            current_sum += nums[right]
+            
+            while current_sum >= target:
+                min_length = min(min_length, right - left + 1)
+                current_sum -= nums[left]
+                left += 1
+                
+        return 0 if min_length == float('inf') else min_length"
 />
 
 # Complexity Analysis
@@ -48,20 +82,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+  description="Both the left and right pointers move forward continuously. Even though there is a while loop inside the for loop, each element is visited at most twice (once by 'right' and once by 'left'). Total time complexity is strictly O(N)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
-- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+- **Off-by-One Window Sizing:** Calculating the window length dynamically as `right - left` instead of `right - left + 1`. Always remember that indices are 0-based and inclusive.
+- **Negative Numbers in Dynamic Windows:** Standard Sliding Window depends on monotonic growth. If the array contains negative numbers, expanding the window does *not* guarantee the sum will increase. In those cases, you must use a Deque or Prefix Sum with a Hash Map.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
-    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
-    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+    "If the problem requires a subarray/substring and uses keywords like 'maximum', 'minimum', or 'longest', immediately think of Sliding Window.",
+    "Clearly articulate that the inner while-loop does not increase complexity to O(N^2), because the 'left' pointer only ever moves to the right, bounding total operations across all loop executions to 2N.",
+    "If asked how to solve the problem if negative numbers are allowed, quickly pivot to Prefix Sum arrays combined with a HashMap or Monotonic Deque."
   ]}
 />

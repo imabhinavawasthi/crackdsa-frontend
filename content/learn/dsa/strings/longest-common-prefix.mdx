@@ -11,58 +11,92 @@ summary: "An essential guide to Longest Common Prefix, covering everything from 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Longest Common Prefix**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+Finding the **Longest Common Prefix** among an array of strings is a frequent interview question that evaluates your ability to gracefully handle edge cases and matrix-like traversal.
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+There are multiple valid approaches:
+1. **Horizontal Scanning:** Compare the first string with the second, find their common prefix, then compare that prefix with the third string, and so on.
+2. **Vertical Scanning:** Look at the first character of all strings, then the second character of all strings, until a mismatch is found or a string runs out of characters.
+3. **Sorting:** Sort the array of strings lexicographically. After sorting, the strings that are most different will be at the first and last indices. The longest common prefix of the entire array will simply be the common prefix of the first and last strings.
+
+The vertical scanning and sorting approaches are heavily favored in interviews due to their elegance and clean failure states.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Longest Common Prefix
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    string longestCommonPrefix(vector<string>& strs) {
+        if (strs.empty()) return \"\";
+        
+        // Sorting approach
+        sort(strs.begin(), strs.end());
+        string first = strs.front();
+        string last = strs.back();
+        
+        int i = 0;
+        while (i < first.length() && i < last.length() && first[i] == last[i]) {
+            i++;
+        }
+        
+        return first.substr(0, i);
     }
 };"
-  java="// Java implementation for Longest Common Prefix
+  java="import java.util.Arrays;
+
 class Solution {
-    public void solve(String s) {
-        // Implementation here
+    public String longestCommonPrefix(String[] strs) {
+        if (strs == null || strs.length == 0) return \"\";
+        
+        // Sorting approach
+        Arrays.sort(strs);
+        String first = strs[0];
+        String last = strs[strs.length - 1];
+        
+        int i = 0;
+        while (i < first.length() && i < last.length() && first.charAt(i) == last.charAt(i)) {
+            i++;
+        }
+        
+        return first.substring(0, i);
     }
 }"
-  python="# Python implementation for Longest Common Prefix
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def longestCommonPrefix(self, strs: list[str]) -> str:
+        if not strs:
+            return \"\"
+            
+        # Vertical Scanning Approach
+        # Using Python's zip feature effectively transposes the list of strings
+        res = \"\"
+        for char_group in zip(*strs):
+            # If all characters at this position are identical
+            if len(set(char_group)) == 1:
+                res += char_group[0]
+            else:
+                break
+                
+        return res"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(S)"
+  average="O(S \log N)"
+  worst="O(S \log N)"
   space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  description="Let S be the sum of all characters in all strings. Vertical scanning takes O(S) time in the worst case and O(1) space. The sorting approach takes O(S \log N) time due to string comparison costs during sorting, but is highly concise to write."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- **Out of Bounds Errors:** In vertical scanning, one string might be shorter than the others. You must break out of the loop if you reach the length of the shortest string.
+- **Empty Arrays:** Always check if the input array is empty at the very beginning to avoid index out of bounds exceptions on `strs[0]`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "If the interviewer asks for the absolute most optimal solution, use Vertical Scanning or a Trie. Avoid the Sorting approach if they care deeply about O(S log N) versus O(S).",
+    "In Python, utilizing `zip(*strs)` shows idiomatic language mastery, but ensure you can also explain how you'd write it manually with nested loops.",
+    "Mention that you could use a Trie (Prefix Tree), but acknowledge that building it introduces O(S) space overhead, making it less optimal than simple iteration."
   ]}
 />

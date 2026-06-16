@@ -11,86 +11,145 @@ summary: "An essential guide to Zigzag Level Order Traversal, mastering tree tra
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Zigzag Level Order Traversal**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+**Zigzag Level Order Traversal** is a variation of standard Breadth-First Search (BFS). Instead of traversing every level from left to right, we alternate the direction at each level:
+- Level 0: Left to Right
+- Level 1: Right to Left
+- Level 2: Left to Right
+- ...and so on.
+
+### The Flag Approach
+The most intuitive way to solve this is to perform a standard Level Order Traversal, but introduce a boolean flag (e.g., `leftToRight`). 
+- When the flag is true, append nodes normally.
+- When the flag is false, insert nodes at the beginning of your level array or reverse the array before adding it to the final result.
+- Flip the flag at the end of each level.
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Zigzag Level Order Traversal
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+        vector<vector<int>> result;
+        if (!root) return result;
+        
+        queue<TreeNode*> q;
+        q.push(root);
+        bool leftToRight = true;
+        
+        while (!q.empty()) {
+            int size = q.size();
+            vector<int> currentLevel(size);
+            
+            for (int i = 0; i < size; ++i) {
+                TreeNode* node = q.front();
+                q.pop();
+                
+                // Determine insertion index based on direction
+                int index = leftToRight ? i : (size - 1 - i);
+                currentLevel[index] = node->val;
+                
+                if (node->left) q.push(node->left);
+                if (node->right) q.push(node->right);
+            }
+            
+            result.push_back(currentLevel);
+            leftToRight = !leftToRight; // Flip the direction
+        }
+        
+        return result;
     }
 };"
-  java="// Java implementation for Zigzag Level Order Traversal
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
-    }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
+        List<List<Integer>> result = new ArrayList<>();
+        if (root == null) return result;
+        
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        boolean leftToRight = true;
+        
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            List<Integer> currentLevel = new LinkedList<>(); // Use LinkedList for fast insertions
+            
+            for (int i = 0; i < size; i++) {
+                TreeNode node = queue.poll();
+                
+                if (leftToRight) {
+                    currentLevel.add(node.val); // Append to end
+                } else {
+                    currentLevel.add(0, node.val); // Insert at beginning
+                }
+                
+                if (node.left != null) queue.offer(node.left);
+                if (node.right != null) queue.offer(node.right);
+            }
+            
+            result.add(currentLevel);
+            leftToRight = !leftToRight;
+        }
+        
+        return result;
     }
 }"
-  python="# Python implementation for Zigzag Level Order Traversal
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
+  python="from collections import deque
 
 class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+    def zigzagLevelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        if not root:
+            return []
+            
+        result = []
+        queue = deque([root])
+        left_to_right = True
+        
+        while queue:
+            level_size = len(queue)
+            current_level = deque()
+            
+            for _ in range(level_size):
+                node = queue.popleft()
+                
+                if left_to_right:
+                    current_level.append(node.val)
+                else:
+                    current_level.appendleft(node.val)
+                    
+                if node.left:
+                    queue.append(node.left)
+                if node.right:
+                    queue.append(node.right)
+                    
+            result.append(list(current_level))
+            left_to_right = not left_to_right
+            
+        return result"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  space="O(N)"
+  description="Time complexity is O(N) as we visit each node exactly once. Space complexity is O(N) because the maximum width of a binary tree can be N/2, requiring queue capacity for up to half the tree's nodes at once."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **Reversing the Queue Addition:** A common trap is trying to modify the order in which children are pushed into the queue (right then left). This completely scrambles the tree for subsequent levels. Always push children Left then Right, and only manipulate the *output* array!
+- **Using Slow Insertions:** In languages like Python or Java, inserting at the 0th index of an array/ArrayList is O(K). Use a Deque or LinkedList for the `currentLevel` to ensure O(1) insertions.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "Interviewer check: Do not overcomplicate the queue logic. Keep standard BFS queue processing, and just reverse the level list before appending to the final result.",
+    "If memory is extremely constrained, pre-allocating an array of the exact level size and filling it via index (like the C++ example) is the most optimized approach.",
+    "Mention Deque explicitly if you are using Python, to show you care about algorithmic time complexity."
   ]}
 />

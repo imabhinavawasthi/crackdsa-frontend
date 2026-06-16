@@ -11,43 +11,52 @@ summary: "An essential guide to Greedy Intuition & Proofs, mastering the art of 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Greedy Intuition & Proofs**. This topic is a cornerstone of the Greedy Algorithms module. A Greedy Algorithm builds up a solution piece by piece, always choosing the next piece that offers the most obvious and immediate benefit.
+**Greedy Intuition & Proofs** focuses on the crucial step of validating a greedy algorithm. Coming up with a greedy strategy is often the easy part; proving its correctness is where the true challenge lies. 
 
-### Core Intuition
-The tricky part of Greedy algorithms isn't the code—it's proving that it works. Unlike Dynamic Programming which exhaustively searches all paths and guarantees correctness, Greedy only searches one path. You must prove the *Greedy Choice Property*: making a locally optimal choice guarantees a globally optimal solution.
+In competitive programming and technical interviews, an unproven greedy strategy is a huge risk. You might pass the sample test cases but fail on hidden edge cases. To confidently use a greedy approach, you must prove that your locally optimal choices lead to a global optimum.
+
+### Methods of Proof
+There are two primary ways to mathematically or logically prove a greedy algorithm:
+1. **Exchange Argument**: Assume there is an optimal solution that differs from the greedy solution. Show that you can swap elements to make the optimal solution look like the greedy solution without worsening its cost or validity.
+2. **Greedy Stays Ahead**: Show that after every step, the greedy solution is at least as far along (or "as good") as any other valid solution.
+
+By understanding these proof techniques, you can build a strong intuition for when to apply greedy algorithms versus when to rely on dynamic programming.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Greedy Intuition & Proofs
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
+    // Conceptual example representing proof by sorting
     int solve(vector<int>& arr) {
-        // sort(arr.begin(), arr.end());
-        // Implementation here
-        return 0;
+        // Sorting is the most common prerequisite for a greedy proof
+        sort(arr.begin(), arr.end());
+        int total = 0;
+        for (int i = 0; i < arr.size(); i++) {
+            // Making the greedy choice based on the sorted order
+            total += arr[i];
+        }
+        return total;
     }
 };"
-  java="// Java implementation for Greedy Intuition & Proofs
-import java.util.*;
+  java="import java.util.*;
 
 class Solution {
     public int solve(int[] arr) {
-        // Arrays.sort(arr);
-        // Implementation here
-        return 0;
+        Arrays.sort(arr);
+        int total = 0;
+        for (int num : arr) {
+            total += num;
+        }
+        return total;
     }
 }"
-  python="# Python implementation for Greedy Intuition & Proofs
-class Solution:
+  python="class Solution:
     def solve(self, arr: list[int]) -> int:
-        # arr.sort()
-        # Implementation here
-        return 0"
+        arr.sort()
+        total = 0
+        for num in arr:
+            total += num
+        return total"
 />
 
 # Complexity Analysis
@@ -56,20 +65,21 @@ class Solution:
   average="O(N log N)"
   worst="O(N log N)"
   space="O(1)"
-  description="Greedy algorithms are almost always paired with sorting. Therefore, the time complexity is dominated by the initial sort: O(N log N). The greedy iteration itself is usually O(N). Space complexity is typically O(1) assuming an in-place sort."
+  description="Greedy algorithms heavily rely on sorting as a prerequisite for their proofs. Thus, time complexity is dominated by the O(N log N) sort. The greedy traversal itself takes O(N) time."
 />
 
 # Common Pitfalls
 <Warning>
-- **Premature Greediness:** Assuming a greedy approach works without testing edge cases. Often, what looks like a Greedy problem is actually a DP problem (e.g., 0/1 Knapsack is DP, Fractional Knapsack is Greedy).
-- **Sorting State:** Forgetting to sort the input arrays before applying the greedy logic!
+- Trusting intuition without finding a counter-example.
+- Confusing a greedy problem with a 0/1 Knapsack style Dynamic Programming problem.
+- Over-complicating the proof. During an interview, an informal exchange argument is usually sufficient.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for 'minimum steps', 'maximum profit', or 'optimal scheduling', and Dynamic Programming feels too slow (e.g. constraints up to 10^5), it's highly likely a Greedy problem.",
-    "Interval overlapping problems (like 'Merge Intervals' or 'Minimum Arrows') are classic greedy problems. Always sort them by their start or end times first.",
-    "Be vocal about your proofs. Say to the interviewer: 'I believe a greedy approach works here because making this choice now will never restrict us from making a better choice later.'"
+    "Use the 'Exchange Argument' mentally: ask yourself, 'If I didn't pick the greedy choice, could I swap my choice with the greedy one and get a better or equal result?'",
+    "If you are stuck between Greedy and DP, try to quickly construct a small test case where the greedy choice fails. If you find one, switch to DP immediately.",
+    "Communicate your proof conceptually to the interviewer. E.g., 'Since we want to maximize our selection, picking the smallest elements first strictly leaves more room for subsequent choices.'"
   ]}
 />

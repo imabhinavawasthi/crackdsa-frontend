@@ -11,57 +11,74 @@ summary: "An essential guide to Find Missing Number (XOR), breaking down complex
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Find Missing Number (XOR)**. Mathematical algorithms are extremely common in competitive programming and frequently appear as optimization steps in technical interviews.
+The "Missing Number" problem is a classic algorithmic interview question. You are given an array containing $n$ distinct numbers taken from $0, 1, 2, \dots, n$. One number is missing. Your task is to find it.
 
-### Core Intuition
-The primary goal here is to optimize mathematical operations that would normally take O(N) or O(N^2) time down to O(log N) or O(sqrt N) using mathematical properties and number theory.
+While this can be solved using the math formula for the sum of the first $n$ natural numbers ($S = \frac{n(n+1)}{2}$), that approach is susceptible to **integer overflow** if $n$ is very large. 
+
+### The XOR Approach
+A more robust and elegant approach uses the **XOR** operator. Recall two fundamental properties of XOR (`^`):
+1. **Self-Inverse:** $x \oplus x = 0$ (Any number XORed with itself is 0).
+2. **Identity:** $x \oplus 0 = x$ (Any number XORed with 0 remains unchanged).
+
+If we XOR all numbers from $0$ to $n$, and then XOR that result with all the elements present in the array, every number that appears in both the array and the full range $[0, n]$ will be XORed with itself, cancelling out to $0$. The only number left will be the missing one!
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Find Missing Number (XOR)
-#include <iostream>
+  cpp={`// C++ implementation for Find Missing Number (XOR)
+#include <vector>
 using namespace std;
 
 class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int missingNumber(vector<int>& nums) {
+        int missing = nums.size(); // Start with n
+        for (int i = 0; i < nums.size(); i++) {
+            missing ^= i ^ nums[i]; // XOR index and value
+        }
+        return missing;
     }
-};"
-  java="// Java implementation for Find Missing Number (XOR)
+};`}
+  java={`// Java implementation for Find Missing Number (XOR)
 class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    public int missingNumber(int[] nums) {
+        int missing = nums.length; // Start with n
+        for (int i = 0; i < nums.length; i++) {
+            missing ^= i ^ nums[i]; // XOR index and value
+        }
+        return missing;
     }
-}"
-  python="# Python implementation for Find Missing Number (XOR)
+}`}
+  python={`# Python implementation for Find Missing Number (XOR)
+from typing import List
+
 class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+    def missingNumber(self, nums: List[int]) -> int:
+        missing = len(nums) # Start with n
+        for i, num in enumerate(nums):
+            missing ^= i ^ num # XOR index and value
+        return missing`}
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
-  worst="O(log N)"
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
   space="O(1)"
-  description="Math algorithms typically run in O(log N) (like Euclidean GCD or Binary Exponentiation) or O(sqrt N) (like Primality Testing). Space is heavily optimized to O(1) iterative variables."
+  description="We iterate through the array of size N exactly once, performing constant time XOR operations. We do not use any extra space, making this strictly O(1) memory."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Mathematical operations easily exceed standard 32-bit integer limits. Always use 64-bit integers (`long long` in C++, `long` in Java) for intermediate accumulations.
-- **Modulo Properties:** Forgetting to apply modulo at every step of addition/multiplication, not just at the end.
+- **Initialization:** Remember to initialize the `missing` variable with n (the length of the array), because the loop indices only go up to n-1.
+- **Off-by-One Errors:** Misunderstanding the range boundaries. The numbers are in the range [0, n], which means there are n+1 possible numbers, but the array length is n.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an array size is incredibly massive (e.g. 10^9), an O(N) linear scan will Time Out. This is a dead giveaway that you need an O(log N) math or binary search approach.",
-    "Always state the constraints out loud. If numbers are up to 10^18, explicitly tell the interviewer you will use 64-bit integer types to prevent overflow."
+    "If an interviewer asks you to solve the missing number problem without risking integer overflow, immediately pivot to the XOR approach.",
+    "This technique can be extended to find the 'Single Number' in an array where every other element appears twice.",
+    "Mentioning the mathematical sum approach first, and then optimizing to the XOR approach to prevent overflow, shows great engineering maturity."
   ]}
 />

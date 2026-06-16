@@ -11,36 +11,77 @@ summary: "An essential guide to Valid Palindrome I & II, covering everything fro
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Valid Palindrome I & II**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+A **palindrome** is a word, phrase, or sequence that reads the same backwards as forwards (ignoring non-alphanumeric characters and casing).
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+**Valid Palindrome I:**
+The classic approach uses the **Two-Pointer technique**. One pointer starts at the beginning (`left = 0`) and the other at the end (`right = N - 1`). We move both pointers inward, skipping any non-alphanumeric characters. If the characters at the two pointers don't match, it's not a palindrome.
+
+**Valid Palindrome II (Allowing 1 deletion):**
+Here, we can delete at most one character to make the string a palindrome. We run the same two-pointer approach. When we find a mismatch at `left` and `right`, we have two choices:
+1. Delete the character at `left`, meaning we check if the substring `(left + 1, right)` is a palindrome.
+2. Delete the character at `right`, meaning we check if the substring `(left, right - 1)` is a palindrome.
+If either option forms a palindrome, the original string is valid.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Valid Palindrome I & II
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    bool validPalindrome(string s) {
+        int left = 0, right = s.length() - 1;
+        while (left < right) {
+            if (s[left] != s[right]) {
+                return isPal(s, left + 1, right) || isPal(s, left, right - 1);
+            }
+            left++;
+            right--;
+        }
+        return true;
+    }
+    
+private:
+    bool isPal(const string& s, int l, int r) {
+        while (l < r) {
+            if (s[l] != s[r]) return false;
+            l++; r--;
+        }
+        return true;
     }
 };"
-  java="// Java implementation for Valid Palindrome I & II
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public boolean validPalindrome(String s) {
+        int left = 0, right = s.length() - 1;
+        while (left < right) {
+            if (s.charAt(left) != s.charAt(right)) {
+                return isPal(s, left + 1, right) || isPal(s, left, right - 1);
+            }
+            left++;
+            right--;
+        }
+        return true;
+    }
+    
+    private boolean isPal(String s, int l, int r) {
+        while (l < r) {
+            if (s.charAt(l) != s.charAt(r)) return false;
+            l++; r--;
+        }
+        return true;
     }
 }"
-  python="# Python implementation for Valid Palindrome I & II
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def validPalindrome(self, s: str) -> bool:
+        left, right = 0, len(s) - 1
+        
+        while left < right:
+            if s[left] != s[right]:
+                # Check by skipping either left char or right char
+                skip_l = s[left+1:right+1]
+                skip_r = s[left:right]
+                return skip_l == skip_l[::-1] or skip_r == skip_r[::-1]
+            left += 1
+            right -= 1
+            
+        return True"
 />
 
 # Complexity Analysis
@@ -49,20 +90,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  description="The two pointers traverse the string at most twice overall in Valid Palindrome II. This results in O(N) time complexity. Using indices instead of creating new substrings ensures space remains O(1) (except in Python if using slicing)."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- Using `s.replace()` to strip punctuation or `s[::-1]` to reverse strings out of habit. This creates $O(N)$ extra space, failing constraints requiring $O(1)$ space.
+- In Valid Palindrome II, eagerly deleting the first mismatch without checking both possibilities (skip left vs. skip right).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "String reversing or filtering out spaces beforehand is frowned upon if memory constraints are tight. Opt for the two-pointer, in-place checking method.",
+    "If checking for alphanumeric characters, standard library functions like `Character.isLetterOrDigit(c)` (Java) or `isalnum()` (C++/Python) handle edge cases smoothly.",
+    "For 'Valid Palindrome II', be prepared to discuss whether your solution uses recursion (O(N) space due to call stack) or iteration (O(1) space)."
   ]}
 />

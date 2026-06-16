@@ -11,60 +11,132 @@ summary: "An essential guide to Two Sum (HashMap Approach), mastering O(1) looku
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Two Sum (HashMap Approach)**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+**Two Sum** is arguably the most famous coding interview problem. Given an array of integers and a `target`, you must return the *indices* of the two numbers that add up to `target`.
+
+### The Brute Force $O(N^2)$
+The naive approach uses nested loops: pick an element at `i`, then iterate `j` from `i+1` to `N` to see if `nums[i] + nums[j] == target`. This is slow.
+
+### The Hash Map $O(N)$
+To optimize, we want to know: "If I am currently looking at `nums[i]`, does the array contain `target - nums[i]`?" 
+
+Instead of searching the entire array to answer this, we can use a **Hash Map** to remember the numbers we have seen so far and their indices.
+1. Iterate through the array.
+2. For each number, calculate its `complement = target - num`.
+3. Check if `complement` exists in the Hash Map.
+   - If it does, boom! We found our pair. Return `[map.get(complement), current_index]`.
+   - If it doesn't, put the current `num` and its `index` into the Hash Map and continue.
+
+---
 
 # Code Implementation
+
+Here is the flawless, one-pass HashMap implementation of Two Sum.
+
 <CodeBlock
-  cpp="// C++ implementation for Two Sum (HashMap Approach)
+  cpp="```cpp
 #include <iostream>
-#include <unordered_map>
 #include <vector>
+#include <unordered_map>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    vector<int> twoSum(vector<int>& nums, int target) {
+        // Map to store: value -> index
+        unordered_map<int, int> numMap;
+        
+        for (int i = 0; i < nums.size(); i++) {
+            int complement = target - nums[i];
+            
+            // If we have seen the complement before, we found our pair!
+            if (numMap.count(complement)) {
+                return {numMap[complement], i};
+            }
+            
+            // Store the current number and its index
+            numMap[nums[i]] = i;
+        }
+        
+        return {}; // Should not reach here if guaranteed exactly one solution
     }
-};"
-  java="// Java implementation for Two Sum (HashMap Approach)
-import java.util.*;
+};
+```"
+  java="```java
+import java.util.HashMap;
+import java.util.Map;
 
 class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    public int[] twoSum(int[] nums, int target) {
+        // Map to store: value -> index
+        Map<Integer, Integer> numMap = new HashMap<>();
+        
+        for (int i = 0; i < nums.length; i++) {
+            int complement = target - nums[i];
+            
+            // If we have seen the complement before, we found our pair!
+            if (numMap.containsKey(complement)) {
+                return new int[] { numMap.get(complement), i };
+            }
+            
+            // Store the current number and its index
+            numMap.put(nums[i], i);
+        }
+        
+        return new int[]{};
     }
-}"
-  python="# Python implementation for Two Sum (HashMap Approach)
+}
+```"
+  python="```python
 class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def twoSum(self, nums: list[int], target: int) -> list[int]:
+        # Dictionary to store: value -> index
+        num_map = {}
+        
+        for i, num in enumerate(nums):
+            complement = target - num
+            
+            # If we have seen the complement before, we found our pair!
+            if complement in num_map:
+                return [num_map[complement], i]
+                
+            # Store the current number and its index
+            num_map[num] = i
+            
+        return []
+```"
 />
+
+---
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
-  average="O(1)"
+  average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  description="Time complexity is O(N) because we iterate through the array once. Each lookup and insertion in the Hash Map takes O(1) average time. Space complexity is O(N) because, in the worst case (the pair is at the very end), we store N - 1 elements in the Hash Map."
 />
 
+---
+
 # Common Pitfalls
+
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- **Using the same element twice:** If you populate the map completely *before* iterating, and the target is 6, looking at `3` might accidentally return its own index if you don't explicitly check `if (map.get(complement) != i)`. The one-pass solution naturally avoids this by only looking at numbers *previously seen*.
+- **Returning values instead of indices:** Always double check the return type! Two Sum asks for indices.
 </Warning>
 
+---
+
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "If the interviewer says the array is already sorted, you MUST switch to the Two Pointers approach ($O(N)$ time, $O(1)$ space). Using a HashMap on a sorted array is an immediate red flag.",
+    "Be ready for follow-ups like '3Sum' or '4Sum'. For those, you will typically need sorting and Two Pointers to avoid explosive memory usage from giant Hash Maps.",
+    "Mention the one-pass nature of your code. It shows you understand that building the map and checking for complements can happen concurrently."
   ]}
 />

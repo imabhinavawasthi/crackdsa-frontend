@@ -11,86 +11,103 @@ summary: "An essential guide to Preorder Traversal (Root, Left, Right), masterin
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Preorder Traversal (Root, Left, Right)**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+**Preorder Traversal** is a Depth-First Search (DFS) pattern where the processing of the current node occurs **before** processing its children. The exact sequence is:
+1. Visit the **Root** node.
+2. Recursively traverse the **Left** subtree.
+3. Recursively traverse the **Right** subtree.
+
+### Why Preorder?
+Preorder is considered a **Top-Down** approach. It is primarily used when you need to pass data from a parent node down to its children, or when the structure of the tree needs to be recorded or cloned before traversing deeper. 
+
+Common use cases:
+- Creating a deep copy (clone) of a tree.
+- Serializing a tree (saving it to a string/file) so it can be deserialized later.
+- Evaluating expression trees in certain prefix notations.
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Preorder Traversal (Root, Left, Right)
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    vector<int> preorderTraversal(TreeNode* root) {
+        vector<int> result;
+        traverse(root, result);
+        return result;
+    }
+    
+private:
+    void traverse(TreeNode* node, vector<int>& res) {
+        if (node == nullptr) return;
+        
+        // Root
+        res.push_back(node->val);
+        // Left
+        traverse(node->left, res);
+        // Right
+        traverse(node->right, res);
     }
 };"
-  java="// Java implementation for Preorder Traversal (Root, Left, Right)
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
+  java="class Solution {
+    public List<Integer> preorderTraversal(TreeNode root) {
+        List<Integer> result = new ArrayList<>();
+        traverse(root, result);
+        return result;
     }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+    
+    private void traverse(TreeNode node, List<Integer> res) {
+        if (node == null) return;
+        
+        // Root
+        res.add(node.val);
+        // Left
+        traverse(node.left, res);
+        // Right
+        traverse(node.right, res);
     }
 }"
-  python="# Python implementation for Preorder Traversal (Root, Left, Right)
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def preorderTraversal(self, root: Optional[TreeNode]) -> List[int]:
+        result = []
+        
+        def traverse(node):
+            if not node:
+                return
+            
+            # Root
+            result.append(node.val)
+            # Left
+            traverse(node.left)
+            # Right
+            traverse(node.right)
+            
+        traverse(root)
+        return result"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  description="Time complexity is O(N) as each node is visited exactly once. Space complexity is O(H) representing the maximum depth of the call stack (where H is the tree height)."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **Iterative Implementation Errors:** While the recursive version is trivial, the iterative version using a stack is harder. A common mistake is pushing the left child before the right child. Because stacks are LIFO, you must push the right child first!
+- **State Leakage:** Forgetting to clear or properly scope global variables if the traversal function is called multiple times.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "If an interviewer asks you to traverse without recursion, use an explicit Stack data structure.",
+    "Preorder is extremely common in tree serialization algorithms. It directly reconstructs the tree when paired with null markers.",
+    "Mention that space complexity O(H) can degrade to O(N) in the worst case if the tree is completely skewed like a linked list."
   ]}
 />

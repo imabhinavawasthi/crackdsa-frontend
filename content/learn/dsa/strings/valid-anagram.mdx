@@ -11,36 +11,68 @@ summary: "An essential guide to Valid Anagram, covering everything from basic ch
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Valid Anagram**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+An **anagram** is a word or phrase formed by rearranging the letters of a different word or phrase, using all the original letters exactly once. For example, "listen" and "silent" are anagrams.
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+To determine if two strings $S$ and $T$ are anagrams, they must satisfy two conditions:
+1. They must be of the same length.
+2. The frequency of each character must be identical in both strings.
+
+**Approach 1: Sorting**
+If we sort the characters in both strings, identical anagrams will result in exactly the same string. This takes $O(N \log N)$ time and typically $O(N)$ or $O(1)$ space depending on the language's sorting implementation.
+
+**Approach 2: Character Frequency Array (Optimal)**
+Since English letters only span 26 characters, we can use an integer array of size 26 to count the occurrences of each letter. We increment the count for letters in $S$ and decrement for letters in $T$. Finally, we check if all elements in the frequency array are zero. This achieves optimal $O(N)$ time and $O(1)$ space complexity.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Valid Anagram
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    bool isAnagram(string s, string t) {
+        if (s.length() != t.length()) return false;
+        
+        vector<int> counts(26, 0);
+        for (int i = 0; i < s.length(); i++) {
+            counts[s[i] - 'a']++;
+            counts[t[i] - 'a']--;
+        }
+        
+        for (int count : counts) {
+            if (count != 0) return false;
+        }
+        
+        return true;
     }
 };"
-  java="// Java implementation for Valid Anagram
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public boolean isAnagram(String s, String t) {
+        if (s.length() != t.length()) return false;
+        
+        int[] counts = new int[26];
+        for (int i = 0; i < s.length(); i++) {
+            counts[s.charAt(i) - 'a']++;
+            counts[t.charAt(i) - 'a']--;
+        }
+        
+        for (int count : counts) {
+            if (count != 0) return false;
+        }
+        
+        return true;
     }
 }"
-  python="# Python implementation for Valid Anagram
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def isAnagram(self, s: str, t: str) -> bool:
+        if len(s) != len(t): return False
+        
+        counts = [0] * 26
+        for i in range(len(s)):
+            counts[ord(s[i]) - ord('a')] += 1
+            counts[ord(t[i]) - ord('a')] -= 1
+            
+        for count in counts:
+            if count != 0: return False
+            
+        return True"
 />
 
 # Complexity Analysis
@@ -49,20 +81,20 @@ class Solution:
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  description="The algorithm iterates through strings of length N a single time. Since the frequency array strictly contains 26 elements (or up to 256 for full ASCII), space complexity is constrained to O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- Using a Hash Map instead of an array. While mathematically $O(1)$ space, Hash Maps carry a larger memory and hashing overhead compared to a primitive array.
+- Forgetting to check if the string lengths match at the very beginning—an easy edge case to catch early.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "If the interviewer asks about Unicode inputs, you can't use an array of size 26. Mention that you would transition to using a Hash Map to track frequencies.",
+    "If the strings are massive and stored across multiple servers, you can compute a hash for each string based on a commutative operation on character frequencies.",
+    "Always ask about case sensitivity. Are 'A' and 'a' considered the same?"
   ]}
 />

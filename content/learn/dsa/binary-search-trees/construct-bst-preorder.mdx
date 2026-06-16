@@ -11,78 +11,97 @@ summary: "An essential guide to Construct BST from Preorder Traversal, mastering
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Construct BST from Preorder Traversal**. This topic is a cornerstone of the Binary Search Trees module. A Binary Search Tree is a special type of binary tree where every node in the left subtree is strictly smaller than the root, and every node in the right subtree is strictly greater.
+Given an array representing the **Preorder Traversal** of a Binary Search Tree (BST), your task is to reconstruct the original tree. This is a classic deserialization problem that beautifully tests your understanding of BST bounds.
 
 ### Core Intuition
-Because of this property, an **Inorder Traversal** of a valid BST will *always* yield a perfectly sorted sequence! This allows us to perform searches, insertions, and deletions in O(log N) average time, making it incredibly powerful for dynamic data.
+In a Preorder traversal (`Root -> Left -> Right`), the first element of the array is always the root of the tree. 
+We can rebuild the tree efficiently by passing an **Upper Bound**. 
+Since we process elements from left to right:
+1. We keep a global pointer/index for our position in the array.
+2. If the current element exceeds our allowed upper bound, it means we have finished building the left subtree and must return to construct the right subtree!
+3. If it's valid, we create a node, then recursively build its left child (updating the bound to the current node's value) and its right child (keeping the previous upper bound).
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Construct BST from Preorder Traversal
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    TreeNode* bstFromPreorder(vector<int>& preorder) {
+        int index = 0;
+        return build(preorder, index, INT_MAX);
+    }
+    
+private:
+    TreeNode* build(const vector<int>& preorder, int& index, int upperBound) {
+        if (index == preorder.size() || preorder[index] > upperBound) {
+            return nullptr;
+        }
+        
+        TreeNode* root = new TreeNode(preorder[index++]);
+        root->left = build(preorder, index, root->val);
+        root->right = build(preorder, index, upperBound);
+        
+        return root;
     }
 };"
-  java="// Java implementation for Construct BST from Preorder Traversal
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    private int index = 0;
+    
+    public TreeNode bstFromPreorder(int[] preorder) {
+        return build(preorder, Integer.MAX_VALUE);
+    }
+    
+    private TreeNode build(int[] preorder, int upperBound) {
+        if (index == preorder.length || preorder[index] > upperBound) {
+            return null;
+        }
+        
+        TreeNode root = new TreeNode(preorder[index++]);
+        root.left = build(preorder, root.val);
+        root.right = build(preorder, upperBound);
+        
+        return root;
     }
 }"
-  python="# Python implementation for Construct BST from Preorder Traversal
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def bstFromPreorder(self, preorder: list[int]) -> TreeNode:
+        self.index = 0
+        
+        def build(upper_bound):
+            if self.index == len(preorder) or preorder[self.index] > upper_bound:
+                return None
+                
+            val = preorder[self.index]
+            self.index += 1
+            root = TreeNode(val)
+            
+            root.left = build(val)
+            root.right = build(upper_bound)
+            
+            return root
+            
+        return build(float('inf'))"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
+  best="O(N)"
+  average="O(N)"
   worst="O(N)"
   space="O(H)"
-  description="In a balanced BST, operations take O(log N) time. However, if the tree becomes skewed (like a linked list), the time complexity degrades to O(N). Space complexity is O(H) corresponding to the recursive call stack."
+  description="Time complexity is O(N) because we process each element in the preorder array exactly once. Space complexity is O(H) due to the recursive call stack, where H is the height of the constructed tree."
 />
 
 # Common Pitfalls
 <Warning>
-- **Local Validation Mistake:** Validating a BST by only checking if `root.left.val < root.val < root.right.val` is INCORRECT. An element deep in the right subtree could be smaller than the main root. You must pass down an allowed `[min, max]` range constraint!
-- **Modifying structure during iteration:** Deleting a node with two children requires finding the inorder successor or predecessor to replace it, which is a notorious source of bugs.
+- Using an $O(N^2)$ approach where you iterate through the remaining array to find the first element strictly greater than the root to divide the left and right subtrees. The $O(N)$ upper bound approach is much better.
+- Sorting the preorder array to get the inorder array, and then building the BST using both traversals in $O(N \log N)$ time. While technically correct, it's suboptimal.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks if a tree is a valid BST, the immediate answer is to either pass down `(min, max)` boundaries recursively, or do an inorder traversal and check if the result is sorted.",
-    "If a problem asks for the 'Kth smallest/largest' element in a BST, you should instantly think of Inorder Traversal with a counter.",
-    "Be careful: does the interviewer allow duplicate values in the BST? If so, decide whether they go to the left or right subtree."
+    "Passing an upper bound instead of both lower and upper bounds is a neat trick. Since we process elements sequentially in preorder, the lower bound is implicitly handled by the recursive flow.",
+    "If the interviewer asks 'Can you construct a unique BST from Postorder?', the answer is YES, using the exact same logic but traversing the array backwards and building the right child first.",
+    "Emphasize that you achieved an O(N) solution without needing a hash map or sorting."
   ]}
 />

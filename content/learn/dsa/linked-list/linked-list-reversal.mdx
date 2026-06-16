@@ -11,55 +11,80 @@ summary: "An essential guide to Reversing a Linked List, exploring its applicati
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Reversing a Linked List**. This topic is a cornerstone of the Linked List module. Understanding it thoroughly will significantly improve your problem-solving speed.
+**Reversing a Linked List** is arguably the most fundamental and frequently tested Linked List pattern. It serves as a building block for dozens of harder algorithmic problems (like palindromes, reversing in K-groups, and reordering lists).
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Unlike an array where you can iterate backwards using an index, a singly linked list's nodes only point strictly forward. To reverse the list, we must systematically flip the direction of every `next` pointer in-place. 
+
+**The Mechanics:**
+At any given node, to point it backwards, we need to know the `previous` node. However, the moment we overwrite `curr.next = prev`, we lose the reference to the rest of the list! To prevent this, we must always save a temporary reference to `curr.next` before flipping the pointer.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Reversing a Linked List
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    ListNode* reverseList(ListNode* head) {
+        ListNode* prev = nullptr;
+        ListNode* curr = head;
+        
+        while (curr != nullptr) {
+            ListNode* nextTemp = curr->next; // Save the future
+            curr->next = prev;               // Flip the pointer backwards
+            prev = curr;                     // Move prev forward
+            curr = nextTemp;                 // Move curr forward
+        }
+        
+        return prev; // prev is the new head
     }
 };"
-  java="// Java implementation for Reversing a Linked List
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public ListNode reverseList(ListNode head) {
+        ListNode prev = null;
+        ListNode curr = head;
+        
+        while (curr != null) {
+            ListNode nextTemp = curr.next; 
+            curr.next = prev;              
+            prev = curr;                   
+            curr = nextTemp;               
+        }
+        
+        return prev;
     }
 }"
-  python="# Python implementation for Reversing a Linked List
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def reverseList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        prev = None
+        curr = head
+        
+        while curr:
+            next_temp = curr.next  # Save the future
+            curr.next = prev       # Flip the pointer backwards
+            prev = curr            # Move prev forward
+            curr = next_temp       # Move curr forward
+            
+        return prev"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="Time Complexity is strictly O(N) as we must visit every node exactly once to reverse its pointer. Space Complexity is O(1) because we are only utilizing three pointers (prev, curr, nextTemp) to reassign existing nodes in place."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Returning the wrong head:** A very common mistake is `return head` or `return curr`. When the while loop finishes, `curr` is `null`, and `head` is now the very last node. `prev` will point to the true new head of the reversed list.
+- **Cycle Creation:** If you forget to initialize `prev = null`, the original head's next pointer will contain garbage (or point to itself), creating an infinite loop.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "You should be able to write this iterative algorithm blindfolded in under two minutes. Practice it until the 4-step variable swapping is pure muscle memory.",
+    "Interviewers might ask for the Recursive approach as a follow-up. Recursive space is O(N) due to the call stack, so Iterative is always preferred for production code.",
+    "Watch out for problems that ask you to reverse only a *sub-section* of a list (Reverse Linked List II). The core logic remains identical, but boundary management gets tricky."
   ]}
 />

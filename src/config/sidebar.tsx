@@ -3,10 +3,8 @@ import {
   LayoutDashboard,
   Route,
   Table,
-  Calendar,
   CircleUser,
   Sheet,
-  Dumbbell,
   BookOpen,
   FileText,
   Layers,
@@ -16,19 +14,20 @@ import {
   Video,
   Compass,
   User,
-  Settings,
   HelpCircle,
   Network,
   SheetIcon,
   Zap,
   Bookmark,
-  SaveIcon,
-  Sparkle,
   Sparkles,
   Code2,
-  Activity,
   Tag,
-  CreditCard
+  CreditCard,
+  TvMinimalPlay,
+  MessageCircle,
+  UserKey,
+  UserStarIcon,
+  GoalIcon
 } from "lucide-react";
 
 export type NavSubItem = {
@@ -46,7 +45,7 @@ export type NavItem = {
   subItems?: NavSubItem[];
 };
 
-export const navItems: NavItem[] = [
+export const learningItems: NavItem[] = [
   {
     icon: <LayoutDashboard size={20} />,
     name: "Dashboard",
@@ -72,7 +71,7 @@ export const navItems: NavItem[] = [
   }
 ];
 
-export const othersItems: NavItem[] = [
+export const practiceItems: NavItem[] = [
   {
     icon: <Network size={20} />,
     name: "Practice DSA",
@@ -222,3 +221,70 @@ export const userMenuItems: UserMenuItem[] = [
     icon: <HelpCircle size={18} />,
   },
 ];
+
+export const proItems: NavItem[] = [
+  {
+    icon: <GoalIcon size={20} />,
+    name: "Pro Dashboard",
+    path: "/pro/dashboard",
+  },
+  {
+    icon: <TvMinimalPlay size={20} />,
+    name: "Live Classes",
+    path: "/live-sessions",
+  },
+  {
+    icon: <UserStarIcon size={20} />,
+    name: "Personalized",
+    path: "/pro/personalized",
+    subItems: [
+      { name: "1-on-1 Mentorship", path: "/pro/personalized/mentorship", icon: <UserKey size={16} />, pro: true },
+      { name: "Doubt Solving Sessions", path: "/pro/personalized/doubt-solving", icon: <MessageCircle size={16} />, pro: true },
+    ],
+  }
+];
+
+export type SidebarSectionType = {
+  title: string;
+  items: NavItem[];
+  key: string;
+  requireAuth?: boolean;
+};
+
+export const sidebarSections: SidebarSectionType[] = [
+  {
+    title: "Learning",
+    items: learningItems,
+    key: "main",
+  },
+  {
+    title: "Practice",
+    items: practiceItems,
+    key: "others",
+  },
+  {
+    title: "PRO",
+    items: proItems,
+    key: "pro",
+  },
+  {
+    title: "Account",
+    items: accountItems,
+    key: "account",
+    requireAuth: true,
+  },
+];
+
+export const adminSidebarSections: SidebarSectionType[] = [
+  {
+    title: "Admin Panel",
+    items: adminNavItems,
+    key: "main",
+  },
+  {
+    title: "Manage",
+    items: adminOthersItems,
+    key: "others",
+  },
+];
+

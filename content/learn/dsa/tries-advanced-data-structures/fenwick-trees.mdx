@@ -11,80 +11,172 @@ summary: "An essential guide to Fenwick Trees (Binary Indexed Trees), mastering 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Fenwick Trees (Binary Indexed Trees)**. This topic is a cornerstone of the Tries & Advanced Data Structures module. When HashMaps and binary searches aren't enough to handle complex prefix matching or dynamic range updates, we turn to specialized trees.
+Here we fully implement a **Fenwick Tree (Binary Indexed Tree)** for a dynamic array.
 
 ### Core Intuition
-- **Tries (Prefix Trees):** A tree where each node represents a single character. Words are formed by traversing down the branches. This makes searching for a string of length `L` take exactly O(L) time, regardless of how many millions of words are stored!
-- **Segment/Fenwick Trees:** Trees built over an array to allow both point/range *updates* and range *queries* in O(log N) time simultaneously.
+The Fenwick tree array `BIT` holds partial sums.
+If we want to update the original array at `index = 3`, we add the delta to `BIT[3]`. Then we add the LSB to `3` to get the next node responsible for this range: `3 + (3 & -3) = 3 + 1 = 4`. So we update `BIT[4]`. Then `4 + (4 & -4) = 4 + 4 = 8`. So we update `BIT[8]`. This cascades up to `N` in O(log N) steps.
+
+If we want the sum of elements up to index 7:
+`BIT[7]` stores the sum of length 1 (just index 7). Next node is `7 - (7 & -7) = 6`.
+`BIT[6]` stores the sum of length 2 (indices 5,6). Next node is `6 - (6 & -6) = 4`.
+`BIT[4]` stores the sum of length 4 (indices 1,2,3,4). Next node is 0 (stop).
+Summing these gives the exact prefix sum of 1 through 7!
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Fenwick Trees (Binary Indexed Trees)
-#include <iostream>
-#include <vector>
-#include <string>
-using namespace std;
+  cpp="class NumArray {
+    vector<int> bit;
+    vector<int> nums;
+    int n;
 
-class TrieNode {
-public:
-    TrieNode* children[26];
-    bool isEndOfWord;
-    
-    TrieNode() {
-        isEndOfWord = false;
-        for (int i = 0; i < 26; i++) children[i] = nullptr;
+    // Isolate Lowest Set Bit
+    int lsb(int x) {
+        return x & (-x);
     }
-};
 
-class Solution {
+    void add(int index, int delta) {
+        // Increment index for 1-based BIT
+        index++;
+        while (index <= n) {
+            bit[index] += delta;
+            index += lsb(index);
+        }
+    }
+
+    int queryPrefixSum(int index) {
+        // Increment index for 1-based BIT
+        index++;
+        int sum = 0;
+        while (index > 0) {
+            sum += bit[index];
+            index -= lsb(index);
+        }
+        return sum;
+    }
+
 public:
-    void solve() {
-        // Implementation here
+    NumArray(vector<int>& nums_arr) {
+        n = nums_arr.size();
+        bit.assign(n + 1, 0);
+        nums = nums_arr;
+        
+        for (int i = 0; i < n; i++) {
+            add(i, nums[i]);
+        }
+    }
+    
+    void update(int index, int val) {
+        int delta = val - nums[index];
+        nums[index] = val; // update original array
+        add(index, delta);
+    }
+    
+    int sumRange(int left, int right) {
+        return queryPrefixSum(right) - queryPrefixSum(left - 1);
     }
 };"
-  java="// Java implementation for Fenwick Trees (Binary Indexed Trees)
-class TrieNode {
-    TrieNode[] children = new TrieNode[26];
-    boolean isEndOfWord = false;
-}
+  java="class NumArray {
+    private int[] bit;
+    private int[] nums;
+    private int n;
 
-class Solution {
-    public void solve() {
-        // Implementation here
+    private int lsb(int x) {
+        return x & (-x);
+    }
+
+    private void add(int index, int delta) {
+        index++; // 1-based indexing for BIT
+        while (index <= n) {
+            bit[index] += delta;
+            index += lsb(index);
+        }
+    }
+
+    private int queryPrefixSum(int index) {
+        index++;
+        int sum = 0;
+        while (index > 0) {
+            sum += bit[index];
+            index -= lsb(index);
+        }
+        return sum;
+    }
+
+    public NumArray(int[] nums_arr) {
+        n = nums_arr.length;
+        bit = new int[n + 1];
+        nums = nums_arr;
+        
+        for (int i = 0; i < n; i++) {
+            add(i, nums[i]);
+        }
+    }
+    
+    public void update(int index, int val) {
+        int delta = val - nums[index];
+        nums[index] = val; // track original values
+        add(index, delta);
+    }
+    
+    public int sumRange(int left, int right) {
+        return queryPrefixSum(right) - queryPrefixSum(left - 1);
     }
 }"
-  python="# Python implementation for Fenwick Trees (Binary Indexed Trees)
-class TrieNode:
-    def __init__(self):
-        self.children = {}
-        self.is_end_of_word = False
+  python="class NumArray:
+    def __init__(self, nums: list[int]):
+        self.n = len(nums)
+        self.bit = [0] * (self.n + 1)
+        self.nums = nums[:]
+        
+        for i in range(self.n):
+            self._add(i, self.nums[i])
+            
+    def _lsb(self, x: int) -> int:
+        return x & (-x)
+        
+    def _add(self, index: int, delta: int) -> None:
+        index += 1 # 1-based indexing
+        while index <= self.n:
+            self.bit[index] += delta
+            index += self._lsb(index)
+            
+    def _query(self, index: int) -> int:
+        index += 1
+        total_sum = 0
+        while index > 0:
+            total_sum += self.bit[index]
+            index -= self._lsb(index)
+        return total_sum
 
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def update(self, index: int, val: int) -> None:
+        delta = val - self.nums[index]
+        self.nums[index] = val
+        self._add(index, delta)
+
+    def sumRange(self, left: int, right: int) -> int:
+        return self._query(right) - self._query(left - 1)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(L)"
-  average="O(L)"
-  worst="O(L)"
-  space="O(N * L)"
-  description="For Tries, inserting or searching for a word of length L takes exactly O(L) time. The space complexity can be large: O(N * L) where N is the number of words, because we allocate a node array of size 26 for every single character path."
+  best="O(log N)"
+  average="O(log N)"
+  worst="O(log N)"
+  space="O(N)"
+  description="Incredibly light. Updates and queries loop over bits, bounded by O(log N). Memory overhead is literally just one array of size N+1."
 />
 
 # Common Pitfalls
 <Warning>
-- **Memory Leaks:** Tries consume a massive amount of memory because every node often allocates an array of 26 pointers. Be careful about space constraints.
-- **Forgetting End of Word Flag:** It is critical to mark `isEndOfWord = true` at the last node of an insertion. Otherwise, a search might falsely report a prefix as a complete word!
+- Mixing up 0-indexed problem statements with the strictly 1-indexed BIT array. Always do `index++` immediately in your helper functions.
+- Forgetting to maintain a copy of the original array. When updating, you need to add the `delta (new_val - old_val)`, which requires knowing what `old_val` was!
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If an interview question involves a 'dictionary of words' and asks for 'autocomplete', 'spell check', or 'prefix matching', a Trie is guaranteed to be the optimal approach.",
-    "Tries can also be used for bit manipulation! A 'Bit Trie' (where branches are just 0 and 1) is the standard solution for finding the Maximum XOR of two numbers in an array.",
-    "If a problem asks for Range Sums, but the array is frequently updated, a Prefix Sum array fails because updating takes O(N). This is the explicit use case for a Segment Tree or Fenwick Tree (O(log N) updates)."
+    "Writing a Fenwick Tree in an interview is a massive flex. It takes 10 lines of code compared to the 40 lines of a Segment Tree.",
+    "Explain that while BITs are faster and use half the memory of Segment Trees, you are trading away the ability to do Range Max / Min queries because you cannot 'subtract' a Maximum value to isolate a range."
   ]}
 />

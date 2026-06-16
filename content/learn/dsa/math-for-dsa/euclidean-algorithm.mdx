@@ -1,67 +1,111 @@
 ---
 title: "Euclidean Algorithm"
 category: "Math for DSA"
-readTime: "9 min read"
+readTime: "8 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the mathematical intuition behind Euclidean Algorithm."
-  - "Learn the standard algorithms and their edge cases."
-  - "Master the time and space complexity analysis."
-summary: "An essential guide to Euclidean Algorithm, breaking down complex mathematical formulas into simple code for coding interviews."
+  - "Understand the intuition behind the Euclidean Algorithm."
+  - "Learn how to compute GCD in O(log(min(A, B))) time."
+  - "Implement the algorithm recursively and iteratively."
+summary: "An incredibly fast and elegant algorithm to compute the Greatest Common Divisor using modulo arithmetic."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Euclidean Algorithm**. Mathematical algorithms are extremely common in competitive programming and frequently appear as optimization steps in technical interviews.
 
-### Core Intuition
-The primary goal here is to optimize mathematical operations that would normally take O(N) or O(N^2) time down to O(log N) or O(sqrt N) using mathematical properties and number theory.
+In the previous lesson, we saw that the naive approach to finding $GCD(A, B)$ takes $O(\min(A, B))$ time. The **Euclidean Algorithm** is an ancient method that computes the GCD in logarithmic time.
+
+### The Core Idea
+The Euclidean Algorithm is based on a simple mathematical principle:
+**The GCD of two numbers also divides their difference.**
+Thus, $GCD(A, B) = GCD(A - B, B)$ assuming $A > B$.
+
+Instead of repeatedly subtracting $B$ from $A$ (which could take a long time if $A$ is massive and $B$ is tiny), we can use the modulo operator `%` to get the remainder of $A$ divided by $B$. 
+
+The optimized formula is:
+$GCD(A, B) = GCD(B, A \% B)$
+
+We continue this process recursively or iteratively until the remainder ($A \% B$) becomes $0$. When $B$ becomes $0$, the non-zero number $A$ is our GCD!
 
 # Code Implementation
+
+The Euclidean algorithm is famous for being incredibly concise. It is usually written recursively.
+
 <CodeBlock
-  cpp="// C++ implementation for Euclidean Algorithm
+  cpp="// C++ Implementation
 #include <iostream>
 using namespace std;
 
-class Solution {
-public:
-    int solve() {
-        // Implementation here
-        return 0;
+// Recursive Euclidean Algorithm
+int gcd(int a, int b) {
+    if (b == 0) {
+        return a;
     }
-};"
-  java="// Java implementation for Euclidean Algorithm
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    return gcd(b, a % b);
+}
+
+// Iterative Euclidean Algorithm
+int gcdIterative(int a, int b) {
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}"
+  java="// Java Implementation
+class MathUtils {
+    // Recursive Euclidean Algorithm
+    public static int gcd(int a, int b) {
+        if (b == 0) {
+            return a;
+        }
+        return gcd(b, a % b);
+    }
+    
+    // Iterative Euclidean Algorithm
+    public static int gcdIterative(int a, int b) {
+        while (b != 0) {
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
     }
 }"
-  python="# Python implementation for Euclidean Algorithm
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="# Python Implementation
+def gcd(a, b):
+    if b == 0:
+        return a
+    return gcd(b, a % b)
+
+def gcd_iterative(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
-  worst="O(log N)"
-  space="O(1)"
-  description="Math algorithms typically run in O(log N) (like Euclidean GCD or Binary Exponentiation) or O(sqrt N) (like Primality Testing). Space is heavily optimized to O(1) iterative variables."
+  best="O(1)"
+  average="O(\log(\min(A, B)))"
+  worst="O(\log(\min(A, B)))"
+  space="O(\log(\min(A, B)))"
+  description="The numbers decrease by at least half every two steps. Thus, the time complexity is strictly O(log(min(A, B))). The recursive version uses O(log(min(A, B))) auxiliary space on the call stack, while the iterative version uses O(1) space."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Integer Overflow:** Mathematical operations easily exceed standard 32-bit integer limits. Always use 64-bit integers (`long long` in C++, `long` in Java) for intermediate accumulations.
-- **Modulo Properties:** Forgetting to apply modulo at every step of addition/multiplication, not just at the end.
+- **Swapping A and B**: You do *not* need to ensure that $A > B$ before calling `gcd(A, B)`. If $A < B$, the first recursive call `gcd(B, A % B)` will naturally swap them because $A \% B$ will just be $A$!
+- **Negative Numbers**: The GCD of negative numbers is mathematically positive. If inputs can be negative, take their absolute values before calling the `gcd` function: `gcd(abs(a), abs(b))`.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If an array size is incredibly massive (e.g. 10^9), an O(N) linear scan will Time Out. This is a dead giveaway that you need an O(log N) math or binary search approach.",
-    "Always state the constraints out loud. If numbers are up to 10^18, explicitly tell the interviewer you will use 64-bit integer types to prevent overflow."
+    "If an interview asks you to find the GCD of an entire array of numbers, you can just iteratively apply the GCD function: `res = gcd(res, arr[i])`. The GCD is associative!",
+    "Python developers: You can import `math.gcd(a, b)` in an interview, but make sure you can explain how it works under the hood (it uses the Euclidean algorithm)."
   ]}
 />

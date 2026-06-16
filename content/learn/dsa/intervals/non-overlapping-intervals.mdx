@@ -11,41 +11,96 @@ summary: "An essential guide to Non-overlapping Intervals, exploring sweeping lo
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Non-overlapping Intervals**. This topic is a cornerstone of the Intervals module. Interval problems almost always involve time, scheduling, or geometric lines. The entire category revolves around one critical realization: **You must sort the intervals first.**
+The **Non-overlapping Intervals** problem asks you to find the *minimum number of intervals you need to remove* to make the rest of the intervals non-overlapping.
 
-### Core Intuition
-If you don't sort intervals by their start time, you have to check every interval against every other interval (O(N^2)). But if you sort them, you only ever need to compare the current interval with the *previously processed* interval! This instantly drops the complexity to O(N log N).
+This problem is functionally identical to the classic **Activity Selection Problem**, which asks for the *maximum number of non-overlapping intervals* you can select. If you find the maximum number of valid intervals, the minimum number to remove is simply the total intervals minus the maximum valid intervals.
+
+### Core Intuition: Greedy Approach
+Why greedy? To maximize the number of non-overlapping intervals, we should always pick the interval that **ends the earliest**. The sooner an interval ends, the more room it leaves for subsequent intervals.
+
+1. **Sort by End Time**: Sort the intervals based on their ending times.
+2. **Iterate & Count**: Keep track of the `end` time of the last added interval. For each subsequent interval, if its start time is greater than or equal to our tracked `end`, it doesn't overlap! We "keep" it and update our tracked `end`. Otherwise, it overlaps, so we must "remove" it (increment a removal counter).
+
+*Alternative*: You can also sort by start time. If you sort by start time and encounter an overlap, you drop the interval that has the larger end time, as it's more likely to overlap with future intervals. Sorting by end time is mathematically cleaner, though.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Non-overlapping Intervals
-#include <iostream>
-#include <vector>
+  cpp="#include <vector>
 #include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
-    void solve(vector<vector<int>>& intervals) {
-        // sort(intervals.begin(), intervals.end());
-        // Implementation here
+    int eraseOverlapIntervals(vector<vector<int>>& intervals) {
+        if (intervals.empty()) return 0;
+        
+        // Sort intervals by their END time
+        sort(intervals.begin(), intervals.end(), [](const vector<int>& a, const vector<int>& b) {
+            return a[1] < b[1];
+        });
+        
+        int removals = 0;
+        int currentEnd = intervals[0][1];
+        
+        for (int i = 1; i < intervals.size(); i++) {
+            if (intervals[i][0] < currentEnd) {
+                // Overlap exists, we must remove the current interval
+                removals++;
+            } else {
+                // No overlap, update the currentEnd
+                currentEnd = intervals[i][1];
+            }
+        }
+        
+        return removals;
     }
 };"
-  java="// Java implementation for Non-overlapping Intervals
-import java.util.*;
+  java="import java.util.*;
 
 class Solution {
-    public void solve(int[][] intervals) {
-        // Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
-        // Implementation here
+    public int eraseOverlapIntervals(int[][] intervals) {
+        if (intervals.length == 0) return 0;
+
+        // Sort intervals by end time
+        Arrays.sort(intervals, (a, b) -> Integer.compare(a[1], b[1]));
+
+        int removals = 0;
+        int currentEnd = intervals[0][1];
+
+        for (int i = 1; i < intervals.length; i++) {
+            if (intervals[i][0] < currentEnd) {
+                // Overlaps, needs removal
+                removals++;
+            } else {
+                // Doesn't overlap, update the end marker
+                currentEnd = intervals[i][1];
+            }
+        }
+
+        return removals;
     }
 }"
-  python="# Python implementation for Non-overlapping Intervals
-class Solution:
-    def solve(self, intervals: list[list[int]]):
-        # intervals.sort(key=lambda x: x[0])
-        # Implementation here
-        pass"
+  python="class Solution:
+    def eraseOverlapIntervals(self, intervals: list[list[int]]) -> int:
+        if not intervals:
+            return 0
+            
+        # Sort by end time to always pick the one that finishes earliest
+        intervals.sort(key=lambda x: x[1])
+        
+        removals = 0
+        current_end = intervals[0][1]
+        
+        for i in range(1, len(intervals)):
+            if intervals[i][0] < current_end:
+                # We have an overlap, we must discard this one
+                removals += 1
+            else:
+                # No overlap, update our end tracker
+                current_end = intervals[i][1]
+                
+        return removals"
 />
 
 # Complexity Analysis
@@ -53,21 +108,20 @@ class Solution:
   best="O(N log N)"
   average="O(N log N)"
   worst="O(N log N)"
-  space="O(N)"
-  description="Sorting the intervals initially dominates the time complexity, resulting in O(N log N). The linear scan that follows takes O(N) time. Space complexity is O(N) because we often need to store the merged or processed intervals in a new array or use a Min-Heap (like in Meeting Rooms II)."
+  space="O(1)"
+  description="Sorting the array by end time dictates the O(N log N) time complexity. The subsequent loop runs in O(N). Space complexity is O(1) auxiliary space (excluding the memory required by the sorting algorithm), as we only track the end time of the last valid interval."
 />
 
 # Common Pitfalls
 <Warning>
-- **Comparing Start vs End:** A very common mistake is checking if `current.start < previous.start`. You must check if `current.start <= previous.end` to detect an overlap!
-- **Modifying while Iterating:** Try to avoid modifying the input array in place. It's much safer to push merged/processed intervals into a new result array.
+- Sorting by start time without updating the end time correctly. If you sort by start time, when overlapping, you must eagerly update your end marker to `min(currentEnd, nextEnd)`. Sorting by end time naturally bypasses this mental hurdle.
+- Treating adjacent intervals (e.g., `[1,2]` and `[2,3]`) as overlapping. Typically, in interval scheduling, these do not overlap, so the check should be `<` instead of `<=`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem involves 'start times', 'end times', 'meetings', or 'flights', you should immediately sort the input array by start time.",
-    "For complex overlaps (like finding the maximum number of simultaneous meetings), the Sweep Line algorithm is the cleanest approach: split every interval into two events: `(start, +1)` and `(end, -1)`. Sort all events by time, and keep a running sum!",
-    "Mention to the interviewer that sorting modifies the input. If the input is read-only, you must allocate O(N) space for a copy."
+    "This problem is identical to 'Activity Selection', a fundamental Greedy Algorithm taught in CS curriculums. Mentioning this name drops a massive hint to the interviewer that you know your fundamentals.",
+    "If the interviewer asks why sorting by end time works better than sorting by start time, explain that picking the earliest finishing meeting mathematically guarantees the maximum remaining time for subsequent meetings."
   ]}
 />

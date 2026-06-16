@@ -14,6 +14,7 @@ import {
   RotateCcw,
   Bookmark
 } from "lucide-react";
+import { TopicIcon } from "@/components/common/TopicIcon";
 
 export interface CourseSectionItem {
   id: string;
@@ -462,11 +463,12 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                   onClick={() => toggleSection(sec.id)}
                   className="w-full flex items-center justify-between p-4 bg-gray-50/40 dark:bg-gray-800/10 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-all text-left"
                 >
-                  <div className="space-y-1 pr-4">
-                    <h4 className="text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white leading-tight">
+                  <div className="space-y-1 pr-4 flex-1">
+                    <h4 className="text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white leading-tight flex items-center gap-2">
+                      <TopicIcon topicName={sec.title} size={16} strokeWidth={2.5} className="text-gray-400 dark:text-gray-500" />
                       {sec.title}
                     </h4>
-                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5 mt-1">
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5 mt-1 pl-6">
                       <span>{sectionCompleted}/{sectionItemsCount} Complete</span>
                     </p>
                   </div>
@@ -507,11 +509,12 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                                 onClick={() => toggleSubsection(sub.id)}
                                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/10 transition-all text-left border-b border-gray-50 dark:border-gray-800/10"
                               >
-                                <div className="space-y-0.5">
-                                  <h5 className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-snug">
+                                <div className="space-y-0.5 flex-1">
+                                  <h5 className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-snug flex items-center gap-1.5">
+                                    <TopicIcon topicName={sub.title} size={14} strokeWidth={2.5} className="text-gray-400" />
                                     {sub.title}
                                   </h5>
-                                  <p className="text-[8px] text-gray-400 font-bold uppercase tracking-wider">
+                                  <p className="text-[8px] text-gray-400 font-bold uppercase tracking-wider pl-5">
                                     {subCompleted}/{sub.items.length} Complete
                                   </p>
                                 </div>

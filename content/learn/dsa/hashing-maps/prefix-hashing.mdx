@@ -11,55 +11,83 @@ summary: "An essential guide to Prefix Sum + Hashing, exploring its applications
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Prefix Sum + Hashing**. This topic is a cornerstone of the Hashing & Maps module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Prefix Sum + Hashing** pattern is a powerful technique used to solve subarray problems with optimal time complexity. A prefix sum is the cumulative sum of elements in an array from the beginning up to the current index. When combined with hashing, we can efficiently query past prefix sums to find subarrays that meet certain criteria (like having a specific sum or property).
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+The core idea is based on the mathematical property of prefix sums: if `prefix[i]` is the sum of elements from index `0` to `i`, and `prefix[j]` is the sum from `0` to `j` (where `i < j`), then the sum of the subarray from `i+1` to `j` is `prefix[j] - prefix[i]`. If we are looking for a subarray with sum `K`, we can re-arrange this to `prefix[j] - K = prefix[i]`. Thus, as we calculate the prefix sum at each step, we can use a hash map to check if we have previously seen a prefix sum equal to `prefix[j] - K`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Prefix Sum + Hashing
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int subarraySum(vector<int>& nums, int k) {
+        unordered_map<int, int> prefixCounts;
+        prefixCounts[0] = 1; // Base case: one way to have sum 0 (empty subarray)
+        int currentSum = 0;
+        int count = 0;
+        
+        for (int num : nums) {
+            currentSum += num;
+            if (prefixCounts.find(currentSum - k) != prefixCounts.end()) {
+                count += prefixCounts[currentSum - k];
+            }
+            prefixCounts[currentSum]++;
+        }
+        return count;
     }
 };"
-  java="// Java implementation for Prefix Sum + Hashing
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int subarraySum(int[] nums, int k) {
+        HashMap<Integer, Integer> prefixCounts = new HashMap<>();
+        prefixCounts.put(0, 1);
+        int currentSum = 0;
+        int count = 0;
+        
+        for (int num : nums) {
+            currentSum += num;
+            if (prefixCounts.containsKey(currentSum - k)) {
+                count += prefixCounts.get(currentSum - k);
+            }
+            prefixCounts.put(currentSum, prefixCounts.getOrDefault(currentSum, 0) + 1);
+        }
+        return count;
     }
 }"
-  python="# Python implementation for Prefix Sum + Hashing
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def subarraySum(self, nums: List[int], k: int) -> int:
+        prefix_counts = {0: 1}
+        current_sum = 0
+        count = 0
+        
+        for num in nums:
+            current_sum += num
+            if current_sum - k in prefix_counts:
+                count += prefix_counts[current_sum - k]
+            prefix_counts[current_sum] = prefix_counts.get(current_sum, 0) + 1
+            
+        return count"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(N)"
+  description="The time complexity is O(N) since we iterate through the array once and hash map operations take O(1) time on average. The space complexity is O(N) in the worst case if all prefix sums are unique and stored in the map."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Forgetting to initialize the hash map with the base case (e.g., `prefixCounts[0] = 1`). This is crucial to correctly count subarrays that start from the 0th index.
+- Not handling negative numbers correctly. The prefix sum array is not monotonically increasing if negative numbers exist, so standard sliding window approaches fail. Prefix hashing is the correct approach here.
+- Using a 2D array or nested loops to check all subarrays, which results in a suboptimal O(N²) or O(N³) time complexity.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Always look for 'subarray' and 'sum' keywords in the problem description. They strongly suggest using the Prefix Sum + Hashing technique.",
+    "Explain to the interviewer why a standard sliding window won't work if the array contains negative numbers.",
+    "Mention the base case initialization in the hash map explicitly, as it shows attention to detail."
   ]}
 />

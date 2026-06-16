@@ -11,86 +11,105 @@ summary: "An essential guide to Diameter of Binary Tree, mastering tree traversa
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Diameter of Binary Tree**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+The **Diameter of a Binary Tree** is the length of the longest path between any two nodes in a tree. This path may or may not pass through the root. The length of a path between two nodes is represented by the number of edges between them.
+
+### The Core Intuition
+The longest path through a specific node is simply the sum of the maximum depth of its left subtree and the maximum depth of its right subtree.
+`Diameter passing through Node = maxDepth(Node.left) + maxDepth(Node.right)`
+
+Since the true diameter of the tree could be entirely contained within a left or right subtree (and not pass through the main root), we must calculate this sum for *every* node. We can do this efficiently during a standard **Postorder Traversal** (Bottom-Up) where we compute heights.
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Diameter of Binary Tree
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    int diameterOfBinaryTree(TreeNode* root) {
+        int maxDiameter = 0;
+        calculateHeight(root, maxDiameter);
+        return maxDiameter;
+    }
+    
+private:
+    int calculateHeight(TreeNode* node, int& maxDiameter) {
+        if (node == nullptr) return 0;
+        
+        int leftHeight = calculateHeight(node->left, maxDiameter);
+        int rightHeight = calculateHeight(node->right, maxDiameter);
+        
+        // Update the maximum diameter found so far
+        maxDiameter = max(maxDiameter, leftHeight + rightHeight);
+        
+        // Return the height of the current node
+        return 1 + max(leftHeight, rightHeight);
     }
 };"
-  java="// Java implementation for Diameter of Binary Tree
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
+  java="class Solution {
+    int maxDiameter = 0;
+    
+    public int diameterOfBinaryTree(TreeNode root) {
+        calculateHeight(root);
+        return maxDiameter;
     }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+    
+    private int calculateHeight(TreeNode node) {
+        if (node == null) return 0;
+        
+        int leftHeight = calculateHeight(node.left);
+        int rightHeight = calculateHeight(node.right);
+        
+        // Update the maximum diameter found so far
+        maxDiameter = Math.max(maxDiameter, leftHeight + rightHeight);
+        
+        // Return the height of the current node
+        return 1 + Math.max(leftHeight, rightHeight);
     }
 }"
-  python="# Python implementation for Diameter of Binary Tree
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def diameterOfBinaryTree(self, root: Optional[TreeNode]) -> int:
+        self.max_diameter = 0
+        
+        def calculate_height(node):
+            if not node:
+                return 0
+                
+            left_height = calculate_height(node.left)
+            right_height = calculate_height(node.right)
+            
+            # Update the maximum diameter found so far
+            self.max_diameter = max(self.max_diameter, left_height + right_height)
+            
+            # Return the height of the current node
+            return 1 + max(left_height, right_height)
+            
+        calculate_height(root)
+        return self.max_diameter"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  description="Time complexity is strictly O(N) because we process each node exactly once. Space complexity is O(H) representing the maximum call stack depth."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **The O(N^2) Trap:** Calling a separate `height()` function for every single node in the tree. This recalculates heights repeatedly. Always merge the height calculation and diameter tracking into a single pass.
+- **Node Count vs Edge Count:** The problem usually defines diameter by the number of edges. The number of edges is `leftHeight + rightHeight`. If it asked for nodes, it would be `leftHeight + rightHeight + 1`.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "If an interviewer asks you to avoid global variables, pass the maxDiameter by reference (in C++) or wrap it in a 1-element array/object (in Java).",
+    "This is the quintessential 'pass state up while updating an external tracker' problem. Master this pattern.",
+    "Be explicit that you are performing a Postorder traversal because a parent needs the height of its children before it can compute its own diameter."
   ]}
 />

@@ -11,64 +11,126 @@ summary: "An essential guide to Task Scheduler, mastering O(log N) extractions a
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Task Scheduler**. This topic is a cornerstone of the Heaps & Priority Queues module. A Heap (usually implemented via a Priority Queue) is an extremely specialized tree structure that allows you to instantly extract the minimum or maximum element in O(1) time, while inserts and deletions take O(log N).
+The **Task Scheduler** problem asks us to determine the minimum CPU time needed to execute an array of tasks (represented by characters), given a cooling period `n` between two identical tasks.
 
-### Core Intuition
-Heaps are typically implemented under the hood as a complete binary tree mapped to a flat array. The children of node `i` are at `2i + 1` and `2i + 2`. This guarantees the tree is perfectly balanced.
+### Intuition
+To minimize idle time, we should always prioritize executing the task with the highest remaining frequency. If we do the most frequent tasks first, we spread them out over time and use less frequent tasks to fill the cooling gaps.
+
+This naturally leads to a **Max-Heap** approach:
+1. Count the frequencies of all tasks.
+2. Push all non-zero frequencies into a Max-Heap.
+3. In each cycle of length `n + 1`, pop tasks from the Max-Heap, execute them (decrement their frequency), and put them in a temporary queue.
+4. After the cycle, push the tasks back into the Max-Heap if they still have remaining frequency.
+5. Add the time spent in the cycle to a total counter.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Task Scheduler
-#include <iostream>
-#include <vector>
-#include <queue>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // priority_queue<int> maxHeap;
-        // priority_queue<int, vector<int>, greater<int>> minHeap;
+    int leastInterval(vector<char>& tasks, int n) {
+        unordered_map<char, int> count;
+        for (char c : tasks) count[c]++;
+        
+        priority_queue<int> maxHeap;
+        for (auto& entry : count) {
+            maxHeap.push(entry.second);
+        }
+        
+        int time = 0;
+        while (!maxHeap.empty()) {
+            vector<int> cycle;
+            for (int i = 0; i <= n; i++) {
+                if (!maxHeap.empty()) {
+                    cycle.push_back(maxHeap.top());
+                    maxHeap.pop();
+                }
+            }
+            
+            for (int count : cycle) {
+                if (--count > 0) {
+                    maxHeap.push(count);
+                }
+            }
+            
+            time += maxHeap.empty() ? cycle.size() : n + 1;
+        }
+        
+        return time;
     }
 };"
-  java="// Java implementation for Task Scheduler
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // PriorityQueue<Integer> minHeap = new PriorityQueue<>();
-        // PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+  java="class Solution {
+    public int leastInterval(char[] tasks, int n) {
+        Map<Character, Integer> count = new HashMap<>();
+        for (char c : tasks) {
+            count.put(c, count.getOrDefault(c, 0) + 1);
+        }
+        
+        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+        for (int val : count.values()) {
+            maxHeap.add(val);
+        }
+        
+        int time = 0;
+        while (!maxHeap.isEmpty()) {
+            List<Integer> cycle = new ArrayList<>();
+            for (int i = 0; i <= n; i++) {
+                if (!maxHeap.isEmpty()) {
+                    cycle.add(maxHeap.poll());
+                }
+            }
+            
+            for (int val : cycle) {
+                if (--val > 0) {
+                    maxHeap.add(val);
+                }
+            }
+            
+            time += maxHeap.isEmpty() ? cycle.size() : n + 1;
+        }
+        
+        return time;
     }
 }"
-  python="# Python implementation for Task Scheduler
-import heapq
-
-class Solution:
-    def solve(self, arr: list[int]):
-        # heapq.heapify(arr)  # Min-heap by default
-        pass"
+  python="class Solution:
+    def leastInterval(self, tasks: list[str], n: int) -> int:
+        count = collections.Counter(tasks)
+        max_heap = [-cnt for cnt in count.values()]
+        heapq.heapify(max_heap)
+        
+        time = 0
+        q = collections.deque() # pairs of [-cnt, idleTime]
+        
+        while max_heap or q:
+            time += 1
+            if max_heap:
+                cnt = 1 + heapq.heappop(max_heap)
+                if cnt:
+                    q.append([cnt, time + n])
+            if q and q[0][1] == time:
+                heapq.heappush(max_heap, q.popleft()[0])
+                
+        return time"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
-  space="O(N)"
-  description="Peeking at the top element is O(1). Popping or Pushing an element takes O(log N) time because the heap must bubble up or sift down to maintain its properties. Building a heap from an unsorted array takes O(N) time."
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(1)"
+  description="Time is O(N) where N is the total number of tasks because we process each task a limited number of times. The space complexity is O(1) since the heap size is capped at 26 (uppercase alphabet letters)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Python's heapq:** Python only has a built-in Min-Heap. To simulate a Max-Heap, you must negate all numbers before pushing them in, and negate them again when popping out!
-- **N log N vs N log K:** When finding the Top K elements, do NOT push all N elements into the heap (O(N log N)). Instead, keep the heap size capped at K. When size > K, pop the smallest element. This reduces time complexity to O(N log K).
+- Implementing the simulation using arrays instead of heaps/queues, leading to a much slower O(N^2) complexity.
+- Misunderstanding the cycle length. A cooling time of `n` means `n` *other* operations or idles must occur before the same task can run again, effectively creating a cycle length of `n + 1`.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Kth Largest', 'Kth Smallest', or 'Top K' of anything, it is a 99% guarantee that a Heap/Priority Queue is the intended solution.",
-    "If you need to merge multiple sorted arrays or linked lists simultaneously, a Min-Heap keeping track of the current pointers is the most optimal approach.",
-    "The 'Find Median from Data Stream' problem is a classic hard interview question solved beautifully by maintaining two separate heaps: one Max-Heap for the lower half, and one Min-Heap for the upper half."
+    "There is a math-based O(N) time and O(1) space solution using the formula `(max_freq - 1) * (n + 1) + count_of_max_freq_elements`. It's great to mention, but interviewers often prefer the heap simulation as it handles dynamic task insertions better.",
+    "The Python implementation utilizes a standard Queue along with the Max-Heap, which creates a very clean simulation compared to the temporary list approach."
   ]}
 />

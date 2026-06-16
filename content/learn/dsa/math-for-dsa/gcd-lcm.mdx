@@ -1,65 +1,104 @@
 ---
-title: "GCD and LCM"
+title: "Greatest Common Divisor (GCD) & LCM"
 category: "Math for DSA"
-readTime: "5 min read"
+readTime: "6 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the fundamentals of GCD and LCM."
-  - "Learn how to implement this pattern in real coding interviews."
-  - "Master the time and space complexity."
-summary: "An essential guide to GCD and LCM, exploring its applications, implementations, and interview intelligence."
+  - "Understand the definitions of GCD and LCM."
+  - "Learn the mathematical relationship between GCD and LCM."
+  - "See the naive approach to computing GCD."
+summary: "An introduction to the Greatest Common Divisor and Least Common Multiple, essential for fractions, cycles, and number theory problems."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **GCD and LCM**. This topic is a cornerstone of the Math for DSA module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### Greatest Common Divisor (GCD)
+The **Greatest Common Divisor** (also known as Highest Common Factor or HCF) of two integers $A$ and $B$ is the largest positive integer that divides both $A$ and $B$ without leaving a remainder.
+- Example: $GCD(12, 15) = 3$. The divisors of 12 are (1, 2, **3**, 4, 6, 12) and the divisors of 15 are (1, **3**, 5, 15). The largest common one is 3.
+- Example: $GCD(7, 13) = 1$. Since both are prime, their only common divisor is 1.
+
+### Least Common Multiple (LCM)
+The **Least Common Multiple** of two integers $A$ and $B$ is the smallest positive integer that is perfectly divisible by both $A$ and $B$.
+- Example: $LCM(4, 6) = 12$. The multiples of 4 are (4, 8, **12**, 16) and multiples of 6 are (6, **12**, 18). 
+
+### The GCD-LCM Relationship
+There is a beautiful mathematical relationship between GCD and LCM:
+$A \times B = GCD(A, B) \times LCM(A, B)$
+
+Therefore, to find the LCM of two numbers, you just need to find their GCD first:
+$LCM(A, B) = \frac{A \times B}{GCD(A, B)}$
 
 # Code Implementation
+
+To find the GCD naively, we can simply iterate from $\min(A, B)$ down to 1, returning the first number that divides both $A$ and $B$. Let's look at this naive approach:
+
 <CodeBlock
-  cpp="// C++ implementation for GCD and LCM
+  cpp="// C++ Implementation (Naive GCD)
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
-class Solution {
-public:
-    void solve() {
-        // Implementation here
+int naiveGCD(int a, int b) {
+    // Iterate backwards from the minimum of a and b
+    for (int i = min(a, b); i >= 1; i--) {
+        if (a % i == 0 && b % i == 0) {
+            return i;
+        }
     }
-};"
-  java="// Java implementation for GCD and LCM
-class Solution {
-    public void solve() {
-        // Implementation here
+    return 1;
+}
+
+int lcm(int a, int b) {
+    return (a * b) / naiveGCD(a, b);
+}"
+  java="// Java Implementation (Naive GCD)
+class MathUtils {
+    public static int naiveGCD(int a, int b) {
+        int min = Math.min(a, b);
+        for (int i = min; i >= 1; i--) {
+            if (a % i == 0 && b % i == 0) {
+                return i;
+            }
+        }
+        return 1;
+    }
+    
+    public static int lcm(int a, int b) {
+        return (a * b) / naiveGCD(a, b);
     }
 }"
-  python="# Python implementation for GCD and LCM
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="# Python Implementation (Naive GCD)
+def naive_gcd(a, b):
+    for i in range(min(a, b), 0, -1):
+        if a % i == 0 and b % i == 0:
+            return i
+    return 1
+    
+def lcm(a, b):
+    return (a * b) // naive_gcd(a, b)"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
-  worst="O(N)"
+  average="O(\min(A, B))"
+  worst="O(\min(A, B))"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="The naive algorithm iterates exactly min(A, B) times in the worst case (when GCD is 1). This is too slow if A and B are up to 10^9."
 />
 
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Integer Overflow in LCM**: When calculating $LCM(A, B) = (A \times B) / GCD(A, B)$, the multiplication $A \times B$ can overflow a 32-bit integer before the division happens! To prevent this, always divide first: $LCM(A, B) = A / GCD(A, B) \times B$.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Never use the naive GCD algorithm in an actual interview. It's too slow. In the next lesson, we will cover the Euclidean Algorithm which finds the GCD in O(log(min(A, B))) time.",
+    "If you are using C++17 or newer, you can simply use `std::gcd(a, b)` and `std::lcm(a, b)` from the `<numeric>` library."
   ]}
 />

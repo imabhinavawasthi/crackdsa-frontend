@@ -11,36 +11,46 @@ summary: "An essential guide to Immutable vs Mutable Strings, covering everythin
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Immutable vs Mutable Strings**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+The distinction between mutable and immutable strings is one of the most critical concepts for optimizing string algorithms. 
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+**Immutable Strings** (e.g., Python, Java, JavaScript, C#):
+When a string is immutable, it cannot be changed once it is created in memory. Any operation that modifies the string—such as appending a character, changing a substring, or converting cases—creates a completely new string object. This means an operation like `s += "a"` takes $O(N)$ time, where $N$ is the length of the string, because the entire string must be copied.
+
+**Mutable Strings** (e.g., C++, Ruby, Rust's `String`):
+Mutable strings are implemented essentially as dynamic arrays of characters. You can modify characters in-place (`s[i] = 'x'`) and append to the end (`s.push_back('a')`) in $O(1)$ amortized time.
+
+To efficiently construct strings in languages where they are immutable, you must use dynamic character arrays or specialized classes (like `StringBuilder` in Java or joining arrays in Python) which allow appending characters in $O(1)$ time and finally building the string in $O(N)$ time.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Immutable vs Mutable Strings
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    string buildString(const vector<string>& words) {
+        // C++ strings are mutable. Appending is O(1) amortized.
+        string result = \"\";
+        for (const string& word : words) {
+            result += word; 
+        }
+        return result;
     }
 };"
-  java="// Java implementation for Immutable vs Mutable Strings
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public String buildString(String[] words) {
+        // Java Strings are immutable. We must use StringBuilder.
+        StringBuilder sb = new StringBuilder();
+        for (String word : words) {
+            sb.append(word);
+        }
+        return sb.toString(); // O(N) where N is total length
     }
 }"
-  python="# Python implementation for Immutable vs Mutable Strings
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def build_string(self, words: list[str]) -> str:
+        # Python Strings are immutable. Append to list and use join().
+        result_list = []
+        for word in words:
+            result_list.append(word)
+        return ''.join(result_list) # O(N) total time"
 />
 
 # Complexity Analysis
@@ -48,21 +58,21 @@ class Solution:
   best="O(N)"
   average="O(N)"
   worst="O(N)"
-  space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  space="O(N)"
+  description="Using a mutable builder (StringBuilder, list.join, or C++ std::string) takes O(N) time and space to construct a string of length N. Doing the same with immutable string concatenation would take O(N^2) time."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- Using `+=` to concatenate strings inside a loop in Java or Python. This leads to accidental $O(N^2)$ time complexity and often results in Time Limit Exceeded (TLE).
+- Unnecessary conversions: Continuously flipping between string builders and strings inside loops rather than delaying the `.toString()` call until the very end.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "If you are modifying characters in the middle of a string in Python or Java, convert the string to a character array first, make your modifications, and then convert it back.",
+    "Be proactive: tell the interviewer out loud that you are using a StringBuilder or list instead of string concatenation to preserve O(N) time complexity.",
+    "In C++, `std::string` is already mutable, so you can often do in-place swaps (e.g., for reversing strings) leading to O(1) space algorithms."
   ]}
 />

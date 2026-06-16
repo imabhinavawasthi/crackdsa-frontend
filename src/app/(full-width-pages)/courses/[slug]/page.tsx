@@ -206,7 +206,7 @@ export default function CourseLandingPage() {
                     href="/checkout/pro"
                     className="px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-2xl font-black text-lg transition-colors w-full sm:w-auto flex items-center justify-center gap-2"
                   >
-                    <Trophy size={20} className="text-amber-500" /> Get PRO Access
+                    <Trophy size={20} className="text-amber-500" /> Unlock with PRO
                   </Link>
                 )}
               </motion.div>
@@ -415,26 +415,38 @@ export default function CourseLandingPage() {
                   <span className="text-gray-300 font-bold uppercase tracking-widest text-xs">Standalone Price</span>
                 </div>
                 <div className="flex items-baseline justify-center gap-2 mb-6">
-                  <span className="text-5xl font-black">₹{course.price}</span>
-                  <span className="text-xl text-gray-400 line-through">₹{course.original_price}</span>
+                  {course.price === 0 ? (
+                    <span className="text-5xl font-black text-emerald-400">Free</span>
+                  ) : (
+                    <>
+                      <span className="text-5xl font-black">₹{course.price}</span>
+                      {course.original_price > course.price && (
+                        <span className="text-xl text-gray-400 line-through">₹{course.original_price}</span>
+                      )}
+                    </>
+                  )}
                 </div>
                 
                 <Link
                   href={`/checkout/course/${course.slug}`}
                   className="flex items-center justify-center gap-2 w-full rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-4 text-base font-bold transition-colors shadow-lg shadow-brand-500/25 mb-4"
                 >
-                  Buy Course Now
+                  {course.price === 0 ? "Enroll for Free" : "Buy Course Now"}
                 </Link>
 
-                <p className="text-xs text-gray-300 mb-4">OR</p>
+                {course.is_pro && (
+                  <>
+                    <p className="text-xs text-gray-300 mb-4">OR</p>
 
-                <Link
-                  href="/checkout/pro"
-                  className="flex items-center justify-center gap-2 w-full rounded-2xl bg-white text-brand-900 hover:bg-gray-100 px-6 py-4 text-sm font-bold transition-colors"
-                >
-                  <Trophy size={16} />
-                  Get PRO to Unlock All
-                </Link>
+                    <Link
+                      href="/checkout/pro"
+                      className="flex items-center justify-center gap-2 w-full rounded-2xl bg-white text-brand-900 hover:bg-gray-100 px-6 py-4 text-sm font-bold transition-colors"
+                    >
+                      <Trophy size={16} />
+                      Unlock with PRO
+                    </Link>
+                  </>
+                )}
               </div>
 
             </div>

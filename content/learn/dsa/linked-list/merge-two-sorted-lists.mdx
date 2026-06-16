@@ -11,79 +11,104 @@ summary: "An essential guide to Merge Two Sorted Lists, exploring safe pointer r
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Merge Two Sorted Lists**. This topic is a cornerstone of the Linked List module. Linked Lists test your ability to safely manipulate references (pointers) without losing track of your data or causing Null Pointer Exceptions.
+Merging two sorted linked lists is a foundational problem that tests your ability to safely manipulate pointers while traversing two lists simultaneously. The goal is to weave the two existing lists together to form a single, sorted list.
 
-### Core Intuition
-Unlike arrays, Linked Lists are not stored contiguously in memory. You cannot access the `i-th` element in O(1) time. Instead, you must traverse sequentially. The magic happens when you use multiple pointers (like a fast and a slow pointer, or a dummy node) to keep track of previous, current, and next states simultaneously.
+### Dummy Node Pattern
+The most robust way to build a new linked list is by using a **Dummy Node**. A dummy node serves as a pseudo-head. We attach our sorted nodes to it one by one using a `tail` pointer. This elegantly handles the edge case of initializing the head of the merged list without writing messy conditional logic.
+
+Once one of the lists is fully traversed, we simply attach the remainder of the other list directly to our `tail` pointer, since the remaining list is already sorted.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Merge Two Sorted Lists
-#include <iostream>
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    ListNode* solve(ListNode* head) {
-        // Implementation here
-        return head;
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+        ListNode dummy;
+        ListNode* tail = &dummy;
+        
+        while (list1 != nullptr && list2 != nullptr) {
+            if (list1->val < list2->val) {
+                tail->next = list1;
+                list1 = list1->next;
+            } else {
+                tail->next = list2;
+                list2 = list2->next;
+            }
+            tail = tail->next;
+        }
+        
+        if (list1 != nullptr) tail->next = list1;
+        if (list2 != nullptr) tail->next = list2;
+        
+        return dummy.next;
     }
 };"
-  java="// Java implementation for Merge Two Sorted Lists
-class ListNode {
-    int val;
-    ListNode next;
-    ListNode() {}
-    ListNode(int val) { this.val = val; }
-    ListNode(int val, ListNode next) { this.val = val; this.next = next; }
-}
-
-class Solution {
-    public ListNode solve(ListNode head) {
-        // Implementation here
-        return head;
+  java="class Solution {
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy;
+        
+        while (list1 != null && list2 != null) {
+            if (list1.val < list2.val) {
+                tail.next = list1;
+                list1 = list1.next;
+            } else {
+                tail.next = list2;
+                list2 = list2.next;
+            }
+            tail = tail.next;
+        }
+        
+        if (list1 != null) {
+            tail.next = list1;
+        } else {
+            tail.next = list2;
+        }
+        
+        return dummy.next;
     }
 }"
-  python="# Python implementation for Merge Two Sorted Lists
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-class Solution:
-    def solve(self, head: ListNode) -> ListNode:
-        # Implementation here
-        return head"
+  python="class Solution:
+    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode(0)
+        tail = dummy
+        
+        while list1 and list2:
+            if list1.val < list2.val:
+                tail.next = list1
+                list1 = list1.next
+            else:
+                tail.next = list2
+                list2 = list2.next
+            tail = tail.next
+            
+        if list1:
+            tail.next = list1
+        else:
+            tail.next = list2
+            
+        return dummy.next"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(M + N)"
+  average="O(M + N)"
+  worst="O(M + N)"
   space="O(1)"
-  description="Linked List traversals are strictly O(N) time. The vast majority of interview problems require an O(1) space complexity solution by manipulating existing pointers rather than creating new nodes."
+  description="We traverse both lists at most once, performing constant time comparisons and pointer assignments. Time complexity is O(M + N) where M and N are the lengths of the two lists. Space is optimal O(1) since we only move existing nodes."
 />
 
 # Common Pitfalls
 <Warning>
-- **Null Pointer Exceptions:** Forgetting to check if `head == null` or `head.next == null` before accessing properties. Always include base cases at the start of your function.
-- **Losing the 'Next' Reference:** When reversing links, if you change `curr.next` before saving the original `curr.next` to a temporary variable, you will sever the rest of the list forever!
+- **Allocating New Nodes:** A common mistake is creating `new ListNode(val)` for every element. The prompt usually requires you to splice the existing nodes to achieve O(1) space.
+- **Forgetting the Remainder:** Failing to append the rest of `list1` or `list2` after the `while` loop finishes.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always instantiate a `Dummy Node` (e.g. `ListNode dummy = new ListNode(0); dummy.next = head;`) when the head of the list might change or be deleted. It completely eliminates edge cases.",
-    "If a problem asks to find the middle, or detect a cycle, the 'Fast & Slow Pointer' (Tortoise and Hare) approach is the standard O(1) space solution.",
-    "Don't forget to return `dummy.next` instead of `head` if you used a dummy node!"
+    "Highlight why the Dummy Node pattern is useful. It completely avoids writing messy `if (newHead == null)` initialization logic inside your loop.",
+    "Be prepared to explain the recursive solution as well, but note that it uses O(M + N) space on the call stack, making the iterative dummy node approach strictly better."
   ]}
 />

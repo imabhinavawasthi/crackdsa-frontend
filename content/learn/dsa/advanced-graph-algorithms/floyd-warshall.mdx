@@ -11,58 +11,130 @@ summary: "An essential guide to Floyd-Warshall Algorithm, exploring its applicat
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Floyd-Warshall Algorithm**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+The **Floyd-Warshall Algorithm** is a classic dynamic programming approach used to find the shortest paths between **all pairs** of vertices in an edge-weighted directed graph. It handles positive and negative edge weights but cannot deal with negative weight cycles (although it can detect them).
 
 ### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+Instead of fixing a source vertex, the algorithm considers each vertex one by one and uses it as an intermediate point to see if a path between any two vertices `i` and `j` can be shortened by going through `k`.
+
+The recurrence relation is:
+`dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])`
+
+By iterating `k` from `0` to `V-1`, we gradually build up the shortest paths allowing more and more intermediate nodes.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Floyd-Warshall Algorithm
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    void shortest_distance(vector<vector<int>>& matrix) {
+        int n = matrix.size();
+        
+        // Replace -1 with a large value to indicate infinity
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (matrix[i][j] == -1) {
+                    matrix[i][j] = 1e9;
+                }
+                if (i == j) matrix[i][j] = 0;
+            }
+        }
+        
+        // Floyd-Warshall core
+        for (int k = 0; k < n; k++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (matrix[i][k] != 1e9 && matrix[k][j] != 1e9) {
+                        matrix[i][j] = min(matrix[i][j], matrix[i][k] + matrix[k][j]);
+                    }
+                }
+            }
+        }
+        
+        // Revert 1e9 back to -1
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (matrix[i][j] == 1e9) {
+                    matrix[i][j] = -1;
+                }
+            }
+        }
     }
 };"
-  java="// Java implementation for Floyd-Warshall Algorithm
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public void shortest_distance(int[][] matrix) {
+        int n = matrix.length;
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (matrix[i][j] == -1) {
+                    matrix[i][j] = (int)(1e9);
+                }
+                if (i == j) matrix[i][j] = 0;
+            }
+        }
+        
+        for (int k = 0; k < n; k++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (matrix[i][k] != 1e9 && matrix[k][j] != 1e9) {
+                        matrix[i][j] = Math.min(matrix[i][j], matrix[i][k] + matrix[k][j]);
+                    }
+                }
+            }
+        }
+        
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (matrix[i][j] == (int)(1e9)) {
+                    matrix[i][j] = -1;
+                }
+            }
+        }
     }
 }"
-  python="# Python implementation for Floyd-Warshall Algorithm
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def shortest_distance(self, matrix):
+        n = len(matrix)
+        
+        for i in range(n):
+            for j in range(n):
+                if matrix[i][j] == -1:
+                    matrix[i][j] = float('inf')
+                if i == j:
+                    matrix[i][j] = 0
+                    
+        for k in range(n):
+            for i in range(n):
+                for j in range(n):
+                    if matrix[i][k] != float('inf') and matrix[k][j] != float('inf'):
+                        matrix[i][j] = min(matrix[i][j], matrix[i][k] + matrix[k][j])
+                        
+        for i in range(n):
+            for j in range(n):
+                if matrix[i][j] == float('inf'):
+                    matrix[i][j] = -1"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(E log V)"
-  average="O(E log V)"
-  worst="O(E log V)"
-  space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  best="O(V^3)"
+  average="O(V^3)"
+  worst="O(V^3)"
+  space="O(V^2)"
+  description="The three nested loops run exactly V times each, giving an O(V^3) time complexity. It modifies the given O(V^2) matrix directly, requiring O(V^2) auxiliary space if a new matrix is created, or O(1) extra space if done in place."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Loop Order Matters:** The outer loop must be the intermediate node `k`. If you place `k` in the innermost loop, the algorithm fails because it doesn't build paths progressively.
+- **Integer Overflow:** If using `Integer.MAX_VALUE`, `dist[i][k] + dist[k][j]` can overflow to a negative value. Use a smaller infinity like `1e9`.
+- **Self Loops:** Explicitly set `dist[i][i] = 0` before running the algorithm unless the problem specifies otherwise.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "Floyd-Warshall is very easy to code but extremely slow for large graphs. Mention that it's only suitable for V <= 400 constraints.",
+    "If the interviewer asks to detect negative cycles, simply check if any dist[i][i] < 0 after the algorithm finishes.",
+    "Contrast with running Dijkstra V times: running Dijkstra V times is faster for sparse graphs (O(V * E log V)) but Floyd-Warshall is easier to write and handles negative edges."
   ]}
 />

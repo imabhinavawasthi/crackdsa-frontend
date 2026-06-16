@@ -11,86 +11,91 @@ summary: "An essential guide to Lowest Common Ancestor (LCA), mastering tree tra
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Lowest Common Ancestor (LCA)**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
 
-### Core Intuition
-Most tree problems fall into two categories:
-1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
-2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+The **Lowest Common Ancestor (LCA)** of two nodes `p` and `q` in a tree is the lowest (i.e., deepest) node that has both `p` and `q` as descendants. A node is allowed to be a descendant of itself!
+
+### Binary Search Tree (BST) LCA
+If the tree is a Binary Search Tree, finding the LCA is trivial and can be done in **O(H)** time without traversing the whole tree. We use the BST property:
+- If both `p` and `q` are smaller than the root, the LCA must be in the left subtree.
+- If both `p` and `q` are larger than the root, the LCA must be in the right subtree.
+- If they split (one is smaller, one is larger) or if one of them *is* the root, the current root *is* the LCA!
+
+### Standard Binary Tree LCA
+If the tree is just a normal binary tree, we cannot rely on values. We must use a **Postorder Traversal**:
+- Search the left and right subtrees for `p` or `q`.
+- If a node is `p` or `q`, return it.
+- If the left subtree returns a non-null node, and the right subtree returns a non-null node, the current node is the LCA!
+- If only one subtree returns a non-null node, we pass that node up.
 
 # Code Implementation
+
 <CodeBlock
-  cpp="// C++ implementation for Lowest Common Ancestor (LCA)
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    // Standard Binary Tree LCA
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if (!root || root == p || root == q) return root;
+        
+        TreeNode* left = lowestCommonAncestor(root->left, p, q);
+        TreeNode* right = lowestCommonAncestor(root->right, p, q);
+        
+        if (left && right) return root; // p and q are in different subtrees
+        
+        return left ? left : right; // pass up the non-null result
     }
 };"
-  java="// Java implementation for Lowest Common Ancestor (LCA)
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-    TreeNode(int val, TreeNode left, TreeNode right) {
-        this.val = val;
-        this.left = left;
-        this.right = right;
-    }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    // Binary Search Tree LCA (Optimized)
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null) return null;
+        
+        if (p.val < root.val && q.val < root.val) {
+            return lowestCommonAncestor(root.left, p, q);
+        } else if (p.val > root.val && q.val > root.val) {
+            return lowestCommonAncestor(root.right, p, q);
+        } else {
+            return root; // Split occurs here
+        }
     }
 }"
-  python="# Python implementation for Lowest Common Ancestor (LCA)
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    # Standard Binary Tree LCA
+    def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+        if not root or root == p or root == q:
+            return root
+            
+        left = self.lowestCommonAncestor(root.left, p, q)
+        right = self.lowestCommonAncestor(root.right, p, q)
+        
+        if left and right:
+            return root
+            
+        return left if left else right"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(N)"
+  best="O(log N)"
   average="O(N)"
   worst="O(N)"
   space="O(H)"
-  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+  description="For a BST, time complexity is O(H) representing a single path down the tree. For a general Binary Tree, time is O(N) because we might need to search the entire tree."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
-- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+- **Confusing BST vs Binary Tree:** The most common mistake is applying the O(N) general binary tree solution to a BST. You will pass the test cases, but the interviewer will fail you for not utilizing the BST property!
+- **Not Handling 'Node as Descendant':** The problem states a node can be an ancestor of itself. The base case `if (root == p || root == q) return root` handles this perfectly without further traversal.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
-    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
-    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+    "If given a general binary tree, but the nodes have 'parent' pointers, you can solve this without recursion! It becomes an 'Intersection of Two Linked Lists' problem.",
+    "In the BST iterative approach, space complexity becomes O(1) instead of O(H). Always offer to code the iterative version for the BST.",
+    "LCA is a very common sub-routine in hard problems, like finding the distance between two nodes."
   ]}
 />

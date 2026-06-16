@@ -11,64 +11,98 @@ summary: "An essential deep-dive into Longest Palindromic Subsequence. This arti
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Longest Palindromic Subsequence**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+The **Longest Palindromic Subsequence (LPS)** problem asks you to find the length of the longest palindromic subsequence in a given string.
 
 ### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+A brilliant hack to solve this problem is to use our existing knowledge of the **Longest Common Subsequence (LCS)** pattern. 
+A palindrome reads the same forwards and backwards. Therefore, if we reverse the input string and find the longest common subsequence between the original string and the reversed string, we will magically find the longest palindromic subsequence!
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+Alternatively, you can solve it with interval DP (like MCM). Check the outer characters of an interval `(i, j)`:
+- If `s[i] == s[j]`: The length increases by 2. `2 + dp(i+1, j-1)`.
+- If `s[i] != s[j]`: We shrink the interval from either side and take the max. `max(dp(i+1, j), dp(i, j-1))`.
+
+Below, we show the classic LCS-reversal approach as it's easier to code.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Longest Palindromic Subsequence
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int longestPalindromeSubseq(string s) {
+        string text1 = s;
+        string text2 = s;
+        reverse(text2.begin(), text2.end());
+        
+        int n = s.length();
+        vector<vector<int>> dp(n + 1, vector<int>(n + 1, 0));
+        
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (text1[i - 1] == text2[j - 1]) {
+                    dp[i][j] = 1 + dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+        return dp[n][n];
     }
 };"
-  java="// Java implementation for Longest Palindromic Subsequence
-import java.util.*;
-
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int longestPalindromeSubseq(String s) {
+        String text1 = s;
+        String text2 = new StringBuilder(s).reverse().toString();
+        
+        int n = s.length();
+        int[][] dp = new int[n + 1][n + 1];
+        
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (text1.charAt(i - 1) == text2.charAt(j - 1)) {
+                    dp[i][j] = 1 + dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+        return dp[n][n];
     }
 }"
-  python="# Python implementation for Longest Palindromic Subsequence
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def longestPalindromeSubseq(self, s: str) -> int:
+        text1 = s
+        text2 = s[::-1]
+        n = len(s)
+        
+        dp = [[0] * (n + 1) for _ in range(n + 1)]
+        
+        for i in range(1, n + 1):
+            for j in range(1, n + 1):
+                if text1[i - 1] == text2[j - 1]:
+                    dp[i][j] = 1 + dp[i - 1][j - 1]
+                else:
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+                    
+        return dp[n][n]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(N^2)"
+  average="O(N^2)"
+  worst="O(N^2)"
+  space="O(N^2)"
+  description="Time and space complexity are O(N^2) using the standard approach. Space can be optimized to O(N) by keeping only two rows of the DP table."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- Confusing Substring with Subsequence. A Longest Palindromic *Substring* problem requires expanding around centers or Manacher's algorithm, whereas *Subsequence* uses 2D DP.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "Solving LPS by reversing the string and running LCS shows excellent pattern recognition and reusability of knowledge.",
+    "If the interviewer asks for the minimum insertions to make a string a palindrome, the answer is just: `length_of_string - length_of_lps`."
   ]}
 />

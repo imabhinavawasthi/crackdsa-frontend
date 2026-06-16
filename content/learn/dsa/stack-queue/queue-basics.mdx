@@ -11,55 +11,122 @@ summary: "An essential guide to Queue Basics, exploring its applications, implem
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Queue Basics**. This topic is a cornerstone of the Stack & Queue module. Understanding it thoroughly will significantly improve your problem-solving speed.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+A **Queue** is a linear data structure that operates on the **FIFO (First In First Out)** principle. This means that the first element added to the queue will be the first one to be removed. You can think of a queue like a line of people waiting for a bus—the person who arrives first gets on the bus first.
+
+Queues are heavily used in scheduling algorithms, managing requests in web servers, breadth-first search (BFS) algorithms in graphs and trees, and handling asynchronous data streams.
+
+The core operations for a queue are:
+- **Enqueue (Push):** Adds an element to the rear (back) of the queue.
+- **Dequeue (Pop):** Removes an element from the front of the queue.
+- **Front / Peek:** Returns the front element without removing it.
+- **isEmpty:** Checks whether the queue is empty.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Queue Basics
-#include <iostream>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Queue {
+private:
+    vector<int> elements;
+    int frontIndex;
 public:
-    void solve() {
-        // Implementation here
+    Queue() {
+        frontIndex = 0;
+    }
+    void enqueue(int x) {
+        elements.push_back(x);
+    }
+    void dequeue() {
+        if (frontIndex < elements.size()) {
+            frontIndex++;
+        }
+    }
+    int front() {
+        if (frontIndex < elements.size()) {
+            return elements[frontIndex];
+        }
+        return -1; // Or throw exception
+    }
+    bool isEmpty() {
+        return frontIndex >= elements.size();
     }
 };"
-  java="// Java implementation for Queue Basics
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Queue {
+    private List<Integer> elements;
+    private int frontIndex;
+    
+    public Queue() {
+        elements = new ArrayList<>();
+        frontIndex = 0;
+    }
+    
+    public void enqueue(int x) {
+        elements.add(x);
+    }
+    
+    public void dequeue() {
+        if (frontIndex < elements.size()) {
+            frontIndex++;
+        }
+    }
+    
+    public int front() {
+        if (frontIndex < elements.size()) {
+            return elements.get(frontIndex);
+        }
+        return -1; // Or throw exception
+    }
+    
+    public boolean isEmpty() {
+        return frontIndex >= elements.size();
     }
 }"
-  python="# Python implementation for Queue Basics
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="from collections import deque
+
+class Queue:
+    def __init__(self):
+        # We use deque instead of a list for O(1) pops from the left
+        self.elements = deque()
+        
+    def enqueue(self, x: int) -> None:
+        self.elements.append(x)
+        
+    def dequeue(self) -> None:
+        if self.elements:
+            self.elements.popleft()
+            
+    def front(self) -> int:
+        if self.elements:
+            return self.elements[0]
+        return -1 # Or raise exception
+        
+    def is_empty(self) -> bool:
+        return len(self.elements) == 0"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  average="O(1)"
+  worst="O(1)"
+  space="O(N)"
+  description="Enqueue, dequeue, and peek operations run in O(1) time complexity. Using built-in classes like deque in Python or Queue in Java ensures O(1) performance. The space complexity is O(N) where N is the total number of elements present."
 />
 
 # Common Pitfalls
+
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Using arrays/lists improperly:** Using a dynamic array and physically removing the 0th element takes O(N) time because all subsequent elements must be shifted. Always use double-ended queues (deque) or keep a front pointer.
+- **Dequeuing an Empty Queue:** Make sure you verify `isEmpty()` before accessing the front element, or you'll run into index out-of-bound errors.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If a problem involves processing items in the exact order they arrive, a queue is your primary tool.",
+    "For graph or tree traversal where you need to process level-by-level (Breadth-First Search), use a queue.",
+    "In Python, never use `list.pop(0)` for a queue! It takes O(N) time and ruins your algorithm's efficiency. Use `collections.deque` and `popleft()`."
   ]}
 />

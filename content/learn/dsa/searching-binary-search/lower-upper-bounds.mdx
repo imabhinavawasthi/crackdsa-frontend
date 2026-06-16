@@ -11,55 +11,138 @@ summary: "An essential guide to Lower and Upper Bounds, exploring its applicatio
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Lower and Upper Bounds**. This topic is a cornerstone of the Searching & Binary Search module. Understanding it thoroughly will significantly improve your problem-solving speed.
+In C++ STL, `lower_bound` and `upper_bound` are highly optimized binary search functions. However, knowing how to implement them from scratch is essential because many algorithmic problems require you to apply this exact logic without relying on built-in libraries.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### Lower Bound
+The **lower bound** of a `target` is defined as the first element in a sorted array that is **greater than or equal to** (`>=`) the target. 
+If all elements are smaller than the target, the lower bound is typically considered to be the size of the array (out of bounds).
+
+### Upper Bound
+The **upper bound** of a `target` is defined as the first element in a sorted array that is **strictly greater than** (`>`) the target.
+Just like lower bound, if no such element exists, it returns the size of the array.
+
+These concepts are incredibly powerful. For example, to find the number of elements equal to `target`, you can simply compute `upper_bound(target) - lower_bound(target)`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Lower and Upper Bounds
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int lowerBound(vector<int>& arr, int target) {
+        int left = 0, right = arr.size() - 1;
+        int ans = arr.size();
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (arr[mid] >= target) {
+                ans = mid;      // Found a potential answer
+                right = mid - 1; // Look for a smaller index
+            } else {
+                left = mid + 1;
+            }
+        }
+        return ans;
+    }
+
+    int upperBound(vector<int>& arr, int target) {
+        int left = 0, right = arr.size() - 1;
+        int ans = arr.size();
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (arr[mid] > target) {
+                ans = mid;      // Found a potential answer
+                right = mid - 1; // Look for a smaller index
+            } else {
+                left = mid + 1;
+            }
+        }
+        return ans;
     }
 };"
-  java="// Java implementation for Lower and Upper Bounds
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int lowerBound(int[] arr, int target) {
+        int left = 0, right = arr.length - 1;
+        int ans = arr.length;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (arr[mid] >= target) {
+                ans = mid;      // Found a potential answer
+                right = mid - 1; // Look for a smaller index
+            } else {
+                left = mid + 1;
+            }
+        }
+        return ans;
+    }
+
+    public int upperBound(int[] arr, int target) {
+        int left = 0, right = arr.length - 1;
+        int ans = arr.length;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (arr[mid] > target) {
+                ans = mid;      // Found a potential answer
+                right = mid - 1; // Look for a smaller index
+            } else {
+                left = mid + 1;
+            }
+        }
+        return ans;
     }
 }"
-  python="# Python implementation for Lower and Upper Bounds
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def lowerBound(self, arr: list[int], target: int) -> int:
+        left, right = 0, len(arr) - 1
+        ans = len(arr)
+        
+        while left <= right:
+            mid = left + (right - left) // 2
+            if arr[mid] >= target:
+                ans = mid
+                right = mid - 1
+            else:
+                left = mid + 1
+                
+        return ans
+
+    def upperBound(self, arr: list[int], target: int) -> int:
+        left, right = 0, len(arr) - 1
+        ans = len(arr)
+        
+        while left <= right:
+            mid = left + (right - left) // 2
+            if arr[mid] > target:
+                ans = mid
+                right = mid - 1
+            else:
+                left = mid + 1
+                
+        return ans"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(log N)"
+  average="O(log N)"
+  worst="O(log N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="Both functions halve the search space at every step, taking O(log N) time. The space complexity is O(1) as no extra memory is allocated."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Confusing the conditions: Lower bound uses `>=` while upper bound uses `>`.
+- Initializing `ans` to `-1` instead of `array.size()`. If all elements are smaller than the target, the correct bound is conceptually at index `N`, not `-1`.
+- Forgetting to shrink the right side when you find a valid condition. You must keep searching leftward to find the *first* occurrence.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "In Python, mention the `bisect_left` and `bisect_right` modules. In C++, mention `std::lower_bound` and `std::upper_bound`.",
+    "If an interviewer asks how to find the number of elements in a range [A, B] efficiently, the answer is `upper_bound(B) - lower_bound(A)`.",
+    "These bounds form the foundation for all 'Binary Search on Answer' problems."
   ]}
 />

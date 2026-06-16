@@ -11,78 +11,80 @@ summary: "An essential guide to BST Properties & Introduction, mastering O(log N
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **BST Properties & Introduction**. This topic is a cornerstone of the Binary Search Trees module. A Binary Search Tree is a special type of binary tree where every node in the left subtree is strictly smaller than the root, and every node in the right subtree is strictly greater.
+A **Binary Search Tree (BST)** is a powerful node-based binary tree data structure with the following critical properties:
+1. The left subtree of a node contains only nodes with keys **strictly lesser** than the node's key.
+2. The right subtree of a node contains only nodes with keys **strictly greater** than the node's key.
+3. Both the left and right subtrees must also be binary search trees.
+
+This structure allows for extremely fast lookups, additions, and deletions of items, typically taking $O(\log N)$ time for balanced trees. 
 
 ### Core Intuition
-Because of this property, an **Inorder Traversal** of a valid BST will *always* yield a perfectly sorted sequence! This allows us to perform searches, insertions, and deletions in O(log N) average time, making it incredibly powerful for dynamic data.
+Because of its strict ordering, performing an **Inorder Traversal** (Left -> Root -> Right) on a valid BST guarantees that you will visit the nodes in strictly increasing (sorted) order. This property is frequently exploited in interview questions to solve problems optimally without needing extra sorts!
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for BST Properties & Introduction
-#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode() : val(0), left(nullptr), right(nullptr) {}
-    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
-};
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(TreeNode* root) {
-        // Implementation here
+    void inorder(TreeNode* root, vector<int>& res) {
+        if (!root) return;
+        inorder(root->left, res);
+        res.push_back(root->val);
+        inorder(root->right, res);
+    }
+    
+    vector<int> bstToArray(TreeNode* root) {
+        vector<int> res;
+        inorder(root, res);
+        return res;
     }
 };"
-  java="// Java implementation for BST Properties & Introduction
-class TreeNode {
-    int val;
-    TreeNode left;
-    TreeNode right;
-    TreeNode() {}
-    TreeNode(int val) { this.val = val; }
-}
-
-class Solution {
-    public void solve(TreeNode root) {
-        // Implementation here
+  java="class Solution {
+    private void inorder(TreeNode root, List<Integer> res) {
+        if (root == null) return;
+        inorder(root.left, res);
+        res.add(root.val);
+        inorder(root.right, res);
+    }
+    
+    public List<Integer> bstToArray(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        inorder(root, res);
+        return res;
     }
 }"
-  python="# Python implementation for BST Properties & Introduction
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-class Solution:
-    def solve(self, root: TreeNode):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def bstToArray(self, root: TreeNode) -> list[int]:
+        res = []
+        def inorder(node):
+            if not node:
+                return
+            inorder(node.left)
+            res.append(node.val)
+            inorder(node.right)
+        inorder(root)
+        return res"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
+  best="O(N)"
+  average="O(N)"
   worst="O(N)"
   space="O(H)"
-  description="In a balanced BST, operations take O(log N) time. However, if the tree becomes skewed (like a linked list), the time complexity degrades to O(N). Space complexity is O(H) corresponding to the recursive call stack."
+  description="To traverse the entire BST, the time complexity is O(N) as every node must be visited. The space complexity is O(H) where H is the height of the tree, representing the recursion stack depth. For a balanced tree, H = log N."
 />
 
 # Common Pitfalls
 <Warning>
-- **Local Validation Mistake:** Validating a BST by only checking if `root.left.val < root.val < root.right.val` is INCORRECT. An element deep in the right subtree could be smaller than the main root. You must pass down an allowed `[min, max]` range constraint!
-- **Modifying structure during iteration:** Deleting a node with two children requires finding the inorder successor or predecessor to replace it, which is a notorious source of bugs.
+- Assuming a binary tree is a BST just because `node.left.val < node.val < node.right.val`. The BST property must hold for all descendants, meaning every node in the right subtree must be greater than the root!
+- Over-complicating search problems. Many tree problems become trivial when you realize the input is a BST and you can just discard half the tree at each step.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks if a tree is a valid BST, the immediate answer is to either pass down `(min, max)` boundaries recursively, or do an inorder traversal and check if the result is sorted.",
-    "If a problem asks for the 'Kth smallest/largest' element in a BST, you should instantly think of Inorder Traversal with a counter.",
-    "Be careful: does the interviewer allow duplicate values in the BST? If so, decide whether they go to the left or right subtree."
+    "Whenever a problem involves finding the 'k-th smallest' element, an Inorder Traversal is the gold standard.",
+    "If you need to validate a BST, passing down allowed (min, max) boundaries is the most robust approach.",
+    "Mention to your interviewer that unbalanced BSTs can degrade to O(N) time for search operations, acting like a Linked List."
   ]}
 />

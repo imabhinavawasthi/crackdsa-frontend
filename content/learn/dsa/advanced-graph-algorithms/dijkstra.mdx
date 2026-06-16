@@ -11,55 +11,100 @@ summary: "An essential guide to Dijkstra's Algorithm, exploring its applications
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Dijkstra's Algorithm**. This topic is a cornerstone of the Advanced Graph Algorithms module. Understanding it thoroughly will significantly improve your problem-solving speed.
+**Dijkstra's Algorithm** is the go-to approach for finding the shortest paths from a starting node to all other nodes. Think of it as BFS but equipped to handle edge weights smoothly using a Priority Queue.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+We continually explore the closest unvisited node. By doing so greedily, we guarantee that the first time we visit a node, we have found the absolute shortest path to it (provided no negative weights exist). 
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Dijkstra's Algorithm
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    vector<int> solve(int V, vector<vector<pair<int,int>>>& adj, int S) {
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<>> pq;
+        vector<int> dist(V, 1e9);
+        dist[S] = 0;
+        pq.push({0, S});
+        
+        while (!pq.empty()) {
+            int d = pq.top().first, u = pq.top().second;
+            pq.pop();
+            
+            if (d > dist[u]) continue;
+            
+            for (auto& edge : adj[u]) {
+                int v = edge.first, w = edge.second;
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    pq.push({dist[v], v});
+                }
+            }
+        }
+        return dist;
     }
 };"
-  java="// Java implementation for Dijkstra's Algorithm
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int[] solve(int V, List<List<int[]>> adj, int S) {
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+        int[] dist = new int[V];
+        Arrays.fill(dist, (int)(1e9));
+        dist[S] = 0;
+        pq.add(new int[]{0, S});
+        
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int d = curr[0], u = curr[1];
+            if (d > dist[u]) continue;
+            
+            for (int[] edge : adj.get(u)) {
+                int v = edge[0], w = edge[1];
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    pq.add(new int[]{dist[v], v});
+                }
+            }
+        }
+        return dist;
     }
 }"
-  python="# Python implementation for Dijkstra's Algorithm
+  python="import heapq
+
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def solve(self, V, adj, S):
+        pq = [(0, S)]
+        dist = [float('inf')] * V
+        dist[S] = 0
+        
+        while pq:
+            d, u = heapq.heappop(pq)
+            if d > dist[u]: continue
+            
+            for v, w in adj[u]:
+                if dist[u] + w < dist[v]:
+                    dist[v] = dist[u] + w
+                    heapq.heappush(pq, (dist[v], v))
+        return dist"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(E log V)"
+  average="O(E log V)"
+  worst="O(E log V)"
+  space="O(V)"
+  description="Using a Priority Queue ensures we fetch the minimum distance in O(log V) time, resulting in an overall time of O(E log V). Space complexity is O(V) for the dist array and priority queue."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Forgetting to skip stale priority queue entries with `if (d > dist[u]) continue;`.
+- Applying Dijkstra blindly on graphs with negative cycles causing infinite loops.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If edge weights are exactly 0 or 1, you can use a 0-1 BFS with a Deque in O(V + E) time instead.",
+    "If edge weights are all uniform (e.g., all 1), standard BFS is sufficient and faster."
   ]}
 />

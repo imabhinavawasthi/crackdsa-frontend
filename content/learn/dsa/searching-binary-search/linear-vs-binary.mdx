@@ -11,37 +11,79 @@ summary: "An essential guide to Linear Search vs Binary Search, mastering O(log 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Linear Search vs Binary Search**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+Understanding the difference between Linear Search and Binary Search is crucial for any programmer. The choice between these two algorithms dictates how effectively your code will scale with larger datasets.
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+### Linear Search
+Linear search involves scanning an array sequentially from start to finish. It is straightforward and requires no prerequisites on the data (like sorting). However, its linear time complexity means it scales poorly. If you have 1 million elements, you might need to make 1 million comparisons.
+
+### Binary Search
+Binary search uses a divide-and-conquer strategy. It requires the data to be sorted (or to have a monotonic property). By comparing the middle element of the search space with the target, it eliminates half of the search space in a single step. For 1 million elements, binary search needs at most 20 comparisons.
+
+### Key Differences
+- **Prerequisites:** Linear search works on any collection. Binary search strictly requires sorted or monotonic data.
+- **Data Structures:** Linear search works well on linked lists. Binary search requires random access, making it suitable for arrays but highly inefficient for linked lists.
+- **Time Complexity:** Linear search is `O(N)`. Binary search is `O(log N)`.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Linear Search vs Binary Search
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int searchComparisons(vector<int>& arr, int target) {
+        // Linear Search: O(N)
+        for(int i = 0; i < arr.size(); i++) {
+            if(arr[i] == target) return i;
+        }
+        
+        // Binary Search: O(log N)
+        // Only applicable if arr is sorted!
+        int left = 0, right = arr.size() - 1;
+        while(left <= right) {
+            int mid = left + (right - left) / 2;
+            if(arr[mid] == target) return mid;
+            if(arr[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return -1;
     }
 };"
-  java="// Java implementation for Linear Search vs Binary Search
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int searchComparisons(int[] arr, int target) {
+        // Linear Search: O(N)
+        for(int i = 0; i < arr.length; i++) {
+            if(arr[i] == target) return i;
+        }
+        
+        // Binary Search: O(log N)
+        // Only applicable if arr is sorted!
+        int left = 0, right = arr.length - 1;
+        while(left <= right) {
+            int mid = left + (right - left) / 2;
+            if(arr[mid] == target) return mid;
+            if(arr[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return -1;
     }
 }"
-  python="# Python implementation for Linear Search vs Binary Search
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def search_comparisons(self, arr: list[int], target: int) -> int:
+        # Linear Search: O(N)
+        for i in range(len(arr)):
+            if arr[i] == target:
+                return i
+                
+        # Binary Search: O(log N)
+        # Only applicable if arr is sorted!
+        left, right = 0, len(arr) - 1
+        while left <= right:
+            mid = left + (right - left) // 2
+            if arr[mid] == target:
+                return mid
+            if arr[mid] < target:
+                left = mid + 1
+            else:
+                right = mid - 1
+        return -1"
 />
 
 # Complexity Analysis
@@ -50,19 +92,21 @@ class Solution:
   average="O(log N)"
   worst="O(log N)"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="Binary search strictly operates in O(log N) due to halving the search space. Linear search takes O(N) because it visits every element. Space complexity is O(1) for both iterative approaches."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- Applying Binary Search to an unsorted array, which yields completely incorrect results.
+- Over-optimizing small arrays: For tiny datasets (e.g., n < 10), linear search can sometimes be faster in practice due to better cache locality and no branch misprediction penalties.
+- Forgetting that sorting an array takes `O(N log N)`, so if you only need to search once, just use Linear Search.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "If an interviewer asks you to search multiple times in the same array, propose sorting it once (O(N log N)) and using Binary Search (O(log N) per query).",
+    "Watch out for questions where elements are constantly inserted. Maintaining a sorted array for binary search becomes O(N) per insertion. Consider a BST or Hash Map instead.",
+    "Always state the time complexity of the sorting step when comparing the two."
   ]}
 />

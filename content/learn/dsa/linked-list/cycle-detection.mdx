@@ -11,55 +11,81 @@ summary: "An essential guide to Cycle Detection, exploring its applications, imp
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Cycle Detection**. This topic is a cornerstone of the Linked List module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Cycle Detection is a classic problem that asks whether a linked list contains a cycle. A cycle occurs if there is some node in the list that can be reached again by continuously following the `next` pointer.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### Floyd's Tortoise and Hare
+The most optimal way to detect a cycle is to use two pointers moving at different speeds. 
+- The **Slow Pointer (Tortoise)** moves one step at a time.
+- The **Fast Pointer (Hare)** moves two steps at a time.
+
+If there is no cycle, the fast pointer will simply reach the end of the list. If there is a cycle, the fast pointer will eventually \"lap\" the slow pointer and they will point to the exact same node.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Cycle Detection
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    bool hasCycle(ListNode *head) {
+        ListNode* slow = head;
+        ListNode* fast = head;
+        
+        while (fast != nullptr && fast->next != nullptr) {
+            slow = slow->next;
+            fast = fast->next->next;
+            if (slow == fast) {
+                return true;
+            }
+        }
+        return false;
     }
 };"
-  java="// Java implementation for Cycle Detection
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="public class Solution {
+    public boolean hasCycle(ListNode head) {
+        ListNode slow = head;
+        ListNode fast = head;
+        
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            if (slow == fast) {
+                return true;
+            }
+        }
+        return false;
     }
 }"
-  python="# Python implementation for Cycle Detection
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def hasCycle(self, head: Optional[ListNode]) -> bool:
+        slow = head
+        fast = head
+        
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+            if slow == fast:
+                return True
+                
+        return False"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
+  best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="We traverse the list in O(N) time. Since we only use two pointers, the space complexity is O(1). A naive approach using a Hash Set would use O(N) space."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Null Pointer Exceptions:** Ensure you check `fast` and `fast.next` for null before attempting to access `fast.next.next`.
+- **Initialization:** Both pointers should typically start at the `head`, though starting `fast` at `head.next` is also valid if you adjust the loop condition appropriately.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Before writing code, explain the brute force approach (using a Hash Set to store visited nodes) and its O(N) space complexity.",
+    "Mention Floyd's Tortoise and Hare algorithm by name; it shows you have a strong theoretical background."
   ]}
 />

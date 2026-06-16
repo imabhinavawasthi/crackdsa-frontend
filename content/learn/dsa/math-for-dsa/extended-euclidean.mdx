@@ -1,67 +1,122 @@
 ---
 title: "Extended Euclidean Algorithm"
 category: "Math for DSA"
-readTime: "9 min read"
+readTime: "12 min read"
 lastUpdated: "June 16, 2026"
 whatYouWillLearn:
-  - "Understand the mathematical intuition behind Extended Euclidean Algorithm."
-  - "Learn the standard algorithms and their edge cases."
-  - "Master the time and space complexity analysis."
-summary: "An essential guide to Extended Euclidean Algorithm, breaking down complex mathematical formulas into simple code for coding interviews."
+  - "Understand Bézout's Identity."
+  - "Learn how the Extended Euclidean Algorithm tracks coefficients."
+  - "Discover how to use it to find the Modular Multiplicative Inverse."
+summary: "An advanced extension of the GCD algorithm that finds integer coefficients for Bézout's identity, heavily used in cryptography and advanced modular arithmetic."
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Extended Euclidean Algorithm**. Mathematical algorithms are extremely common in competitive programming and frequently appear as optimization steps in technical interviews.
 
-### Core Intuition
-The primary goal here is to optimize mathematical operations that would normally take O(N) or O(N^2) time down to O(log N) or O(sqrt N) using mathematical properties and number theory.
+The standard Euclidean algorithm only computes the Greatest Common Divisor (GCD) of two numbers $A$ and $B$. However, sometimes we need more information.
+
+**Bézout's Identity** states that for any two integers $A$ and $B$, there exist integers $X$ and $Y$ such that:
+$A \cdot X + B \cdot Y = GCD(A, B)$
+
+The **Extended Euclidean Algorithm** not only finds the GCD, but it also finds these coefficients $X$ and $Y$. 
+
+### Why is this useful?
+The primary use of the Extended Euclidean Algorithm in Competitive Programming and DSA is to find the **Modular Multiplicative Inverse**. 
+If $GCD(A, M) = 1$, then:
+$A \cdot X + M \cdot Y = 1$
+Taking modulo $M$ on both sides:
+$A \cdot X \equiv 1 \pmod M$
+
+Thus, the coefficient $X$ is the modular inverse of $A$ modulo $M$!
+
+### The Math Behind It
+At the base case of our recursion (when $B = 0$), we know $GCD = A$.
+At this point, the equation $A \cdot X + B \cdot Y = A$ is trivially satisfied if $X = 1$ and $Y = 0$.
+
+As the recursion unwinds back to the top, we can update $X$ and $Y$ using the results from the child call ($X_1, Y_1$):
+- $X = Y_1$
+- $Y = X_1 - \lfloor \frac{A}{B} \rfloor \cdot Y_1$
 
 # Code Implementation
+
+Because we need to return three values (the GCD, X, and Y), implementation varies slightly by language.
+
 <CodeBlock
-  cpp="// C++ implementation for Extended Euclidean Algorithm
+  cpp="// C++ Implementation
 #include <iostream>
 using namespace std;
 
-class Solution {
-public:
-    int solve() {
-        // Implementation here
-        return 0;
+// Returns the GCD, and sets x and y via pass-by-reference
+int extendedGCD(int a, int b, int &x, int &y) {
+    if (b == 0) {
+        x = 1;
+        y = 0;
+        return a;
     }
-};"
-  java="// Java implementation for Extended Euclidean Algorithm
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    
+    int x1, y1;
+    int d = extendedGCD(b, a % b, x1, y1);
+    
+    x = y1;
+    y = x1 - y1 * (a / b);
+    
+    return d;
+}"
+  java="// Java Implementation
+class MathUtils {
+    // Java doesn't have pass-by-reference for primitives,
+    // so we return an array: [gcd, x, y]
+    public static int[] extendedGCD(int a, int b) {
+        if (b == 0) {
+            return new int[]{a, 1, 0};
+        }
+        
+        int[] result = extendedGCD(b, a % b);
+        int gcd = result[0];
+        int x1 = result[1];
+        int y1 = result[2];
+        
+        int x = y1;
+        int y = x1 - y1 * (a / b);
+        
+        return new int[]{gcd, x, y};
     }
 }"
-  python="# Python implementation for Extended Euclidean Algorithm
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="# Python Implementation
+def extended_gcd(a, b):
+    if b == 0:
+        # Returns gcd, x, y
+        return a, 1, 0
+        
+    gcd, x1, y1 = extended_gcd(b, a % b)
+    
+    x = y1
+    y = x1 - y1 * (a // b)
+    
+    return gcd, x, y"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(log N)"
-  average="O(log N)"
-  worst="O(log N)"
-  space="O(1)"
-  description="Math algorithms typically run in O(log N) (like Euclidean GCD or Binary Exponentiation) or O(sqrt N) (like Primality Testing). Space is heavily optimized to O(1) iterative variables."
+  best="O(1)"
+  average="O(\log(\min(A, B)))"
+  worst="O(\log(\min(A, B)))"
+  space="O(\log(\min(A, B)))"
+  description="Exactly the same as the standard Euclidean Algorithm. The depth of the recursion tree is logarithmic."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Integer Overflow:** Mathematical operations easily exceed standard 32-bit integer limits. Always use 64-bit integers (`long long` in C++, `long` in Java) for intermediate accumulations.
-- **Modulo Properties:** Forgetting to apply modulo at every step of addition/multiplication, not just at the end.
+- **Handling Pass-by-Reference in Java/Python**: Unlike C++, Java and Python do not support pass-by-reference for primitive integers. You must return a tuple or an array to propagate the updated $X$ and $Y$ values up the call stack.
+- **Negative Modulo**: When using Extended GCD to find a modular inverse, the resulting $X$ might be negative. You must adjust it: `x = (x % M + M) % M`.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If an array size is incredibly massive (e.g. 10^9), an O(N) linear scan will Time Out. This is a dead giveaway that you need an O(log N) math or binary search approach.",
-    "Always state the constraints out loud. If numbers are up to 10^18, explicitly tell the interviewer you will use 64-bit integer types to prevent overflow."
+    "This is considered a very advanced topic. You are extremely unlikely to see Extended Euclidean Algorithm in a standard FAANG technical interview.",
+    "However, if you are doing Competitive Programming (Codeforces, AtCoder), you MUST know this, as modular arithmetic combinations (nCr % p) heavily rely on modular inverses."
   ]}
 />

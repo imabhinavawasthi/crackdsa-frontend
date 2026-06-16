@@ -11,58 +11,186 @@ summary: "An essential guide to Kruskal's Algorithm, exploring its applications,
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Kruskal's Algorithm**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+**Kruskal's Algorithm** is an elegant, greedy approach for finding the Minimum Spanning Tree (MST) of a weighted, undirected graph. Instead of growing the tree from a single source like Prim's, it builds the MST by greedily picking the smallest edges from anywhere in the graph.
 
 ### Core Intuition
-The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+1. **Sort all edges** in the graph in non-decreasing order of their weight.
+2. Iterate through the sorted edges and use a **Disjoint Set Union (DSU)** to check if adding the current edge forms a cycle.
+3. If the edge's two endpoints belong to different disjoint sets, add the edge to the MST and union their sets.
+4. If they belong to the same set, discard the edge to prevent a cycle.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Kruskal's Algorithm
-#include <iostream>
-#include <vector>
-using namespace std;
+  cpp="class DisjointSet {
+    vector<int> parent, rank;
+public:
+    DisjointSet(int n) {
+        parent.resize(n + 1);
+        rank.resize(n + 1, 0);
+        for(int i = 0; i <= n; i++) parent[i] = i;
+    }
+    int findUPar(int node) {
+        if(node == parent[node]) return node;
+        return parent[node] = findUPar(parent[node]);
+    }
+    void unionByRank(int u, int v) {
+        int ulp_u = findUPar(u);
+        int ulp_v = findUPar(v);
+        if(ulp_u == ulp_v) return;
+        if(rank[ulp_u] < rank[ulp_v]) {
+            parent[ulp_u] = ulp_v;
+        } else if(rank[ulp_v] < rank[ulp_u]) {
+            parent[ulp_v] = ulp_u;
+        } else {
+            parent[ulp_v] = ulp_u;
+            rank[ulp_u]++;
+        }
+    }
+};
 
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int spanningTree(int V, vector<vector<int>> adj[]) {
+        vector<pair<int, pair<int, int>>> edges;
+        for (int i = 0; i < V; i++) {
+            for (auto it : adj[i]) {
+                int adjNode = it[0];
+                int wt = it[1];
+                int node = i;
+                edges.push_back({wt, {node, adjNode}});
+            }
+        }
+        
+        sort(edges.begin(), edges.end());
+        DisjointSet ds(V);
+        int mstWt = 0;
+        
+        for (auto it : edges) {
+            int wt = it.first;
+            int u = it.second.first;
+            int v = it.second.second;
+            
+            if (ds.findUPar(u) != ds.findUPar(v)) {
+                mstWt += wt;
+                ds.unionByRank(u, v);
+            }
+        }
+        return mstWt;
     }
 };"
-  java="// Java implementation for Kruskal's Algorithm
-import java.util.*;
+  java="class DisjointSet {
+    List<Integer> parent = new ArrayList<>();
+    List<Integer> rank = new ArrayList<>();
+    public DisjointSet(int n) {
+        for (int i = 0; i <= n; i++) {
+            rank.add(0);
+            parent.add(i);
+        }
+    }
+    public int findUPar(int node) {
+        if (node == parent.get(node)) return node;
+        int ulp = findUPar(parent.get(node));
+        parent.set(node, ulp);
+        return parent.get(node);
+    }
+    public void unionByRank(int u, int v) {
+        int ulp_u = findUPar(u);
+        int ulp_v = findUPar(v);
+        if (ulp_u == ulp_v) return;
+        if (rank.get(ulp_u) < rank.get(ulp_v)) {
+            parent.set(ulp_u, ulp_v);
+        } else if (rank.get(ulp_v) < rank.get(ulp_u)) {
+            parent.set(ulp_v, ulp_u);
+        } else {
+            parent.set(ulp_v, ulp_u);
+            int rankU = rank.get(ulp_u);
+            rank.set(ulp_u, rankU + 1);
+        }
+    }
+}
 
 class Solution {
-    public void solve() {
-        // Implementation here
+    static int spanningTree(int V, int E, int edges[][]) {
+        Arrays.sort(edges, (a, b) -> a[2] - b[2]);
+        DisjointSet ds = new DisjointSet(V);
+        int mstWt = 0;
+        
+        for (int i = 0; i < edges.length; i++) {
+            int u = edges[i][0];
+            int v = edges[i][1];
+            int wt = edges[i][2];
+            
+            if (ds.findUPar(u) != ds.findUPar(v)) {
+                mstWt += wt;
+                ds.unionByRank(u, v);
+            }
+        }
+        return mstWt;
     }
 }"
-  python="# Python implementation for Kruskal's Algorithm
+  python="class DisjointSet:
+    def __init__(self, n):
+        self.parent = list(range(n + 1))
+        self.rank = [0] * (n + 1)
+        
+    def findUPar(self, node):
+        if node == self.parent[node]:
+            return node
+        self.parent[node] = self.findUPar(self.parent[node])
+        return self.parent[node]
+        
+    def unionByRank(self, u, v):
+        ulp_u = self.findUPar(u)
+        ulp_v = self.findUPar(v)
+        if ulp_u == ulp_v:
+            return
+        if self.rank[ulp_u] < self.rank[ulp_v]:
+            self.parent[ulp_u] = ulp_v
+        elif self.rank[ulp_v] < self.rank[ulp_u]:
+            self.parent[ulp_v] = ulp_u
+        else:
+            self.parent[ulp_v] = ulp_u
+            self.rank[ulp_u] += 1
+
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def spanningTree(self, V, adj):
+        edges = []
+        for i in range(V):
+            for adjNode, wt in adj[i]:
+                edges.append((wt, i, adjNode))
+                
+        edges.sort()
+        ds = DisjointSet(V)
+        mstWt = 0
+        
+        for wt, u, v in edges:
+            if ds.findUPar(u) != ds.findUPar(v):
+                mstWt += wt
+                ds.unionByRank(u, v)
+                
+        return mstWt"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(E log V)"
-  average="O(E log V)"
-  worst="O(E log V)"
+  best="O(E log E)"
+  average="O(E log E)"
+  worst="O(E log E)"
   space="O(V + E)"
-  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+  description="Sorting the edges takes O(E log E) time. The DSU operations take O(α(V)) which is nearly O(1), making the total time complexity O(E log E). Space complexity is O(V + E) for storing the edges and the DSU arrays."
 />
 
 # Common Pitfalls
 <Warning>
-- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
-- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+- **Forgetting DSU Optimization:** Make sure to implement Path Compression and Union by Rank/Size in your DSU. Without them, the find operations can degrade to O(V).
+- **Graph Representation:** Kruskal's algorithm requires a flat list of edges. If given an adjacency list, you must first convert it to an edge list.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
-    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+    "Kruskal's is the preferred choice if the graph is sparse or if the input is already provided as a list of edges.",
+    "Knowing how to write a clean DSU template by heart is essential for acing Kruskal's related problems.",
+    "Kruskal's naturally handles disconnected graphs by generating a Minimum Spanning Forest."
   ]}
 />

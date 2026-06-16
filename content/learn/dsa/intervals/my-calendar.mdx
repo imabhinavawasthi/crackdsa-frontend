@@ -11,63 +11,118 @@ summary: "An essential guide to My Calendar I, II & III, exploring sweeping logi
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **My Calendar I, II & III**. This topic is a cornerstone of the Intervals module. Interval problems almost always involve time, scheduling, or geometric lines. The entire category revolves around one critical realization: **You must sort the intervals first.**
+The **My Calendar** series on LeetCode tests your ability to dynamically track and query intervals as they are added one by one. Unlike standard interval problems where you receive the entire array of intervals upfront, here you must process a continuous stream of `.book(start, end)` requests.
 
-### Core Intuition
-If you don't sort intervals by their start time, you have to check every interval against every other interval (O(N^2)). But if you sort them, you only ever need to compare the current interval with the *previously processed* interval! This instantly drops the complexity to O(N log N).
+### The Three Variations
+- **My Calendar I**: Return `true` if the new event does *not* overlap with any existing events.
+- **My Calendar II**: Return `true` if the new event does not cause a *triple* overlap. Double overlaps are fine!
+- **My Calendar III**: Return the *maximum number of overlapping events* (the K-booking) across the entire calendar after every insertion.
+
+### Core Intuition: TreeMap / Sweep Line
+For dynamic interval problems, sorting an array every time an element is inserted takes $O(N \log N)$ per insertion, leading to $O(N^2 \log N)$ overall.
+
+Instead, we can use a **TreeMap** (or a Sweep Line array in Python) to maintain a sorted map of timeline events!
+- When an event starts at time `S`, we increment the timeline: `map[S]++`
+- When an event ends at time `E`, we decrement the timeline: `map[E]--`
+
+By iterating through the keys of this sorted map in chronological order, we can keep a running sum of active events. If the running sum ever violates our constraints (e.g., exceeds 1 for Calendar I, exceeds 2 for Calendar II), we know the booking is invalid.
 
 # Code Implementation
+Let's implement **My Calendar III**, as it generalizes the Sweep Line concept perfectly.
 <CodeBlock
-  cpp="// C++ implementation for My Calendar I, II & III
-#include <iostream>
-#include <vector>
+  cpp="#include <map>
 #include <algorithm>
+
 using namespace std;
 
-class Solution {
+class MyCalendarThree {
+private:
+    map<int, int> timeline;
+
 public:
-    void solve(vector<vector<int>>& intervals) {
-        // sort(intervals.begin(), intervals.end());
-        // Implementation here
+    MyCalendarThree() {
+    }
+    
+    int book(int start, int end) {
+        timeline[start]++;
+        timeline[end]--;
+        
+        int active = 0;
+        int maxK = 0;
+        
+        for (auto const& [time, count] : timeline) {
+            active += count;
+            maxK = max(maxK, active);
+        }
+        
+        return maxK;
     }
 };"
-  java="// Java implementation for My Calendar I, II & III
-import java.util.*;
+  java="import java.util.TreeMap;
 
-class Solution {
-    public void solve(int[][] intervals) {
-        // Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
-        // Implementation here
+class MyCalendarThree {
+    private TreeMap<Integer, Integer> timeline;
+
+    public MyCalendarThree() {
+        timeline = new TreeMap<>();
+    }
+    
+    public int book(int start, int end) {
+        timeline.put(start, timeline.getOrDefault(start, 0) + 1);
+        timeline.put(end, timeline.getOrDefault(end, 0) - 1);
+        
+        int active = 0;
+        int maxK = 0;
+        
+        for (int count : timeline.values()) {
+            active += count;
+            maxK = Math.max(maxK, active);
+        }
+        
+        return maxK;
     }
 }"
-  python="# Python implementation for My Calendar I, II & III
-class Solution:
-    def solve(self, intervals: list[list[int]]):
-        # intervals.sort(key=lambda x: x[0])
-        # Implementation here
-        pass"
+  python="from sortedcontainers import SortedDict
+
+class MyCalendarThree:
+    def __init__(self):
+        # Using SortedDict ensures keys are always iterated in order
+        self.timeline = SortedDict()
+
+    def book(self, start: int, end: int) -> int:
+        self.timeline[start] = self.timeline.get(start, 0) + 1
+        self.timeline[end] = self.timeline.get(end, 0) - 1
+        
+        active = 0
+        max_k = 0
+        
+        for count in self.timeline.values():
+            active += count
+            max_k = max(max_k, active)
+            
+        return max_k"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N log N)"
-  average="O(N log N)"
-  worst="O(N log N)"
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
   space="O(N)"
-  description="Sorting the intervals initially dominates the time complexity, resulting in O(N log N). The linear scan that follows takes O(N) time. Space complexity is O(N) because we often need to store the merged or processed intervals in a new array or use a Min-Heap (like in Meeting Rooms II)."
+  description="For each book() call, inserting into the TreeMap takes O(log N). However, we then iterate over the entire map to find the maximum overlap, which takes O(N). Thus, for N bookings, the total time complexity is O(N^2). Space complexity is O(N) to store the timeline events."
 />
 
 # Common Pitfalls
 <Warning>
-- **Comparing Start vs End:** A very common mistake is checking if `current.start < previous.start`. You must check if `current.start <= previous.end` to detect an overlap!
-- **Modifying while Iterating:** Try to avoid modifying the input array in place. It's much safer to push merged/processed intervals into a new result array.
+- **Rollback in I and II**: If a booking is invalid in Calendar I or II, you **must remove the provisional increments** from your map before returning `false`. `map[start]--; map[end]++;`.
+- Not using a `TreeMap` / `std::map`. A standard `HashMap` does not maintain sorted keys, so the chronological sweep line will completely fail.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem involves 'start times', 'end times', 'meetings', or 'flights', you should immediately sort the input array by start time.",
-    "For complex overlaps (like finding the maximum number of simultaneous meetings), the Sweep Line algorithm is the cleanest approach: split every interval into two events: `(start, +1)` and `(end, -1)`. Sort all events by time, and keep a running sum!",
-    "Mention to the interviewer that sorting modifies the input. If the input is read-only, you must allocate O(N) space for a copy."
+    "If the interviewer asks to optimize the O(N) per query time, mention a Segment Tree! A Segment Tree with Lazy Propagation can process each booking in O(log(MAX_TIME)) time.",
+    "Python doesn't have a built-in TreeMap. In interviews, explain that you would use the 'sortedcontainers' library or a bisect array insertion.",
+    "The Sweep Line + TreeMap trick is universally applicable to almost all overlapping scheduling questions."
   ]}
 />

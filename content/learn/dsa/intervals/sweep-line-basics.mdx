@@ -11,55 +11,130 @@ summary: "An essential guide to Sweep Line Basics, exploring its applications, i
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Sweep Line Basics**. This topic is a cornerstone of the Intervals module. Understanding it thoroughly will significantly improve your problem-solving speed.
+The **Sweep Line Algorithm** (often called Line Sweep) is a conceptual framework for solving complex interval, scheduling, and computational geometry problems.
+
+Imagine drawing a vertical line at the start of your timeline (x-axis) and sweeping it from left to right. As the line moves, it "encounters" events. An event is typically the *start* of an interval or the *end* of an interval.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+Instead of treating an interval `[start, end]` as a single object, we tear it apart into two distinct events:
+1. A **Start Event** at time `start`, which adds to our running total (`+1`).
+2. An **End Event** at time `end`, which subtracts from our running total (`-1`).
+
+By sorting all these individual events purely by time, we can iterate through them and maintain a running sum of "active" intervals.
+
+**The Golden Rule of Sweep Line:** If a Start Event and an End Event happen at the exact same time, which one should you process first?
+- If the problem says `[1, 2]` and `[2, 3]` **DO NOT overlap**, process the **End Event first**. (Subtract before adding).
+- If the problem says they **DO overlap**, process the **Start Event first**. (Add before subtracting).
 
 # Code Implementation
+Here is a generalized template for the Sweep Line algorithm to find the maximum number of overlapping intervals.
+
 <CodeBlock
-  cpp="// C++ implementation for Sweep Line Basics
-#include <iostream>
+  cpp="#include <vector>
+#include <algorithm>
+
 using namespace std;
 
-class Solution {
+class SweepLineTemplate {
 public:
-    void solve() {
-        // Implementation here
+    int maxOverlaps(vector<vector<int>>& intervals) {
+        // Pair structure: {time, type} where type is +1 (start) or -1 (end)
+        vector<pair<int, int>> events;
+        
+        for (const auto& interval : intervals) {
+            events.push_back({interval[0], 1});
+            // Using -1 for end event. 
+            // In C++ sort, {2, -1} comes before {2, 1}, naturally prioritizing ends!
+            events.push_back({interval[1], -1}); 
+        }
+        
+        // Sort events primarily by time. 
+        sort(events.begin(), events.end());
+        
+        int currentActive = 0;
+        int maxActive = 0;
+        
+        for (const auto& event : events) {
+            currentActive += event.second;
+            maxActive = max(maxActive, currentActive);
+        }
+        
+        return maxActive;
     }
 };"
-  java="// Java implementation for Sweep Line Basics
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="import java.util.*;
+
+class SweepLineTemplate {
+    public int maxOverlaps(int[][] intervals) {
+        // int[] represents: {time, type}
+        List<int[]> events = new ArrayList<>();
+        
+        for (int[] interval : intervals) {
+            events.add(new int[]{interval[0], 1});
+            events.add(new int[]{interval[1], -1});
+        }
+        
+        // Sort by time. If times are equal, process end events (-1) before start events (1)
+        Collections.sort(events, (a, b) -> {
+            if (a[0] == b[0]) {
+                return Integer.compare(a[1], b[1]);
+            }
+            return Integer.compare(a[0], b[0]);
+        });
+        
+        int currentActive = 0;
+        int maxActive = 0;
+        
+        for (int[] event : events) {
+            currentActive += event[1];
+            maxActive = Math.max(maxActive, currentActive);
+        }
+        
+        return maxActive;
     }
 }"
-  python="# Python implementation for Sweep Line Basics
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class SweepLineTemplate:
+    def max_overlaps(self, intervals: list[list[int]]) -> int:
+        events = []
+        
+        for start, end in intervals:
+            # Tuple: (time, type)
+            # Using -1 for end ensures it is processed before +1 (start) if times are equal
+            events.append((start, 1))
+            events.append((end, -1))
+            
+        # Sort sequentially: first by time, then by type
+        events.sort()
+        
+        current_active = 0
+        max_active = 0
+        
+        for time, event_type in events:
+            current_active += event_type
+            max_active = max(max_active, current_active)
+            
+        return max_active"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N log N)"
+  space="O(N)"
+  description="We create 2N events, which requires O(N) space. Sorting these 2N events takes O(N log N) time. The sweeping iteration takes O(N) time. The overall time bottleneck is the sorting algorithm."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Getting the tie-breaker wrong. If a meeting ends at 10 and another starts at 10, does the room count hit 2 or stay at 1? Usually, meetings don't overlap on exact boundaries, so process the `-1` before the `+1`.
+- Forgetting to separate the interval into two distinct events. You cannot just sort the original interval objects to achieve a sweep line.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Sweep Line is the definitive 'silver bullet' for interval overlap questions. If you are stuck on any scheduling problem, immediately write out the events list and sort it.",
+    "Mention the name 'Sweep Line Algorithm' out loud. It's a formal algorithmic pattern and interviewers love hearing candidates correctly identify the design pattern they are employing."
   ]}
 />

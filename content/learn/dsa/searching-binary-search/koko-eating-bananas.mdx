@@ -11,58 +11,136 @@ summary: "An essential guide to Koko Eating Bananas, mastering O(log N) optimiza
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Koko Eating Bananas**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+This is a classic "Binary Search on Answer" problem. Koko loves to eat bananas. There are `n` piles of bananas, and the `i-th` pile has `piles[i]` bananas. The guards have gone and will come back in `h` hours. Koko can decide her bananas-per-hour eating speed `k`. We need to find the **minimum** integer `k` such that she can eat all the bananas within `h` hours.
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+### The Monotonic Property
+If Koko can eat all bananas at speed `k`, she can definitely eat them at any speed `> k`. 
+If she cannot eat them at speed `k`, she definitely cannot eat them at any speed `< k`.
+This monotonic behavior (False, False, ..., True, True) is the perfect signal to use Binary Search on the speed `k`.
+
+### Search Space
+- **Minimum speed (`low`)**: `1` banana per hour. (She has to eat at least something).
+- **Maximum speed (`high`)**: The maximum number of bananas in a single pile. (Eating faster than the largest pile doesn't save any time, because she can only eat from one pile per hour anyway).
+
+### The Validation Function
+For a proposed speed `mid`, we calculate the total hours required. For each pile, the hours needed is `ceil(pile / mid)`. If the `total_hours <= h`, this speed is valid.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Koko Eating Bananas
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int minEatingSpeed(vector<int>& piles, int h) {
+        int left = 1;
+        int right = 0;
+        for (int p : piles) {
+            right = max(right, p);
+        }
+        
+        int ans = right;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (canEatAll(piles, mid, h)) {
+                ans = mid;       // This speed works, record it
+                right = mid - 1; // Try to find a smaller valid speed
+            } else {
+                left = mid + 1;  // Too slow, need to eat faster
+            }
+        }
+        
+        return ans;
+    }
+
+private:
+    bool canEatAll(const vector<int>& piles, int speed, int h) {
+        long long hours = 0; // Use long long to prevent overflow
+        for (int p : piles) {
+            // Equivalent to ceil(p / speed)
+            hours += (p + speed - 1) / speed; 
+        }
+        return hours <= h;
     }
 };"
-  java="// Java implementation for Koko Eating Bananas
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int minEatingSpeed(int[] piles, int h) {
+        int left = 1;
+        int right = 0;
+        for (int p : piles) {
+            right = Math.max(right, p);
+        }
+        
+        int ans = right;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (canEatAll(piles, mid, h)) {
+                ans = mid;       // This speed works, record it
+                right = mid - 1; // Try to find a smaller valid speed
+            } else {
+                left = mid + 1;  // Too slow, need to eat faster
+            }
+        }
+        
+        return ans;
+    }
+
+    private boolean canEatAll(int[] piles, int speed, int h) {
+        long hours = 0; // Use long to prevent overflow
+        for (int p : piles) {
+            // Equivalent to Math.ceil((double) p / speed)
+            hours += (p + speed - 1) / speed; 
+        }
+        return hours <= h;
     }
 }"
-  python="# Python implementation for Koko Eating Bananas
+  python="import math
+
 class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+    def minEatingSpeed(self, piles: list[int], h: int) -> int:
+        left = 1
+        right = max(piles)
+        ans = right
+        
+        while left <= right:
+            mid = left + (right - left) // 2
+            
+            if self.canEatAll(piles, mid, h):
+                ans = mid        # This speed works, record it
+                right = mid - 1  # Try to find a smaller valid speed
+            else:
+                left = mid + 1   # Too slow, need to eat faster
+                
+        return ans
+
+    def canEatAll(self, piles: list[int], speed: int, h: int) -> bool:
+        hours = 0
+        for p in piles:
+            hours += math.ceil(p / speed)
+        return hours <= h"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(log N)"
-  worst="O(log N)"
+  average="O(N * log(max_pile))"
+  worst="O(N * log(max_pile))"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="The binary search space is from 1 to the maximum element in piles (let's call it M). The binary search takes O(log M) steps. For each step, we iterate through the N piles, taking O(N) time. Total time: O(N log M)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- **Integer Overflow in Hours Calculation:** The total hours accumulated across all piles can easily exceed the 32-bit integer limit if the piles are large and the speed is small. Always use a `long long` (C++) or `long` (Java) for the `hours` accumulator.
+- **Ceiling Division Logic:** Doing `ceil(p / speed)` using floating-point math can introduce precision errors or be slower. Use integer math `(p + speed - 1) / speed` in C++ and Java.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "Start by explaining the brute force approach: try speed = 1, 2, 3... until one works. This clearly establishes the monotonic property and justifies binary search.",
+    "If the interviewer asks about the search space, explicitly explain why `high = max(piles)` is sufficient and why going any faster yields no benefit.",
+    "Highlight your awareness of integer overflows when accumulating the hours in the helper function."
   ]}
 />

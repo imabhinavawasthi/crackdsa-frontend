@@ -11,55 +11,137 @@ summary: "An essential guide to Merge K Sorted Lists, exploring its applications
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Merge K Sorted Lists**. This topic is a cornerstone of the Heaps & Priority Queues module. Understanding it thoroughly will significantly improve your problem-solving speed.
+**Merge K Sorted Lists** is a classic problem that tests your ability to efficiently manage multiple incoming streams of sorted data. Given an array of `k` linked lists, each sorted in ascending order, the goal is to merge them into a single sorted linked list.
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+### The Naive Approach
+A naive approach would be to collect all nodes into an array, sort the array, and then reconstruct a new linked list. If `N` is the total number of nodes across all `k` lists, this takes `O(N log N)` time and `O(N)` auxiliary space. We can do much better.
+
+### The Min-Heap Approach
+Since each list is already sorted, the smallest overall element must be at the head of one of the `k` lists. 
+We can maintain a **Min-Heap of size K** to keep track of the current head of each list.
+1. Insert the head of all `k` lists into the Min-Heap.
+2. Pop the minimum node, append it to our result list.
+3. If the popped node has a next node, push that next node into the heap.
+4. Repeat until the heap is empty.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Merge K Sorted Lists
-#include <iostream>
-using namespace std;
+  cpp="struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode(int x) : val(x), next(NULL) {}
+};
 
 class Solution {
+    struct CompareNode {
+        bool operator()(ListNode* const& p1, ListNode* const& p2) {
+            return p1->val > p2->val;
+        }
+    };
+
 public:
-    void solve() {
-        // Implementation here
+    ListNode* mergeKLists(vector<ListNode*>& lists) {
+        priority_queue<ListNode*, vector<ListNode*>, CompareNode> minHeap;
+        for (auto node : lists) {
+            if (node) minHeap.push(node);
+        }
+        
+        ListNode dummy(0);
+        ListNode* tail = &dummy;
+        
+        while (!minHeap.empty()) {
+            ListNode* minNode = minHeap.top();
+            minHeap.pop();
+            
+            tail->next = minNode;
+            tail = tail->next;
+            
+            if (minNode->next) {
+                minHeap.push(minNode->next);
+            }
+        }
+        return dummy.next;
     }
 };"
-  java="// Java implementation for Merge K Sorted Lists
+  java="class ListNode {
+    int val;
+    ListNode next;
+    ListNode(int x) { val = x; }
+}
+
 class Solution {
-    public void solve() {
-        // Implementation here
+    public ListNode mergeKLists(ListNode[] lists) {
+        PriorityQueue<ListNode> minHeap = new PriorityQueue<>((a, b) -> a.val - b.val);
+        for (ListNode node : lists) {
+            if (node != null) {
+                minHeap.add(node);
+            }
+        }
+        
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy;
+        
+        while (!minHeap.isEmpty()) {
+            ListNode minNode = minHeap.poll();
+            tail.next = minNode;
+            tail = tail.next;
+            
+            if (minNode.next != null) {
+                minHeap.add(minNode.next);
+            }
+        }
+        return dummy.next;
     }
 }"
-  python="# Python implementation for Merge K Sorted Lists
+  python="class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+        
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def mergeKLists(self, lists: list[ListNode]) -> ListNode:
+        import heapq
+        
+        # In Python3, we need to handle tie-breaking if values are equal.
+        # We can use a counter as a tie-breaker.
+        min_heap = []
+        for i, node in enumerate(lists):
+            if node:
+                heapq.heappush(min_heap, (node.val, i, node))
+                
+        dummy = ListNode(0)
+        tail = dummy
+        
+        while min_heap:
+            val, i, node = heapq.heappop(min_heap)
+            tail.next = node
+            tail = tail.next
+            
+            if node.next:
+                heapq.heappush(min_heap, (node.next.val, i, node.next))
+                
+        return dummy.next"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(N log K)"
+  average="O(N log K)"
+  worst="O(N log K)"
+  space="O(K)"
+  description="Every node is pushed and popped exactly once. The heap size never exceeds K. Thus, time complexity is O(N log K). Space complexity is O(K) for the heap."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- In Python, `heapq` will try to compare the entire tuple. If two nodes have the same value, it will try to compare the `ListNode` objects, which will throw a `TypeError`. You must include an index or ID to act as a tie-breaker!
+- Forgetting to check if `lists` contains null pointers initially. Always skip null nodes before pushing into the heap.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Mention that Merge K Sorted Lists can also be solved using Divide and Conquer with O(N log K) time and O(1) space. The Heap approach is easier to write, but Divide & Conquer uses less space.",
+    "Be very careful with custom comparators for `priority_queue` in C++ and `PriorityQueue` in Java. Knowing the syntax by heart looks highly impressive."
   ]}
 />

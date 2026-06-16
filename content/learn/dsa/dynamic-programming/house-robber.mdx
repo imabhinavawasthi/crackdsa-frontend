@@ -11,64 +11,112 @@ summary: "An essential deep-dive into House Robber I & II. This article breaks d
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **House Robber I & II**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+Welcome to the lesson on the **House Robber Pattern**. This is arguably one of the most famous Dynamic Programming paradigms. It introduces the concept of **"Take it or Leave it"** decision making with adjacency constraints.
 
-### Core Intuition
-The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+### House Robber I (Linear Street)
+You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed. The only constraint: adjacent houses have interconnected security systems. You cannot rob two adjacent houses.
 
-### The Recurrence Relation
-Before writing code, always define the DP state: `dp(i) = ...`
-Then, determine the base cases and the transitions. 
+**The DP State Transition:**
+At any house `i`, you have exactly two choices:
+1. **Rob it:** You get `nums[i]` but you cannot have robbed house `i-1`. So you add the max money from house `i-2`.
+2. **Leave it:** You skip this house, meaning your max money is whatever you had up to house `i-1`.
+
+Recurrence: `dp(i) = max(nums[i] + dp(i-2), dp(i-1))`
+
+### House Robber II (Circular Street)
+The street is now a circle. The first house and the last house are connected.
+How do we solve this? Simple! The circular constraint means we cannot rob both house `0` and house `n-1`. Therefore, the optimal solution is the maximum of two separate subproblems:
+1. Rob houses from `0` to `n-2` (ignoring the last house).
+2. Rob houses from `1` to `n-1` (ignoring the first house).
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for House Robber I & II
-#include <iostream>
-#include <vector>
-using namespace std;
+Let's implement the robust $O(1)$ space solution for **House Robber II**, which implicitly covers the logic for House Robber I.
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
+private:
+    int robLinear(vector<int>& nums, int start, int end) {
+        int prev2 = 0; // dp[i-2]
+        int prev1 = 0; // dp[i-1]
+        
+        for (int i = start; i <= end; i++) {
+            int current = max(prev1, nums[i] + prev2);
+            prev2 = prev1;
+            prev1 = current;
+        }
+        return prev1;
+    }
+
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    int rob(vector<int>& nums) {
+        int n = nums.size();
+        if (n == 0) return 0;
+        if (n == 1) return nums[0];
+        if (n == 2) return max(nums[0], nums[1]);
+        
+        // Max of robbing 0 to n-2 OR robbing 1 to n-1
+        return max(robLinear(nums, 0, n - 2), robLinear(nums, 1, n - 1));
     }
 };"
-  java="// Java implementation for House Robber I & II
-import java.util.*;
+  java="class Solution {
+    private int robLinear(int[] nums, int start, int end) {
+        int prev2 = 0; // dp[i-2]
+        int prev1 = 0; // dp[i-1]
+        
+        for (int i = start; i <= end; i++) {
+            int current = Math.max(prev1, nums[i] + prev2);
+            prev2 = prev1;
+            prev1 = current;
+        }
+        return prev1;
+    }
 
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+    public int rob(int[] nums) {
+        int n = nums.length;
+        if (n == 0) return 0;
+        if (n == 1) return nums[0];
+        if (n == 2) return Math.max(nums[0], nums[1]);
+        
+        return Math.max(robLinear(nums, 0, n - 2), robLinear(nums, 1, n - 1));
     }
 }"
-  python="# Python implementation for House Robber I & II
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def rob(self, nums: list[int]) -> int:
+        n = len(nums)
+        if n == 0: return 0
+        if n == 1: return nums[0]
+        if n == 2: return max(nums[0], nums[1])
+        
+        def rob_linear(start, end):
+            prev2, prev1 = 0, 0
+            for i in range(start, end + 1):
+                current = max(prev1, nums[i] + prev2)
+                prev2 = prev1
+                prev1 = current
+            return prev1
+            
+        return max(rob_linear(0, n - 2), rob_linear(1, n - 1))"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N * M)"
-  average="O(N * M)"
-  worst="O(N * M)"
-  space="O(N * M) or O(M)"
-  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(1)"
+  description="For House Robber II, we traverse the array twice, resulting in a time complexity of O(2N) which simplifies to O(N). By only keeping track of prev1 and prev2, we reduce the space complexity to O(1)."
 />
 
 # Common Pitfalls
 <Warning>
-- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
-- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+- **Array bounds on tiny inputs:** If the array only has 1 element, you cannot slice it into `0` to `n-2` safely. Always explicitly handle base cases for `n=1` and `n=2`.
+- **Greedy approach trap:** A common mistake is to sum all even indices and sum all odd indices and return the max. This fails on `[2, 1, 1, 2]` because the optimal choice is index 0 and index 3 (which sum to 4).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
-    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+    "If you see a constraint like 'no two adjacent elements can be selected', it's a massive green flag for the House Robber pattern.",
+    "House Robber III maps this exact logic to a Binary Tree. Instead of `i-1` and `i-2`, it's `node.children` and `node.grandchildren`. Keep the core logic identical!"
   ]}
 />

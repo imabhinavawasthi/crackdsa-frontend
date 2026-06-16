@@ -11,55 +11,120 @@ summary: "An essential guide to Delete Node in BST, exploring its applications, 
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Delete Node in BST**. This topic is a cornerstone of the Binary Search Trees module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Deleting a node from a **Binary Search Tree (BST)** is the most complex of the fundamental operations because we must maintain the strict BST property after the node is removed. 
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+When deleting a node, we encounter three possible cases:
+1. **The node is a leaf (no children):** Simply remove it by returning `null` to its parent.
+2. **The node has one child:** Remove the node and directly connect its parent to its only child.
+3. **The node has two children (The Hard Case):** We cannot simply delete it because it holds two subtrees together. Instead, we:
+   - Find its **Inorder Successor** (the smallest node in its right subtree).
+   - Replace the value of the node we want to delete with the successor's value.
+   - Recursively delete the successor node from the right subtree (which is guaranteed to fall into Case 1 or Case 2, as a successor cannot have a left child!).
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Delete Node in BST
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    TreeNode* deleteNode(TreeNode* root, int key) {
+        if (!root) return nullptr;
+        
+        if (key < root->val) {
+            root->left = deleteNode(root->left, key);
+        } else if (key > root->val) {
+            root->right = deleteNode(root->right, key);
+        } else {
+            // Node found
+            if (!root->left) return root->right;
+            if (!root->right) return root->left;
+            
+            // Case 3: Two children
+            TreeNode* minNode = findMin(root->right);
+            root->val = minNode->val;
+            root->right = deleteNode(root->right, minNode->val);
+        }
+        return root;
+    }
+    
+private:
+    TreeNode* findMin(TreeNode* node) {
+        while (node->left) node = node->left;
+        return node;
     }
 };"
-  java="// Java implementation for Delete Node in BST
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public TreeNode deleteNode(TreeNode root, int key) {
+        if (root == null) return null;
+        
+        if (key < root.val) {
+            root.left = deleteNode(root.left, key);
+        } else if (key > root.val) {
+            root.right = deleteNode(root.right, key);
+        } else {
+            // Node found
+            if (root.left == null) return root.right;
+            if (root.right == null) return root.left;
+            
+            // Case 3: Two children
+            TreeNode minNode = findMin(root.right);
+            root.val = minNode.val;
+            root.right = deleteNode(root.right, minNode.val);
+        }
+        return root;
+    }
+    
+    private TreeNode findMin(TreeNode node) {
+        while (node.left != null) node = node.left;
+        return node;
     }
 }"
-  python="# Python implementation for Delete Node in BST
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def deleteNode(self, root: TreeNode, key: int) -> TreeNode:
+        if not root:
+            return None
+            
+        if key < root.val:
+            root.left = self.deleteNode(root.left, key)
+        elif key > root.val:
+            root.right = self.deleteNode(root.right, key)
+        else:
+            if not root.left:
+                return root.right
+            if not root.right:
+                return root.left
+                
+            min_node = self.findMin(root.right)
+            root.val = min_node.val
+            root.right = self.deleteNode(root.right, min_node.val)
+            
+        return root
+        
+    def findMin(self, node: TreeNode) -> TreeNode:
+        while node.left:
+            node = node.left
+        return node"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
+  best="O(log N)"
+  average="O(log N)"
   worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  space="O(H)"
+  description="Finding the node takes O(H) time. If it has two children, finding the successor takes an additional O(H) time. Thus, the total time complexity is O(H). The space complexity is O(H) due to the recursive call stack."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Forgetting to reassign the pointers `root.left = ...` and `root.right = ...` when unwinding the recursion.
+- In Case 3, blindly trying to rewire pointers instead of swapping values. Swapping values and delegating the deletion of the leaf/single-child successor is vastly simpler and less error-prone.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "You can optionally use the Inorder Predecessor (largest node in the left subtree) instead of the Successor. Both approaches are perfectly valid.",
+    "Be sure to articulate the three distinct cases clearly before writing any code. It shows structured thinking.",
+    "Always remember to return `root` at the end of the recursive function to reconstruct the tree properly."
   ]}
 />

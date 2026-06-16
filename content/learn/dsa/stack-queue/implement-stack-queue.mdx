@@ -11,64 +11,138 @@ summary: "An essential guide to Implement Stack using Queues (and vice versa), e
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Implement Stack using Queues (and vice versa)**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+Implementing a Stack using Queues (or a Queue using Stacks) is a classic interview question that tests your deep understanding of how LIFO and FIFO properties operate fundamentally. 
+
+**Implementing a Queue using Stacks**
+A queue is FIFO, but a stack is LIFO. To simulate FIFO behavior with Stacks, we need two stacks: an `input_stack` and an `output_stack`. 
+When enqueuing elements, we push them onto the `input_stack`. When dequeuing or peeking, we need the oldest element. If `output_stack` is empty, we pop everything from `input_stack` and push it onto `output_stack`. This reverses the order, placing the oldest element at the top of the `output_stack`, ready for O(1) removal.
+
+**Implementing a Stack using Queues**
+To simulate LIFO using queues, we can use a single queue. Every time we push an element, we enqueue it to the back. To make it behave like a stack (where the newest element is at the front), we immediately dequeue all previously existing elements in the queue and re-enqueue them behind the newly added element.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Implement Stack using Queues (and vice versa)
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class MyQueue {
+private:
+    stack<int> s1, s2;
+
+    void transferIfNeeded() {
+        if (s2.empty()) {
+            while (!s1.empty()) {
+                s2.push(s1.top());
+                s1.pop();
+            }
+        }
+    }
+
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    MyQueue() {}
+    
+    void push(int x) {
+        s1.push(x);
+    }
+    
+    int pop() {
+        transferIfNeeded();
+        int topElement = s2.top();
+        s2.pop();
+        return topElement;
+    }
+    
+    int peek() {
+        transferIfNeeded();
+        return s2.top();
+    }
+    
+    bool empty() {
+        return s1.empty() && s2.empty();
     }
 };"
-  java="// Java implementation for Implement Stack using Queues (and vice versa)
-import java.util.*;
+  java="class MyQueue {
+    private Stack<Integer> s1;
+    private Stack<Integer> s2;
 
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+    public MyQueue() {
+        s1 = new Stack<>();
+        s2 = new Stack<>();
+    }
+    
+    public void push(int x) {
+        s1.push(x);
+    }
+    
+    private void transferIfNeeded() {
+        if (s2.isEmpty()) {
+            while (!s1.isEmpty()) {
+                s2.push(s1.pop());
+            }
+        }
+    }
+    
+    public int pop() {
+        transferIfNeeded();
+        return s2.pop();
+    }
+    
+    public int peek() {
+        transferIfNeeded();
+        return s2.peek();
+    }
+    
+    public boolean empty() {
+        return s1.isEmpty() && s2.isEmpty();
     }
 }"
-  python="# Python implementation for Implement Stack using Queues (and vice versa)
-from collections import deque
+  python="class MyQueue:
+    def __init__(self):
+        self.s1 = []
+        self.s2 = []
 
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def push(self, x: int) -> None:
+        self.s1.append(x)
+        
+    def _transfer_if_needed(self):
+        if not self.s2:
+            while self.s1:
+                self.s2.append(self.s1.pop())
+
+    def pop(self) -> int:
+        self._transfer_if_needed()
+        return self.s2.pop()
+
+    def peek(self) -> int:
+        self._transfer_if_needed()
+        return self.s2[-1]
+
+    def empty(self) -> bool:
+        return not self.s1 and not self.s2"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
+  best="O(1)"
+  average="O(1)"
   worst="O(N)"
   space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  description="Pushing takes O(1). Popping/Peeking is O(1) amortized, though worst-case is O(N) if we must transfer all elements from the input stack to the output stack. Over N operations, the transfer happens only once per element, yielding O(1) amortized time."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **Transferring Elements Unnecessarily:** A common mistake is to transfer elements back and forth between the two stacks for every push/pop. This destroys amortized O(1) time and results in O(N) per operation. Only transfer from `input` to `output` when `output` is completely empty.
+- **Forgetting Amortized Cost:** In interviews, candidates often state pop() is strictly O(N). Remember to explain the concept of *amortized time* complexity to show a deeper understanding.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "Focus on the 'amortized' runtime explanation. It's a key sign of strong algorithmic analysis.",
+    "If an interviewer asks how to implement a Stack using a Single Queue, recall the rotate trick: push new element, then pop and push all old elements behind it.",
+    "Understand why this matters: In functional languages or strict environments where only one type of collection might be available, adapting interfaces is a realistic software engineering scenario."
   ]}
 />

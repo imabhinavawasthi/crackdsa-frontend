@@ -11,73 +11,49 @@ summary: "An essential guide to Combination Sum I, II & III, exploring recursion
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Combination Sum I, II & III**. This topic is a cornerstone of the Recursion & Backtracking module. Recursion is the foundation for Trees, Graphs, and Dynamic Programming. If you can't visualize a recursion tree, those advanced topics will be impossible to master.
+The **Combination Sum** series is a classic test of your backtracking skills. It introduces a target constraint: instead of generating all combinations, you only want combinations that sum up to a specific `target`.
 
-### Core Intuition
-Recursion is simply a function calling itself with a slightly smaller input until it hits a Base Case. 
-**Backtracking** is a specialized form of recursion. It's an algorithmic technique for solving problems recursively by trying to build a solution incrementally, one piece at a time, removing those solutions that fail to satisfy the constraints of the problem at any point in time.
+### Combination Sum I
+You are given an array of **distinct** integers and a target. You can use the same element an **unlimited** number of times. Because elements can be reused, when we make our recursive call to explore further, we pass `i` instead of `i + 1`.
+
+### Combination Sum II
+You are given an array with **duplicates**. Each element can be used **only once**. We handle this by:
+1. Sorting the array.
+2. Skipping duplicates in the `for` loop (`if (i > start && nums[i] == nums[i-1]) continue;`).
+3. Passing `i + 1` to the recursive call so elements aren't reused.
+
+### Combination Sum III
+Find all valid combinations of `k` numbers that sum up to `n`, using numbers from `1` to `9` only once. This is a mix of the Subsets template with two constraints: path size must equal `k` and current sum must equal `n`.
 
 # Code Implementation
+Here is the implementation for **Combination Sum I** (unlimited reuse).
+
 <CodeBlock
-  cpp="// C++ implementation for Combination Sum I, II & III
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-    
-private:
-    void backtrack() {
-        // Recursive helper
-    }
-};"
-  java="// Java implementation for Combination Sum I, II & III
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-    
-    private void backtrack() {
-        // Recursive helper
-    }
-}"
-  python="# Python implementation for Combination Sum I, II & III
-class Solution:
-    def solve(self):
-        def backtrack():
-            # Recursive helper
-            pass
-            
-        # Implementation here
-        pass"
+  cpp="class Solution {\npublic:\n    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {\n        vector<vector<int>> res;\n        vector<int> path;\n        backtrack(candidates, target, 0, path, res);\n        return res;\n    }\n    \nprivate:\n    void backtrack(vector<int>& candidates, int target, int start, vector<int>& path, vector<vector<int>>& res) {\n        if (target < 0) return; // Base case: exceeded target\n        if (target == 0) {\n            res.push_back(path); // Base case: found valid combination\n            return;\n        }\n        \n        for (int i = start; i < candidates.size(); i++) {\n            path.push_back(candidates[i]);\n            // Pass 'i' instead of 'i+1' because we can reuse the same element\n            backtrack(candidates, target - candidates[i], i, path, res);\n            path.pop_back();\n        }\n    }\n};"
+  java="class Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        List<List<Integer>> res = new ArrayList<>();\n        backtrack(candidates, target, 0, new ArrayList<>(), res);\n        return res;\n    }\n    \n    private void backtrack(int[] candidates, int target, int start, List<Integer> path, List<List<Integer>> res) {\n        if (target < 0) return;\n        if (target == 0) {\n            res.add(new ArrayList<>(path));\n            return;\n        }\n        \n        for (int i = start; i < candidates.length; i++) {\n            path.add(candidates[i]);\n            backtrack(candidates, target - candidates[i], i, path, res);\n            path.remove(path.size() - 1);\n        }\n    }\n}"
+  python="class Solution:\n    def combinationSum(self, candidates: list[int], target: int) -> list[list[int]]:\n        res = []\n        \n        def backtrack(start, current_target, path):\n            if current_target < 0:\n                return\n            if current_target == 0:\n                res.append(path[:])\n                return\n                \n            for i in range(start, len(candidates)):\n                path.append(candidates[i])\n                # Re-use the same element by passing i\n                backtrack(i, current_target - candidates[i], path)\n                path.pop()\n                \n        backtrack(0, target, [])\n        return res"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(2^N)"
-  average="O(2^N)"
-  worst="O(N!)"
-  space="O(N)"
-  description="Combinatorial backtracking generates massive state spaces. Generating subsets is O(2^N), while generating permutations is O(N!). Space complexity is typically bounded by the maximum recursion depth, which is usually O(N)."
+  best="O(2^target)"
+  average="O(2^target)"
+  worst="O(N ^ (target / min_element))"
+  space="O(target / min_element)"
+  description="Because elements can be reused indefinitely, the height of the recursion tree is bounded by target / min(candidates). The number of nodes grows exponentially with respect to this height."
 />
 
 # Common Pitfalls
 <Warning>
-- **Missing Base Case:** A recursion function without a base case (or an unreachable one) will crash with a `StackOverflowError` instantly.
-- **Pass By Reference Mutations:** In Python and C++, if you append a list/vector to your results array, you must append a *copy* (`path[:]` or `new ArrayList<>(path)`). Otherwise, future backtracking steps will clear out your stored answers!
+- Forgetting the `target < 0` base case. Without it, your function will infinitely subtract numbers until it crashes.
+- Passing `i + 1` instead of `i` in Combination Sum I.
+- Forgetting to sort the array in Combination Sum II before trying to skip duplicates.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks you to 'return all possible combinations', 'find all paths', or 'generate all subsets', it is a 100% guarantee that it requires Backtracking.",
-    "Draw the recursion tree out loud for the interviewer for N=3. This proves you understand the state transitions and aren't just memorizing code.",
-    "State the time complexity carefully. Say 'O(2^N * N)' where the extra N is the time it takes to copy the subset into the final result list."
+    "To optimize Combination Sum I, you can sort the candidates first. Then, inside the loop, if `target - candidates[i] < 0`, you can `break` out of the loop early instead of making a doomed recursive call.",
+    "Combination Sum is one of the most frequently asked backtracking questions because it flawlessly tests your understanding of state space trees and constraint handling."
   ]}
 />

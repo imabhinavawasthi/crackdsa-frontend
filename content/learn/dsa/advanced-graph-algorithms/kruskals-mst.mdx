@@ -11,55 +11,143 @@ summary: "An essential guide to Kruskal's MST, exploring its applications, imple
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Kruskal's MST**. This topic is a cornerstone of the Advanced Graph Algorithms module. Understanding it thoroughly will significantly improve your problem-solving speed.
+**Kruskal's MST** is a popular greed-based pattern heavily reliant on the **Disjoint Set Union (DSU)** data structure. The core concept revolves around picking the smallest edges while ensuring no cycles are created.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+If you view all vertices as isolated islands, the algorithm builds bridges (edges) starting from the cheapest ones. It only builds a bridge if it connects two islands that aren't already connected through other paths. This cycle avoidance is rapidly solved using DSU.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Kruskal's MST
-#include <iostream>
-using namespace std;
+  cpp="class DisjointSet {
+    vector<int> parent, rank;
+public:
+    DisjointSet(int n) {
+        parent.resize(n + 1);
+        rank.resize(n + 1, 0);
+        for(int i = 0; i <= n; i++) parent[i] = i;
+    }
+    int findUPar(int node) {
+        if(node == parent[node]) return node;
+        return parent[node] = findUPar(parent[node]);
+    }
+    void unionByRank(int u, int v) {
+        int ulp_u = findUPar(u);
+        int ulp_v = findUPar(v);
+        if(ulp_u == ulp_v) return;
+        if(rank[ulp_u] < rank[ulp_v]) parent[ulp_u] = ulp_v;
+        else if(rank[ulp_v] < rank[ulp_u]) parent[ulp_v] = ulp_u;
+        else { parent[ulp_v] = ulp_u; rank[ulp_u]++; }
+    }
+};
 
 class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int solve(int V, vector<vector<int>>& edges) {
+        // edges format: [u, v, weight]
+        sort(edges.begin(), edges.end(), [](const vector<int>& a, const vector<int>& b){
+            return a[2] < b[2];
+        });
+        
+        DisjointSet ds(V);
+        int mstWt = 0;
+        
+        for (auto& it : edges) {
+            int u = it[0], v = it[1], wt = it[2];
+            if (ds.findUPar(u) != ds.findUPar(v)) {
+                mstWt += wt;
+                ds.unionByRank(u, v);
+            }
+        }
+        return mstWt;
     }
 };"
-  java="// Java implementation for Kruskal's MST
+  java="class DisjointSet {
+    int[] parent, rank;
+    public DisjointSet(int n) {
+        parent = new int[n + 1];
+        rank = new int[n + 1];
+        for(int i = 0; i <= n; i++) parent[i] = i;
+    }
+    public int findUPar(int node) {
+        if(node == parent[node]) return node;
+        return parent[node] = findUPar(parent[node]);
+    }
+    public void unionByRank(int u, int v) {
+        int ulp_u = findUPar(u);
+        int ulp_v = findUPar(v);
+        if(ulp_u == ulp_v) return;
+        if(rank[ulp_u] < rank[ulp_v]) parent[ulp_u] = ulp_v;
+        else if(rank[ulp_v] < rank[ulp_u]) parent[ulp_v] = ulp_u;
+        else { parent[ulp_v] = ulp_u; rank[ulp_u]++; }
+    }
+}
+
 class Solution {
-    public void solve() {
-        // Implementation here
+    public int solve(int V, int[][] edges) {
+        Arrays.sort(edges, (a, b) -> Integer.compare(a[2], b[2]));
+        DisjointSet ds = new DisjointSet(V);
+        int mstWt = 0;
+        for (int[] edge : edges) {
+            if (ds.findUPar(edge[0]) != ds.findUPar(edge[1])) {
+                mstWt += edge[2];
+                ds.unionByRank(edge[0], edge[1]);
+            }
+        }
+        return mstWt;
     }
 }"
-  python="# Python implementation for Kruskal's MST
+  python="class DisjointSet:
+    def __init__(self, n):
+        self.parent = list(range(n + 1))
+        self.rank = [0] * (n + 1)
+        
+    def findUPar(self, node):
+        if node == self.parent[node]:
+            return node
+        self.parent[node] = self.findUPar(self.parent[node])
+        return self.parent[node]
+        
+    def unionByRank(self, u, v):
+        ulp_u = self.findUPar(u)
+        ulp_v = self.findUPar(v)
+        if ulp_u == ulp_v: return
+        if self.rank[ulp_u] < self.rank[ulp_v]: self.parent[ulp_u] = ulp_v
+        elif self.rank[ulp_v] < self.rank[ulp_u]: self.parent[ulp_v] = ulp_u
+        else: self.parent[ulp_v] = ulp_u; self.rank[ulp_u] += 1
+
 class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+    def solve(self, V, edges):
+        edges.sort(key=lambda x: x[2])
+        ds = DisjointSet(V)
+        mstWt = 0
+        
+        for u, v, wt in edges:
+            if ds.findUPar(u) != ds.findUPar(v):
+                mstWt += wt
+                ds.unionByRank(u, v)
+                
+        return mstWt"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(E log E)"
+  average="O(E log E)"
+  worst="O(E log E)"
+  space="O(V)"
+  description="Sorting rules the time complexity at O(E log E). Space is heavily optimized to O(V) specifically for the DSU parent and rank arrays."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- **Ignoring Disconnected Vertices:** MST requires V-1 edges. If you run out of edges and haven't placed V-1 edges, the graph is disconnected.
+- **Sorting Incorrectly:** Always sort based on the weights. A common mistake in Python or C++ is sorting tuples without specifying the index if weights are not the first element.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Mention that O(E log E) is effectively O(E log V) because E is at most V^2 and log(V^2) = 2 log V.",
+    "Using Kruskal's shows your strong grasp on custom data structures (DSU) which interviewers love."
   ]}
 />

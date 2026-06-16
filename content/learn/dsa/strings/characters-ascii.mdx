@@ -11,58 +11,80 @@ summary: "An essential guide to Characters and ASCII/Unicode, covering everythin
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Characters and ASCII/Unicode**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+Strings are fundamentally sequences of characters. To effectively manipulate them, understanding how characters are encoded and represented in memory is crucial.
+The two most common encoding standards are **ASCII** (American Standard Code for Information Interchange) and **Unicode**. 
 
-### Core Intuition
-The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+**ASCII** uses 7 bits (or 8 bits for extended ASCII) to represent 128 (or 256) characters, which include English letters, digits, and control characters. The most important ASCII values to memorize for interviews are:
+- `'A'` to `'Z'`: 65 to 90
+- `'a'` to `'z'`: 97 to 122
+- `'0'` to `'9'`: 48 to 57
+
+You can easily convert a character to its integer index relative to the alphabet using standard subtraction: `'c' - 'a' = 2`.
+
+**Unicode** was introduced to support a wider array of characters, including emojis and characters from various languages. It's often encoded as UTF-8, UTF-16, or UTF-32. While most basic coding interview problems assume an ASCII character set, you should always clarify this with your interviewer, as a Unicode string might require a hash map instead of a fixed-size integer array to track character frequencies.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Characters and ASCII/Unicode
-#include <iostream>
-#include <string>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(string s) {
-        // Implementation here
+    int getCharIndex(char c) {
+        if (c >= 'a' && c <= 'z') return c - 'a';
+        if (c >= 'A' && c <= 'Z') return c - 'A';
+        return -1; // Not a letter
+    }
+    
+    void demonstrateASCII() {
+        char ch = 'E';
+        int asciiValue = (int)ch;
+        cout << ch << ' ' << asciiValue << endl;
     }
 };"
-  java="// Java implementation for Characters and ASCII/Unicode
-class Solution {
-    public void solve(String s) {
-        // Implementation here
+  java="class Solution {
+    public int getCharIndex(char c) {
+        if (c >= 'a' && c <= 'z') return c - 'a';
+        if (c >= 'A' && c <= 'Z') return c - 'A';
+        return -1; // Not a letter
+    }
+    
+    public void demonstrateASCII() {
+        char ch = 'E';
+        int asciiValue = (int)ch;
+        System.out.println(ch + \" \" + asciiValue);
     }
 }"
-  python="# Python implementation for Characters and ASCII/Unicode
-class Solution:
-    def solve(self, s: str):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def get_char_index(self, c: str) -> int:
+        if 'a' <= c <= 'z': return ord(c) - ord('a')
+        if 'A' <= c <= 'Z': return ord(c) - ord('A')
+        return -1 # Not a letter
+        
+    def demonstrate_ascii(self) -> None:
+        ch = 'E'
+        ascii_val = ord(ch)
+        print(f'{ch} {ascii_val}')"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(N)"
-  average="O(N)"
-  worst="O(N)"
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
   space="O(1)"
-  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+  description="Character-level encoding operations like getting ASCII values or finding array indices run in constant O(1) time and require O(1) auxiliary space."
 />
 
 # Common Pitfalls
 <Warning>
-- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
-- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+- Assuming all characters are ASCII when the problem includes Unicode characters or emojis.
+- Hardcoding ASCII integer values (like 97) instead of using character subtraction (`'c' - 'a'`), which is far more readable and less error-prone.
+- Forgetting that uppercase and lowercase letters have different ASCII ranges. A common trick to convert between cases in C++ or Java is flipping the 5th bit or simply adding/subtracting 32.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
-    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
-    "For palindromes, the standard technique is expanding from the center."
+    "Clarify character set: Always ask your interviewer if the input is limited to lowercase English letters, all ASCII characters, or Unicode.",
+    "For problems restricted to English letters, use a fixed-size array (int[26]) instead of a HashMap. This drastically improves cache locality and reduces overhead.",
+    "To toggle character case quickly in C++ or Java, use bitwise XOR: `c ^= 32`."
   ]}
 />

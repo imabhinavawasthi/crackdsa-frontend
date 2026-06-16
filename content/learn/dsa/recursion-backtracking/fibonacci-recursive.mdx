@@ -11,73 +11,41 @@ summary: "An essential guide to Fibonacci Sequence (Recursive), exploring recurs
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Fibonacci Sequence (Recursive)**. This topic is a cornerstone of the Recursion & Backtracking module. Recursion is the foundation for Trees, Graphs, and Dynamic Programming. If you can't visualize a recursion tree, those advanced topics will be impossible to master.
+The **Fibonacci Sequence** is a classic mathematical sequence where each number is the sum of the two preceding ones, usually starting with $0$ and $1$. The sequence goes: $0, 1, 1, 2, 3, 5, 8, 13 \dots$
 
-### Core Intuition
-Recursion is simply a function calling itself with a slightly smaller input until it hits a Base Case. 
-**Backtracking** is a specialized form of recursion. It's an algorithmic technique for solving problems recursively by trying to build a solution incrementally, one piece at a time, removing those solutions that fail to satisfy the constraints of the problem at any point in time.
+Recursively defining the $N^{th}$ Fibonacci number is straightforward because the mathematical definition is itself recursive:
+$F(N) = F(N-1) + F(N-2)$ with base cases $F(0) = 0$ and $F(1) = 1$.
+
+While beautiful, the naive recursive approach is highly inefficient due to **overlapping subproblems**. It recalculates the same Fibonacci numbers over and over, resulting in an exponential time complexity. It is primarily taught to illustrate recursion trees and motivate Dynamic Programming (memoization).
 
 # Code Implementation
+Here is the naive recursive implementation.
+
 <CodeBlock
-  cpp="// C++ implementation for Fibonacci Sequence (Recursive)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-    
-private:
-    void backtrack() {
-        // Recursive helper
-    }
-};"
-  java="// Java implementation for Fibonacci Sequence (Recursive)
-import java.util.*;
-
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-    
-    private void backtrack() {
-        // Recursive helper
-    }
-}"
-  python="# Python implementation for Fibonacci Sequence (Recursive)
-class Solution:
-    def solve(self):
-        def backtrack():
-            # Recursive helper
-            pass
-            
-        # Implementation here
-        pass"
+  cpp="class Solution {\npublic:\n    int fib(int n) {\n        // Base cases\n        if (n <= 1) return n;\n        \n        // Recursive step: sum of the previous two\n        return fib(n - 1) + fib(n - 2);\n    }\n};"
+  java="class Solution {\n    public int fib(int n) {\n        // Base cases\n        if (n <= 1) return n;\n        \n        // Recursive step\n        return fib(n - 1) + fib(n - 2);\n    }\n}"
+  python="class Solution:\n    def fib(self, n: int) -> int:\n        # Base cases\n        if n <= 1:\n            return n\n            \n        # Recursive step\n        return self.fib(n - 1) + self.fib(n - 2)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(2^N)"
+  best="O(1)"
   average="O(2^N)"
-  worst="O(N!)"
+  worst="O(2^N)"
   space="O(N)"
-  description="Combinatorial backtracking generates massive state spaces. Generating subsets is O(2^N), while generating permutations is O(N!). Space complexity is typically bounded by the maximum recursion depth, which is usually O(N)."
+  description="The time complexity is exponential O(2^N) because each recursive call spawns two more calls. The space complexity is O(N) due to the maximum depth of the call stack reaching N."
 />
 
 # Common Pitfalls
 <Warning>
-- **Missing Base Case:** A recursion function without a base case (or an unreachable one) will crash with a `StackOverflowError` instantly.
-- **Pass By Reference Mutations:** In Python and C++, if you append a list/vector to your results array, you must append a *copy* (`path[:]` or `new ArrayList<>(path)`). Otherwise, future backtracking steps will clear out your stored answers!
+- Using the naive recursive approach in an interview without acknowledging its terrible time complexity.
+- Forgetting to handle edge cases like negative numbers if the constraints allow them.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If a problem asks you to 'return all possible combinations', 'find all paths', or 'generate all subsets', it is a 100% guarantee that it requires Backtracking.",
-    "Draw the recursion tree out loud for the interviewer for N=3. This proves you understand the state transitions and aren't just memorizing code.",
-    "State the time complexity carefully. Say 'O(2^N * N)' where the extra N is the time it takes to copy the subset into the final result list."
+    "Never code the naive recursive Fibonacci in an interview as your final answer. Always immediately suggest Memoization (Dynamic Programming) to bring it down to O(N) time.",
+    "Draw out the recursion tree for N=5 to show the interviewer exactly how many times F(2) and F(3) are wastefully recalculated."
   ]}
 />

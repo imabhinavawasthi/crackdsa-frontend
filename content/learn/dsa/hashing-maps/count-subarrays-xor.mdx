@@ -11,60 +11,99 @@ summary: "An essential guide to Count Subarrays with Given XOR, mastering O(1) l
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Count Subarrays with Given XOR**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
+The problem of finding the number of subarrays with a given XOR $K$ builds directly on the Prefix Sum + Hashing concept, but applies the Bitwise XOR operator instead of addition. 
 
-### Core Intuition
-The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+Let $P[i]$ be the prefix XOR up to index $i$. The XOR sum of a subarray from index $i+1$ to $j$ is given by $P[j] \oplus P[i]$. We want this subarray XOR to be equal to $K$.
+Therefore, $P[j] \oplus P[i] = K$.
+Using the properties of XOR, we can XOR both sides by $P[j]$, which gives us:
+$P[i] = P[j] \oplus K$.
+
+This means that while traversing the array and maintaining a running prefix XOR $P[j]$, we can simply check our hash map to see how many times we've encountered the prefix XOR value of $P[j] \oplus K$ in the past.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Count Subarrays with Given XOR
-#include <iostream>
-#include <unordered_map>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int solve(vector<int>& arr, int k) {
+        unordered_map<int, int> prefix_xor_counts;
+        prefix_xor_counts[0] = 1; // Base case
+        int current_xor = 0;
+        int count = 0;
+        
+        for (int num : arr) {
+            current_xor ^= num;
+            
+            int target_xor = current_xor ^ k;
+            if (prefix_xor_counts.find(target_xor) != prefix_xor_counts.end()) {
+                count += prefix_xor_counts[target_xor];
+            }
+            
+            prefix_xor_counts[current_xor]++;
+        }
+        
+        return count;
     }
 };"
-  java="// Java implementation for Count Subarrays with Given XOR
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int solve(int[] arr, int k) {
+        Map<Integer, Integer> prefixXorCounts = new HashMap<>();
+        prefixXorCounts.put(0, 1);
+        int currentXor = 0;
+        int count = 0;
+        
+        for (int num : arr) {
+            currentXor ^= num;
+            
+            int targetXor = currentXor ^ k;
+            if (prefixXorCounts.containsKey(targetXor)) {
+                count += prefixXorCounts.get(targetXor);
+            }
+            
+            prefixXorCounts.put(currentXor, prefixXorCounts.getOrDefault(currentXor, 0) + 1);
+        }
+        
+        return count;
     }
 }"
-  python="# Python implementation for Count Subarrays with Given XOR
-class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def solve(self, arr: list[int], k: int) -> int:
+        prefix_xor_counts = {0: 1}
+        current_xor = 0
+        count = 0
+        
+        for num in arr:
+            current_xor ^= num
+            
+            target_xor = current_xor ^ k
+            if target_xor in prefix_xor_counts:
+                count += prefix_xor_counts[target_xor]
+                
+            prefix_xor_counts[current_xor] = prefix_xor_counts.get(current_xor, 0) + 1
+            
+        return count"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(1)"
+  best="O(N)"
+  average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+  description="We compute the running XOR and perform constant time map operations during a single pass, resulting in O(N) time complexity. The space complexity is O(N) to store frequencies in the hash map."
 />
 
 # Common Pitfalls
 <Warning>
-- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
-- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+- Misunderstanding XOR properties. Remember that if `A ^ B = C`, then `A ^ C = B` and `B ^ C = A`.
+- Forgetting to initialize the hash map with `{0: 1}`. If a prefix itself forms the target XOR K, `current_xor ^ K` will be 0, so we must account for the initial 0 XOR state.
+- Storing merely the existence of a prefix XOR instead of its frequency. Multiple prefixes can evaluate to the same XOR value!
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
-    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
-    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+    "Clearly explain the mathematical property of XOR that allows this transformation: `A ^ B = K` implies `A = B ^ K`.",
+    "Compare this approach explicitly with the Prefix Sum technique to show your conceptual mapping skills.",
+    "Be ready to trace an example to prove how the base case `map[0] = 1` properly handles subarrays starting at index 0."
   ]}
 />

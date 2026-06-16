@@ -11,55 +11,42 @@ summary: "An essential guide to Recursion Trees, exploring its applications, imp
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Recursion Trees**. This topic is a cornerstone of the Recursion & Backtracking module. Understanding it thoroughly will significantly improve your problem-solving speed.
+A **Recursion Tree** is an invaluable conceptual tool used to analyze the time and space complexity of recursive algorithms. It maps out the cascade of recursive calls spawned by a single initial call. 
 
-### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+In a recursion tree:
+- **Nodes** represent the work done at a specific recursive call (excluding the recursive calls themselves).
+- **Edges** represent the transition from a parent call to a child call.
+
+By summing the work done at each level of the tree, you can determine the overall time complexity of the algorithm. This method is particularly useful for analyzing Divide and Conquer algorithms, such as Merge Sort or recursive mathematical formulas.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Recursion Trees
-#include <iostream>
-using namespace std;
+Let's consider an example where an algorithm divides the problem into two halves, taking $O(N)$ work at each step (similar to Merge Sort).
 
-class Solution {
-public:
-    void solve() {
-        // Implementation here
-    }
-};"
-  java="// Java implementation for Recursion Trees
-class Solution {
-    public void solve() {
-        // Implementation here
-    }
-}"
-  python="# Python implementation for Recursion Trees
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+<CodeBlock
+  cpp="void process(vector<int>& arr, int left, int right) {\n    if (left >= right) return;\n    \n    // O(N) work at this level\n    int mid = left + (right - left) / 2;\n    \n    // Two recursive calls\n    process(arr, left, mid);\n    process(arr, mid + 1, right);\n}"
+  java="public void process(int[] arr, int left, int right) {\n    if (left >= right) return;\n    \n    // O(N) work at this level\n    int mid = left + (right - left) / 2;\n    \n    // Two recursive calls\n    process(arr, left, mid);\n    process(arr, mid + 1, right);\n}"
+  python="def process(arr, left, right):\n    if left >= right:\n        return\n    \n    # O(N) work at this level\n    mid = left + (right - left) // 2\n    \n    # Two recursive calls\n    process(arr, left, mid)\n    process(arr, mid + 1, right)"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
-  average="O(N)"
-  worst="O(N)"
-  space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N log N)"
+  space="O(log N)"
+  description="The tree has log(N) levels, and at each level, the total work across all nodes is O(N). Summing the levels yields O(N log N) time complexity. Space complexity is bounded by the tree's depth, O(log N)."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Miscalculating the total work at a given level. For example, in Merge Sort, each node does less work, but the level as a whole always does O(N) work.
+- Confusing the number of leaves with the total time complexity.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "If you encounter a recursive algorithm, sketching the first 2-3 levels of the recursion tree on a whiteboard can quickly clarify the time complexity.",
+    "Be careful to distinguish between the 'work done per node' and the 'work done per level' when explaining your reasoning."
   ]}
 />

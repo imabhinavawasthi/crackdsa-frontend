@@ -11,55 +11,103 @@ summary: "An essential guide to Binary Search Intro, exploring its applications,
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Binary Search Intro**. This topic is a cornerstone of the Searching & Binary Search module. Understanding it thoroughly will significantly improve your problem-solving speed.
+Binary Search is a highly efficient search algorithm that finds the position of a target value within a sorted array. It's one of the most frequently asked concepts in technical interviews and forms the foundation for many complex algorithms.
 
 ### Core Intuition
-The main idea behind this concept is to optimize brute force operations by applying specialized algorithms or data structures. 
+The core idea is "Divide and Conquer." Instead of checking each element one by one, Binary Search compares the target value to the middle element of the array.
+- If they are equal, the search is successful.
+- If the target is less than the middle element, the target must lie in the lower half. The upper half is entirely discarded.
+- If the target is greater, it must lie in the upper half. The lower half is discarded.
+
+By eliminating half of the remaining search space at every step, the algorithm rapidly converges on the target, resulting in logarithmic time complexity.
+
+### The Monotonic Property
+A crucial requirement for Binary Search is that the search space must be monotonic (strictly non-decreasing or non-increasing). While typically applied to sorted arrays, this concept extends to mathematical functions or any sequence where a definite "go left" or "go right" decision can be made.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Binary Search Intro
-#include <iostream>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    void solve() {
-        // Implementation here
+    int search(vector<int>& nums, int target) {
+        int left = 0;
+        int right = nums.size() - 1;
+        
+        while (left <= right) {
+            // Prevent integer overflow
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] == target) {
+                return mid; // Target found
+            } else if (nums[mid] < target) {
+                left = mid + 1; // Discard left half
+            } else {
+                right = mid - 1; // Discard right half
+            }
+        }
+        
+        return -1; // Target not found
     }
 };"
-  java="// Java implementation for Binary Search Intro
-class Solution {
-    public void solve() {
-        // Implementation here
+  java="class Solution {
+    public int search(int[] nums, int target) {
+        int left = 0;
+        int right = nums.length - 1;
+        
+        while (left <= right) {
+            // Prevent integer overflow
+            int mid = left + (right - left) / 2;
+            
+            if (nums[mid] == target) {
+                return mid; // Target found
+            } else if (nums[mid] < target) {
+                left = mid + 1; // Discard left half
+            } else {
+                right = mid - 1; // Discard right half
+            }
+        }
+        
+        return -1; // Target not found
     }
 }"
-  python="# Python implementation for Binary Search Intro
-class Solution:
-    def solve(self):
-        # Implementation here
-        pass"
+  python="class Solution:
+    def search(self, nums: list[int], target: int) -> int:
+        left, right = 0, len(nums) - 1
+        
+        while left <= right:
+            # mid = (left + right) // 2 is fine in Python as it handles arbitrarily large integers
+            mid = left + (right - left) // 2 
+            
+            if nums[mid] == target:
+                return mid # Target found
+            elif nums[mid] < target:
+                left = mid + 1 # Discard left half
+            else:
+                right = mid - 1 # Discard right half
+                
+        return -1 # Target not found"
 />
 
 # Complexity Analysis
 <ComplexityTable
   best="O(1)"
-  average="O(N)"
-  worst="O(N)"
+  average="O(log N)"
+  worst="O(log N)"
   space="O(1)"
-  description="The overall time complexity is optimized to O(N) by eliminating redundant recalculations."
+  description="Time complexity is strictly O(log N) because the search space is halved every iteration. Space complexity is O(1) for the iterative implementation."
 />
 
 # Common Pitfalls
 <Warning>
-- Forgetting to handle edge cases like empty inputs or out-of-bounds indices.
-- Miscalculating the time complexity of nested loops.
+- Forgetting to handle the base case: `left <= right`. Using `<` instead of `<=` can fail when the array size is 1 or when the target is at the final calculated `mid`.
+- Integer Overflow: `mid = (left + right) / 2` can overflow in C++ and Java if `left + right` exceeds the maximum integer limit. Always use `mid = left + (right - left) / 2`.
+- Infinite Loops: Failing to strictly increase `left` (`left = mid + 1`) or decrease `right` (`right = mid - 1`) will cause infinite loops.
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "Always start by clarifying constraints with your interviewer.",
-    "Mention the brute force approach first before writing down the optimal code."
+    "Always state the prerequisite: 'Assuming the array is sorted...' before suggesting Binary Search.",
+    "If a problem asks for an O(log N) time complexity, it is almost certainly a Binary Search problem.",
+    "Master the iterative implementation first, as it avoids call stack overhead compared to the recursive version."
   ]}
 />

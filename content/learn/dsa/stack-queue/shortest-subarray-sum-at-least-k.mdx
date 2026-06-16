@@ -11,64 +11,129 @@ summary: "An essential guide to Shortest Subarray with Sum at Least K, exploring
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Shortest Subarray with Sum at Least K**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
 
-### Core Intuition
-- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
-- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+**Shortest Subarray with Sum at Least K** is one of the most notoriously difficult problems on LeetCode. It combines Prefix Sums with a Monotonic Deque.
+
+**Why not standard Sliding Window?**
+Standard sliding window (two pointers) only works if all numbers are positive, because adding a number strictly increases the sum. If there are negative numbers, expanding the window might decrease the sum, breaking the monotonic property required for a standard two-pointer approach.
+
+**Intuition**
+1. We compute the **Prefix Sum** array. The sum of a subarray from index `i` to `j` is `prefix[j] - prefix[i]`. We want `prefix[j] - prefix[i] >= K`, which rearranges to `prefix[j] - K >= prefix[i]`.
+2. As we iterate through `prefix[j]`, we want to find the largest index `i` (to make the subarray shortest) that satisfies the condition.
+3. We use a **Monotonic Increasing Deque** to store the indices of the prefix sums.
+   - **Optimization 1 (Shortest Subarray):** If `prefix[j] - prefix[dq.front()] >= K`, we found a valid subarray! Since we want the shortest one, we record the length `j - dq.front()` and pop `dq.front()`. We will never need this `dq.front()` again because any future `j` will result in a longer subarray.
+   - **Optimization 2 (Monotonicity):** Before pushing `j`, we pop all elements from the back of the deque where `prefix[dq.back()] >= prefix[j]`. Why? Because `prefix[j]` is smaller AND comes later. It is objectively better for future calculations than `prefix[dq.back()]`.
 
 # Code Implementation
-<CodeBlock
-  cpp="// C++ implementation for Shortest Subarray with Sum at Least K
-#include <iostream>
-#include <vector>
-#include <stack>
-#include <queue>
-using namespace std;
 
-class Solution {
+<CodeBlock
+  cpp="class Solution {
 public:
-    void solve(vector<int>& arr) {
-        // Implementation here
+    int shortestSubarray(vector<int>& nums, int k) {
+        int n = nums.size();
+        vector<long long> prefix(n + 1, 0);
+        for (int i = 0; i < n; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+        
+        int shortest = n + 1;
+        deque<int> dq; // stores indices of prefix array
+        
+        for (int i = 0; i <= n; i++) {
+            // Found a valid subarray
+            while (!dq.empty() && prefix[i] - prefix[dq.front()] >= k) {
+                shortest = min(shortest, i - dq.front());
+                dq.pop_front();
+            }
+            
+            // Maintain monotonic increasing deque
+            while (!dq.empty() && prefix[i] <= prefix[dq.back()]) {
+                dq.pop_back();
+            }
+            
+            dq.push_back(i);
+        }
+        
+        return shortest <= n ? shortest : -1;
     }
 };"
-  java="// Java implementation for Shortest Subarray with Sum at Least K
-import java.util.*;
-
-class Solution {
-    public void solve(int[] arr) {
-        // Implementation here
+  java="class Solution {
+    public int shortestSubarray(int[] nums, int k) {
+        int n = nums.length;
+        long[] prefix = new long[n + 1];
+        for (int i = 0; i < n; i++) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+        
+        int shortest = n + 1;
+        Deque<Integer> dq = new LinkedList<>(); // stores indices of prefix array
+        
+        for (int i = 0; i <= n; i++) {
+            // Found a valid subarray
+            while (!dq.isEmpty() && prefix[i] - prefix[dq.peekFirst()] >= k) {
+                shortest = Math.min(shortest, i - dq.pollFirst());
+            }
+            
+            // Maintain monotonic increasing deque
+            while (!dq.isEmpty() && prefix[i] <= prefix[dq.peekLast()]) {
+                dq.pollLast();
+            }
+            
+            dq.offerLast(i);
+        }
+        
+        return shortest <= n ? shortest : -1;
     }
 }"
-  python="# Python implementation for Shortest Subarray with Sum at Least K
-from collections import deque
+  python="from collections import deque
 
 class Solution:
-    def solve(self, arr: list[int]):
-        # Implementation here
-        pass"
+    def shortestSubarray(self, nums: list[int], k: int) -> int:
+        n = len(nums)
+        prefix = [0] * (n + 1)
+        for i in range(n):
+            prefix[i + 1] = prefix[i] + nums[i]
+            
+        shortest = n + 1
+        dq = deque() # stores indices of prefix array
+        
+        for i in range(n + 1):
+            # Found a valid subarray
+            while dq and prefix[i] - prefix[dq[0]] >= k:
+                shortest = min(shortest, i - dq.popleft())
+                
+            # Maintain monotonic increasing deque
+            while dq and prefix[i] <= prefix[dq[-1]]:
+                dq.pop()
+                
+            dq.append(i)
+            
+        return shortest if shortest <= n else -1"
 />
 
 # Complexity Analysis
+
 <ComplexityTable
   best="O(N)"
   average="O(N)"
   worst="O(N)"
   space="O(N)"
-  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+  description="Time complexity is O(N). Computing the prefix sum takes O(N). Processing the deque also takes O(N) because every index from the prefix array is pushed and popped at most once. Space complexity is O(N) for storing the prefix array and the deque."
 />
 
 # Common Pitfalls
+
 <Warning>
-- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
-- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+- **Integer Overflow:** The sum of elements can easily exceed the 32-bit integer limit. Always use 64-bit integers (`long long` in C++, `long` in Java) for the Prefix Sum array.
+- **Forgetting Prefix[0]:** Your prefix array must have a size of `N + 1` with `prefix[0] = 0`. This is necessary to evaluate subarrays that start from the very first index `nums[0]`.
 </Warning>
 
 # Interview Intelligence
+
 <InterviewTips
   tips={[
-    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
-    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
-    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+    "This problem perfectly bridges Prefix Sums and Monotonic Deques. Solving this flawlessly is a massive signal of algorithmic maturity.",
+    "If an interviewer asks 'Why did you use a deque instead of a standard sliding window?', the correct answer is: 'Because the array contains negative numbers, meaning the prefix sum is not strictly increasing.'",
+    "Explain the two optimizations clearly: popping from the front minimizes length, and popping from the back guarantees monotonicity."
   ]}
 />

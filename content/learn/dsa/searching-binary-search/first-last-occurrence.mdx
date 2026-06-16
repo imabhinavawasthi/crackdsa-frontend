@@ -11,58 +11,150 @@ summary: "An essential guide to Finding First and Last Occurrence (Lower/Upper B
 ---
 
 # Theory & Concepts
-Welcome to the lesson on **Finding First and Last Occurrence (Lower/Upper Bound)**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+When dealing with arrays that contain duplicates, a standard binary search will return *any* index where the target is found. However, many problems require finding the very first or very last occurrence of a target. This leads us to the concepts of Lower Bound and Upper Bound.
 
-### Core Intuition
-The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+### First Occurrence (Lower Bound Concept)
+To find the first occurrence, we use binary search. When we find the target (`arr[mid] == target`), we record the index but we **do not stop**. Instead, we continue searching in the left half (`right = mid - 1`) because there might be earlier occurrences.
+
+### Last Occurrence
+Similarly, to find the last occurrence, when we find the target, we record the index and continue searching in the right half (`left = mid + 1`) because there might be later occurrences.
+
+This modification ensures we push the boundaries of our search space to exactly the edges of the duplicated elements block.
 
 # Code Implementation
 <CodeBlock
-  cpp="// C++ implementation for Finding First and Last Occurrence (Lower/Upper Bound)
-#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
+  cpp="class Solution {
 public:
-    int solve() {
-        // Implementation here
-        return 0;
+    vector<int> searchRange(vector<int>& nums, int target) {
+        return {findFirst(nums, target), findLast(nums, target)};
+    }
+private:
+    int findFirst(const vector<int>& nums, int target) {
+        int left = 0, right = nums.size() - 1;
+        int first = -1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                first = mid;
+                right = mid - 1; // Look for earlier occurrences
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return first;
+    }
+
+    int findLast(const vector<int>& nums, int target) {
+        int left = 0, right = nums.size() - 1;
+        int last = -1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                last = mid;
+                left = mid + 1; // Look for later occurrences
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return last;
     }
 };"
-  java="// Java implementation for Finding First and Last Occurrence (Lower/Upper Bound)
-class Solution {
-    public int solve() {
-        // Implementation here
-        return 0;
+  java="class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        return new int[]{findFirst(nums, target), findLast(nums, target)};
+    }
+    
+    private int findFirst(int[] nums, int target) {
+        int left = 0, right = nums.length - 1;
+        int first = -1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                first = mid;
+                right = mid - 1; // Look for earlier occurrences
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return first;
+    }
+
+    private int findLast(int[] nums, int target) {
+        int left = 0, right = nums.length - 1;
+        int last = -1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                last = mid;
+                left = mid + 1; // Look for later occurrences
+            } else if (nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return last;
     }
 }"
-  python="# Python implementation for Finding First and Last Occurrence (Lower/Upper Bound)
-class Solution:
-    def solve(self) -> int:
-        # Implementation here
-        return 0"
+  python="class Solution:
+    def searchRange(self, nums: list[int], target: int) -> list[int]:
+        def find_first():
+            left, right = 0, len(nums) - 1
+            first = -1
+            while left <= right:
+                mid = left + (right - left) // 2
+                if nums[mid] == target:
+                    first = mid
+                    right = mid - 1 # Look for earlier occurrences
+                elif nums[mid] < target:
+                    left = mid + 1
+                else:
+                    right = mid - 1
+            return first
+            
+        def find_last():
+            left, right = 0, len(nums) - 1
+            last = -1
+            while left <= right:
+                mid = left + (right - left) // 2
+                if nums[mid] == target:
+                    last = mid
+                    left = mid + 1 # Look for later occurrences
+                elif nums[mid] < target:
+                    left = mid + 1
+                else:
+                    right = mid - 1
+            return last
+
+        return [find_first(), find_last()]"
 />
 
 # Complexity Analysis
 <ComplexityTable
-  best="O(1)"
+  best="O(log N)"
   average="O(log N)"
   worst="O(log N)"
   space="O(1)"
-  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+  description="We perform two completely independent binary searches, each taking O(log N) time. The overall time complexity remains strictly O(log N). No extra space is used."
 />
 
 # Common Pitfalls
 <Warning>
-- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
-- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+- Stopping the search immediately upon finding `arr[mid] == target`. You must continue to shrink the search space to find the extreme bounds.
+- Doing a linear scan left and right after finding the target. While it finds the bounds, it destroys the `O(log N)` complexity, turning it into `O(N)` in the worst case (if all elements are duplicates).
 </Warning>
 
 # Interview Intelligence
 <InterviewTips
   tips={[
-    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
-    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+    "Interviewers love this question because it tests if you deeply understand binary search beyond just memorizing the standard template.",
+    "If asked to find the total count of a target in a sorted array, just calculate `lastIndex - firstIndex + 1`.",
+    "Be careful to state that making two separate passes (one for first, one for last) is perfectly fine and maintains the optimal time complexity."
   ]}
 />
