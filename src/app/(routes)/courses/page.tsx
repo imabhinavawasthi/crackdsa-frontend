@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Crown, Sparkles, CheckCircle2, Zap } from "lucide-react";
+import { Crown, Sparkles, CheckCircle2, Zap, NewspaperIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CourseSummary } from "@/types/course";
 import { fetchCourses } from "@/api/courses";
@@ -134,23 +134,14 @@ export default function CoursesPage() {
 
       {/* 1. Premium Header Section */}
       <div className="text-center space-y-6 max-w-4xl mx-auto relative z-10 pb-8 border-b border-gray-100 dark:border-gray-800/60 mb-12">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 font-bold text-[10px] uppercase tracking-[0.2em] shadow-sm mb-2"
-        >
-          <Sparkles size={12} className="animate-pulse" />
-          <span>Curated Learning Experiences</span>
-        </motion.div>
-        
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="text-3xl sm:text-4xl lg:text-[40px] font-black text-gray-900 dark:text-white tracking-tight leading-[1.2]"
         >
-          Transform Your Career with <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-500">Hyper-Personalized Curriculums</span>
+          Become Interview Ready with <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-500">Our Self Paced Courses</span>
         </motion.h1>
         
         <motion.p 
@@ -200,6 +191,18 @@ export default function CoursesPage() {
             <div className="text-left">
               <div className="text-sm font-black text-gray-900 dark:text-white">PRO Access</div>
               <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Unlock Everything</div>
+            </div>
+          </div>
+
+        <div className="hidden sm:block w-px h-8 bg-gray-200 dark:bg-gray-800"></div>
+
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center">
+              <NewspaperIcon size={16} />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-black text-gray-900 dark:text-white">Certificate</div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Industry Recognition</div>
             </div>
           </div>
         </motion.div>

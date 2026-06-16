@@ -1,0 +1,137 @@
+---
+title: "Control Flow (If/Else, Loops)"
+category: "Programming Foundations for DSA"
+readTime: "10 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand conditional branching using if, else if, and else."
+  - "Master loop constructs: for, while, and do-while loops."
+  - "Learn how to use break and continue to optimize loop execution."
+summary: "Learn how to dictate the execution path of your algorithms using conditional statements and iterative loops."
+---
+
+# Theory & Concepts
+
+By default, a computer program executes sequentially, line by line. However, algorithms require logic to make decisions and repeat tasks. This is where **Control Flow** comes into play. Control flow dictates the order in which statements are executed.
+
+### 1. Conditional Statements (If / Else)
+
+Conditional statements evaluate a boolean expression and execute a block of code only if the expression evaluates to `true`.
+- `if`: The primary conditional block.
+- `else if` (or `elif` in Python): Checked sequentially if the preceding conditions were `false`.
+- `else`: The fallback block executed if all conditions fail.
+
+### 2. Loops (Iteration)
+
+Loops allow you to execute a block of code multiple times. In DSA, loops are used to traverse arrays, strings, trees, and graphs.
+
+1. **`for` loop**: Used when the number of iterations is known in advance (e.g., iterating over an array of size $N$).
+2. **`while` loop**: Used when the number of iterations is unknown and depends on a dynamic condition (e.g., repeatedly dividing a number by 2 until it reaches 1).
+3. **`do-while` loop**: Similar to the `while` loop, but guarantees the code block will execute *at least once* before checking the condition.
+
+### 3. Loop Control Statements
+
+- **`break`**: Immediately exits the loop, bypassing any remaining iterations.
+- **`continue`**: Skips the rest of the current iteration and jumps to the next iteration of the loop.
+
+# Code Implementation
+
+Let's look at how to implement basic control flow constructs across different languages. We will implement a function that loops from 1 to $N$, skipping even numbers, and stopping early if it reaches 7.
+
+<CodeBlock
+  cpp="// C++ Implementation
+#include <iostream>
+using namespace std;
+
+void printOddNumbers(int N) {
+    // 1. For Loop
+    for (int i = 1; i <= N; i++) {
+        // 2. Conditional statements
+        if (i % 2 == 0) {
+            continue; // Skip even numbers
+        } else if (i == 7) {
+            cout << \"Hit the limit (7)! Breaking early.\" << endl;
+            break;    // Stop the loop completely
+        } else {
+            cout << \"Odd number: \" << i << endl;
+        }
+    }
+    
+    // 3. While Loop Example
+    int count = 3;
+    while (count > 0) {
+        cout << \"Countdown: \" << count << endl;
+        count--;
+    }
+}"
+  java="// Java Implementation
+public class ControlFlow {
+    public static void printOddNumbers(int N) {
+        // 1. For Loop
+        for (int i = 1; i <= N; i++) {
+            // 2. Conditional statements
+            if (i % 2 == 0) {
+                continue; // Skip even numbers
+            } else if (i == 7) {
+                System.out.println(\"Hit the limit (7)! Breaking early.\");
+                break;    // Stop the loop completely
+            } else {
+                System.out.println(\"Odd number: \" + i);
+            }
+        }
+        
+        // 3. While Loop Example
+        int count = 3;
+        while (count > 0) {
+            System.out.println(\"Countdown: \" + count);
+            count--;
+        }
+    }
+}"
+  python="# Python Implementation
+def print_odd_numbers(N):
+    # 1. For Loop
+    for i in range(1, N + 1):
+        # 2. Conditional statements
+        if i % 2 == 0:
+            continue  # Skip even numbers
+        elif i == 7:
+            print(\"Hit the limit (7)! Breaking early.\")
+            break     # Stop the loop completely
+        else:
+            print(f\"Odd number: {i}\")
+            
+    # 3. While Loop Example
+    count = 3
+    while count > 0:
+        print(f\"Countdown: {count}\")
+        count -= 1"
+/>
+
+# Complexity Analysis
+
+<ComplexityTable
+  best="O(1)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(1)"
+  description="The time complexity of a loop is directly proportional to the number of iterations it performs. In our example, a loop running from 1 to N takes O(N) time. The space complexity is O(1) as we only use primitive integer variables for loop counters."
+/>
+
+# Common Pitfalls
+
+<Warning>
+- **Infinite Loops**: Always ensure that the condition of your `while` loop will eventually become `false`. Forgetting to increment or decrement the loop variable is the #1 cause of infinite loops.
+- **Off-by-One Errors**: Be careful with boundary conditions (`i < N` vs `i <= N`). In 0-indexed arrays, you usually want `i < N`.
+- **Misplaced `break` / `continue`**: A `break` statement only breaks out of the *innermost* loop. If you have nested loops and want to break out of all of them, you may need a flag variable or a labeled break (in Java).
+</Warning>
+
+# Interview Intelligence
+
+<InterviewTips
+  tips={[
+    "If an algorithm requires you to check every element in an array and stop as soon as you find a target, explicitly point out to the interviewer that you are using a 'break' statement to optimize the average-case runtime.",
+    "Be very careful with nested loops! A loop inside a loop usually indicates an O(N^2) time complexity. Always ask yourself if the inner loop is necessary, or if you can use a HashMap or Two-Pointers to flatten the loops.",
+    "Python developers: Python's `for-else` and `while-else` constructs can be useful in interviews. The `else` block executes only if the loop finished naturally without hitting a `break` statement."
+  ]}
+/>

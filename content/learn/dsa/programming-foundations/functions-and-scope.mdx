@@ -1,0 +1,143 @@
+---
+title: "Functions and Scope"
+category: "Programming Foundations for DSA"
+readTime: "12 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand how to declare and invoke functions with parameters and return types."
+  - "Learn the difference between pass-by-value and pass-by-reference."
+  - "Master variable scoping rules (local vs global)."
+summary: "Functions allow you to break down complex algorithms into reusable, testable, and modular blocks of code."
+---
+
+# Theory & Concepts
+
+Writing an entire algorithm inside your `main` function is poor practice. As problems get harder, you will need to break them down into smaller, logical sub-tasks. **Functions** (or methods) allow you to encapsulate a block of code, pass data into it, and return a result.
+
+### 1. Anatomy of a Function
+A typical function consists of:
+- **Return Type**: The type of data the function sends back (e.g., `int`, `void`).
+- **Name**: An identifier used to call the function (e.g., `calculateSum`).
+- **Parameters (Arguments)**: The inputs the function accepts.
+- **Body**: The code that executes when the function is called.
+
+### 2. Parameter Passing: Value vs Reference
+
+This is a critical concept in DSA, especially when manipulating arrays, trees, or graphs:
+
+- **Pass by Value**: The function receives a *copy* of the variable. Modifying the parameter inside the function does *not* affect the original variable in the caller. Primitive types (int, float, char) are usually passed by value.
+- **Pass by Reference (or Pointer)**: The function receives the *memory address* of the variable. Modifying it inside the function *will* alter the original variable. Arrays and objects are usually passed by reference (or reference-like semantics).
+
+### 3. Variable Scope
+
+**Scope** determines the visibility and lifetime of a variable:
+- **Local Scope**: Variables declared inside a function or loop exist only within that block. They are destroyed once the block finishes execution.
+- **Global Scope**: Variables declared outside all functions are visible everywhere. *(Avoid global variables in interviews unless absolutely necessary for competitive programming!)*
+
+# Code Implementation
+
+Let's look at how to declare functions and see the difference between pass-by-value and pass-by-reference.
+
+<CodeBlock
+  cpp="// C++ Implementation
+#include <iostream>
+using namespace std;
+
+// Pass by Value: x is a copy
+void modifyValue(int x) {
+    x = 100; 
+}
+
+// Pass by Reference: x is a reference to the original variable
+void modifyReference(int &x) {
+    x = 100;
+}
+
+int main() {
+    int a = 10;
+    modifyValue(a);
+    cout << \"After modifyValue: \" << a << endl; // Prints 10
+    
+    modifyReference(a);
+    cout << \"After modifyReference: \" << a << endl; // Prints 100
+    
+    return 0;
+}"
+  java="// Java Implementation
+// Note: Java is strictly Pass-by-Value! 
+// However, when passing objects/arrays, the *reference* itself is passed by value.
+import java.util.Arrays;
+
+public class Functions {
+    
+    // Primitive is passed by value (copy)
+    public static void modifyPrimitive(int x) {
+        x = 100; 
+    }
+    
+    // Array reference is passed by value. 
+    // We can modify the contents of the array it points to!
+    public static void modifyArray(int[] arr) {
+        arr[0] = 100;
+    }
+
+    public static void main(String[] args) {
+        int a = 10;
+        modifyPrimitive(a);
+        System.out.println(\"After modifyPrimitive: \" + a); // Prints 10
+        
+        int[] nums = {10, 20, 30};
+        modifyArray(nums);
+        System.out.println(\"After modifyArray: \" + Arrays.toString(nums)); // Prints [100, 20, 30]
+    }
+}"
+  python="# Python Implementation
+# Note: Python uses \"Pass-by-Object-Reference\"
+
+# Integers are immutable, so reassignment creates a new local variable
+def modify_primitive(x):
+    x = 100  
+
+# Lists are mutable, so we can modify the original object
+def modify_list(arr):
+    arr[0] = 100 
+
+def main():
+    a = 10
+    modify_primitive(a)
+    print(f\"After modify_primitive: {a}\") # Prints 10
+    
+    nums = [10, 20, 30]
+    modify_list(nums)
+    print(f\"After modify_list: {nums}\") # Prints [100, 20, 30]
+
+if __name__ == \"__main__\":
+    main()"
+/>
+
+# Complexity Analysis
+
+<ComplexityTable
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
+  space="O(1) / O(N)"
+  description="Calling a function has an O(1) time overhead. The space complexity depends on what is passed: Pass-by-Reference takes O(1) space, but Pass-by-Value for large objects/arrays requires making a full copy, which takes O(N) space and O(N) time!"
+/>
+
+# Common Pitfalls
+
+<Warning>
+- **Accidental Copies in C++**: In C++, if you pass a large `vector<int>` to a function by value (e.g., `void solve(vector<int> nums)`), it will copy the *entire* array every time the function is called! This turns an $O(N)$ algorithm into an $O(N^2)$ nightmare. Always pass by reference: `void solve(vector<int>& nums)`.
+- **Modifying Global State**: Be very careful when modifying global variables or input arrays (unless the problem explicitly asks for an in-place modification). Modifying inputs can lead to side-effects that break test cases in interview platforms.
+</Warning>
+
+# Interview Intelligence
+
+<InterviewTips
+  tips={[
+    "If a problem is complex (like a graph traversal or validating a board state), abstract the logic into a helper function (e.g., `isValid(row, col)`). Interviewers love modular code!",
+    "When doing Recursion, understand that every function call adds a new 'frame' to the Call Stack. Variables in the local scope of one recursive call are completely independent of variables in another call.",
+    "Always check the return type of your function. A common bug is returning `void` when the platform expects an `int`."
+  ]}
+/>

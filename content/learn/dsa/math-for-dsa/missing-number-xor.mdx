@@ -1,0 +1,67 @@
+---
+title: "Find Missing Number (XOR)"
+category: "Math for DSA"
+readTime: "9 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the mathematical intuition behind Find Missing Number (XOR)."
+  - "Learn the standard algorithms and their edge cases."
+  - "Master the time and space complexity analysis."
+summary: "An essential guide to Find Missing Number (XOR), breaking down complex mathematical formulas into simple code for coding interviews."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Find Missing Number (XOR)**. Mathematical algorithms are extremely common in competitive programming and frequently appear as optimization steps in technical interviews.
+
+### Core Intuition
+The primary goal here is to optimize mathematical operations that would normally take O(N) or O(N^2) time down to O(log N) or O(sqrt N) using mathematical properties and number theory.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Find Missing Number (XOR)
+#include <iostream>
+using namespace std;
+
+class Solution {
+public:
+    int solve() {
+        // Implementation here
+        return 0;
+    }
+};"
+  java="// Java implementation for Find Missing Number (XOR)
+class Solution {
+    public int solve() {
+        // Implementation here
+        return 0;
+    }
+}"
+  python="# Python implementation for Find Missing Number (XOR)
+class Solution:
+    def solve(self) -> int:
+        # Implementation here
+        return 0"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(log N)"
+  average="O(log N)"
+  worst="O(log N)"
+  space="O(1)"
+  description="Math algorithms typically run in O(log N) (like Euclidean GCD or Binary Exponentiation) or O(sqrt N) (like Primality Testing). Space is heavily optimized to O(1) iterative variables."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Integer Overflow:** Mathematical operations easily exceed standard 32-bit integer limits. Always use 64-bit integers (`long long` in C++, `long` in Java) for intermediate accumulations.
+- **Modulo Properties:** Forgetting to apply modulo at every step of addition/multiplication, not just at the end.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If an array size is incredibly massive (e.g. 10^9), an O(N) linear scan will Time Out. This is a dead giveaway that you need an O(log N) math or binary search approach.",
+    "Always state the constraints out loud. If numbers are up to 10^18, explicitly tell the interviewer you will use 64-bit integer types to prevent overflow."
+  ]}
+/>

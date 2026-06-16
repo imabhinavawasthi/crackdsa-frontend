@@ -14,54 +14,74 @@ import {
   Zap
 } from "lucide-react";
 
+// Helper to parse inline styles: bold (**text**), inline code (`code`), and text
+export const parseInlineStyles = (content: string): React.ReactNode[] => {
+  if (!content) return [];
+  // We want to parse **bold** and `code` tags.
+  const parts = content.split(/(\*\*.*?\*\*|`.*?`)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={idx} className="font-extrabold text-gray-900 dark:text-white">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code key={idx} className="px-1.5 py-0.5 mx-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[13px] font-mono text-brand-500 dark:text-brand-400 font-bold border border-gray-200 dark:border-gray-800/80">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return part;
+  });
+};
+
 // 1. Note Component
 export const Note: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex gap-3 p-4 rounded-xl bg-blue-500/2 border-l-2 border-blue-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
+  <div className="flex gap-3 p-4 rounded-xl bg-blue-500/2 border-l-2 border-blue-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-200 dark:border-gray-800/20">
     <span className="p-1 rounded-md bg-blue-500/10 text-blue-500 h-fit shrink-0">
       <InfoIcon size={12} />
     </span>
-    <div className="text-sm sm:text-[14.5px] leading-relaxed font-medium">
+    <div className="text-sm sm:text-[14.5px] leading-relaxed font-medium text-gray-700 dark:text-gray-300">
       <strong className="text-blue-600 dark:text-blue-400 font-bold block mb-0.5">Key Note</strong>
-      {children}
+      {typeof children === 'string' ? parseInlineStyles(children) : children}
     </div>
   </div>
 );
 
 // 2. Warning Component
 export const Warning: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/2 border-l-2 border-amber-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
+  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/2 border-l-2 border-amber-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-200 dark:border-gray-800/20">
     <span className="p-1 rounded-md bg-amber-500/10 text-amber-500 h-fit shrink-0">
       <AlertTriangle size={12} />
     </span>
-    <div className="text-sm sm:text-[14.5px] leading-relaxed font-medium">
+    <div className="text-sm sm:text-[14.5px] leading-relaxed font-medium text-gray-700 dark:text-gray-300">
       <strong className="text-amber-600 dark:text-amber-500 font-bold block mb-0.5">Warning / Caution</strong>
-      {children}
+      {typeof children === 'string' ? parseInlineStyles(children) : children}
     </div>
   </div>
 );
 
 // 3. Tip Component
 export const Tip: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/2 border-l-2 border-emerald-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
+  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/2 border-l-2 border-emerald-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-200 dark:border-gray-800/20">
     <span className="p-1 rounded-md bg-emerald-500/10 text-emerald-500 h-fit shrink-0">
       <Lightbulb size={12} />
     </span>
-    <div className="text-sm sm:text-[14.5px] leading-relaxed font-medium">
+    <div className="text-sm sm:text-[14.5px] leading-relaxed font-medium text-gray-700 dark:text-gray-300">
       <strong className="text-emerald-600 dark:text-emerald-400 font-bold block mb-0.5">Expert Tip</strong>
-      {children}
+      {typeof children === 'string' ? parseInlineStyles(children) : children}
     </div>
   </div>
 );
 
 // 4. Info Component
 export const Info: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/2 border-l-2 border-indigo-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-150 dark:border-gray-800/20">
+  <div className="flex gap-3 p-4 rounded-xl bg-amber-500/2 border-l-2 border-indigo-500 text-gray-600 dark:text-gray-300 my-5 shadow-sm border border-gray-200 dark:border-gray-800/20">
     <span className="p-1 rounded-md bg-indigo-500/10 text-indigo-500 h-fit shrink-0">
       <InfoIcon size={12} />
     </span>
-    <div className="text-sm sm:text-[14.5px] leading-relaxed font-medium">
+    <div className="text-sm sm:text-[14.5px] leading-relaxed font-medium text-gray-700 dark:text-gray-300">
       <strong className="text-indigo-600 dark:text-indigo-400 font-bold block mb-0.5">Deep Dive Info</strong>
-      {children}
+      {typeof children === 'string' ? parseInlineStyles(children) : children}
     </div>
   </div>
 );
@@ -97,7 +117,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ cpp, java, python }) => {
     <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-950 my-6 shadow-inner">
       {/* Code Header Bar */}
       <div className="h-11 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 flex items-center justify-between">
-        <div className="flex gap-1.5 p-1 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-150 dark:border-gray-750">
+        <div className="flex gap-1.5 p-1 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           {(["cpp", "java", "python"] as const).map((lang) => (
             <button
               key={lang}
@@ -105,7 +125,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ cpp, java, python }) => {
               className={`px-3 py-1 rounded text-xs font-bold uppercase transition-all ${
                 activeTab === lang
                   ? "bg-white dark:bg-gray-900 text-brand-500 dark:text-brand-400 shadow-sm border border-gray-200/50 dark:border-gray-700/50"
-                  : "text-gray-400 hover:text-gray-650 dark:hover:text-gray-300"
+                  : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               }`}
             >
               {lang === "cpp" ? "C++" : lang === "java" ? "Java" : "Python"}
@@ -160,7 +180,7 @@ export const ComplexityTable: React.FC<ComplexityTableProps> = ({
   <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/20 overflow-hidden shadow-sm my-6">
     <table className="w-full text-sm font-bold text-left border-collapse">
       <thead>
-        <tr className="bg-gray-50 dark:bg-gray-900 text-gray-400 uppercase text-[11px] tracking-widest border-b border-gray-150 dark:border-gray-800/80">
+        <tr className="bg-gray-50 dark:bg-gray-900 text-gray-400 uppercase text-[11px] tracking-widest border-b border-gray-200 dark:border-gray-800/80">
           <th className="px-5 py-3">Best Time</th>
           <th className="px-5 py-3">Average Time</th>
           <th className="px-5 py-3">Worst Time</th>
@@ -168,7 +188,7 @@ export const ComplexityTable: React.FC<ComplexityTableProps> = ({
         </tr>
       </thead>
       <tbody>
-        <tr className="divide-x divide-gray-100 dark:divide-gray-850/40 text-gray-750 dark:text-gray-200">
+        <tr className="divide-x divide-gray-100 dark:divide-gray-800/40 text-gray-700 dark:text-gray-200">
           <td className="px-5 py-4 font-mono font-extrabold text-emerald-600 dark:text-emerald-400">
             {best}
           </td>
@@ -221,9 +241,9 @@ export const PracticeProblems: React.FC<{ problems: Problem[] }> = ({ problems }
             href={prob.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between p-4 rounded-xl border border-gray-150 dark:border-gray-800/80 bg-white hover:bg-gray-50/50 dark:bg-gray-900/10 dark:hover:bg-gray-850/50 transition-all group shadow-sm hover:shadow"
+            className="flex items-center justify-between p-4 rounded-xl border border-gray-200 dark:border-gray-800/80 bg-white hover:bg-gray-50/50 dark:bg-gray-900/10 dark:hover:bg-gray-800/50 transition-all group shadow-sm hover:shadow"
           >
-            <span className="text-sm font-bold text-gray-750 dark:text-gray-200 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors leading-tight">
+            <span className="text-sm font-bold text-gray-700 dark:text-gray-200 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors leading-tight">
               {prob.name}
             </span>
             <div className="flex items-center gap-2">
@@ -251,7 +271,7 @@ export const InterviewTips: React.FC<{ tips: string[] }> = ({ tips }) => (
     
     <ul className="space-y-2.5 text-sm font-medium leading-relaxed pl-1.5 list-disc list-inside marker:text-amber-500">
       {tips.map((tip, idx) => (
-        <li key={idx}>{tip}</li>
+        <li key={idx}>{parseInlineStyles(tip)}</li>
       ))}
     </ul>
   </div>
@@ -266,7 +286,7 @@ interface NavCardProps {
 export const PreviousArticle: React.FC<NavCardProps> = ({ slug, title }) => (
   <Link
     href={slug}
-    className="flex-1 flex items-center gap-4 p-5 rounded-2xl border border-gray-150 dark:border-gray-800 bg-white hover:bg-gray-50/50 dark:bg-gray-900/10 dark:hover:bg-gray-850/50 transition-all text-left shadow-sm hover:shadow"
+    className="flex-1 flex items-center gap-4 p-5 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white hover:bg-gray-50/50 dark:bg-gray-900/10 dark:hover:bg-gray-800/50 transition-all text-left shadow-sm hover:shadow"
   >
     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 group-hover:text-brand-500 transition-colors">
       <ArrowLeft size={14} />
@@ -275,7 +295,7 @@ export const PreviousArticle: React.FC<NavCardProps> = ({ slug, title }) => (
       <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block">
         Previous Article
       </span>
-      <span className="text-sm font-bold text-gray-705 dark:text-gray-205 truncate block">
+      <span className="text-sm font-bold text-gray-700 dark:text-gray-200 truncate block">
         {title}
       </span>
     </div>
@@ -285,13 +305,13 @@ export const PreviousArticle: React.FC<NavCardProps> = ({ slug, title }) => (
 export const NextArticle: React.FC<NavCardProps> = ({ slug, title }) => (
   <Link
     href={slug}
-    className="flex-1 flex items-center justify-between p-5 rounded-2xl border border-gray-150 dark:border-gray-800 bg-white hover:bg-gray-50/50 dark:bg-gray-900/10 dark:hover:bg-gray-850/50 transition-all text-right shadow-sm hover:shadow"
+    className="flex-1 flex items-center justify-between p-5 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white hover:bg-gray-50/50 dark:bg-gray-900/10 dark:hover:bg-gray-800/50 transition-all text-right shadow-sm hover:shadow"
   >
     <div className="space-y-0.5 select-none text-left truncate flex-1 pr-4">
       <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block">
         Next Article
       </span>
-      <span className="text-sm font-bold text-gray-705 dark:text-gray-205 truncate block">
+      <span className="text-sm font-bold text-gray-700 dark:text-gray-200 truncate block">
         {title}
       </span>
     </div>
@@ -411,24 +431,7 @@ export const CustomMarkdown: React.FC<{ text: string }> = ({ text }) => {
     blocks.push(currentBlock);
   }
 
-  // Helper to parse inline styles: bold (**text**), inline code (`code`), and text
-  const parseInlineStyles = (content: string): React.ReactNode[] => {
-    // We want to parse **bold** and `code` tags.
-    const parts = content.split(/(\*\*.*?\*\*|`.*?`)/g);
-    return parts.map((part, idx) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return <strong key={idx} className="font-extrabold text-gray-900 dark:text-white">{part.slice(2, -2)}</strong>;
-      }
-      if (part.startsWith("`") && part.endsWith("`")) {
-        return (
-          <code key={idx} className="px-1.5 py-0.5 mx-0.5 rounded bg-gray-100 dark:bg-gray-850 text-[13px] font-mono text-brand-500 dark:text-brand-400 font-bold border border-gray-150 dark:border-gray-800/80">
-            {part.slice(1, -1)}
-          </code>
-        );
-      }
-      return part;
-    });
-  };
+  // Inline styles are now parsed by the exported parseInlineStyles
 
   return (
     <div className="space-y-4">
@@ -476,7 +479,7 @@ export const CustomMarkdown: React.FC<{ text: string }> = ({ text }) => {
             );
           case "paragraph":
             return (
-              <p key={idx} className="text-sm sm:text-[15.5px] text-gray-750 dark:text-gray-300 font-normal leading-relaxed">
+              <p key={idx} className="text-sm sm:text-[15.5px] text-gray-700 dark:text-gray-300 font-normal leading-relaxed">
                 {parseInlineStyles(block.content || "")}
               </p>
             );

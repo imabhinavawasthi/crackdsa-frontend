@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, X, Layers } from "lucide-react";
+import { Search, X, Layers, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SheetToolbarProps {
@@ -8,6 +8,7 @@ interface SheetToolbarProps {
   expandAll: boolean;
   handleExpandAll: () => void;
   filteredTopicsLength: number;
+  onDownloadPDF?: () => void;
 }
 
 export const SheetToolbar: React.FC<SheetToolbarProps> = ({
@@ -16,6 +17,7 @@ export const SheetToolbar: React.FC<SheetToolbarProps> = ({
   expandAll,
   handleExpandAll,
   filteredTopicsLength,
+  onDownloadPDF,
 }) => {
   return (
     <>
@@ -55,8 +57,20 @@ export const SheetToolbar: React.FC<SheetToolbarProps> = ({
           className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shrink-0"
         >
           <Layers size={14} />
-          {expandAll ? "Collapse All" : "Expand All"}
+          <span className="hidden sm:inline">{expandAll ? "Collapse All" : "Expand All"}</span>
         </button>
+
+        {/* Download PDF */}
+        {onDownloadPDF && (
+          <button
+            onClick={onDownloadPDF}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/20 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-colors shrink-0"
+            title="Download Sheet as PDF"
+          >
+            <Download size={14} />
+            <span className="hidden sm:inline">Download Sheet</span>
+          </button>
+        )}
       </motion.div>
 
       {/* Search results info */}

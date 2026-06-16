@@ -90,12 +90,20 @@ export function CourseCard({ course, index }: { course: CourseSummary; index: nu
 
       <div className="border-t border-gray-100 dark:border-gray-800/80 pt-4 mt-auto flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</span>
-          {course.is_pro ? (
-            <span className="text-sm font-black text-amber-500">PRO Access</span>
-          ) : (
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</span>
+            {course.is_pro && (
+              <span className="text-[8px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                PRO Included
+              </span>
+            )}
+          </div>
+          <div className="flex items-baseline gap-1.5">
             <span className="text-lg font-black text-gray-900 dark:text-white">₹{course.price}</span>
-          )}
+            {course.original_price > course.price && (
+              <span className="text-xs font-bold text-gray-400 line-through">₹{course.original_price}</span>
+            )}
+          </div>
         </div>
         
         <div

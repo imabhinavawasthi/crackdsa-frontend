@@ -1,0 +1,103 @@
+---
+title: "Prime Numbers & Primality Test"
+category: "Math for DSA"
+readTime: "8 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the mathematical definition of a prime number."
+  - "Learn the naive O(N) approach to checking primality."
+  - "Master the optimal O(sqrt(N)) primality test algorithm."
+summary: "Learn how to efficiently determine if a given number is prime, a foundational concept for many number theory algorithms."
+---
+
+# Theory & Concepts
+
+A **prime number** is a natural number strictly greater than $1$ that has exactly two distinct positive divisors: $1$ and itself. Numbers that have more than two divisors are called **composite numbers**. Note that $1$ is neither prime nor composite.
+
+When interviewing, you will often need to determine if a given number $N$ is prime. This is called a **Primality Test**.
+
+### The Naive Approach
+The most straightforward way to check if $N$ is prime is to iterate from $2$ up to $N - 1$. If any number evenly divides $N$ (i.e., `N % i == 0`), then $N$ is not prime.
+However, this approach takes $O(N)$ time, which is too slow if $N = 10^9$.
+
+### The Optimal Approach: O(√N)
+We don't actually need to check all numbers up to $N-1$. If $N$ has a divisor $d$ such that $d > \sqrt{N}$, then $N / d$ must be a divisor that is less than $\sqrt{N}$. 
+Therefore, if $N$ is composite, it **must** have a divisor $i$ such that $i \le \sqrt{N}$.
+
+By only iterating up to $\sqrt{N}$, we can drastically reduce the time complexity. Instead of using `sqrt()` which can have floating-point precision issues, we write our loop condition as `i * i <= N`.
+
+# Code Implementation
+
+Here is the optimal $O(\sqrt{N})$ approach across multiple languages:
+
+<CodeBlock
+  cpp="// C++ Implementation
+#include <iostream>
+using namespace std;
+
+bool isPrime(int n) {
+    // 1 and negative numbers are not prime
+    if (n <= 1) return false;
+    
+    // Check divisors up to sqrt(N)
+    for (int i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            return false; // Found a divisor
+        }
+    }
+    
+    return true; // No divisors found, it's prime
+}"
+  java="// Java Implementation
+class MathUtils {
+    public static boolean isPrime(int n) {
+        if (n <= 1) return false;
+        
+        for (int i = 2; i * i <= n; i++) {
+            if (n % i == 0) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+}"
+  python="# Python Implementation
+def is_prime(n):
+    if n <= 1:
+        return False
+        
+    i = 2
+    while i * i <= n:
+        if n % i == 0:
+            return False
+        i += 1
+        
+    return True"
+/>
+
+# Complexity Analysis
+
+<ComplexityTable
+  best="O(1)"
+  average="O(√N)"
+  worst="O(√N)"
+  space="O(1)"
+  description="The loop runs from 2 up to the square root of N. Thus, the time complexity is strictly O(√N). The space complexity is O(1) since we only use a loop counter."
+/>
+
+# Common Pitfalls
+
+<Warning>
+- **Handling Edge Cases**: Many candidates forget to handle `N = 1`, `N = 0`, or negative numbers. Always add `if (N <= 1) return false;` at the very beginning.
+- **Precision Issues**: Using `i <= sqrt(n)` can be dangerous due to floating-point inaccuracies in some languages. Always use `i * i <= n`. Be careful of integer overflow if `i` can be close to the 32-bit limit; in that case, use `(long long)i * i <= n`.
+</Warning>
+
+# Interview Intelligence
+
+<InterviewTips
+  tips={[
+    "If you are asked to check the primality of a single massive number (e.g., N = 10^18), the O(√N) approach will take 10^9 operations, which is around 1 second in C++. Be aware of these constraints.",
+    "If an interviewer asks you to check the primality of MANY numbers (e.g., 10^5 numbers), checking each one in O(√N) is too slow. You should immediately mention the 'Sieve of Eratosthenes', which is the next topic in this module!"
+  ]}
+/>

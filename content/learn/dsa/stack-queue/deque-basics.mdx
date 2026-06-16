@@ -1,0 +1,74 @@
+---
+title: "Double Ended Queue (Deque)"
+category: "Stack & Queue"
+readTime: "9 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the Last-In-First-Out (LIFO) or First-In-First-Out (FIFO) mechanics."
+  - "Master how to use a Monotonic structure to answer 'Next Greater Element' queries in O(N)."
+  - "Learn to implement stacks and queues efficiently without triggering memory limits."
+summary: "An essential guide to Double Ended Queue (Deque), exploring its applications, optimal implementations, and how to identify this pattern in interviews."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Double Ended Queue (Deque)**. This topic is a cornerstone of the Stack & Queue module. Stacks and Queues are simple data structures on the surface, but when combined with monotonicity (keeping elements strictly increasing or decreasing), they solve some of the hardest array problems in O(N) time.
+
+### Core Intuition
+- **Stack:** You only have access to the most recently added element (the top). Perfect for parsing, matching pairs, and depth-first exploration.
+- **Queue:** You only have access to the oldest element (the front). Perfect for breadth-first exploration and scheduling.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Double Ended Queue (Deque)
+#include <iostream>
+#include <vector>
+#include <stack>
+#include <queue>
+using namespace std;
+
+class Solution {
+public:
+    void solve(vector<int>& arr) {
+        // Implementation here
+    }
+};"
+  java="// Java implementation for Double Ended Queue (Deque)
+import java.util.*;
+
+class Solution {
+    public void solve(int[] arr) {
+        // Implementation here
+    }
+}"
+  python="# Python implementation for Double Ended Queue (Deque)
+from collections import deque
+
+class Solution:
+    def solve(self, arr: list[int]):
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(N)"
+  description="Pushing and popping from a stack or queue takes O(1) time. Over an array of size N, the total time is O(N) because each element is pushed and popped at most once. Space complexity is O(N) in the worst case if all elements are stored in the stack/queue simultaneously."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Popping an Empty Stack:** Always check `!stack.empty()` before calling `stack.top()` or `stack.pop()`. Accessing an empty stack causes an immediate runtime crash!
+- **Python List as Queue:** Do NOT use `list.pop(0)` in Python to simulate a queue. It takes O(N) time because it shifts all elements. Always use `collections.deque.popleft()` for O(1) time.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If a problem asks for the 'Next Greater' or 'Next Smaller' element, it is an immediate signal to use a Monotonic Stack.",
+    "When evaluating mathematical expressions or nested structures (like HTML tags or matching brackets), a standard Stack is your best friend.",
+    "If you need a sliding window that requires the maximum or minimum element instantly, use a Monotonic Deque."
+  ]}
+/>

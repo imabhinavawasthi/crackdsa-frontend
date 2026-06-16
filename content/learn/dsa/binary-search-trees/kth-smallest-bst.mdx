@@ -1,0 +1,88 @@
+---
+title: "Kth Smallest Element in a BST"
+category: "Binary Search Trees"
+readTime: "9 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the strict left-right property of Kth Smallest Element in a BST."
+  - "Learn how to use Inorder Traversal to extract a sorted array."
+  - "Master how to bound a node's value using min and max ranges."
+summary: "An essential guide to Kth Smallest Element in a BST, mastering O(log N) searches and range validations."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Kth Smallest Element in a BST**. This topic is a cornerstone of the Binary Search Trees module. A Binary Search Tree is a special type of binary tree where every node in the left subtree is strictly smaller than the root, and every node in the right subtree is strictly greater.
+
+### Core Intuition
+Because of this property, an **Inorder Traversal** of a valid BST will *always* yield a perfectly sorted sequence! This allows us to perform searches, insertions, and deletions in O(log N) average time, making it incredibly powerful for dynamic data.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Kth Smallest Element in a BST
+#include <iostream>
+using namespace std;
+
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+class Solution {
+public:
+    void solve(TreeNode* root) {
+        // Implementation here
+    }
+};"
+  java="// Java implementation for Kth Smallest Element in a BST
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    TreeNode() {}
+    TreeNode(int val) { this.val = val; }
+}
+
+class Solution {
+    public void solve(TreeNode root) {
+        // Implementation here
+    }
+}"
+  python="# Python implementation for Kth Smallest Element in a BST
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Solution:
+    def solve(self, root: TreeNode):
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(log N)"
+  average="O(log N)"
+  worst="O(N)"
+  space="O(H)"
+  description="In a balanced BST, operations take O(log N) time. However, if the tree becomes skewed (like a linked list), the time complexity degrades to O(N). Space complexity is O(H) corresponding to the recursive call stack."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Local Validation Mistake:** Validating a BST by only checking if `root.left.val < root.val < root.right.val` is INCORRECT. An element deep in the right subtree could be smaller than the main root. You must pass down an allowed `[min, max]` range constraint!
+- **Modifying structure during iteration:** Deleting a node with two children requires finding the inorder successor or predecessor to replace it, which is a notorious source of bugs.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If a problem asks if a tree is a valid BST, the immediate answer is to either pass down `(min, max)` boundaries recursively, or do an inorder traversal and check if the result is sorted.",
+    "If a problem asks for the 'Kth smallest/largest' element in a BST, you should instantly think of Inorder Traversal with a counter.",
+    "Be careful: does the interviewer allow duplicate values in the BST? If so, decide whether they go to the left or right subtree."
+  ]}
+/>

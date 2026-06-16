@@ -53,6 +53,23 @@ export interface ArticleContent {
   summary: string;
 }
 
+type RawSyllabusItem = string | {
+  slug: string;
+  title?: string;
+};
+
+interface RawSyllabusSection {
+  title: string;
+  items: RawSyllabusItem[];
+}
+
+interface RawSyllabusCategory {
+  id: string;
+  title: string;
+  description?: string;
+  sections?: RawSyllabusSection[];
+}
+
 // Custom simple YAML/Frontmatter and MDX tag parser
 function parseMdxFile(filePath: string, slug: string): ArticleContent {
   const fileContent = fs.readFileSync(filePath, "utf-8");
@@ -61,7 +78,7 @@ function parseMdxFile(filePath: string, slug: string): ArticleContent {
   const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---/;
   const match = fileContent.match(frontmatterRegex);
   
-  const metadata: Record<string, any> = {};
+  const metadata: Record<string, string | string[]> = {};
   let body = fileContent;
 
   if (match) {
@@ -150,7 +167,7 @@ function parseMdxFile(filePath: string, slug: string): ArticleContent {
   if (interviewMatch) {
     try {
       interviewTips = JSON.parse(interviewMatch[1].trim());
-    } catch (e) {
+    } catch {
       // Fallback simple bullet parser
       interviewTips = extractBulletItems(interviewMatch[1]);
     }
@@ -187,13 +204,23 @@ function parseMdxFile(filePath: string, slug: string): ArticleContent {
     visualization = rawViz.replace(/^```[a-zA-Z]*\n|```$/g, "").trim();
   }
 
+  const getMetadataString = (key: string, fallback: string) => {
+    const value = metadata[key];
+    return typeof value === "string" ? value : fallback;
+  };
+
+  const getMetadataList = (key: string) => {
+    const value = metadata[key];
+    return Array.isArray(value) ? value : [];
+  };
+
   return {
     slug,
-    title: metadata.title || "Untitled Article",
-    category: metadata.category || "General",
-    readTime: metadata.readTime || "5 min read",
-    lastUpdated: metadata.lastUpdated || "May 30, 2026",
-    whatYouWillLearn: metadata.whatYouWillLearn || [],
+    title: getMetadataString("title", "Untitled Article"),
+    category: getMetadataString("category", "General"),
+    readTime: getMetadataString("readTime", "5 min read"),
+    lastUpdated: getMetadataString("lastUpdated", "May 30, 2026"),
+    whatYouWillLearn: getMetadataList("whatYouWillLearn"),
     theory: theory || body,
     visualization: visualization || undefined,
     codeExamples,
@@ -201,7 +228,7 @@ function parseMdxFile(filePath: string, slug: string): ArticleContent {
     commonMistakes,
     interviewTips,
     practiceProblems,
-    summary: metadata.summary || ""
+    summary: getMetadataString("summary", "")
   };
 }
 
@@ -213,28 +240,27 @@ export function getDsaSyllabus(): SidebarCategory[] {
   }
 
   try {
-    const syllabusData = JSON.parse(fs.readFileSync(syllabusPath, "utf-8"));
+    const syllabusData = JSON.parse(fs.readFileSync(syllabusPath, "utf-8")) as {
+      categories?: RawSyllabusCategory[];
+    };
     const categories: SidebarCategory[] = [];
 
-    syllabusData.categories.forEach((cat: any) => {
+    syllabusData.categories?.forEach((cat) => {
       const categoryPath = path.join(CONTENT_DIR, cat.id);
-      if (!fs.existsSync(categoryPath)) {
-        return;
-      }
 
       // Collect all flat items & section mappings
       const flatItems: SidebarItem[] = [];
       const sections: SidebarSection[] = [];
 
       if (cat.sections) {
-        cat.sections.forEach((sec: any) => {
+        cat.sections.forEach((sec) => {
           const secItems: SidebarItem[] = [];
-          sec.items.forEach((item: any) => {
+          sec.items.forEach((item) => {
             const itemObj = typeof item === "string" ? { slug: item, title: item.replace(/-/g, " ") } : item;
             const filePath = path.join(categoryPath, `${itemObj.slug}.mdx`);
             
             // Extract latest title from the actual MDX file if it exists, otherwise fall back to specified title
-            let title = itemObj.title;
+            let title = itemObj.title || itemObj.slug.replace(/-/g, " ");
             if (fs.existsSync(filePath)) {
               try {
                 const content = fs.readFileSync(filePath, "utf-8");

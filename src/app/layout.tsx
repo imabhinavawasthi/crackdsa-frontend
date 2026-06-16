@@ -1,55 +1,41 @@
-"use client"
-
 import { Inter } from 'next/font/google';
+import { Metadata } from 'next';
 import './globals.css';
-import "flatpickr/dist/flatpickr.css";
-import NextTopLoader from 'nextjs-toploader';
-import { SidebarProvider } from '@/context/SidebarContext';
-import { ThemeProvider, useTheme } from '@/context/ThemeContext';
-import { AuthProvider } from '@/context/AuthContext';
-import LoadingScreen from '@/components/common/LoadingScreen';
+import ClientLayout, { ThemeScript } from './ClientLayout';
 
-const inter = Inter({
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
-
-// This script will run as early as possible to prevent theme flicker
-const ThemeScript = () => {
-  return (
-    <script
-      dangerouslySetInnerHTML={{
-        __html: `
-          (function() {
-            try {
-              var theme = localStorage.getItem('theme');
-              var supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
-              if (!theme && supportDarkMode) theme = 'dark';
-              if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-              } else {
-                document.documentElement.classList.remove('dark');
-              }
-            } catch (e) {}
-          })();
-        `,
-      }}
-    />
-  );
+export const metadata: Metadata = {
+  title: {
+    template: '%s | CrackDSA',
+    default: 'CrackDSA - Master Algorithms & System Design',
+  },
+  description: 'CrackDSA is the ultimate platform to master Data Structures, Algorithms, and System Design. Prepare for FAANG interviews with curated roadmaps, problems, and courses.',
+  keywords: ['DSA', 'Data Structures', 'Algorithms', 'System Design', 'Interview Prep', 'LeetCode', 'FAANG', 'CrackDSA'],
+  authors: [{ name: 'CrackDSA Team' }],
+  openGraph: {
+    title: 'CrackDSA - Master Algorithms & System Design',
+    description: 'The ultimate platform to master Data Structures, Algorithms, and System Design.',
+    url: 'https://crackdsa.com',
+    siteName: 'CrackDSA',
+    images: [
+      {
+        url: 'https://crackdsa.com/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'CrackDSA Preview Image',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CrackDSA - Master Algorithms & System Design',
+    description: 'The ultimate platform to master Data Structures, Algorithms, and System Design.',
+    images: ['https://crackdsa.com/og-image.png'],
+  },
 };
-
-function AppContent({ children }: { children: React.ReactNode }) {
-  const { isLoading } = useTheme();
-
-  return (
-    <>
-      <LoadingScreen isLoading={isLoading} />
-      <div className={isLoading ? "invisible" : "visible"}>
-        <SidebarProvider>{children}</SidebarProvider>
-      </div>
-    </>
-  );
-}
 
 export default function RootLayout({
   children,
@@ -62,12 +48,7 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className={`${inter.className} dark:bg-gray-900 transition-colors duration-300`}>
-        <NextTopLoader color="#465FFF" showSpinner={false} zIndex={100000} />
-        <ThemeProvider>
-          <AuthProvider>
-            <AppContent>{children}</AppContent>
-          </AuthProvider>
-        </ThemeProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

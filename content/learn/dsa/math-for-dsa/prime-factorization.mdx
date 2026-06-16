@@ -1,0 +1,122 @@
+---
+title: "Prime Factorization"
+category: "Math for DSA"
+readTime: "10 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the Fundamental Theorem of Arithmetic."
+  - "Learn how to find all prime factors of a number in O(sqrt(N)) time."
+  - "Discover how to use a modified Sieve for O(log N) factorization."
+summary: "Learn how to break down any integer into the product of its prime numbers, a vital technique for GCD, LCM, and combinatorial problems."
+---
+
+# Theory & Concepts
+
+The **Fundamental Theorem of Arithmetic** states that every integer greater than 1 can be represented uniquely as a product of prime numbers.
+For example:
+- $12 = 2 \times 2 \times 3 = 2^2 \times 3^1$
+- $30 = 2 \times 3 \times 5$
+- $17 = 17^1$ (Since 17 is prime)
+
+Many algorithmic problems involving divisors, GCD, and LCM secretly require you to find the prime factorization of numbers.
+
+### The O(√N) Approach
+Just like the primality test, we don't need to check all numbers up to $N$ to find its factors.
+We can iterate from $i = 2$ up to $\sqrt{N}$. If $i$ evenly divides $N$, we continuously divide $N$ by $i$ and record $i$ as a prime factor. 
+
+By the time the loop finishes, if the remaining $N$ is still greater than 1, it means the remaining $N$ itself is a prime number (and in fact, the largest prime factor).
+
+# Code Implementation
+
+Here is the standard algorithm to extract all prime factors of $N$:
+
+<CodeBlock
+  cpp="// C++ Implementation
+#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<int> primeFactors(int n) {
+    vector<int> factors;
+    
+    // Check for factor 2 explicitly (optional optimization)
+    // for (int i = 2; i * i <= n; i++) works perfectly fine
+    
+    for (int i = 2; i * i <= n; i++) {
+        // While i divides n, divide n and add i to factors
+        while (n % i == 0) {
+            factors.push_back(i);
+            n = n / i;
+        }
+    }
+    
+    // If n is still greater than 1, then the remaining n is a prime factor
+    if (n > 1) {
+        factors.push_back(n);
+    }
+    
+    return factors;
+}"
+  java="// Java Implementation
+import java.util.ArrayList;
+import java.util.List;
+
+class MathUtils {
+    public static List<Integer> primeFactors(int n) {
+        List<Integer> factors = new ArrayList<>();
+        
+        for (int i = 2; i * i <= n; i++) {
+            while (n % i == 0) {
+                factors.add(i);
+                n = n / i;
+            }
+        }
+        
+        if (n > 1) {
+            factors.add(n);
+        }
+        
+        return factors;
+    }
+}"
+  python="# Python Implementation
+def prime_factors(n):
+    factors = []
+    
+    i = 2
+    while i * i <= n:
+        while n % i == 0:
+            factors.append(i)
+            n = n // i
+        i += 1
+        
+    if n > 1:
+        factors.append(n)
+        
+    return factors"
+/>
+
+# Complexity Analysis
+
+<ComplexityTable
+  best="O(log N)"
+  average="O(√N)"
+  worst="O(√N)"
+  space="O(log N)"
+  description="In the worst case (e.g., when N is prime), the loop runs exactly up to √N. The best case occurs when N is a power of 2, taking O(log N) time. The space complexity is bounded by O(log N) as a number N can have at most log₂(N) prime factors."
+/>
+
+# Common Pitfalls
+
+<Warning>
+- **Forgetting the Remaining Prime**: The most common mistake in this algorithm is forgetting the `if (n > 1)` check at the very end. If $N = 10$, the loop extracts `2`, making $N = 5$. Since $i$ goes up to $\sqrt{5}$ (which is 2), the loop terminates, completely forgetting to add the remaining `5` to the factors list!
+</Warning>
+
+# Interview Intelligence
+
+<InterviewTips
+  tips={[
+    "If an interview problem requires you to find the prime factorization for Q queries (where Q = 10^5) and N <= 10^6, the O(√N) approach per query will TLE.",
+    "For multiple queries, use the 'Smallest Prime Factor (SPF) Sieve'. Precompute the smallest prime factor for every number up to 10^6 using a modified Sieve of Eratosthenes. Then, for each query, you can find the prime factorization in O(log N) time by continuously dividing the number by its SPF!"
+  ]}
+/>

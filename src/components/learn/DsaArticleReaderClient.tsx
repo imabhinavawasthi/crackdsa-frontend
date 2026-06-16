@@ -19,7 +19,8 @@ import {
   InterviewTips, 
   PreviousArticle, 
   NextArticle,
-  CustomMarkdown
+  CustomMarkdown,
+  parseInlineStyles
 } from "@/components/learn/MdxComponents";
 import { ArticleContent } from "@/utils/mdxLoader";
 
@@ -79,7 +80,7 @@ export default function DsaArticleReaderClient({
     <div className="w-full flex relative">
       
       {/* Dynamic Reading Scroll Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-150 dark:bg-gray-800 z-50">
+      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-800 z-50">
         <div 
           className="bg-brand-500 h-full transition-all duration-75 ease-out shadow-sm"
           style={{ width: `${scrollProgress}%` }}
@@ -102,7 +103,7 @@ export default function DsaArticleReaderClient({
         />
 
         {/* 2. Article Header Title Block */}
-        <div className="space-y-3.5 border-b border-gray-100 dark:border-gray-855 pb-6">
+        <div className="space-y-3.5 border-b border-gray-100 dark:border-gray-800 pb-6">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-extrabold uppercase tracking-widest bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/10 w-fit select-none leading-none">
             <span>Module: {article.category}</span>
           </div>
@@ -112,11 +113,11 @@ export default function DsaArticleReaderClient({
           </h1>
 
           <div className="flex flex-wrap gap-2.5 pt-0.5">
-            <div className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-850 border border-gray-150 dark:border-gray-800 px-2 py-1 rounded-md select-none uppercase tracking-wider">
+            <div className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 px-2 py-1 rounded-md select-none uppercase tracking-wider">
               <Clock size={10} className="text-gray-400" />
               <span>{article.readTime}</span>
             </div>
-            <div className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-850 border border-gray-150 dark:border-gray-800 px-2 py-1 rounded-md select-none uppercase tracking-wider">
+            <div className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-800 px-2 py-1 rounded-md select-none uppercase tracking-wider">
               <Calendar size={10} className="text-gray-400" />
               <span>Updated {article.lastUpdated}</span>
             </div>
@@ -132,15 +133,15 @@ export default function DsaArticleReaderClient({
         </div>
 
         {/* 3. Reading-Optimized Body content in template sections */}
-        <div className="prose dark:prose-invert max-w-none text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed font-normal space-y-8">
+        <div className="max-w-none text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed font-normal space-y-8">
           
           {/* Section: What You Will Learn */}
           {article.whatYouWillLearn && article.whatYouWillLearn.length > 0 && (
             <section id="what-you-will-learn" className="space-y-3 pt-2">
-              <h2 className="text-sm font-bold text-gray-905 dark:text-white uppercase tracking-wider border-l-2 border-brand-500 pl-2">
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider border-l-2 border-brand-500 pl-2">
                 What You Will Learn
               </h2>
-              <div className="p-5 rounded-2xl bg-gray-50/50 dark:bg-gray-900/20 border border-gray-150 dark:border-gray-800/80 grid grid-cols-1 gap-2.5">
+              <div className="p-5 rounded-2xl bg-gray-50/50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800/80 grid grid-cols-1 gap-2.5">
                 {article.whatYouWillLearn.map((item, idx) => (
                   <div key={idx} className="flex items-start gap-2.5">
                     <span className="h-4 w-4 shrink-0 rounded-full bg-brand-500/10 text-brand-500 flex items-center justify-center text-[10px] font-extrabold mt-0.5">✓</span>
@@ -165,7 +166,7 @@ export default function DsaArticleReaderClient({
               <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider border-l-2 border-brand-500 pl-2">
                 Visual Representation
               </h2>
-              <pre className="p-5 overflow-x-auto text-xs sm:text-sm font-mono text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-950 border border-gray-150 dark:border-gray-800/60 rounded-2xl custom-scrollbar leading-relaxed">
+              <pre className="p-5 overflow-x-auto text-xs sm:text-sm font-mono text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800/60 rounded-2xl custom-scrollbar leading-relaxed">
                 <code>{article.visualization}</code>
               </pre>
             </section>
@@ -216,7 +217,7 @@ export default function DsaArticleReaderClient({
               <Warning>
                 <ul className="list-disc list-inside space-y-2 marker:text-amber-500 text-sm font-semibold">
                   {article.commonMistakes.map((mistake, idx) => (
-                    <li key={idx} className="leading-relaxed">{mistake}</li>
+                    <li key={idx} className="leading-relaxed">{parseInlineStyles(mistake)}</li>
                   ))}
                 </ul>
               </Warning>
@@ -249,7 +250,7 @@ export default function DsaArticleReaderClient({
               <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider border-l-2 border-brand-500 pl-2">
                 Summary Recap
               </h2>
-              <div className="p-5 rounded-2xl bg-gray-50/20 dark:bg-gray-900/10 border border-gray-150 dark:border-gray-800/80 text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed italic">
+              <div className="p-5 rounded-2xl bg-gray-50/20 dark:bg-gray-900/10 border border-gray-200 dark:border-gray-800/80 text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed italic">
                 {article.summary}
               </div>
             </section>

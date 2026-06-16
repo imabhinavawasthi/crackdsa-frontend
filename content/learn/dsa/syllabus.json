@@ -1,11 +1,11 @@
 {
   "title": "Data Structures & Algorithms",
-  "description": "Conquer programming challenges by learning standard data layouts, structural traversals, and algorithmic precomputation patterns. Everything is mapped from absolute basics to advanced recruiter expectations.",
+  "description": "A beginner-to-job-ready DSA interview track that builds from programming foundations to advanced data structures and problem-solving patterns.",
   "categories": [
     {
       "id": "introduction",
       "title": "Introduction to DSA",
-      "description": "Establish a strong foundational understanding of computational layouts, runtime complexities, and scaling metrics.",
+      "description": "Build the study mindset, interview context, and complexity-analysis foundation needed for the rest of the track.",
       "sections": [
         {
           "title": "Foundations",
@@ -96,16 +96,1169 @@
       ]
     },
     {
-      "id": "arrays",
-      "title": "Arrays & Precomputation",
-      "description": "Master contiguous memory arrays, prefix sum precomputations, and search boundary algorithms.",
+      "id": "programming-foundations",
+      "title": "Programming Foundations for DSA",
+      "description": "Learn the coding basics that make DSA implementation reliable: input/output, functions, loops, recursion basics, dry runs, and debugging.",
       "sections": [
         {
-          "title": "Array Patterns",
+          "title": "Basics",
+          "items": [
+            {
+              "slug": "variables-and-types",
+              "title": "Variables and Data Types"
+            },
+            {
+              "slug": "control-flow",
+              "title": "Control Flow (If/Else, Loops)"
+            }
+          ]
+        },
+        {
+          "title": "Functions & Memory",
+          "items": [
+            {
+              "slug": "functions-and-scope",
+              "title": "Functions and Scope"
+            },
+            {
+              "slug": "memory-management",
+              "title": "Memory Management Basics"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "math-for-dsa",
+      "title": "Math for DSA",
+      "description": "Cover modular arithmetic, primes, GCD/LCM, combinatorics basics, and fast exponentiation for interview problem solving.",
+      "sections": [
+        {
+          "title": "Number Theory Basics",
+          "items": [
+            {
+              "slug": "primality-test",
+              "title": "Prime Numbers & Primality Test"
+            },
+            {
+              "slug": "sieve-of-eratosthenes",
+              "title": "Sieve of Eratosthenes"
+            },
+            {
+              "slug": "prime-factorization",
+              "title": "Prime Factorization"
+            }
+          ]
+        },
+        {
+          "title": "Arithmetic & GCD",
+          "items": [
+            {
+              "slug": "gcd-lcm",
+              "title": "Greatest Common Divisor (GCD) & LCM"
+            },
+            {
+              "slug": "euclidean-algorithm",
+              "title": "Euclidean Algorithm"
+            },
+            {
+              "slug": "extended-euclidean",
+              "title": "Extended Euclidean Algorithm"
+            }
+          ]
+        },
+        {
+          "title": "Modular Arithmetic",
+          "items": [
+            {
+              "slug": "modular-basics",
+              "title": "Modular Addition, Subtraction & Multiplication"
+            },
+            {
+              "slug": "binary-exponentiation",
+              "title": "Modular Exponentiation (Binary Exponentiation)"
+            },
+            {
+              "slug": "modular-inverse",
+              "title": "Modular Multiplicative Inverse"
+            }
+          ]
+        },
+        {
+          "title": "Combinatorics & Counting",
+          "items": [
+            {
+              "slug": "ncr-npr",
+              "title": "Permutations & Combinations (nCr, nPr)"
+            },
+            {
+              "slug": "catalan-numbers",
+              "title": "Catalan Numbers"
+            },
+            {
+              "slug": "pigeonhole-principle",
+              "title": "Pigeonhole Principle"
+            }
+          ]
+        },
+        {
+          "title": "Bit Manipulation & Math",
+          "items": [
+            {
+              "slug": "bitwise-math-properties",
+              "title": "Bitwise Operators & Math Properties"
+            },
+            {
+              "slug": "missing-number-xor",
+              "title": "Find Missing Number (XOR)"
+            },
+            {
+              "slug": "count-set-bits",
+              "title": "Count Set Bits (Brian Kernighan's Algorithm)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arrays",
+      "title": "Arrays & Precomputation",
+      "description": "Master traversal, prefix sums, difference arrays, Kadane's algorithm, and frequency-array patterns.",
+      "sections": [
+        {
+          "title": "Array Fundamentals",
+          "items": [
+            {
+              "slug": "array-memory-basics",
+              "title": "Array Basics & Memory Layout"
+            },
+            {
+              "slug": "static-vs-dynamic-arrays",
+              "title": "Static vs Dynamic Arrays"
+            },
+            {
+              "slug": "array-operations",
+              "title": "Basic Operations (Insert, Delete, Search)"
+            }
+          ]
+        },
+        {
+          "title": "Traversal & Searching",
+          "items": [
+            {
+              "slug": "reversing-an-array",
+              "title": "Reversing an Array"
+            },
+            {
+              "slug": "finding-duplicates",
+              "title": "Finding Duplicates in O(N)"
+            },
+            {
+              "slug": "two-sum-array",
+              "title": "Two Sum (Array Version)"
+            }
+          ]
+        },
+        {
+          "title": "Precomputation Techniques",
           "items": [
             {
               "slug": "prefix-sum",
               "title": "Prefix Sum"
+            },
+            {
+              "slug": "difference-array",
+              "title": "Difference Array technique"
+            },
+            {
+              "slug": "2d-prefix-sum",
+              "title": "2D Prefix Sum"
+            }
+          ]
+        },
+        {
+          "title": "Subarray Algorithms",
+          "items": [
+            {
+              "slug": "kadanes-algorithm",
+              "title": "Kadane's Algorithm (Max Subarray)"
+            },
+            {
+              "slug": "maximum-product-subarray",
+              "title": "Maximum Product Subarray"
+            },
+            {
+              "slug": "sliding-window-array",
+              "title": "Sliding Window on Arrays"
+            }
+          ]
+        },
+        {
+          "title": "Frequency & In-Place Patterns",
+          "items": [
+            {
+              "slug": "frequency-array",
+              "title": "Frequency Array / Hash Array"
+            },
+            {
+              "slug": "boyer-moore",
+              "title": "Boyer-Moore Majority Vote Algorithm"
+            },
+            {
+              "slug": "dutch-national-flag",
+              "title": "Dutch National Flag Algorithm (Sort 0s, 1s, 2s)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "two-pointers-sliding-window",
+      "title": "Two Pointers & Sliding Window",
+      "description": "Learn opposite pointers, fast/slow pointers, fixed windows, variable windows, and monotonic window intuition.",
+      "sections": [
+        {
+          "title": "Two Pointers Basics",
+          "items": [
+            {
+              "slug": "opposite-directional-pointers",
+              "title": "Opposite Directional Pointers (Two Sum II)"
+            },
+            {
+              "slug": "equi-directional-pointers",
+              "title": "Equi-Directional Pointers (Remove Duplicates)"
+            },
+            {
+              "slug": "fast-slow-pointers",
+              "title": "Fast & Slow Pointers (Floyd's Tortoise & Hare)"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Two Pointers",
+          "items": [
+            {
+              "slug": "3sum-4sum",
+              "title": "3Sum & 4Sum Patterns"
+            },
+            {
+              "slug": "container-with-most-water",
+              "title": "Container With Most Water"
+            },
+            {
+              "slug": "trapping-rain-water",
+              "title": "Trapping Rain Water"
+            }
+          ]
+        },
+        {
+          "title": "Sliding Window Foundations",
+          "items": [
+            {
+              "slug": "fixed-size-window",
+              "title": "Fixed Size Window (Max Sum Subarray of Size K)"
+            },
+            {
+              "slug": "variable-size-window",
+              "title": "Variable Size Window (Longest Subarray)"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Sliding Window",
+          "items": [
+            {
+              "slug": "longest-substring-without-repeating",
+              "title": "Longest Substring Without Repeating Characters"
+            },
+            {
+              "slug": "minimum-window-substring",
+              "title": "Minimum Window Substring"
+            },
+            {
+              "slug": "sliding-window-maximum",
+              "title": "Sliding Window Maximum (Deque)"
+            },
+            {
+              "slug": "count-anagrams",
+              "title": "Count Occurrences of Anagrams"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "strings",
+      "title": "Strings",
+      "description": "Practice character frequency, palindrome checks, string matching basics, anagrams, and parsing patterns.",
+      "sections": [
+        {
+          "title": "String Basics & Representation",
+          "items": [
+            {
+              "slug": "characters-ascii",
+              "title": "Characters and ASCII/Unicode"
+            },
+            {
+              "slug": "immutable-vs-mutable",
+              "title": "Immutable vs Mutable Strings"
+            },
+            {
+              "slug": "string-operations",
+              "title": "Basic Operations (Substring, Concatenation)"
+            }
+          ]
+        },
+        {
+          "title": "Frequency & Pattern Matching",
+          "items": [
+            {
+              "slug": "valid-anagram",
+              "title": "Valid Anagram"
+            },
+            {
+              "slug": "group-anagrams",
+              "title": "Group Anagrams"
+            },
+            {
+              "slug": "first-unique-character",
+              "title": "First Unique Character in a String"
+            }
+          ]
+        },
+        {
+          "title": "Palindromic Patterns",
+          "items": [
+            {
+              "slug": "valid-palindrome",
+              "title": "Valid Palindrome I & II"
+            },
+            {
+              "slug": "longest-palindromic-substring",
+              "title": "Longest Palindromic Substring"
+            },
+            {
+              "slug": "count-palindromic-substrings",
+              "title": "Palindromic Substrings (Count)"
+            }
+          ]
+        },
+        {
+          "title": "Advanced String Algorithms",
+          "items": [
+            {
+              "slug": "kmp-algorithm",
+              "title": "KMP Algorithm (Knuth-Morris-Pratt)"
+            },
+            {
+              "slug": "rabin-karp",
+              "title": "Rabin-Karp Algorithm (Rolling Hash)"
+            },
+            {
+              "slug": "longest-common-prefix",
+              "title": "Longest Common Prefix"
+            },
+            {
+              "slug": "string-to-integer-atoi",
+              "title": "String to Integer (atoi)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "searching-binary-search",
+      "title": "Searching & Binary Search",
+      "description": "Move from linear search to binary search, bounds, and answer-space binary search.",
+      "sections": [
+        {
+          "title": "Searching Basics",
+          "items": [
+            {
+              "slug": "linear-vs-binary",
+              "title": "Linear Search vs Binary Search"
+            },
+            {
+              "slug": "binary-search-implementation",
+              "title": "Binary Search Implementation (Iterative & Recursive)"
+            },
+            {
+              "slug": "first-last-occurrence",
+              "title": "Finding First and Last Occurrence (Lower/Upper Bound)"
+            }
+          ]
+        },
+        {
+          "title": "Binary Search on Arrays",
+          "items": [
+            {
+              "slug": "search-rotated-sorted-array",
+              "title": "Search in Rotated Sorted Array"
+            },
+            {
+              "slug": "find-minimum-rotated",
+              "title": "Find Minimum in Rotated Sorted Array"
+            },
+            {
+              "slug": "search-2d-matrix",
+              "title": "Search a 2D Matrix"
+            },
+            {
+              "slug": "peak-index-mountain",
+              "title": "Peak Index in a Mountain Array"
+            }
+          ]
+        },
+        {
+          "title": "Binary Search on Answer Space",
+          "items": [
+            {
+              "slug": "koko-eating-bananas",
+              "title": "Koko Eating Bananas"
+            },
+            {
+              "slug": "minimum-days-bouquets",
+              "title": "Minimum Number of Days to Make m Bouquets"
+            },
+            {
+              "slug": "allocate-pages",
+              "title": "Allocate Minimum Number of Pages"
+            },
+            {
+              "slug": "aggressive-cows",
+              "title": "Aggressive Cows"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Binary Search",
+          "items": [
+            {
+              "slug": "median-two-sorted-arrays",
+              "title": "Median of Two Sorted Arrays"
+            },
+            {
+              "slug": "kth-element-two-sorted",
+              "title": "K-th Element of Two Sorted Arrays"
+            },
+            {
+              "slug": "split-array-largest-sum",
+              "title": "Split Array Largest Sum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sorting-comparators",
+      "title": "Sorting & Custom Comparators",
+      "description": "Understand sorting intuition, built-in sort behavior, stable sort, comparator design, and interval sorting.",
+      "sections": [
+        {
+          "title": "O(N^2) Sorting Algorithms",
+          "items": [
+            {
+              "slug": "bubble-sort",
+              "title": "Bubble Sort"
+            },
+            {
+              "slug": "selection-sort",
+              "title": "Selection Sort"
+            },
+            {
+              "slug": "insertion-sort",
+              "title": "Insertion Sort"
+            }
+          ]
+        },
+        {
+          "title": "O(N log N) Sorting Algorithms",
+          "items": [
+            {
+              "slug": "merge-sort",
+              "title": "Merge Sort (Divide & Conquer)"
+            },
+            {
+              "slug": "quick-sort",
+              "title": "Quick Sort (Partitioning)"
+            },
+            {
+              "slug": "heap-sort",
+              "title": "Heap Sort"
+            }
+          ]
+        },
+        {
+          "title": "Linear Time Sorting O(N)",
+          "items": [
+            {
+              "slug": "counting-sort",
+              "title": "Counting Sort"
+            },
+            {
+              "slug": "radix-sort",
+              "title": "Radix Sort"
+            },
+            {
+              "slug": "bucket-sort",
+              "title": "Bucket Sort"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Sorting Patterns",
+          "items": [
+            {
+              "slug": "custom-comparators",
+              "title": "Custom Comparators & Sorting Logic"
+            },
+            {
+              "slug": "cycle-sort",
+              "title": "Cycle Sort (1 to N Patterns)"
+            },
+            {
+              "slug": "inversion-count",
+              "title": "Inversion Count (Merge Sort Application)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hashing-maps",
+      "title": "Hashing & Maps",
+      "description": "Use HashMap and HashSet patterns for frequency counting, lookups, prefix-state tracking, and collision intuition.",
+      "sections": [
+        {
+          "title": "Hashing Fundamentals",
+          "items": [
+            {
+              "slug": "hash-functions-collisions",
+              "title": "Hash Functions & Collision Resolution"
+            },
+            {
+              "slug": "hashset-basics",
+              "title": "Hash Set (HashSet) Basics"
+            },
+            {
+              "slug": "hashmap-basics",
+              "title": "Hash Map (HashMap) Basics"
+            }
+          ]
+        },
+        {
+          "title": "Frequency & Counting Patterns",
+          "items": [
+            {
+              "slug": "two-sum-hashmap",
+              "title": "Two Sum (HashMap Approach)"
+            },
+            {
+              "slug": "majority-element-hash",
+              "title": "Majority Element"
+            },
+            {
+              "slug": "contains-duplicate",
+              "title": "Contains Duplicate I, II & III"
+            }
+          ]
+        },
+        {
+          "title": "Prefix Sum + Hashing",
+          "items": [
+            {
+              "slug": "subarray-sum-equals-k",
+              "title": "Subarray Sum Equals K"
+            },
+            {
+              "slug": "longest-subarray-zero-sum",
+              "title": "Longest Subarray with Zero Sum"
+            },
+            {
+              "slug": "count-subarrays-xor",
+              "title": "Count Subarrays with Given XOR"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Hashing",
+          "items": [
+            {
+              "slug": "design-hashmap",
+              "title": "Design a HashMap"
+            },
+            {
+              "slug": "lru-cache",
+              "title": "LRU Cache (HashMap + Doubly Linked List)"
+            },
+            {
+              "slug": "lfu-cache",
+              "title": "LFU Cache"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stack-queue",
+      "title": "Stack & Queue",
+      "description": "Cover stack basics, queue basics, monotonic stacks, next greater element, and expression-style problems.",
+      "sections": [
+        {
+          "title": "Stack & Queue Fundamentals",
+          "items": [
+            {
+              "slug": "stack-basics",
+              "title": "Stack Basics (LIFO)"
+            },
+            {
+              "slug": "queue-basics",
+              "title": "Queue Basics (FIFO)"
+            },
+            {
+              "slug": "deque-basics",
+              "title": "Double Ended Queue (Deque)"
+            },
+            {
+              "slug": "implement-stack-queue",
+              "title": "Implement Stack using Queues (and vice versa)"
+            }
+          ]
+        },
+        {
+          "title": "Classic Stack Problems",
+          "items": [
+            {
+              "slug": "valid-parentheses",
+              "title": "Valid Parentheses"
+            },
+            {
+              "slug": "min-stack",
+              "title": "Design a Min Stack"
+            },
+            {
+              "slug": "evaluate-rpn",
+              "title": "Evaluate Reverse Polish Notation (RPN)"
+            },
+            {
+              "slug": "decode-string",
+              "title": "Decode String"
+            }
+          ]
+        },
+        {
+          "title": "Monotonic Stack",
+          "items": [
+            {
+              "slug": "next-greater-element",
+              "title": "Next Greater Element I & II"
+            },
+            {
+              "slug": "daily-temperatures",
+              "title": "Daily Temperatures"
+            },
+            {
+              "slug": "largest-rectangle-histogram",
+              "title": "Largest Rectangle in Histogram"
+            },
+            {
+              "slug": "trapping-rain-water-stack",
+              "title": "Trapping Rain Water (Stack Approach)"
+            }
+          ]
+        },
+        {
+          "title": "Monotonic Queue / Deque",
+          "items": [
+            {
+              "slug": "sliding-window-max-deque",
+              "title": "Sliding Window Maximum (Deque Approach)"
+            },
+            {
+              "slug": "shortest-subarray-sum-at-least-k",
+              "title": "Shortest Subarray with Sum at Least K"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "linked-list",
+      "title": "Linked List",
+      "description": "Learn traversal, reversal, cycle detection, list merging, and dummy-node implementation patterns.",
+      "sections": [
+        {
+          "title": "Linked List Fundamentals",
+          "items": [
+            {
+              "slug": "singly-linked-list-basics",
+              "title": "Singly Linked List Basics (Insertion, Deletion)"
+            },
+            {
+              "slug": "doubly-linked-list-basics",
+              "title": "Doubly Linked List Basics"
+            },
+            {
+              "slug": "circular-linked-list",
+              "title": "Circular Linked List"
+            }
+          ]
+        },
+        {
+          "title": "Pointer Manipulation & Reversal",
+          "items": [
+            {
+              "slug": "reverse-linked-list",
+              "title": "Reverse a Linked List (Iterative & Recursive)"
+            },
+            {
+              "slug": "reverse-nodes-k-group",
+              "title": "Reverse Nodes in k-Group"
+            },
+            {
+              "slug": "palindrome-linked-list",
+              "title": "Palindrome Linked List"
+            }
+          ]
+        },
+        {
+          "title": "Fast & Slow Pointers",
+          "items": [
+            {
+              "slug": "middle-linked-list",
+              "title": "Middle of the Linked List"
+            },
+            {
+              "slug": "linked-list-cycle",
+              "title": "Linked List Cycle (Detection & Starting Node)"
+            },
+            {
+              "slug": "remove-nth-node",
+              "title": "Remove Nth Node From End of List"
+            }
+          ]
+        },
+        {
+          "title": "Merging & Sorting",
+          "items": [
+            {
+              "slug": "merge-two-sorted-lists",
+              "title": "Merge Two Sorted Lists"
+            },
+            {
+              "slug": "merge-k-sorted-lists",
+              "title": "Merge k Sorted Lists"
+            },
+            {
+              "slug": "sort-list",
+              "title": "Sort List (Merge Sort on Linked List)"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Linked List Patterns",
+          "items": [
+            {
+              "slug": "copy-list-random-pointer",
+              "title": "Copy List with Random Pointer"
+            },
+            {
+              "slug": "intersection-two-linked-lists",
+              "title": "Intersection of Two Linked Lists"
+            },
+            {
+              "slug": "flatten-multilevel-doubly",
+              "title": "Flatten a Multilevel Doubly Linked List"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "recursion-backtracking",
+      "title": "Recursion & Backtracking",
+      "description": "Build recursion trees and solve subsets, permutations, combinations, and N-Queens style search problems.",
+      "sections": [
+        {
+          "title": "Recursion Basics",
+          "items": [
+            {
+              "slug": "recursion-tree-call-stack",
+              "title": "Recursion Tree & Call Stack"
+            },
+            {
+              "slug": "base-cases-tail-recursion",
+              "title": "Base Cases & Tail Recursion"
+            },
+            {
+              "slug": "parameterized-vs-functional",
+              "title": "Parameterized vs Functional Recursion"
+            }
+          ]
+        },
+        {
+          "title": "Basic Recursion Patterns",
+          "items": [
+            {
+              "slug": "reverse-array-recursive",
+              "title": "Reverse an Array (Recursive)"
+            },
+            {
+              "slug": "palindrome-string-recursive",
+              "title": "Palindrome String (Recursive)"
+            },
+            {
+              "slug": "fibonacci-recursive",
+              "title": "Fibonacci Sequence (Recursive)"
+            }
+          ]
+        },
+        {
+          "title": "Combinatorics & Subsets",
+          "items": [
+            {
+              "slug": "generate-subsets",
+              "title": "Generate all Subsets (Power Set)"
+            },
+            {
+              "slug": "permutations",
+              "title": "Permutations (Array & String)"
+            },
+            {
+              "slug": "combination-sum",
+              "title": "Combination Sum I, II & III"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Backtracking",
+          "items": [
+            {
+              "slug": "n-queens",
+              "title": "N-Queens Problem"
+            },
+            {
+              "slug": "sudoku-solver",
+              "title": "Sudoku Solver"
+            },
+            {
+              "slug": "word-search",
+              "title": "Word Search"
+            },
+            {
+              "slug": "palindrome-partitioning",
+              "title": "Palindrome Partitioning"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trees-binary-trees",
+      "title": "Trees & Binary Trees",
+      "description": "Study traversals, height/depth, diameter, LCA basics, and tree-recursion patterns.",
+      "sections": [
+        {
+          "title": "Tree Traversals (DFS)",
+          "items": [
+            {
+              "slug": "preorder-traversal",
+              "title": "Preorder Traversal (Root, Left, Right)"
+            },
+            {
+              "slug": "inorder-traversal",
+              "title": "Inorder Traversal (Left, Root, Right)"
+            },
+            {
+              "slug": "postorder-traversal",
+              "title": "Postorder Traversal (Left, Right, Root)"
+            }
+          ]
+        },
+        {
+          "title": "Tree Traversals (BFS)",
+          "items": [
+            {
+              "slug": "level-order-traversal",
+              "title": "Level Order Traversal"
+            },
+            {
+              "slug": "zigzag-level-order",
+              "title": "Zigzag Level Order Traversal"
+            },
+            {
+              "slug": "right-view-binary-tree",
+              "title": "Right View of Binary Tree"
+            }
+          ]
+        },
+        {
+          "title": "Tree Properties",
+          "items": [
+            {
+              "slug": "maximum-depth-binary-tree",
+              "title": "Maximum Depth of Binary Tree"
+            },
+            {
+              "slug": "diameter-binary-tree",
+              "title": "Diameter of Binary Tree"
+            },
+            {
+              "slug": "balanced-binary-tree",
+              "title": "Balanced Binary Tree"
+            },
+            {
+              "slug": "symmetric-tree",
+              "title": "Same Tree / Symmetric Tree"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Tree Patterns",
+          "items": [
+            {
+              "slug": "lowest-common-ancestor",
+              "title": "Lowest Common Ancestor (LCA)"
+            },
+            {
+              "slug": "path-sum",
+              "title": "Path Sum I, II & III"
+            },
+            {
+              "slug": "construct-binary-tree",
+              "title": "Construct Binary Tree from Traversals"
+            },
+            {
+              "slug": "serialize-deserialize-tree",
+              "title": "Serialize and Deserialize Binary Tree"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "binary-search-trees",
+      "title": "Binary Search Trees",
+      "description": "Understand BST properties, insert/search/delete intuition, validation, kth smallest, and range queries.",
+      "sections": [
+        {
+          "title": "BST Fundamentals",
+          "items": [
+            {
+              "slug": "bst-intro-properties",
+              "title": "BST Properties & Introduction"
+            },
+            {
+              "slug": "search-bst",
+              "title": "Search in a BST"
+            },
+            {
+              "slug": "insert-bst",
+              "title": "Insert into a BST"
+            },
+            {
+              "slug": "delete-node-bst",
+              "title": "Delete Node in a BST"
+            }
+          ]
+        },
+        {
+          "title": "Validation & Ranges",
+          "items": [
+            {
+              "slug": "validate-bst",
+              "title": "Validate Binary Search Tree"
+            },
+            {
+              "slug": "lca-bst",
+              "title": "Lowest Common Ancestor of a BST"
+            },
+            {
+              "slug": "kth-smallest-bst",
+              "title": "Kth Smallest Element in a BST"
+            }
+          ]
+        },
+        {
+          "title": "Advanced BST Operations",
+          "items": [
+            {
+              "slug": "construct-bst-preorder",
+              "title": "Construct BST from Preorder Traversal"
+            },
+            {
+              "slug": "recover-bst",
+              "title": "Recover Binary Search Tree"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heaps-priority-queues",
+      "title": "Heaps & Priority Queues",
+      "description": "Apply min-heaps, max-heaps, top K, kth largest, merge K lists, and scheduling patterns.",
+      "sections": [
+        {
+          "title": "Heap Fundamentals",
+          "items": [
+            {
+              "slug": "min-max-heaps-impl",
+              "title": "Min & Max Heaps (Implementation)"
+            },
+            {
+              "slug": "heapify-build-heap",
+              "title": "Heapify & Build Heap O(N)"
+            }
+          ]
+        },
+        {
+          "title": "Top K Patterns",
+          "items": [
+            {
+              "slug": "kth-largest-element",
+              "title": "Kth Largest Element in an Array"
+            },
+            {
+              "slug": "top-k-frequent-elements",
+              "title": "Top K Frequent Elements"
+            },
+            {
+              "slug": "k-closest-points",
+              "title": "K Closest Points to Origin"
+            }
+          ]
+        },
+        {
+          "title": "Merging & Advanced Heaps",
+          "items": [
+            {
+              "slug": "merge-k-sorted-lists",
+              "title": "Merge K Sorted Lists"
+            },
+            {
+              "slug": "find-median-data-stream",
+              "title": "Find Median from Data Stream"
+            },
+            {
+              "slug": "task-scheduler",
+              "title": "Task Scheduler"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "greedy-algorithms",
+      "title": "Greedy Algorithms",
+      "description": "Learn local-choice reasoning, sorting plus greedy, interval greedy, activity selection, and jump-game style patterns.",
+      "sections": [
+        {
+          "title": "Greedy Fundamentals",
+          "items": [
+            {
+              "slug": "greedy-intuition-proofs",
+              "title": "Greedy Intuition & Proofs"
+            },
+            {
+              "slug": "assign-cookies",
+              "title": "Assign Cookies"
+            },
+            {
+              "slug": "lemonade-change",
+              "title": "Lemonade Change"
+            }
+          ]
+        },
+        {
+          "title": "Scheduling & Intervals",
+          "items": [
+            {
+              "slug": "activity-selection",
+              "title": "Activity Selection (N meetings in one room)"
+            },
+            {
+              "slug": "jump-game",
+              "title": "Jump Game I & II"
+            },
+            {
+              "slug": "minimum-arrows-burst-balloons",
+              "title": "Minimum Number of Arrows to Burst Balloons"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Greedy",
+          "items": [
+            {
+              "slug": "fractional-knapsack",
+              "title": "Fractional Knapsack"
+            },
+            {
+              "slug": "job-sequencing-problem",
+              "title": "Job Sequencing Problem"
+            },
+            {
+              "slug": "candy-problem",
+              "title": "Candy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "intervals",
+      "title": "Intervals",
+      "description": "Solve merge intervals, insert interval, meeting rooms, and sweep-line introductory problems.",
+      "sections": [
+        {
+          "title": "Interval Basics & Sorting",
+          "items": [
+            {
+              "slug": "intro-intervals",
+              "title": "Introduction to Intervals"
+            },
+            {
+              "slug": "merge-intervals",
+              "title": "Merge Intervals"
+            },
+            {
+              "slug": "insert-interval",
+              "title": "Insert Interval"
+            }
+          ]
+        },
+        {
+          "title": "Meeting Rooms & Overlaps",
+          "items": [
+            {
+              "slug": "meeting-rooms-i",
+              "title": "Meeting Rooms I (Can Attend All)"
+            },
+            {
+              "slug": "meeting-rooms-ii",
+              "title": "Meeting Rooms II (Min Rooms Required)"
+            },
+            {
+              "slug": "non-overlapping-intervals",
+              "title": "Non-overlapping Intervals"
+            }
+          ]
+        },
+        {
+          "title": "Sweep Line Algorithm",
+          "items": [
+            {
+              "slug": "sweep-line-basics",
+              "title": "Sweep Line Basics (Event Sorting)"
+            },
+            {
+              "slug": "my-calendar",
+              "title": "My Calendar I, II & III"
+            },
+            {
+              "slug": "the-skyline-problem",
+              "title": "The Skyline Problem"
             }
           ]
         }
@@ -113,15 +1266,337 @@
     },
     {
       "id": "graphs",
-      "title": "Graph Algorithms",
-      "description": "Navigate complex multi-node networks, cyclic layouts, and concentric wave explorations.",
+      "title": "Graphs",
+      "description": "Learn graph representation, BFS, DFS, connected components, and cycle detection.",
       "sections": [
+        {
+          "title": "Graph Fundamentals & Representation",
+          "items": [
+            {
+              "slug": "graph-intro",
+              "title": "Introduction to Graphs"
+            },
+            {
+              "slug": "adjacency-matrix",
+              "title": "Adjacency Matrix Representation"
+            },
+            {
+              "slug": "adjacency-list",
+              "title": "Adjacency List Representation"
+            }
+          ]
+        },
         {
           "title": "Graph Traversals",
           "items": [
             {
               "slug": "bfs",
               "title": "Breadth First Search (BFS)"
+            },
+            {
+              "slug": "dfs",
+              "title": "Depth First Search (DFS)"
+            }
+          ]
+        },
+        {
+          "title": "Connected Components & Bipartite",
+          "items": [
+            {
+              "slug": "connected-components",
+              "title": "Number of Provinces / Connected Components"
+            },
+            {
+              "slug": "bipartite-graph-bfs",
+              "title": "Bipartite Graph (BFS)"
+            },
+            {
+              "slug": "bipartite-graph-dfs",
+              "title": "Bipartite Graph (DFS)"
+            }
+          ]
+        },
+        {
+          "title": "Cycle Detection",
+          "items": [
+            {
+              "slug": "cycle-undirected-bfs",
+              "title": "Cycle in Undirected Graph (BFS)"
+            },
+            {
+              "slug": "cycle-undirected-dfs",
+              "title": "Cycle in Undirected Graph (DFS)"
+            },
+            {
+              "slug": "cycle-directed-dfs",
+              "title": "Cycle in Directed Graph (DFS)"
+            }
+          ]
+        },
+        {
+          "title": "Topological Sorting",
+          "items": [
+            {
+              "slug": "topo-sort-dfs",
+              "title": "Topological Sort (DFS)"
+            },
+            {
+              "slug": "kahns-algorithm",
+              "title": "Kahn's Algorithm (BFS Topo Sort)"
+            },
+            {
+              "slug": "cycle-directed-kahns",
+              "title": "Cycle Detection using Kahn's Algorithm"
+            },
+            {
+              "slug": "course-schedule",
+              "title": "Course Schedule I & II"
+            }
+          ]
+        },
+        {
+          "title": "Shortest Path (Unweighted / Unit Weight)",
+          "items": [
+            {
+              "slug": "shortest-path-unweighted",
+              "title": "Shortest Path in Undirected Graph"
+            },
+            {
+              "slug": "shortest-path-dag",
+              "title": "Shortest Path in Directed Acyclic Graph (DAG)"
+            },
+            {
+              "slug": "word-ladder",
+              "title": "Word Ladder I & II"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced-graph-algorithms",
+      "title": "Advanced Graph Algorithms",
+      "description": "Cover topological sort, shortest paths, Dijkstra, DSU, and minimum spanning tree basics.",
+      "sections": [
+        {
+          "title": "Shortest Paths (Weighted Graphs)",
+          "items": [
+            {
+              "slug": "dijkstras-algorithm",
+              "title": "Dijkstra's Algorithm"
+            },
+            {
+              "slug": "bellman-ford",
+              "title": "Bellman-Ford Algorithm"
+            },
+            {
+              "slug": "floyd-warshall",
+              "title": "Floyd-Warshall Algorithm"
+            },
+            {
+              "slug": "network-delay-time",
+              "title": "Network Delay Time"
+            }
+          ]
+        },
+        {
+          "title": "Disjoint Set Union (DSU)",
+          "items": [
+            {
+              "slug": "dsu-basics",
+              "title": "Union-Find & DSU Basics"
+            },
+            {
+              "slug": "path-compression-union-rank",
+              "title": "Path Compression & Union by Rank"
+            },
+            {
+              "slug": "number-of-provinces-dsu",
+              "title": "Number of Provinces (DSU)"
+            },
+            {
+              "slug": "redundant-connection",
+              "title": "Redundant Connection"
+            }
+          ]
+        },
+        {
+          "title": "Minimum Spanning Tree (MST)",
+          "items": [
+            {
+              "slug": "mst-intro",
+              "title": "Introduction to MST"
+            },
+            {
+              "slug": "prims-algorithm",
+              "title": "Prim's Algorithm"
+            },
+            {
+              "slug": "kruskals-algorithm",
+              "title": "Kruskal's Algorithm"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Graph Applications",
+          "items": [
+            {
+              "slug": "bridges-tarjans",
+              "title": "Bridges in Graph (Tarjan's)"
+            },
+            {
+              "slug": "articulation-points",
+              "title": "Articulation Points"
+            },
+            {
+              "slug": "strongly-connected-kosarajus",
+              "title": "Strongly Connected Components (Kosaraju's)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dynamic-programming",
+      "title": "Dynamic Programming",
+      "description": "Build from memoization and tabulation to 1D DP, 2D DP, knapsack, LIS, and grid DP.",
+      "sections": [
+        {
+          "title": "DP Foundations",
+          "items": [
+            {
+              "slug": "recursion-to-memoization",
+              "title": "Recursion to Memoization (Top-Down)"
+            },
+            {
+              "slug": "tabulation",
+              "title": "Tabulation (Bottom-Up)"
+            },
+            {
+              "slug": "state-transition",
+              "title": "State & Transition (DP Intuition)"
+            }
+          ]
+        },
+        {
+          "title": "1D Dynamic Programming",
+          "items": [
+            {
+              "slug": "climbing-stairs-fibonacci",
+              "title": "Climbing Stairs (Fibonacci Pattern)"
+            },
+            {
+              "slug": "house-robber",
+              "title": "House Robber I & II"
+            },
+            {
+              "slug": "longest-increasing-subsequence",
+              "title": "Longest Increasing Subsequence (LIS)"
+            },
+            {
+              "slug": "coin-change",
+              "title": "Coin Change I & II"
+            }
+          ]
+        },
+        {
+          "title": "2D Dynamic Programming (Grids)",
+          "items": [
+            {
+              "slug": "unique-paths",
+              "title": "Unique Paths I & II"
+            },
+            {
+              "slug": "minimum-path-sum",
+              "title": "Minimum Path Sum"
+            },
+            {
+              "slug": "matrix-chain-multiplication",
+              "title": "Matrix Chain Multiplication (MCM)"
+            }
+          ]
+        },
+        {
+          "title": "String DP",
+          "items": [
+            {
+              "slug": "longest-common-subsequence",
+              "title": "Longest Common Subsequence (LCS)"
+            },
+            {
+              "slug": "edit-distance",
+              "title": "Edit Distance"
+            },
+            {
+              "slug": "palindromic-subsequence",
+              "title": "Longest Palindromic Subsequence"
+            }
+          ]
+        },
+        {
+          "title": "Knapsack Patterns",
+          "items": [
+            {
+              "slug": "01-knapsack",
+              "title": "0/1 Knapsack"
+            },
+            {
+              "slug": "unbounded-knapsack",
+              "title": "Unbounded Knapsack"
+            },
+            {
+              "slug": "target-sum",
+              "title": "Target Sum"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tries-advanced-data-structures",
+      "title": "Tries & Advanced Data Structures",
+      "description": "Introduce tries, prefix search, word dictionaries, and interview-level Fenwick tree and segment tree overviews.",
+      "sections": [
+        {
+          "title": "Trie Fundamentals",
+          "items": [
+            {
+              "slug": "implement-trie",
+              "title": "Implement Trie (Prefix Tree)"
+            },
+            {
+              "slug": "design-add-search-words",
+              "title": "Design Add and Search Words Data Structure"
+            },
+            {
+              "slug": "replace-words",
+              "title": "Replace Words (Prefix matching)"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Trie Patterns",
+          "items": [
+            {
+              "slug": "word-search-ii",
+              "title": "Word Search II (Trie + Backtracking)"
+            },
+            {
+              "slug": "maximum-xor-trie",
+              "title": "Maximum XOR of Two Numbers in an Array (Bit Trie)"
+            }
+          ]
+        },
+        {
+          "title": "Advanced Data Structures",
+          "items": [
+            {
+              "slug": "segment-trees-advanced",
+              "title": "Segment Trees (Range Queries & Updates)"
+            },
+            {
+              "slug": "fenwick-trees",
+              "title": "Fenwick Trees (Binary Indexed Trees)"
             }
           ]
         }

@@ -1,0 +1,131 @@
+---
+title: "Variables and Data Types"
+category: "Programming Foundations for DSA"
+readTime: "8 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand how computers allocate memory for different types of data."
+  - "Learn the difference between static and dynamic typing."
+  - "Discover how integer overflow happens and how to prevent it."
+summary: "An essential guide to variables, primitive data types, memory limits, and type safety across multiple languages."
+---
+
+# Theory & Concepts
+
+Before you can build complex algorithms and scale systems, you must understand the most fundamental building block of programming: **Variables and Data Types**. 
+
+In the context of Data Structures and Algorithms (DSA), a variable is simply a named storage location in your computer's RAM. However, not all data takes up the same amount of space. A data type tells the compiler or interpreter exactly *how much* memory to allocate for a variable and *how to interpret* the binary sequence stored in that memory.
+
+### Primitive Data Types
+
+Primitive data types are the most basic data types built directly into the language. While languages differ slightly, almost all share these core primitives:
+
+1. **Integer (`int`)**: Stores whole numbers (e.g., `5`, `-42`).
+2. **Floating-Point (`float` / `double`)**: Stores fractional or decimal numbers (e.g., `3.14`, `-0.001`).
+3. **Character (`char`)**: Stores a single alphanumeric character (e.g., `'a'`, `'Z'`).
+4. **Boolean (`bool`)**: Stores a truth value (`true` or `false`, `1` or `0`).
+
+### Memory Allocation & Size Limitations
+
+In statically typed languages like C++ and Java, the amount of memory allocated for an integer is fixed. This is crucial for DSA because if you try to store a number larger than what the memory can hold, it will "overflow".
+
+| Data Type | Memory Size | Range (Approximate) |
+| :--- | :--- | :--- |
+| `int` | 4 bytes (32 bits) | -2×10⁹ to +2×10⁹ |
+| `long` / `long long` | 8 bytes (64 bits) | -9×10¹⁸ to +9×10¹⁸ |
+| `char` | 1 byte (8 bits) | -128 to 127 (or 0 to 255) |
+| `bool` | 1 byte (8 bits) | `true` (1) or `false` (0) |
+
+*(Note: Python dynamically handles large integers, so you generally do not need to worry about integer overflow in Python.)*
+
+# Code Implementation
+
+Let's look at how variables are declared across different languages. Notice the difference between **Statically Typed** languages (C++, Java) where you must declare the type, and **Dynamically Typed** languages (Python) where the runtime determines it.
+
+<CodeBlock
+  cpp="// C++ Implementation
+#include <iostream>
+using namespace std;
+
+int main() {
+    // 1. Declaration & Initialization
+    int age = 25;                  // 32-bit integer
+    long long worldPopulation = 8000000000LL; // 64-bit integer
+    
+    double pi = 3.14159;           // 64-bit floating point
+    char grade = 'A';              // 8-bit character
+    bool isPassed = true;          // 8-bit boolean
+    
+    cout << \"Age: \" << age << endl;
+    
+    // 2. Integer Overflow Example
+    int maxInt = 2147483647; // Maximum 32-bit integer
+    maxInt = maxInt + 1;     // OVERFLOW! Becomes -2147483648
+    
+    return 0;
+}"
+  java="// Java Implementation
+public class Variables {
+    public static void main(String[] args) {
+        // 1. Declaration & Initialization
+        int age = 25;                  // 32-bit integer
+        long worldPopulation = 8000000000L; // 64-bit integer
+        
+        double pi = 3.14159;           // 64-bit floating point
+        char grade = 'A';              // 16-bit character (UTF-16)
+        boolean isPassed = true;       // size is JVM dependent
+        
+        System.out.println(\"Age: \" + age);
+        
+        // 2. Integer Overflow Example
+        int maxInt = Integer.MAX_VALUE; // 2147483647
+        maxInt = maxInt + 1;            // OVERFLOW! Becomes -2147483648
+    }
+}"
+  python="# Python Implementation
+def main():
+    # 1. Declaration (Dynamically Typed)
+    age = 25                   # Python automatically assigns the int type
+    world_population = 8000000000 
+    
+    pi = 3.14159               # Automatically treated as a float
+    grade = 'A'                # Python treats characters as strings of length 1
+    is_passed = True           # Boolean
+    
+    print(f\"Age: {age}\")
+    
+    # 2. Python handles large integers automatically!
+    max_int = 2147483647
+    max_int = max_int + 1      # Perfectly fine, becomes 2147483648
+    
+if __name__ == \"__main__\":
+    main()"
+/>
+
+# Complexity Analysis
+
+<ComplexityTable
+  best="O(1)"
+  average="O(1)"
+  worst="O(1)"
+  space="O(1)"
+  description="Declaring and initializing primitive variables takes constant time O(1). The space complexity is also O(1) since primitives occupy a fixed, small amount of memory (e.g., 4 or 8 bytes)."
+/>
+
+# Common Pitfalls
+
+<Warning>
+- **Integer Overflow**: In C++ and Java, multiplying two large `int` values (e.g., $10^5 \times 10^5 = 10^{10}$) will exceed the 32-bit integer limit ($2 \times 10^9$) and result in negative garbage values. Always use `long long` (C++) or `long` (Java) when dealing with large products.
+- **Floating Point Precision**: Floats and doubles cannot represent all decimal fractions exactly. Never use `==` to compare two floating-point numbers. Instead, check if their difference is less than a tiny threshold (e.g., `abs(a - b) < 1e-9`).
+- **Python's Immutability**: In Python, primitive types like integers and strings are immutable. Reassigning a variable actually creates a new object in memory rather than altering the existing one.
+</Warning>
+
+# Interview Intelligence
+
+<InterviewTips
+  tips={[
+    "When a problem specifies constraints like 'Array elements can be up to 10^9', alarm bells should ring in your head: if you sum them up, you will need a 64-bit integer!",
+    "If an interviewer asks you to manipulate strings in C++ or Java, remember that characters are just integers under the hood (ASCII values). You can perform math on them: 'c' - 'a' equals 2.",
+    "Python developers: Interviewers might ask you about Python's lack of integer limits. Mention that Python uses arbitrary-precision integers, which take up more memory and CPU cycles than fixed-size C++ integers."
+  ]}
+/>

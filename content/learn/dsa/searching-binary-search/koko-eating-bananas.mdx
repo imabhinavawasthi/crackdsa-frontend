@@ -1,0 +1,68 @@
+---
+title: "Koko Eating Bananas"
+category: "Searching & Binary Search"
+readTime: "10 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the divide-and-conquer logic behind Koko Eating Bananas."
+  - "Master how to define the search space (low and high pointers)."
+  - "Learn the standard template to avoid infinite loops and off-by-one errors."
+summary: "An essential guide to Koko Eating Bananas, mastering O(log N) optimizations and solving the hardest 'Binary Search on Answer' patterns."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Koko Eating Bananas**. This topic is a cornerstone of the Searching & Binary Search module. Binary Search is the ultimate optimization tool when you need to improve an O(N) linear scan to an O(log N) operation, often making the difference between TLE (Time Limit Exceeded) and Accepted in interviews.
+
+### Core Intuition
+The fundamental requirement for Binary Search is a monotonic (sorted or consistently increasing/decreasing) search space. At every step, you evaluate the middle element. Depending on the condition, you can confidently eliminate exactly half of the remaining search space, leading to logarithmic runtime.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Koko Eating Bananas
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    int solve() {
+        // Implementation here
+        return 0;
+    }
+};"
+  java="// Java implementation for Koko Eating Bananas
+class Solution {
+    public int solve() {
+        // Implementation here
+        return 0;
+    }
+}"
+  python="# Python implementation for Koko Eating Bananas
+class Solution:
+    def solve(self) -> int:
+        # Implementation here
+        return 0"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(log N)"
+  worst="O(log N)"
+  space="O(1)"
+  description="The search space is halved at every step, yielding an incredibly fast O(log N) time complexity. Space complexity is O(1) for iterative implementations and O(log N) for recursive due to the call stack."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Integer Overflow:** Calculating mid as `(low + high) / 2` can overflow if `low` and `high` are very large. Always use `low + (high - low) / 2`.
+- **Infinite Loops:** Failing to correctly update `low = mid + 1` or `high = mid - 1` can cause the loop to run forever when the search space shrinks to 2 elements.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If you see a problem asking for the 'Minimum of a Maximum' or 'Maximum of a Minimum', it is almost guaranteed to be a Binary Search on Answer problem.",
+    "If you need to find a target in a rotated sorted array, the trick is to first figure out which half of the array (left or right of mid) is properly sorted."
+  ]}
+/>

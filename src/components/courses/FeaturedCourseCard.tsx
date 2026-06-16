@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Crown, ArrowRight, BookOpen, ChevronDown, ChevronUp, CheckCircle2, Code2, Terminal, Cpu, Star, Users } from "lucide-react";
 import { CourseSummary } from "@/types/course";
 import AspectRatioImage from "@/components/common/AspectRatioImage";
+import { formatTag } from "@/utils/string";
 
 export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
   const [expandedSyllabus, setExpandedSyllabus] = useState(false);
@@ -31,7 +32,7 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
                 <div className="flex flex-wrap items-center gap-3">
                   {course.is_popular && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-brand-500 text-white shadow-md shadow-brand-500/20">
-                      <Zap size={12} /> Popular Flagship
+                      <Zap size={12} /> Popular
                     </span>
                   )}
                   <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
@@ -78,7 +79,7 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
                   key={tag}
                   className="px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/60 text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800/80"
                 >
-                  {tag}
+                  {formatTag(tag)}
                 </span>
               ))}
             </div>
@@ -94,19 +95,19 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
                 ) : null}
                 {course.total_videos ? (
                   <div className="flex flex-col gap-1">
-                    <span className="text-2xl font-black text-brand-500">{course.total_videos}</span>
+                    <span className="text-2xl font-black text-brand-500">{course.total_videos} +</span>
                     <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Lectures</span>
                   </div>
                 ) : null}
                 {course.total_problems ? (
                   <div className="flex flex-col gap-1">
-                    <span className="text-2xl font-black text-brand-500">{course.total_problems}</span>
+                    <span className="text-2xl font-black text-brand-500">{course.total_problems} +</span>
                     <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Problems</span>
                   </div>
                 ) : null}
                 {course.total_articles ? (
                   <div className="flex flex-col gap-1">
-                    <span className="text-2xl font-black text-brand-500">{course.total_articles}</span>
+                    <span className="text-2xl font-black text-brand-500">{course.total_articles} +</span>
                     <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Articles</span>
                   </div>
                 ) : null}
@@ -157,40 +158,18 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
 
               <div className="space-y-3 relative z-20">
                 <Link
-                  href={`/checkout/course/${course.slug}`}
+                  href={`/courses/${course.slug}`}
                   onClick={(e) => e.stopPropagation()}
                   className="flex items-center justify-center gap-2 w-full rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-6 py-4 text-sm font-bold shadow-xl shadow-brand-500/20 hover:shadow-brand-500/30 transition-all group/btn"
                 >
-                  <span>Enroll Now</span>
+                  <span>View Details</span>
                   <ArrowRight size={16} className="transition-transform group-hover/btn:translate-x-1" />
                 </Link>
-                
-                {course.is_pro && (
-                  <>
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
-                      </div>
-                      <div className="relative flex justify-center">
-                        <span className="bg-gray-50 dark:bg-[#1a1f2e] px-2 text-[10px] uppercase font-bold text-gray-400">OR</span>
-                      </div>
-                    </div>
-
-                    <Link
-                      href={`/checkout/pro`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center justify-center gap-2 w-full rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-6 py-4 text-sm font-bold transition-colors"
-                    >
-                      <Crown size={16} />
-                      <span>Unlock with PRO</span>
-                    </Link>
-                  </>
-                )}
               </div>
             </div>
 
             {/* Syllabus Accordion Preview */}
-            {course.metadata?.marketing_syllabus && course.metadata.marketing_syllabus.length > 0 && (
+            {/* {course.metadata?.marketing_syllabus && course.metadata.marketing_syllabus.length > 0 && (
               <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 relative z-20">
                 <button
                   onClick={(e) => {
@@ -229,7 +208,7 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
                   )}
                 </AnimatePresence>
               </div>
-            )}
+            )} */}
           </div>
           </div>
         </div>

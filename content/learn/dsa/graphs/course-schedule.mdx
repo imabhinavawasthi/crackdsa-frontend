@@ -1,0 +1,69 @@
+---
+title: "Course Schedule I & II"
+category: "Graphs"
+readTime: "8 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the fundamentals of Course Schedule I & II."
+  - "Learn how to implement this graph pattern in real coding interviews."
+  - "Master the time and space complexity."
+summary: "An essential guide to Course Schedule I & II, exploring its applications, implementations, and interview intelligence for graph problems."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Course Schedule I & II**. This topic is a cornerstone of the Graphs module. Graphs are everywhere in technical interviews, and understanding this concept thoroughly will significantly improve your problem-solving speed.
+
+### Core Intuition
+The main idea behind this concept is to navigate or process a network of nodes efficiently. Whether you are finding the shortest path, detecting cycles, or determining connectivity, this pattern provides a structured approach.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Course Schedule I & II
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    void solve(int V, vector<int> adj[]) {
+        // Implementation here
+    }
+};"
+  java="// Java implementation for Course Schedule I & II
+import java.util.*;
+
+class Solution {
+    public void solve(int V, ArrayList<ArrayList<Integer>> adj) {
+        // Implementation here
+    }
+}"
+  python="# Python implementation for Course Schedule I & II
+class Solution:
+    def solve(self, V, adj):
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(V + E)"
+  average="O(V + E)"
+  worst="O(V + E)"
+  space="O(V)"
+  description="Graph algorithms typically run in linear time relative to the size of the graph (Vertices + Edges). Space is bounded by recursion depth or queue size, which is O(V)."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Visited Array:** Forgetting to mark a node as visited can lead to infinite loops.
+- **Disconnected Graphs:** Failing to wrap your traversal in an outer loop that checks all components (e.g., `for i in range(V): if not visited[i]: traverse(i)`).
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "Always start by clarifying with your interviewer whether the graph is directed or undirected, and whether it can contain cycles.",
+    "Ask if nodes are 0-indexed or 1-indexed. This prevents out-of-bounds errors when initializing your visited arrays.",
+    "Mention the space complexity tradeoffs between an Adjacency Matrix (O(V^2)) and an Adjacency List (O(V + E))."
+  ]}
+/>

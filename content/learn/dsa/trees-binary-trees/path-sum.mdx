@@ -1,0 +1,96 @@
+---
+title: "Path Sum I, II & III"
+category: "Trees & Binary Trees"
+readTime: "10 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the recursive nature of Path Sum I, II & III."
+  - "Master Depth-First Search (DFS) and Breadth-First Search (BFS) mechanics."
+  - "Learn how to pass state up and down the recursion tree."
+summary: "An essential guide to Path Sum I, II & III, mastering tree traversal algorithms and recursive property calculations."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Path Sum I, II & III**. This topic is a cornerstone of the Trees & Binary Trees module. Trees are inherently recursive data structures, making them the perfect playground to test your mastery of recursion and the Call Stack.
+
+### Core Intuition
+Most tree problems fall into two categories:
+1. **Top-Down (Pre-order):** You pass a value from the parent down to the children.
+2. **Bottom-Up (Post-order):** You recursively process the children first, and pass their results back up to the parent to make a decision.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Path Sum I, II & III
+#include <iostream>
+using namespace std;
+
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode() : val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+    TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+};
+
+class Solution {
+public:
+    void solve(TreeNode* root) {
+        // Implementation here
+    }
+};"
+  java="// Java implementation for Path Sum I, II & III
+class TreeNode {
+    int val;
+    TreeNode left;
+    TreeNode right;
+    TreeNode() {}
+    TreeNode(int val) { this.val = val; }
+    TreeNode(int val, TreeNode left, TreeNode right) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
+    }
+}
+
+class Solution {
+    public void solve(TreeNode root) {
+        // Implementation here
+    }
+}"
+  python="# Python implementation for Path Sum I, II & III
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Solution:
+    def solve(self, root: TreeNode):
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(H)"
+  description="Time complexity for tree algorithms is typically O(N) since we must visit every node exactly once. Space complexity is O(H) where H is the height of the tree, representing the maximum call stack depth. In the worst case (a skewed tree), H = N."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Null Pointer Dereference:** Failing to check if `root == null` before accessing `root.left` or `root.right`. This is the #1 cause of crashes in tree interviews.
+- **Global Variables:** Using global variables to keep track of state (like maximum depth) is considered bad practice. Try to pass state via function parameters or return values instead!
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If the problem asks for anything 'Level by Level', immediately use Breadth-First Search (BFS) with a Queue.",
+    "If the problem relies on information from both children simultaneously (like finding the Diameter or Lowest Common Ancestor), use Post-order Traversal.",
+    "Always state the space complexity as O(H) where H is the height of the tree, and clarify that in a balanced tree H = log N, but in a skewed tree H = N."
+  ]}
+/>

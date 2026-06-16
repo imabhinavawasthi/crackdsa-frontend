@@ -1,0 +1,70 @@
+---
+title: "Majority Element"
+category: "Hashing & Maps"
+readTime: "8 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the internal workings and load factors associated with Majority Element."
+  - "Learn how to reduce O(N) array lookups to O(1) instant retrievals."
+  - "Master complex prefix sum caching using HashMaps."
+summary: "An essential guide to Majority Element, mastering O(1) lookup times and cracking the most common interview problems."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Majority Element**. This topic is a cornerstone of the Hashing & Maps module. Hash Maps (or Dictionaries in Python) are arguably the most used data structure in competitive programming and interviews. If you need to optimize a brute force solution, your first thought should always be: 'Can I use a Map?'
+
+### Core Intuition
+The primary goal of hashing is to map keys (like numbers, strings, or objects) to specific array indices using a mathematical Hash Function. This allows us to insert, delete, and search for elements in O(1) average time, rather than iterating through an entire list in O(N) time.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Majority Element
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    void solve(vector<int>& arr) {
+        // Implementation here
+    }
+};"
+  java="// Java implementation for Majority Element
+import java.util.*;
+
+class Solution {
+    public void solve(int[] arr) {
+        // Implementation here
+    }
+}"
+  python="# Python implementation for Majority Element
+class Solution:
+    def solve(self, arr: list[int]):
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(1)"
+  worst="O(N)"
+  space="O(N)"
+  description="HashMaps provide O(1) average time complexity for insertions and lookups. However, in the worst-case scenario (due to hash collisions), it can degrade to O(N). Space complexity is typically O(N) since we allocate memory for each stored key-value pair."
+/>
+
+# Common Pitfalls
+<Warning>
+- **C++ `unordered_map` Worst Case:** Using `unordered_map` in C++ can sometimes get hacked in competitive programming, causing O(N) operations per lookup. Use `map` (O(log N)) if you suspect adversarial test cases, or write a custom hash function.
+- **Forgetting Prefix Default:** When using Prefix Sum + Hashing, always initialize your map with `map[0] = 1` or `map[0] = -1` depending on the problem, to account for subarrays starting from index 0!
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If you have to do an O(N) lookup repeatedly inside a loop, that immediately implies an O(N^2) solution. Slap a HashMap in there to make it O(N).",
+    "Always clarify if the keys can be negative or duplicates. If keys can be objects, mention how you would implement a custom `hashCode()` function.",
+    "If you need to maintain the insertion order of keys, mention `LinkedHashMap` in Java or Python's default `dict` (since Python 3.7+)."
+  ]}
+/>

@@ -1,0 +1,132 @@
+---
+title: "Memory Management Basics"
+category: "Programming Foundations for DSA"
+readTime: "15 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the difference between the Call Stack and the Heap."
+  - "Learn how variables and objects are allocated in memory."
+  - "Discover how Garbage Collection and manual memory management work."
+summary: "A deep dive into how programs allocate, use, and free memory—a vital concept for analyzing Space Complexity in algorithms."
+---
+
+# Theory & Concepts
+
+Every time you declare a variable or instantiate an array, your program must request memory from the operating system. Understanding *where* and *how* this memory is allocated is the secret to mastering **Space Complexity** and avoiding stack overflow errors.
+
+Memory is broadly divided into two primary regions: the **Stack** and the **Heap**.
+
+### 1. The Call Stack
+
+The Stack is a fast, organized region of memory used for **static memory allocation**.
+- Whenever a function is called, a new "Stack Frame" is pushed onto the stack. This frame holds all the local primitive variables and function parameters.
+- When the function finishes executing, its frame is "popped" off the stack, and all its local variables are instantly destroyed.
+- **Size Limit**: The Stack is relatively small (usually a few megabytes). If you write a recursive algorithm that calls itself too many times without returning, you will exceed this limit, causing a **Stack Overflow Error**.
+
+### 2. The Heap
+
+The Heap is a larger, dynamic region of memory used for **dynamic memory allocation**.
+- If you need to store large amounts of data (like an array of 100,000 integers, a Tree, or a Graph), or data whose size is unknown at compile time, it gets allocated on the Heap.
+- Heap memory must be accessed via **Pointers** or **References** stored on the Stack.
+- **Deallocation**: Because the Heap doesn't automatically pop like the Stack, memory must be freed when no longer needed. C/C++ requires manual deallocation, whereas Java and Python use an automatic **Garbage Collector**.
+
+# Code Implementation
+
+Let's visualize how the Stack and Heap interact when we create arrays and variables.
+
+<CodeBlock
+  cpp="// C++ Implementation
+#include <iostream>
+using namespace std;
+
+void allocateMemory() {
+    // 1. STACK ALLOCATION
+    // x is a local primitive variable. It lives entirely on the Stack.
+    int x = 5; 
+    
+    // 2. HEAP ALLOCATION
+    // We request memory dynamically using the 'new' keyword.
+    // 'arr' is a pointer on the Stack, which points to an array on the Heap.
+    int* arr = new int[1000]; 
+    arr[0] = x;
+    
+    // 3. MANUAL MEMORY MANAGEMENT
+    // In C++, YOU are responsible for freeing Heap memory!
+    // If you forget this, you create a Memory Leak.
+    delete[] arr; 
+}
+
+int main() {
+    allocateMemory();
+    return 0;
+}"
+  java="// Java Implementation
+public class MemoryManagement {
+    public static void allocateMemory() {
+        // 1. STACK ALLOCATION
+        // x is a local primitive. It lives entirely on the Stack.
+        int x = 5;
+        
+        // 2. HEAP ALLOCATION
+        // The 'new' keyword allocates the array on the Heap.
+        // 'arr' is a reference variable on the Stack pointing to the Heap array.
+        int[] arr = new int[1000];
+        arr[0] = x;
+        
+        // 3. AUTOMATIC GARBAGE COLLECTION
+        // When allocateMemory() finishes, the 'arr' reference on the Stack is destroyed.
+        // The JVM Garbage Collector will later detect that the array on the Heap 
+        // is unreachable and will automatically free it for you!
+    }
+
+    public static void main(String[] args) {
+        allocateMemory();
+    }
+}"
+  python="# Python Implementation
+def allocate_memory():
+    # 1. HEAP ALLOCATION (Python is unique)
+    # In Python, almost everything is an object living on the Heap!
+    # 'x' is a reference on the Stack pointing to an integer object (5) on the Heap.
+    x = 5
+    
+    # 'arr' is a reference on the Stack pointing to a list object on the Heap.
+    arr = [0] * 1000
+    arr[0] = x
+    
+    # 2. AUTOMATIC GARBAGE COLLECTION
+    # Python uses Reference Counting. When allocate_memory() finishes,
+    # the references 'x' and 'arr' are destroyed. Their reference counts drop to 0,
+    # and Python's Garbage Collector instantly frees the memory.
+
+if __name__ == \"__main__\":
+    allocate_memory()"
+/>
+
+# Complexity Analysis
+
+<ComplexityTable
+  best="O(1)"
+  average="O(1)"
+  worst="O(N)"
+  space="O(N)"
+  description="Allocating an array of size N on the Heap takes O(N) space and generally O(N) time (as the OS must find a contiguous block of memory and often zero-initializes it)."
+/>
+
+# Common Pitfalls
+
+<Warning>
+- **Stack Overflow**: Deep recursion (e.g., $N > 10^4$) will exceed the Stack limit. If an interview problem has massive constraints, use an iterative approach (with a while loop and a manual Stack data structure on the Heap) instead of pure recursion.
+- **Memory Leaks (C++)**: If you allocate memory using `new` and lose the pointer before calling `delete`, that memory is lost until the program ends.
+- **Hidden Space Complexity**: Remember that strings in Java/Python are immutable. If you concatenate strings in a loop (`s += \"a\"`), you are creating a brand new String object on the Heap every single iteration, leading to $O(N^2)$ time and space complexity! Use `StringBuilder` (Java) or `.join()` (Python).
+</Warning>
+
+# Interview Intelligence
+
+<InterviewTips
+  tips={[
+    "When an interviewer asks for the Space Complexity of your algorithm, they are usually asking for 'Auxiliary Space' (extra memory you allocate on the Heap, plus the Call Stack depth for recursion). Input arrays do NOT count towards auxiliary space.",
+    "If your recursive algorithm has a maximum depth of N, tell the interviewer: 'The time complexity is O(N), and the space complexity is O(N) due to the recursive Call Stack.'",
+    "In C++, utilizing `std::vector` abstracts away manual memory management, as its destructor automatically frees the heap memory when the vector goes out of scope."
+  ]}
+/>

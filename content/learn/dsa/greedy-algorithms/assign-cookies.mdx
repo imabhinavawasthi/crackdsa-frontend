@@ -1,0 +1,75 @@
+---
+title: "Assign Cookies"
+category: "Greedy Algorithms"
+readTime: "8 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the concept of making locally optimal choices at each stage."
+  - "Learn how sorting combined with a greedy choice eliminates the need for complex DP."
+  - "Master how to prove whether a greedy approach is safe or will fail edge cases."
+summary: "An essential guide to Assign Cookies, mastering the art of local optimization and avoiding the traps of Dynamic Programming overcomplication."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Assign Cookies**. This topic is a cornerstone of the Greedy Algorithms module. A Greedy Algorithm builds up a solution piece by piece, always choosing the next piece that offers the most obvious and immediate benefit.
+
+### Core Intuition
+The tricky part of Greedy algorithms isn't the code—it's proving that it works. Unlike Dynamic Programming which exhaustively searches all paths and guarantees correctness, Greedy only searches one path. You must prove the *Greedy Choice Property*: making a locally optimal choice guarantees a globally optimal solution.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Assign Cookies
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class Solution {
+public:
+    int solve(vector<int>& arr) {
+        // sort(arr.begin(), arr.end());
+        // Implementation here
+        return 0;
+    }
+};"
+  java="// Java implementation for Assign Cookies
+import java.util.*;
+
+class Solution {
+    public int solve(int[] arr) {
+        // Arrays.sort(arr);
+        // Implementation here
+        return 0;
+    }
+}"
+  python="# Python implementation for Assign Cookies
+class Solution:
+    def solve(self, arr: list[int]) -> int:
+        # arr.sort()
+        # Implementation here
+        return 0"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(N log N)"
+  average="O(N log N)"
+  worst="O(N log N)"
+  space="O(1)"
+  description="Greedy algorithms are almost always paired with sorting. Therefore, the time complexity is dominated by the initial sort: O(N log N). The greedy iteration itself is usually O(N). Space complexity is typically O(1) assuming an in-place sort."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Premature Greediness:** Assuming a greedy approach works without testing edge cases. Often, what looks like a Greedy problem is actually a DP problem (e.g., 0/1 Knapsack is DP, Fractional Knapsack is Greedy).
+- **Sorting State:** Forgetting to sort the input arrays before applying the greedy logic!
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If a problem asks for 'minimum steps', 'maximum profit', or 'optimal scheduling', and Dynamic Programming feels too slow (e.g. constraints up to 10^5), it's highly likely a Greedy problem.",
+    "Interval overlapping problems (like 'Merge Intervals' or 'Minimum Arrows') are classic greedy problems. Always sort them by their start or end times first.",
+    "Be vocal about your proofs. Say to the interviewer: 'I believe a greedy approach works here because making this choice now will never restrict us from making a better choice later.'"
+  ]}
+/>

@@ -1,0 +1,74 @@
+---
+title: "Task Scheduler"
+category: "Heaps & Priority Queues"
+readTime: "8 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the array representation of Task Scheduler."
+  - "Learn how to use Priority Queues to maintain running statistics."
+  - "Master the 'Top K' identification pattern."
+summary: "An essential guide to Task Scheduler, mastering O(log N) extractions and the powerful 'Top K' interview pattern."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Task Scheduler**. This topic is a cornerstone of the Heaps & Priority Queues module. A Heap (usually implemented via a Priority Queue) is an extremely specialized tree structure that allows you to instantly extract the minimum or maximum element in O(1) time, while inserts and deletions take O(log N).
+
+### Core Intuition
+Heaps are typically implemented under the hood as a complete binary tree mapped to a flat array. The children of node `i` are at `2i + 1` and `2i + 2`. This guarantees the tree is perfectly balanced.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Task Scheduler
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+class Solution {
+public:
+    void solve(vector<int>& arr) {
+        // priority_queue<int> maxHeap;
+        // priority_queue<int, vector<int>, greater<int>> minHeap;
+    }
+};"
+  java="// Java implementation for Task Scheduler
+import java.util.*;
+
+class Solution {
+    public void solve(int[] arr) {
+        // PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+        // PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());
+    }
+}"
+  python="# Python implementation for Task Scheduler
+import heapq
+
+class Solution:
+    def solve(self, arr: list[int]):
+        # heapq.heapify(arr)  # Min-heap by default
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(1)"
+  average="O(log N)"
+  worst="O(log N)"
+  space="O(N)"
+  description="Peeking at the top element is O(1). Popping or Pushing an element takes O(log N) time because the heap must bubble up or sift down to maintain its properties. Building a heap from an unsorted array takes O(N) time."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Python's heapq:** Python only has a built-in Min-Heap. To simulate a Max-Heap, you must negate all numbers before pushing them in, and negate them again when popping out!
+- **N log N vs N log K:** When finding the Top K elements, do NOT push all N elements into the heap (O(N log N)). Instead, keep the heap size capped at K. When size > K, pop the smallest element. This reduces time complexity to O(N log K).
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If a problem asks for the 'Kth Largest', 'Kth Smallest', or 'Top K' of anything, it is a 99% guarantee that a Heap/Priority Queue is the intended solution.",
+    "If you need to merge multiple sorted arrays or linked lists simultaneously, a Min-Heap keeping track of the current pointers is the most optimal approach.",
+    "The 'Find Median from Data Stream' problem is a classic hard interview question solved beautifully by maintaining two separate heaps: one Max-Heap for the lower half, and one Min-Heap for the upper half."
+  ]}
+/>

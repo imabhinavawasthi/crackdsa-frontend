@@ -108,16 +108,6 @@ export const SheetHeaderCard: React.FC<SheetHeaderCardProps> = ({
                 <div className="text-sm font-bold text-white leading-none">{totalProblems}</div>
               </div>
             </div>
-
-            <div className="flex items-center gap-3 bg-white/10 border border-white/10 backdrop-blur-md rounded-lg px-3 py-2 flex-1 md:w-48">
-              <div className="w-7 h-7 rounded-md bg-white/20 flex items-center justify-center text-white shrink-0">
-                <Zap size={14} />
-              </div>
-              <div>
-                <div className="text-[10px] font-bold text-white/60 uppercase tracking-wider leading-none mb-1">Format</div>
-                <div className="text-sm font-bold text-white leading-none">Self Paced</div>
-              </div>
-            </div>
           </motion.div>
 
         </div>

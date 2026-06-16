@@ -1,0 +1,68 @@
+---
+title: "Fast & Slow Pointers (Floyd's Tortoise & Hare)"
+category: "Two Pointers & Sliding Window"
+readTime: "9 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the pointer mechanics behind Fast & Slow Pointers (Floyd's Tortoise & Hare)."
+  - "Learn how to optimize nested loops into a single O(N) pass."
+  - "Master edge cases and off-by-one window boundaries."
+summary: "An essential guide to Fast & Slow Pointers (Floyd's Tortoise & Hare), exploring its applications, optimal implementations, and how to identify this pattern in interviews."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Fast & Slow Pointers (Floyd's Tortoise & Hare)**. This topic is a cornerstone of the Two Pointers & Sliding Window module. The Two Pointers and Sliding Window techniques are universally loved by interviewers because they elegantly reduce O(N^2) complexity down to O(N) without requiring extra space.
+
+### Core Intuition
+Instead of using a nested loop to check every possible pair or subarray, we use two pointers (`left` and `right`) to represent a range or a pair of elements. Based on specific conditions, we strategically move one pointer or the other, drastically reducing the search space.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Fast & Slow Pointers (Floyd's Tortoise & Hare)
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class Solution {
+public:
+    void solve() {
+        // Implementation here
+    }
+};"
+  java="// Java implementation for Fast & Slow Pointers (Floyd's Tortoise & Hare)
+class Solution {
+    public void solve() {
+        // Implementation here
+    }
+}"
+  python="# Python implementation for Fast & Slow Pointers (Floyd's Tortoise & Hare)
+class Solution:
+    def solve(self):
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(1)"
+  description="The overall time complexity is optimized to O(N) since both the left and right pointers only move in one direction and visit each element at most twice. Space complexity is O(1) because we only store pointer indices."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Off-by-One Errors:** Miscalculating the window size as `right - left` instead of `right - left + 1`.
+- **Pointer Stagnation:** Creating infinite loops by forgetting to increment/decrement the pointers inside a `while` loop condition.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If the problem asks for a contiguous sequence (subarray or substring), Sliding Window is almost always the answer.",
+    "If the array is sorted and you need to find a pair, start one pointer at the beginning and one at the end.",
+    "For Variable Sliding Windows, the logic is always: Expand the right pointer, and while the condition is violated, shrink the left pointer."
+  ]}
+/>

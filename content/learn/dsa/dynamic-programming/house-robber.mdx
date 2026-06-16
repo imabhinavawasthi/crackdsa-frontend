@@ -1,0 +1,74 @@
+---
+title: "House Robber I & II"
+category: "Dynamic Programming"
+readTime: "12 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Identify when to use House Robber I & II to optimize exponential time complexity."
+  - "Understand the recurrence relation and overlapping subproblems."
+  - "Write memory-optimized DP solutions."
+summary: "An essential deep-dive into House Robber I & II. This article breaks down the intuition, mathematical recurrence, and optimal code implementations for cracking DP interviews."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **House Robber I & II**. This topic is a core pillar of the Dynamic Programming module. Dynamic Programming is notorious for being the most intimidating topic in coding interviews, but mastering this pattern will make it formulaic and predictable.
+
+### Core Intuition
+The essence of Dynamic Programming lies in recognizing overlapping subproblems and optimal substructure. Instead of calculating the same state multiple times via naive recursion, we cache (memoize) the results or iteratively build them up (tabulate).
+
+### The Recurrence Relation
+Before writing code, always define the DP state: `dp(i) = ...`
+Then, determine the base cases and the transitions. 
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for House Robber I & II
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    int solve() {
+        // Implementation here
+        return 0;
+    }
+};"
+  java="// Java implementation for House Robber I & II
+import java.util.*;
+
+class Solution {
+    public int solve() {
+        // Implementation here
+        return 0;
+    }
+}"
+  python="# Python implementation for House Robber I & II
+class Solution:
+    def solve(self) -> int:
+        # Implementation here
+        return 0"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(N * M)"
+  average="O(N * M)"
+  worst="O(N * M)"
+  space="O(N * M) or O(M)"
+  description="Time complexity depends on the number of states and the time to compute each state. Space complexity can often be optimized from O(N*M) to O(M) using rolling arrays."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Array Out of Bounds:** Forgetting to handle base cases like `i < 0` or `j < 0` resulting in array index errors.
+- **Top-Down Stack Overflow:** Using pure recursion without a memoization cache on large inputs.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "Always start by drawing the recursion tree for a small example. It makes overlapping subproblems instantly obvious.",
+    "If your 2D DP array only relies on the previous row (`dp[i-1]`), you can usually optimize the space complexity down to O(M) using a 1D array!"
+  ]}
+/>

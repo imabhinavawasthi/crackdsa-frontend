@@ -8,6 +8,7 @@ import { SheetHeaderCard } from "./SheetHeaderCard";
 import { SheetProgressSection } from "./SheetProgressSection";
 import { SheetToolbar } from "./SheetToolbar";
 import { motion } from "framer-motion";
+import { generateSheetPDF } from "@/utils/pdfGenerator";
 
 interface SheetContentViewProps {
   sheet: DSASheet;
@@ -119,6 +120,10 @@ export const SheetContentView: React.FC<SheetContentViewProps> = ({
     setExpandToggleKey((prev) => prev + 1);
   }, []);
 
+  const handleDownloadPDF = useCallback(() => {
+    generateSheetPDF(sheet, sheetProblems);
+  }, [sheet, sheetProblems]);
+
   return (
     <div className="w-full pb-16">
       {/* Hero Banner & Progress Section */}
@@ -148,6 +153,7 @@ export const SheetContentView: React.FC<SheetContentViewProps> = ({
         expandAll={expandAll}
         handleExpandAll={handleExpandAll}
         filteredTopicsLength={filteredTopics.length}
+        onDownloadPDF={handleDownloadPDF}
       />
 
       {/* Topics list */}

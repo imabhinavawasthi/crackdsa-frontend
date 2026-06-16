@@ -1,0 +1,83 @@
+---
+title: "Word Search"
+category: "Recursion & Backtracking"
+readTime: "10 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand how the Call Stack builds and resolves during Word Search."
+  - "Learn how to explicitly define your base cases to prevent infinite recursion."
+  - "Master the 'Choose, Explore, Un-choose' standard backtracking template."
+summary: "An essential guide to Word Search, exploring recursion trees, state management, and combinatorial generation techniques."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Word Search**. This topic is a cornerstone of the Recursion & Backtracking module. Recursion is the foundation for Trees, Graphs, and Dynamic Programming. If you can't visualize a recursion tree, those advanced topics will be impossible to master.
+
+### Core Intuition
+Recursion is simply a function calling itself with a slightly smaller input until it hits a Base Case. 
+**Backtracking** is a specialized form of recursion. It's an algorithmic technique for solving problems recursively by trying to build a solution incrementally, one piece at a time, removing those solutions that fail to satisfy the constraints of the problem at any point in time.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Word Search
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    void solve() {
+        // Implementation here
+    }
+    
+private:
+    void backtrack() {
+        // Recursive helper
+    }
+};"
+  java="// Java implementation for Word Search
+import java.util.*;
+
+class Solution {
+    public void solve() {
+        // Implementation here
+    }
+    
+    private void backtrack() {
+        // Recursive helper
+    }
+}"
+  python="# Python implementation for Word Search
+class Solution:
+    def solve(self):
+        def backtrack():
+            # Recursive helper
+            pass
+            
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(2^N)"
+  average="O(2^N)"
+  worst="O(N!)"
+  space="O(N)"
+  description="Combinatorial backtracking generates massive state spaces. Generating subsets is O(2^N), while generating permutations is O(N!). Space complexity is typically bounded by the maximum recursion depth, which is usually O(N)."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Missing Base Case:** A recursion function without a base case (or an unreachable one) will crash with a `StackOverflowError` instantly.
+- **Pass By Reference Mutations:** In Python and C++, if you append a list/vector to your results array, you must append a *copy* (`path[:]` or `new ArrayList<>(path)`). Otherwise, future backtracking steps will clear out your stored answers!
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If a problem asks you to 'return all possible combinations', 'find all paths', or 'generate all subsets', it is a 100% guarantee that it requires Backtracking.",
+    "Draw the recursion tree out loud for the interviewer for N=3. This proves you understand the state transitions and aren't just memorizing code.",
+    "State the time complexity carefully. Say 'O(2^N * N)' where the extra N is the time it takes to copy the subset into the final result list."
+  ]}
+/>

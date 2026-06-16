@@ -1,0 +1,119 @@
+---
+title: "Sieve of Eratosthenes"
+category: "Math for DSA"
+readTime: "12 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the concept of precomputation for prime numbers."
+  - "Learn how the Sieve of Eratosthenes algorithm works."
+  - "Master the time and space complexity of the Sieve."
+summary: "An incredibly fast algorithm for finding all prime numbers up to a given limit N, heavily used in competitive programming."
+---
+
+# Theory & Concepts
+
+In the previous lesson, we learned how to check if a single number $N$ is prime in $O(\sqrt{N})$ time. But what if an interview problem asks you to answer $10^5$ queries, or asks you to find **all** prime numbers strictly less than $N$ (where $N \le 10^7$)?
+
+Calling the $O(\sqrt{N})$ test $N$ times would take $O(N\sqrt{N})$ time, which will result in a Time Limit Exceeded (TLE) error.
+
+### Enter the Sieve of Eratosthenes
+The **Sieve of Eratosthenes** is an ancient and elegant algorithm that precomputes all prime numbers up to $N$.
+
+**The Algorithm:**
+1. Create a boolean array `isPrime` of size $N+1$ and initialize all entries to `true`.
+2. Mark `isPrime[0]` and `isPrime[1]` as `false`.
+3. Start iterating from $i = 2$. If `isPrime[i]` is `true`, then $i$ is a prime number.
+4. If $i$ is prime, mark all of its multiples ($2i, 3i, 4i \dots$) as `false`.
+5. Move to the next number and repeat until you've processed up to $\sqrt{N}$.
+
+# Code Implementation
+
+Let's implement the Sieve. Notice how we start marking multiples from $i \times i$ instead of $2i$, because all smaller multiples (like $i \times 2$, $i \times 3$) would have already been marked by smaller primes!
+
+<CodeBlock
+  cpp="// C++ Implementation
+#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<bool> sieve(int n) {
+    // Initialize array of size n+1 to true
+    vector<bool> isPrime(n + 1, true);
+    isPrime[0] = isPrime[1] = false;
+    
+    // We only need to process up to sqrt(N)
+    for (int i = 2; i * i <= n; i++) {
+        if (isPrime[i]) {
+            // Mark all multiples of i starting from i*i
+            for (int j = i * i; j <= n; j += i) {
+                isPrime[j] = false;
+            }
+        }
+    }
+    
+    return isPrime;
+}"
+  java="// Java Implementation
+import java.util.Arrays;
+
+class MathUtils {
+    public static boolean[] sieve(int n) {
+        boolean[] isPrime = new boolean[n + 1];
+        Arrays.fill(isPrime, true);
+        isPrime[0] = false;
+        isPrime[1] = false;
+        
+        for (int i = 2; i * i <= n; i++) {
+            if (isPrime[i]) {
+                // Mark all multiples
+                for (int j = i * i; j <= n; j += i) {
+                    isPrime[j] = false;
+                }
+            }
+        }
+        
+        return isPrime;
+    }
+}"
+  python="# Python Implementation
+def sieve(n):
+    is_prime = [True] * (n + 1)
+    is_prime[0] = is_prime[1] = False
+    
+    i = 2
+    while i * i <= n:
+        if is_prime[i]:
+            # Mark all multiples starting from i*i
+            for j in range(i * i, n + 1, i):
+                is_prime[j] = False
+        i += 1
+        
+    return is_prime"
+/>
+
+# Complexity Analysis
+
+<ComplexityTable
+  best="O(N log log N)"
+  average="O(N log log N)"
+  worst="O(N log log N)"
+  space="O(N)"
+  description="The inner loop runs roughly N/2 + N/3 + N/5 + N/7... times. According to harmonic progression of primes, this sums to O(N log log N). The space complexity is O(N) to store the boolean array."
+/>
+
+# Common Pitfalls
+
+<Warning>
+- **Memory Limits**: The Sieve uses $O(N)$ space. You can easily allocate an array of $10^7$ booleans ($\approx 10$ MB), but allocating an array for $N = 10^9$ will require $1$ GB of contiguous memory and will crash your program.
+- **Inner Loop Start Point**: Always start the inner loop at `j = i * i`. Starting at `j = 2 * i` is redundant and makes your code slightly slower. (Beware of integer overflow if $i \approx 10^5$; use `(long long)i * i`).
+</Warning>
+
+# Interview Intelligence
+
+<InterviewTips
+  tips={[
+    "Anytime an interview problem says 'Find the number of primes less than N' or 'Answer Q queries where you check primality', Sieve of Eratosthenes is the exact pattern they are looking for.",
+    "If the interviewer asks about optimizing space, mention that in C++, `vector<bool>` is highly optimized to store 8 booleans in a single byte, making it incredibly space-efficient.",
+    "Be prepared for the follow-up: 'Segmented Sieve'. This is used when N is up to 10^12, but you only need to find primes in a small range [L, R] where R - L <= 10^5."
+  ]}
+/>

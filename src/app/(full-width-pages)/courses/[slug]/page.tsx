@@ -201,6 +201,14 @@ export default function CourseLandingPage() {
                 >
                   Enroll Now - ₹{course.price}
                 </Link>
+                {course.is_pro && (
+                  <Link
+                    href="/checkout/pro"
+                    className="px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-2xl font-black text-lg transition-colors w-full sm:w-auto flex items-center justify-center gap-2"
+                  >
+                    <Trophy size={20} className="text-amber-500" /> Get PRO Access
+                  </Link>
+                )}
               </motion.div>
 
               {/* Trust Badges */}

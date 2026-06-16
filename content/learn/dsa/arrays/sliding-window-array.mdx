@@ -1,0 +1,67 @@
+---
+title: "Sliding Window on Arrays"
+category: "Arrays & Precomputation"
+readTime: "8 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the intuition and mechanics behind Sliding Window on Arrays."
+  - "Learn how to optimize brute-force O(N^2) loops into O(N) linear time."
+  - "Master in-place modifications to achieve O(1) space complexity."
+summary: "An essential guide to Sliding Window on Arrays, exploring its applications, implementations, and interview intelligence for array problems."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Sliding Window on Arrays**. This topic is a cornerstone of the Arrays & Precomputation module. Arrays are the most fundamental data structure, and mastering array traversal, indexing, and precomputation is mandatory for cracking coding interviews.
+
+### Core Intuition
+The main idea behind this concept is to leverage contiguous memory and index-based logic to either precompute data for instant lookup or use multiple pointers to traverse the structure in a single pass.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Sliding Window on Arrays
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    void solve(vector<int>& arr) {
+        // Implementation here
+    }
+};"
+  java="// Java implementation for Sliding Window on Arrays
+class Solution {
+    public void solve(int[] arr) {
+        // Implementation here
+    }
+}"
+  python="# Python implementation for Sliding Window on Arrays
+class Solution:
+    def solve(self, arr: list[int]):
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(1)"
+  description="Most array optimizations aim for a linear O(N) runtime by visiting each element exactly once. Space complexity is often optimized to O(1) by reusing the input array or maintaining constant extra variables."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Out of Bounds Errors:** Always check bounds when accessing `arr[i-1]` or `arr[i+1]`.
+- **Modifying while iterating:** If you modify an array while looping through it dynamically, your indices might shift, causing missed elements or infinite loops.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "If an array is sorted, immediately think of Two Pointers or Binary Search.",
+    "If you need to find subarrays, think of Sliding Window or Prefix Sum.",
+    "If the interviewer asks for O(1) space, try to use the input array itself as a hash map by negating values at specific indices."
+  ]}
+/>

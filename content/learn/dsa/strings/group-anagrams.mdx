@@ -1,0 +1,68 @@
+---
+title: "Group Anagrams"
+category: "Strings"
+readTime: "8 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the underlying memory layout and character encoding of Group Anagrams."
+  - "Learn how to parse, manipulate, and search within strings efficiently."
+  - "Master the time and space complexity, particularly avoiding O(N^2) concatenations."
+summary: "An essential guide to Group Anagrams, covering everything from basic character manipulation to advanced pattern matching algorithms."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Group Anagrams**. This topic is a cornerstone of the Strings module. Strings are essentially arrays of characters, but their immutability in many languages (like Java and Python) introduces unique performance challenges that interviewers love to test.
+
+### Core Intuition
+The primary goal is to perform operations without creating unnecessary intermediate strings. By using character frequency arrays (size 26), two-pointer techniques, or string builder classes, we can optimize space and time drastically.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Group Anagrams
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    void solve(string s) {
+        // Implementation here
+    }
+};"
+  java="// Java implementation for Group Anagrams
+class Solution {
+    public void solve(String s) {
+        // Implementation here
+    }
+}"
+  python="# Python implementation for Group Anagrams
+class Solution:
+    def solve(self, s: str):
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(N)"
+  average="O(N)"
+  worst="O(N)"
+  space="O(1)"
+  description="String algorithms generally run in O(N) linear time. Space complexity can often be kept to O(1) by utilizing a fixed-size integer array of length 26 (for lowercase English letters) or 256 (for all ASCII characters)."
+/>
+
+# Common Pitfalls
+<Warning>
+- **String Concatenation in Loops:** Doing `s += "a"` inside a loop in Java or Python creates a new string every time, leading to O(N^2) time complexity. Use `StringBuilder` (Java) or `.join()` (Python).
+- **Index Out of Bounds:** Forgetting to check `i < s.length()` when peeking at the next character.
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "Always ask the interviewer about the character set: Is it just lowercase English letters? All ASCII? Unicode? This drastically affects space complexity.",
+    "If the problem is about anagrams, sorting the string (O(N log N)) or using a frequency array (O(N)) are the two standard approaches.",
+    "For palindromes, the standard technique is expanding from the center."
+  ]}
+/>

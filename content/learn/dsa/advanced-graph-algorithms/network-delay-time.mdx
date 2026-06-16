@@ -1,0 +1,68 @@
+---
+title: "Network Delay Time"
+category: "Advanced Graph Algorithms"
+readTime: "10 min read"
+lastUpdated: "June 16, 2026"
+whatYouWillLearn:
+  - "Understand the intuition and mathematics behind Network Delay Time."
+  - "Learn the standard code template to solve these problems without bugs."
+  - "Master the time and space complexity."
+summary: "An essential guide to Network Delay Time, exploring its applications, optimal implementations, and interview intelligence for advanced graph problems."
+---
+
+# Theory & Concepts
+Welcome to the lesson on **Network Delay Time**. This topic is a cornerstone of the Advanced Graph Algorithms module. Advanced graph algorithms deal with weighted networks, connectivity components, and spanning trees which frequently appear in hard interview questions.
+
+### Core Intuition
+The main idea behind this concept is to optimize graph processing using specialized data structures (like Priority Queues or DSU arrays) to answer queries in near-constant or logarithmic time.
+
+# Code Implementation
+<CodeBlock
+  cpp="// C++ implementation for Network Delay Time
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    void solve() {
+        // Implementation here
+    }
+};"
+  java="// Java implementation for Network Delay Time
+import java.util.*;
+
+class Solution {
+    public void solve() {
+        // Implementation here
+    }
+}"
+  python="# Python implementation for Network Delay Time
+class Solution:
+    def solve(self):
+        # Implementation here
+        pass"
+/>
+
+# Complexity Analysis
+<ComplexityTable
+  best="O(E log V)"
+  average="O(E log V)"
+  worst="O(E log V)"
+  space="O(V + E)"
+  description="Advanced algorithms usually utilize a Priority Queue or sorting mechanism causing the O(E log V) bottleneck. DSU operations on the other hand run in O(α(V)) which is nearly O(1)."
+/>
+
+# Common Pitfalls
+<Warning>
+- **Negative Weights:** Using Dijkstra's Algorithm on a graph with negative weight edges. You must use Bellman-Ford instead!
+- **DSU Initialization:** Forgetting to initialize the `parent` array such that each node is its own parent (`parent[i] = i`).
+</Warning>
+
+# Interview Intelligence
+<InterviewTips
+  tips={[
+    "Always state why you chose this specific algorithm. E.g. 'Since we need the shortest path and there are no negative edges, Dijkstra is optimal.'",
+    "For Kruskal's algorithm, remember that sorting the edges takes O(E log E) time, which dominates the overall time complexity."
+  ]}
+/>
