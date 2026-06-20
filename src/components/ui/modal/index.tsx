@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useEffect } from "react";
+import { useKeyPress } from "@/hooks/useKeyPress";
 
 interface ModalProps {
   isOpen: boolean;
@@ -20,21 +21,14 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+  useKeyPress(
+    "Escape",
+    () => {
+      if (isOpen) {
         onClose();
       }
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
     }
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen, onClose]);
+  );
 
   useEffect(() => {
     if (isOpen) {

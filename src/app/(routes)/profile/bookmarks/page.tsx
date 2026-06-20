@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import { getStoredToken } from "@/functions/auth";
 import LoginRequired from "@/components/common/LoginRequired";
 import ErrorState from "@/components/common/ErrorState";
+import { BACKEND_URL } from "@/config/api";
 
 type AssetType = "all" | "problem" | "video" | "article";
 
@@ -31,7 +32,7 @@ export default function BookmarksPage() {
   const [userStates, setUserStates] = useState<any[]>([]);
   const [filterType, setFilterType] = useState<AssetType>("all");
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = BACKEND_URL;
 
   useEffect(() => {
     if (!isLoggedIn) {

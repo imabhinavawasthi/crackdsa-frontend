@@ -5,27 +5,18 @@ import { Plus, Trash2, ChevronDown, ChevronRight, Search, Check, GripVertical } 
 import { fetchProblems } from "@/api/problems";
 import { PracticeProblem } from "@/types/practice";
 
-// Local types matching the backend schema
-export interface SheetJSONProblem {
-  problem_id: string;
-}
-
-export interface SheetJSONStep {
-  id: string;
-  title: string;
-  pattern_id: string;
-  problems: SheetJSONProblem[];
-}
-
-export interface SheetJSONTopic {
-  id: string;
-  title: string;
-  steps: SheetJSONStep[];
-}
-
-export interface SheetJSON {
-  topics: SheetJSONTopic[];
-}
+import type {
+  SheetJSONProblem,
+  SheetJSONStep,
+  SheetJSONTopic,
+  SheetJSON
+} from "@/types/admin";
+export type {
+  SheetJSONProblem,
+  SheetJSONStep,
+  SheetJSONTopic,
+  SheetJSON
+} from "@/types/admin";
 
 interface SheetJSONEditorProps {
   value: SheetJSON;

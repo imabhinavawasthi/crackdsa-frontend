@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, ArrowUpRight, ExternalLink } from "lucide-react";
+import { Mail, ExternalLink } from "lucide-react";
 
 // ─── Inline social SVGs (lucide doesn't include brand icons) ─────────────────
 

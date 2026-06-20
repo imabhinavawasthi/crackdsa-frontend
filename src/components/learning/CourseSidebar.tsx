@@ -15,30 +15,18 @@ import {
   Bookmark
 } from "lucide-react";
 import { TopicIcon } from "@/components/common/TopicIcon";
+import { useKeyPress } from "@/hooks/useKeyPress";
 
-export interface CourseSectionItem {
-  id: string;
-  title: string;
-  type: "video" | "problem" | "article";
-  asset_id: string;
-  is_free: boolean;
-  duration_label: string;
-}
-
-export interface CourseSubsection {
-  id: string;
-  title: string;
-  description?: string;
-  items: CourseSectionItem[];
-}
-
-export interface CourseSection {
-  id: string;
-  title: string;
-  description?: string;
-  items?: CourseSectionItem[];
-  subsections?: CourseSubsection[];
-}
+import type { 
+  CourseSectionItem, 
+  CourseSubsection, 
+  CourseSection 
+} from "@/types/course";
+export type { 
+  CourseSectionItem, 
+  CourseSubsection, 
+  CourseSection 
+} from "@/types/course";
 
 
 export const getSectionItemsCount = (sec: CourseSection) => {
@@ -172,16 +160,10 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   }, []);
 
   // Global search keyboard shortcut (⌘K / Ctrl+K)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  useKeyPress("k", (e) => {
+    e.preventDefault();
+    searchInputRef.current?.focus();
+  }, { metaKey: true });
 
   // Auto-expand sections and subsections containing the active item
   useEffect(() => {

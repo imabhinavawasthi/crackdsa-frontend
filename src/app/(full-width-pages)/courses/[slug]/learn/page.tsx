@@ -26,6 +26,7 @@ import {
   Rocket
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BACKEND_URL } from "@/config/api";
 
 // Custom classroom components
 import VideoPlayer from "@/components/learning/VideoPlayer";
@@ -195,7 +196,7 @@ export default function LearnPage() {
     try {
       setLoading(true);
       setError(false);
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+      const backendUrl = BACKEND_URL;
       
       const [courseRes, curriculumRes, instructorsRes] = await Promise.all([
         fetch(`${backendUrl}/api/v1/courses/${courseSlug}`),
@@ -287,7 +288,7 @@ export default function LearnPage() {
     const resolveUuid = async () => {
       setResolvedAsset({ urlOrSlug: "", loading: true, error: false, data: undefined });
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+        const backendUrl = BACKEND_URL;
         let endpoint = "";
         if (type === "video") {
           endpoint = `/api/v1/video-lectures/${assetId}`;

@@ -1,5 +1,6 @@
 "use client";
 
+import { BACKEND_URL } from "@/config/api";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -59,7 +60,7 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ itemId, backendResources })
     const fetchAssets = async () => {
       try {
         setLoading(true);
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+        const backendUrl = BACKEND_URL;
         const [probsRes, artsRes] = await Promise.all([
           fetch(`${backendUrl}/api/v1/practice-problems`),
           fetch(`${backendUrl}/api/v1/articles`)

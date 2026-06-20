@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useScrollPosition } from "@/hooks/useScrollPosition";
 import { BookOpen, Clock, Calendar, CheckSquare, Sparkles } from "lucide-react";
 
 interface ArticleDetail {
@@ -204,17 +205,14 @@ const contentVariants = {
 const ArticleReader: React.FC<ArticleReaderProps> = ({ slug, articleData }) => {
   const [readProgress, setReadProgress] = useState(0);
 
+  const scrollPosition = useScrollPosition();
+
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      if (docHeight > 0) {
-        setReadProgress(Math.min((scrollTop / docHeight) * 100, 100));
-      }
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    if (docHeight > 0) {
+      setReadProgress(Math.min((scrollPosition / docHeight) * 100, 100));
+    }
+  }, [scrollPosition]);
 
   // If articleData is missing, render error layout (No Mock Data Fallback!)
   if (!articleData) {

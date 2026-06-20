@@ -916,6 +916,17 @@ span.flatpickr-weekday,
   }
 }
 
+/* Dashboard hero animations */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(10px, -15px); }
+  66% { transform: translate(-8px, 10px); }
+}
+
 /* ==========================================
    Problem Statement — HTML Description Prose
    ========================================== */

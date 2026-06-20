@@ -5,10 +5,8 @@ import { Link as LinkIcon, Plus, Trash2, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export type ExternalLink = {
-  title: string;
-  url: string;
-};
+import type { ExternalLink } from "@/types/admin";
+export type { ExternalLink } from "@/types/admin";
 
 interface ExternalLinksEditorProps {
   links: ExternalLink[];

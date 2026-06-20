@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { useScrollPosition } from "@/hooks/useScrollPosition";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import {
   ArrowRight,
   Code2,
@@ -14,27 +16,16 @@ import {
 } from "lucide-react";
 
 export default function LandingNavbar() {
-  const [scrolled, setScrolled] = useState(false);
   const { user, isLoggedIn, isLoading, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const scrollPosition = useScrollPosition();
+  const scrolled = scrollPosition > 20;
 
-  useEffect(() => {
-    if (!showUserMenu) return;
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowUserMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [showUserMenu]);
+  useClickOutside(menuRef, () => {
+    if (showUserMenu) setShowUserMenu(false);
+  });
 
   const initials = user?.full_name
     ?.split(" ")

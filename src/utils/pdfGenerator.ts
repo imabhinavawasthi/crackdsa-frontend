@@ -2,6 +2,15 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { DSASheet, DetailedProblem } from "@/types/dsa-sheet";
 
+type ProblemReference = {
+  problem_id?: string;
+  slug?: string;
+  title?: string;
+  difficulty?: string;
+  platform?: string;
+  problem_url?: string;
+};
+
 export const generateSheetPDF = (sheet: DSASheet, sheetProblems: DetailedProblem[]) => {
   const doc = new jsPDF("p", "pt", "a4");
   const pageWidth = doc.internal.pageSize.width;
@@ -46,7 +55,7 @@ export const generateSheetPDF = (sheet: DSASheet, sheetProblems: DetailedProblem
   doc.text(descLines, pageWidth / 2, 100 + titleLines.length * 36 + 30, { align: "center" });
 
   // Metadata block (Card)
-  let yPos = 340;
+  const yPos = 340;
   
   doc.setDrawColor(229, 231, 235); // Gray 200
   doc.setFillColor(249, 250, 251); // Gray 50
@@ -151,7 +160,7 @@ export const generateSheetPDF = (sheet: DSASheet, sheetProblems: DetailedProblem
         // Prepare table data
         const tableBody = step.problems.map((prob) => {
           const detailed = sheetProblems.find((p) => p.slug === prob.problem_id);
-          const pData: any = detailed || prob;
+          const pData: ProblemReference = detailed || prob;
           
           const title = pData.title || (pData.problem_id || pData.slug || "").split(/[-_]/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
           const diff = pData.difficulty || "Medium";
@@ -214,7 +223,7 @@ export const generateSheetPDF = (sheet: DSASheet, sheetProblems: DetailedProblem
           },
         });
 
-        startY = (doc as any).lastAutoTable.finalY + 30;
+        startY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 30;
       });
     });
   }

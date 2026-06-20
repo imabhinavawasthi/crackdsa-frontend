@@ -1,6 +1,6 @@
 import React from "react";
 import { MessageCircle, PhoneCall, Mail } from "lucide-react";
-import { CONTACT_INFO } from "@/config/contact";
+import { CONTACT_INFO } from "@/constants/contact";
 
 export function ContactFooterCard() {
   const whatsappUrl = `https://wa.me/${CONTACT_INFO.whatsapp.replace(/\D/g, '')}?text=Hi%20CrackDSA%2C%20I%20have%20a%20doubt%20about%20a%20course!`;

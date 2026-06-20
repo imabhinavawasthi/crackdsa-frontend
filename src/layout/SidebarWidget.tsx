@@ -8,10 +8,10 @@ export default function SidebarCTA() {
           crackdsa pro
         </p>
         <h3 className="mb-2 text-base font-semibold text-gray-900 dark:text-white">
-          Join premium guidance for every interview.
+          Everything you need to crack placements.
         </h3>
         <p className="mb-4 text-sm leading-5 text-gray-500 dark:text-gray-400">
-          Get expert-backed roadmaps, real interview prompts, and faster prep in one place.
+          Live classes, doubt-solving sessions, premium courses access, and personalized mentorship - all in one place.
         </p>
         <a
           href="/pro"

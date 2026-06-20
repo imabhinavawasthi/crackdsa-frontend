@@ -1,15 +1,8 @@
 import { getStoredToken } from "@/functions/auth";
 import { BACKEND_URL } from "@/config/api";
+import type { VideoLectureDetail } from "@/types/course";
 
-export interface VideoLectureDetail {
-  id: string;
-  title: string;
-  description?: string;
-  video_url: string;
-  thumbnail_url?: string;
-  duration?: number;
-  duration_label?: string;
-}
+export type { VideoLectureDetail } from "@/types/course";
 
 /**
  * Fetches the details of a single video lecture by its ID.

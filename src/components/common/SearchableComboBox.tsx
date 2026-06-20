@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Search, ChevronDown, Check, PlayCircle, Code2, FileText, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useKeyPress } from "@/hooks/useKeyPress";
 
 interface SearchableOption {
   id: string;
@@ -37,15 +38,11 @@ const SearchableComboBox: React.FC<SearchableComboBoxProps> = ({
   }, []);
 
   // Listen for Escape key to close the modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  useKeyPress("Escape", () => {
+    if (isOpen) {
+      setIsOpen(false);
+    }
+  });
 
   // When modal opens, reset search term and focus input
   useEffect(() => {

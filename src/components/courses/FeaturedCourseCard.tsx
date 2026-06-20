@@ -74,7 +74,7 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
             />
 
             <div className="flex flex-wrap gap-2.5">
-              {course.tags.map((tag: string) => (
+              {course.tags?.map((tag: string) => (
                 <span 
                   key={tag}
                   className="px-4 py-2 rounded-xl bg-gray-50 dark:bg-gray-800/60 text-xs font-bold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800/80"

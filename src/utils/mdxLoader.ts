@@ -3,55 +3,18 @@ import path from "path";
 
 const CONTENT_DIR = path.join(process.cwd(), "content/learn/dsa");
 
-export interface SidebarItem {
-  slug: string;
-  title: string;
-}
-
-export interface SidebarSection {
-  title: string;
-  items: SidebarItem[];
-}
-
-export interface SidebarCategory {
-  id: string;
-  title: string;
-  description?: string;
-  items: SidebarItem[];
-  sections?: SidebarSection[];
-}
-
-export interface ArticleContent {
-  slug: string;
-  title: string;
-  category: string;
-  readTime: string;
-  lastUpdated: string;
-  whatYouWillLearn: string[];
-  theory: string;
-  visualization?: string;
-  examples?: string[];
-  codeExamples?: {
-    cpp: string;
-    java: string;
-    python: string;
-  };
-  complexity?: {
-    best: string;
-    average: string;
-    worst: string;
-    space: string;
-    description: string;
-  };
-  commonMistakes: string[];
-  interviewTips: string[];
-  practiceProblems: {
-    name: string;
-    difficulty: "Easy" | "Medium" | "Hard";
-    url: string;
-  }[];
-  summary: string;
-}
+import type {
+  SidebarItem,
+  SidebarSection,
+  SidebarCategory,
+  ArticleContent
+} from "@/types/content";
+export type {
+  SidebarItem,
+  SidebarSection,
+  SidebarCategory,
+  ArticleContent
+} from "@/types/content";
 
 type RawSyllabusItem = string | {
   slug: string;
@@ -228,7 +191,9 @@ function parseMdxFile(filePath: string, slug: string): ArticleContent {
     commonMistakes,
     interviewTips,
     practiceProblems,
-    summary: getMetadataString("summary", "")
+    summary: getMetadataString("summary", ""),
+    content: body,
+    toc: []
   };
 }
 

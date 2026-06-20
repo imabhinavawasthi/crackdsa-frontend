@@ -1,5 +1,6 @@
 "use client";
 
+import { BACKEND_URL } from "@/config/api";
 import React, { useState, useEffect } from "react";
 import { getStoredToken } from "@/functions/auth";
 import { Loader2, Search, Check, FileText, HelpCircle } from "lucide-react";
@@ -37,7 +38,7 @@ export default function ResourceSelector({
       const token = getStoredToken();
       if (!token) return;
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+      const backendUrl = BACKEND_URL;
       const endpoint = type === "problems" 
         ? `${backendUrl}/api/v1/admin/practice-problems`
         : `${backendUrl}/api/v1/admin/articles`;

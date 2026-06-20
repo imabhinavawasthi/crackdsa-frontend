@@ -6,7 +6,7 @@ import { SocialIcon } from "@/components/common/SocialIcons";
 interface FullInstructor {
   id?: string;
   name: string;
-  role: string;
+  role?: string;
   sub_title?: string;
   bio?: string;
   company?: string;

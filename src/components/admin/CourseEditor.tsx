@@ -1,5 +1,6 @@
 "use client";
 
+import { BACKEND_URL } from "@/config/api";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -91,7 +92,7 @@ interface CourseEditorProps {
 
 export default function CourseEditor({ mode, initialData }: CourseEditorProps) {
   const router = useRouter();
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = BACKEND_URL;
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CourseFormValues>({
     resolver: zodResolver(courseSchema),

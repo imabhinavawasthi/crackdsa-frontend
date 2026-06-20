@@ -1,5 +1,6 @@
 "use client";
 
+import { BACKEND_URL } from "@/config/api";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getStoredToken } from "@/functions/auth";
@@ -53,7 +54,7 @@ export default function AdminProblemsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = BACKEND_URL;
 
   const fetchProblems = useCallback(async () => {
     const token = getStoredToken();

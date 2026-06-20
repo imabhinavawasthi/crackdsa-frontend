@@ -4,10 +4,8 @@ import React, { useRef, useState, useEffect } from "react";
 import AspectRatioImage from "@/components/common/AspectRatioImage";
 import { Play, Pause, RotateCcw, Volume2, Maximize, Settings, FastForward, AlertCircle, ExternalLink } from "lucide-react";
 
-export interface VideoSource {
-  type: "youtube" | "vimeo" | "cloudflare" | "gdrive" | "html5" | "mock";
-  idOrUrl: string;
-}
+import type { VideoSource } from "@/types/course";
+export type { VideoSource } from "@/types/course";
 
 export function detectVideoSource(url: string): VideoSource {
   if (!url) return { type: "mock", idOrUrl: "" };

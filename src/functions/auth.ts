@@ -1,64 +1,16 @@
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export interface PurchasedCourse {
-  start_time: string;
-  end_time: string | number; // -1 for lifetime
-  transaction_id: string;
-}
-
-export interface ProPurchaseHistory {
-  plan: string;
-  start_time: string;
-  added_duration_months: number; // -1 for lifetime
-  transaction_id: string;
-}
-
-export interface ProSubscription {
-  is_active: boolean;
-  plan: string;
-  start_time: string;
-  end_time: string | number; // -1 for lifetime
-  transaction_id: string;
-  history: ProPurchaseHistory[];
-}
-
-export interface EnrolledCourse {
-  course_id: string;
-  course_name: string;
-}
-
-export type User = {
-  id: string;
-  full_name: string;
-  email: string;
-  avatar_url?: string;
-  provider?: string;
-  email_verified?: boolean;
-  phone?: string;
-  roles?: string[];
-  created_at?: string;
-  last_sign_in_at?: string;
-  updated_at?: string;
-  college?: string;
-  graduation_year?: string;
-  branch?: string;
-  codeforces_handle?: string;
-  social_links?: {
-    github?: string;
-    linkedin?: string;
-    twitter?: string;
-  };
-  metadata?: Record<string, any>;
-  is_pro_active?: boolean;
-  enrolled_courses?: EnrolledCourse[];
-  // Legacy fields (will be undefined from /me)
-  pro_subscription?: any;
-  purchased_courses?: any;
-};
-
-// ─── Base URL ─────────────────────────────────────────────────────────────────
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+import type { 
+  User 
+} from "@/types/auth";
+export type { 
+  PurchasedCourse,
+  ProPurchaseHistory,
+  ProSubscription,
+  EnrolledCourse,
+  User 
+} from "@/types/auth";
+import { BACKEND_URL } from "@/config/api";
 
 // ─── Token Utilities ─────────────────────────────────────────────────────────
 
@@ -226,7 +178,7 @@ export async function updateUserProfile(profileData: {
     linkedin?: string;
     twitter?: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }): Promise<User> {
   const token = getStoredToken();
   if (!token) throw new Error("No authentication token found");

@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import {
   LayoutDashboard,
   Route,
@@ -29,21 +28,8 @@ import {
   UserStarIcon,
   GoalIcon
 } from "lucide-react";
-
-export type NavSubItem = {
-  name: string;
-  path: string;
-  pro?: boolean;
-  new?: boolean;
-  icon?: ReactNode;
-};
-
-export type NavItem = {
-  name: string;
-  icon: ReactNode;
-  path?: string;
-  subItems?: NavSubItem[];
-};
+import type { NavItem, SidebarSectionType, UserMenuItem } from "@/types/sidebar";
+export type { NavItem, SidebarSectionType } from "@/types/sidebar";
 
 export const learningItems: NavItem[] = [
   {
@@ -203,11 +189,7 @@ export const adminOthersItems: NavItem[] = [
   },
 ];
 
-export type UserMenuItem = {
-  name: string;
-  path: string;
-  icon: ReactNode;
-};
+export type { UserMenuItem } from "@/types/sidebar";
 
 export const userMenuItems: UserMenuItem[] = [
   {
@@ -243,13 +225,6 @@ export const proItems: NavItem[] = [
     ],
   }
 ];
-
-export type SidebarSectionType = {
-  title: string;
-  items: NavItem[];
-  key: string;
-  requireAuth?: boolean;
-};
 
 export const sidebarSections: SidebarSectionType[] = [
   {

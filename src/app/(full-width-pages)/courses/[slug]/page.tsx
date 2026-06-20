@@ -27,6 +27,7 @@ import { InstructorSection } from "@/components/courses/InstructorSection";
 import { FeedbackSection } from "@/components/courses/FeedbackSection";
 import { CompareProModal } from "@/components/courses/CompareProModal";
 import AspectRatioImage from "@/components/common/AspectRatioImage";
+import { BACKEND_URL } from "@/config/api";
 
 // Reusable animations
 const fadeIn = {
@@ -56,7 +57,7 @@ export default function CourseLandingPage() {
         
         // Fetch instructors independently using instructor_ids
         if (data && data.instructor_ids && data.instructor_ids.length > 0) {
-          const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+          const backendUrl = BACKEND_URL;
           const res = await fetch(`${backendUrl}/api/v1/instructors/`);
           if (res.ok) {
             const result = await res.json();
@@ -331,7 +332,7 @@ export default function CourseLandingPage() {
           </div>
 
           <div className="space-y-4">
-            {course.metadata?.marketing_syllabus?.map((topic, idx) => (
+            {course.metadata?.marketing_syllabus?.map((topic: any, idx: number) => (
               <div 
                 key={idx}
                 className="border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-900/50 overflow-hidden transition-all hover:border-brand-500/30"

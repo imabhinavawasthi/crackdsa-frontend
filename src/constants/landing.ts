@@ -21,7 +21,7 @@ import {
   GraduationCap,
   FolderOpen,
 } from "lucide-react";
-import { SOCIALS } from "@/constants/socials";
+import { SOCIALS } from "@/constants/contact";
 
 // ─── Hero ────────────────────────────────────────────────────────────────────
 

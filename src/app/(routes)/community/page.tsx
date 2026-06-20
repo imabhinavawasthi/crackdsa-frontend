@@ -1,6 +1,6 @@
 "use client";
 
-import { SOCIALS, EMAILS } from "@/constants/socials";
+import { SOCIALS, EMAILS } from "@/constants/contact";
 import {
   MonitorPlay,
   MessageCircle,

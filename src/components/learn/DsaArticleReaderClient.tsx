@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useScrollPosition } from "@/hooks/useScrollPosition";
 import { 
   Calendar, 
   Clock, 
@@ -49,19 +50,16 @@ export default function DsaArticleReaderClient({
     }
   };
 
-  // Scroll listener to update reading progress bar
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalHeight > 0) {
-        const progress = (window.scrollY / totalHeight) * 100;
-        setScrollProgress(progress);
-      }
-    };
+  const scrollPosition = useScrollPosition();
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  // Update reading progress bar based on scroll position
+  useEffect(() => {
+    const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (totalHeight > 0) {
+      const progress = (scrollPosition / totalHeight) * 100;
+      setScrollProgress(progress);
+    }
+  }, [scrollPosition]);
 
   // Table of Contents headings mapping based on loaded MDX fields
   const tocHeadings: TOCHeading[] = [

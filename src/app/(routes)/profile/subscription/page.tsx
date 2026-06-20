@@ -16,6 +16,7 @@ import Link from "next/link";
 import WhatsAppSupportButton from "@/components/common/WhatsAppSupportButton";
 import { motion } from "framer-motion";
 import LoginRequired from "@/components/common/LoginRequired";
+import { BACKEND_URL } from "@/config/api";
 
 export default function SubscriptionPage() {
   const { isLoggedIn, user, isLoading: isAuthLoading } = useAuth();
@@ -30,7 +31,6 @@ export default function SubscriptionPage() {
     
     async function fetchDetails() {
       try {
-        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
         const token = localStorage.getItem("crackdsa_access_token");
         const res = await fetch(`${BACKEND_URL}/api/v1/auth/subscription-details`, {
           headers: {

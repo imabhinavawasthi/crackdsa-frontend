@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import PageHeader from "@/components/common/PageHeader";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
-import { SOCIALS, EMAILS } from "@/constants/socials";
+import { SOCIALS, EMAILS } from "@/constants/contact";
 import {
   MessageSquare,
   Mail,

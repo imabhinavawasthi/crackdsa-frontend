@@ -1,5 +1,6 @@
 "use client";
 
+import { BACKEND_URL } from "@/config/api";
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -94,7 +95,7 @@ export default function AdminCourseDetailsPage() {
   // Accordion state - stores IDs of expanded subsections
   const [expandedSubsections, setExpandedSubsections] = useState<Record<string, boolean>>({});
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = BACKEND_URL;
 
   const fetchCourseDetails = useCallback(async () => {
     if (!id) return;

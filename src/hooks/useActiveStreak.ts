@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getStoredToken } from "@/functions/auth";
 import { calculateActiveStreak } from "@/utils/streak";
+import { BACKEND_URL } from "@/config/api";
 
 /**
  * Hook that fetches user asset states and computes the active streak.
@@ -13,12 +14,10 @@ export function useActiveStreak(): number {
   const { isLoggedIn } = useAuth();
   const [streak, setStreak] = useState(0);
 
-  const backendUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = BACKEND_URL;
 
   useEffect(() => {
     if (!isLoggedIn) {
-      setStreak(0);
       return;
     }
 
@@ -33,10 +32,16 @@ export function useActiveStreak(): number {
 
         if (!res.ok) return;
 
-        const states: any[] = (await res.json()) || [];
+        type AssetState = {
+          updated_at?: string | null;
+          last_interacted_at?: string | null;
+          [key: string]: unknown;
+        };
+
+        const states: AssetState[] = (await res.json()) || [];
         const interactionDates = states
-          .map((s) => s.updated_at || s.last_interacted_at)
-          .filter(Boolean);
+          .map((s) => s.updated_at ?? s.last_interacted_at)
+          .filter((d): d is string => Boolean(d));
 
         setStreak(calculateActiveStreak(interactionDates));
       } catch (err) {
@@ -47,5 +52,5 @@ export function useActiveStreak(): number {
     compute();
   }, [isLoggedIn, backendUrl]);
 
-  return streak;
+  return isLoggedIn ? streak : 0;
 }

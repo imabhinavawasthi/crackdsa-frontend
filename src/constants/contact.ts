@@ -22,3 +22,9 @@ export const EMAILS = {
   business: "abhinav@crackdsa.com",
   colleges: "colleges@crackdsa.com",
 } as const;
+
+export const CONTACT_INFO = {
+  whatsapp: "+919956217210",
+  phone: "+919956217210",
+  email: "support@crackdsa.com",
+};

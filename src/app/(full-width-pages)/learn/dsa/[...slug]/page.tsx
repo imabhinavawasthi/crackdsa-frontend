@@ -43,8 +43,8 @@ export default async function DsaDynamicArticlePage({ params }: PageProps) {
   
   const getFlatArticlesList = () => {
     const list: { categoryId: string; slug: string; title: string }[] = [];
-    syllabus.forEach((cat) => {
-      cat.items.forEach((item) => {
+    syllabus.forEach((cat: any) => {
+      cat.items.forEach((item: any) => {
         list.push({
           categoryId: cat.id,
           slug: `${cat.id}/${item.slug}`,

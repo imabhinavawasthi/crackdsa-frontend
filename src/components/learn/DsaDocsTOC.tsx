@@ -3,11 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { Link2, Sparkles } from "lucide-react";
 
-export interface TOCHeading {
-  id: string;
-  text: string;
-  level: number;
-}
+import type { TOCHeading } from "@/types/content";
+export type { TOCHeading } from "@/types/content";
 
 interface DsaDocsTOCProps {
   headings: TOCHeading[];

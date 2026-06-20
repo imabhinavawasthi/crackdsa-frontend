@@ -3,10 +3,11 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, ChevronRight, Sparkles, Map, PhoneCall, HelpCircle, User, Bot, Maximize2, Minimize2, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { CONTACT_INFO } from "@/config/contact";
+import { CONTACT_INFO } from "@/constants/contact";
 
 type FAQ = {
   id: string;
@@ -98,17 +99,9 @@ export default function CrackDSAAgent() {
   }, []);
 
   // Handle click outside to close
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (widgetRef.current && !widgetRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+  useClickOutside(widgetRef, () => {
+    if (isOpen) setIsOpen(false);
+  });
 
   // Scroll to bottom when history changes or typing state changes
   useEffect(() => {

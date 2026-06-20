@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { SidebarCategory } from "@/utils/mdxLoader";
 import { TopicIcon } from "@/components/common/TopicIcon";
+import { useKeyPress } from "@/hooks/useKeyPress";
 
 interface DsaDocsSidebarProps {
   isOpen: boolean;
@@ -69,16 +70,10 @@ export default function DsaDocsSidebar({ isOpen, setIsOpen, syllabus }: DsaDocsS
   }, [pathname, syllabus]);
 
   // Global search keyboard shortcut (⌘K / Ctrl+K)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  useKeyPress("k", (e) => {
+    e.preventDefault();
+    searchInputRef.current?.focus();
+  }, { metaKey: true });
 
   const toggleCategory = (catId: string) => {
     setExpandedCategories((prev) => ({

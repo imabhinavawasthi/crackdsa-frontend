@@ -1,5 +1,6 @@
 "use client";
 
+import { BACKEND_URL } from "@/config/api";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -80,7 +81,7 @@ const LANGUAGES = [
 export default function AddPracticeProblemPage() {
   const { user, isLoading: authLoading, isLoggedIn } = useAuth();
   const router = useRouter();
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = BACKEND_URL;
 
   // Form setup
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ProblemFormValues>({

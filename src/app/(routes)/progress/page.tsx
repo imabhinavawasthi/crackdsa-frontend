@@ -19,6 +19,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { getStoredToken } from "@/functions/auth";
 import { calculateActiveStreak } from "@/utils/streak";
+import { BACKEND_URL } from "@/config/api";
 import LoginRequired from "@/components/common/LoginRequired";
 import ActivityHeatmap from "@/components/common/ActivityHeatmap";
 import ErrorState from "@/components/common/ErrorState";
@@ -39,7 +40,7 @@ export default function ProgressPage() {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = BACKEND_URL;
   const firstName = user?.full_name?.split(" ")[0] || "Learner";
 
   // Fetch all problems & user states on mount
