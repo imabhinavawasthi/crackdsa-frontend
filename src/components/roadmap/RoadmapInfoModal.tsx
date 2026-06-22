@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Target, Briefcase, Clock, Calendar, CheckCircle, AlertTriangle } from "lucide-react";
+import { X, Target, Briefcase, Clock, CheckCircle, AlertTriangle } from "lucide-react";
 import { RoadmapUserInput } from "./types";
 import Button from "../ui/button/Button";
 

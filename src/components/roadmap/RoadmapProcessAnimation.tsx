@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Target, Clock, BrainCircuit, CalendarDays, Sparkles, AlertCircle } from "lucide-react";
+import { Target, Clock, BrainCircuit, AlertCircle } from "lucide-react";
 
 export default function RoadmapProcessAnimation() {
   return (

@@ -88,12 +88,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
 
-  // Reset playhead/load state when source url changes
-  useEffect(() => {
+  const [prevUrl, setPrevUrl] = useState(url);
+  if (url !== prevUrl) {
+    setPrevUrl(url);
     setHasStarted(false);
     setIsPlaying(false);
     setCurrentTime(0);
-  }, [url]);
+  }
 
   // Expose control API to parent component (e.g. jump to timestamp)
   useEffect(() => {

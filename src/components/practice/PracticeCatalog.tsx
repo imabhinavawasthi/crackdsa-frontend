@@ -7,21 +7,16 @@ import {
   ChevronLeft,
   ChevronRight,
   Bookmark,
-  ExternalLink,
   X,
   RotateCcw,
   SlidersHorizontal,
   Hash,
   Building2,
-  Check,
-  Target,
-  Flame,
-  Sparkles
+  Check
 } from "lucide-react";
 import * as Popover from "@radix-ui/react-popover";
 import { Command } from "cmdk";
-import Link from "next/link";
-import { formatTag, slugify } from "@/utils/string";
+import { formatTag } from "@/utils/string";
 import ErrorState from "@/components/common/ErrorState";
 import { ProblemTableRow } from "@/components/common/ProblemTableRow";
 

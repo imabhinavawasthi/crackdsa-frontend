@@ -40,7 +40,7 @@ export default function RoadmapLanding({ isLoggedIn }: { isLoggedIn: boolean }) 
         transition={{ delay: 0.2, duration: 0.6 }}
         className="relative z-10 text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mb-12 leading-relaxed"
       >
-        Study plans shouldn't be copy-pasted. <b className="text-gray-900 dark:text-white">Why follow a generic DSA track?</b> Generate an adaptive, custom curriculum built exclusively around your strengths, weaknesses, timeline, and goals.
+        Study plans shouldn&apos;t be copy-pasted. <b className="text-gray-900 dark:text-white">Why follow a generic DSA track?</b> Generate an adaptive, custom curriculum built exclusively around your strengths, weaknesses, timeline, and goals.
       </motion.p>
 
       {/* Animation Visualizer */}
@@ -113,7 +113,7 @@ export default function RoadmapLanding({ isLoggedIn }: { isLoggedIn: boolean }) 
           </div>
           <h3 className="text-lg font-bold text-gray-950 dark:text-white mb-2.5">Adaptive Engine</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-semibold">
-            Our algorithm schedules more practice for weak topics and skips concepts you've already verified you understand.
+            Our algorithm schedules more practice for weak topics and skips concepts you&apos;ve already verified you understand.
           </p>
         </motion.div>
 

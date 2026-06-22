@@ -66,16 +66,6 @@ const NotesTab: React.FC<NotesTabProps> = ({
   onNotesChange,
 }) => {
   const { isLoggedIn } = useAuth();
-
-  if (!isLoggedIn) {
-    return (
-      <LoginRequired 
-        title="Personal Notes Locked"
-        description="Save formulas, complexity analysis, and study notes directly to your profile by signing in."
-      />
-    );
-  }
-
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNoteText, setNewNoteText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -107,6 +97,15 @@ const NotesTab: React.FC<NotesTabProps> = ({
     };
     fetchNotes();
   }, [isLoggedIn, itemId, assetType]);
+
+  if (!isLoggedIn) {
+    return (
+      <LoginRequired 
+        title="Personal Notes Locked"
+        description="Save formulas, complexity analysis, and study notes directly to your profile by signing in."
+      />
+    );
+  }
 
   const persistNotes = async (updatedNotes: Note[]) => {
     setNotes(updatedNotes);

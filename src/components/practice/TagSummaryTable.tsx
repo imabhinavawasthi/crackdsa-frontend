@@ -59,7 +59,7 @@ const TagSummaryTable: React.FC<TagSummaryTableProps> = ({
               <p className="text-xs text-gray-400 dark:text-gray-500">
                 Nothing matches{" "}
                 <span className="font-semibold text-gray-600 dark:text-gray-400">
-                  "{searchQuery}"
+                  &quot;{searchQuery}&quot;
                 </span>
               </p>
             )}
