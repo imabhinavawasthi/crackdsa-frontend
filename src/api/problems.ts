@@ -24,8 +24,15 @@ export async function fetchProblemDetail(slug: string): Promise<PracticeProblem>
 /**
  * Fetches all practice problems catalog.
  */
-export async function fetchProblems(): Promise<PracticeProblem[]> {
-  const res = await fetch(`${BACKEND_URL}/api/v1/practice-problems`, {
+export async function fetchProblems(limit?: number, offset?: number): Promise<PracticeProblem[]> {
+  let url = `${BACKEND_URL}/api/v1/practice-problems`;
+  const params = new URLSearchParams();
+  if (limit !== undefined) params.append("limit", limit.toString());
+  if (offset !== undefined) params.append("offset", offset.toString());
+  const queryString = params.toString();
+  if (queryString) url += `?${queryString}`;
+
+  const res = await fetch(url, {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch practice problems catalog.");
