@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google';
 import { Metadata } from 'next';
 import './globals.css';
 import ClientLayout, { ThemeScript } from './ClientLayout';
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -49,6 +50,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} dark:bg-gray-900 transition-colors duration-300`}>
         <ClientLayout>{children}</ClientLayout>
+        <Analytics />
       </body>
     </html>
   );

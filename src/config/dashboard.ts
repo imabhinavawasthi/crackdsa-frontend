@@ -46,17 +46,17 @@ export const platformFeatures = [
 export const proFeatures = [
   {
     title: "1:1 Mentorship",
-    description: "Personal guidance from engineers at top companies. Get your doubts resolved and career path reviewed.",
-    icon: MessageSquare,
+    description: "Personal guidance from engineers at top companies. Review your roadmap, resumes, and career path.",
+    icon: Users,
     gradient: "from-amber-400 to-orange-500",
     href: "/pro/personalized",
   },
   {
-    title: "Mock Interviews",
-    description: "Practice with realistic interview simulations. Get detailed feedback on your problem-solving approach.",
-    icon: Mic,
+    title: "Priority Support",
+    description: "Get unstuck quickly with dedicated support for your queries. Help is available when you need it.",
+    icon: MessageSquare,
     gradient: "from-rose-400 to-pink-600",
-    href: "/pro/personalized",
+    href: "/support",
   },
   {
     title: "Live Classes",
@@ -67,11 +67,20 @@ export const proFeatures = [
   },
 ];
 
-export const ecosystemLinks = [
+export interface EcosystemLink {
+  name: string;
+  href: string;
+  icon: any;
+  color: string;
+  bg: string;
+  pro?: boolean;
+}
+
+export const ecosystemLinks: EcosystemLink[] = [
   { name: "AI Roadmap", href: "/roadmap", icon: Compass, color: "text-blue-500", bg: "bg-blue-500/10" },
   { name: "DSA Sheets", href: "/dsa-sheet", icon: LayoutDashboard, color: "text-brand-500", bg: "bg-brand-500/10" },
   { name: "Topic Practice", href: "/practice/topics", icon: Layers, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { name: "Company Tags", href: "/practice/companies", icon: Building2, color: "text-orange-500", bg: "bg-orange-500/10", pro: true },
+  { name: "Company Tags", href: "/practice/companies", icon: Building2, color: "text-orange-500", bg: "bg-orange-500/10" },
   { name: "Problem Arena", href: "/practice", icon: Zap, color: "text-yellow-500", bg: "bg-yellow-500/10" },
   { name: "Masterclasses", href: "/masterclasses", icon: BookOpen, color: "text-purple-500", bg: "bg-purple-500/10" },
   { name: "Resume Builder", href: "/resume", icon: FileText, color: "text-rose-500", bg: "bg-rose-500/10" },

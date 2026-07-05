@@ -10,7 +10,10 @@ import {
   Zap,
   BookOpen,
   Calendar,
-  CreditCard
+  CreditCard,
+  Crown,
+  Lock,
+  ShoppingBag
 } from "lucide-react";
 import Link from "next/link";
 import WhatsAppSupportButton from "@/components/common/WhatsAppSupportButton";
@@ -83,20 +86,21 @@ export default function SubscriptionPage() {
   const proSub = subscriptionDetails?.pro_subscription || {};
   const purchasedCourses = subscriptionDetails?.purchased_courses || {};
   
+  const proSubscriptionCourses = user?.pro_courses || [];
+  
   // Backwards compatibility for courses
-  let coursesList: any[] = [];
+  let individualPurchasesList: any[] = [];
   if (purchasedCourses.courses) {
-    coursesList = purchasedCourses.courses;
+    individualPurchasesList = purchasedCourses.courses;
   } else {
     // Legacy support
-    coursesList = Object.entries(purchasedCourses).map(([id, detail]: [string, any]) => ({
+    individualPurchasesList = Object.entries(purchasedCourses).map(([id, detail]: [string, any]) => ({
       course_id: id,
       course_name: detail.target_name || id,
       valid_till_epoch: detail.end_time === -1 || detail.end_time === "-1" ? -1 : new Date(detail.end_time).getTime() / 1000,
       transaction_id: detail.transaction_id
     }));
   }
-  const courseCount = coursesList.length;
 
   // Backwards compatibility for PRO
   let proHistory: any[] = [];
@@ -235,33 +239,93 @@ export default function SubscriptionPage() {
             )}
           </div>
 
-          {/* Active Courses Enrollment Card */}
+          {/* Pro Subscription Courses Card */}
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-gray-900/50">
             <h2 className="text-sm font-extrabold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-1.5">
-              <BookOpen size={14} />
-              <span>Active Course Purchases ({courseCount})</span>
+              <Crown size={14} className="text-amber-500" />
+              <span>Pro Subscription Courses ({isPro ? proSubscriptionCourses.length : 0})</span>
             </h2>
 
-            {courseCount === 0 ? (
-              <div className="border border-dashed border-gray-250/70 dark:border-gray-800 rounded-2xl p-8 text-center">
-                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No enrollments yet</p>
-                <p className="text-xs text-gray-400 mt-1">Explore courses catalog to subscribe to curriculum paths.</p>
+            {!isPro ? (
+              <div className="border border-dashed border-gray-250/70 dark:border-gray-800 rounded-2xl p-8 text-center bg-gray-50/50 dark:bg-gray-950/20">
+                <Lock size={20} className="mx-auto text-gray-400 mb-2" />
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Subscription Courses Locked</p>
+                <p className="text-xs text-gray-400 mt-1">Upgrade to PRO to instantly unlock all premium curriculum tracks.</p>
                 <Link
-                  href="/courses"
-                  className="mt-3 inline-flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 font-bold uppercase tracking-wider"
+                  href="/checkout/pro"
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs text-amber-500 hover:text-amber-600 font-bold uppercase tracking-wider"
                 >
-                  Browse Courses <ArrowLeft size={12} className="rotate-180" />
+                  Unlock with PRO <Zap size={10} className="fill-amber-500" />
                 </Link>
+              </div>
+            ) : proSubscriptionCourses.length === 0 ? (
+              <div className="border border-dashed border-gray-250/70 dark:border-gray-800 rounded-2xl p-8 text-center">
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No subscription courses</p>
+                <p className="text-xs text-gray-400 mt-1">There are currently no courses marked for Pro subscription.</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {coursesList.map((detail: any) => (
+                {proSubscriptionCourses.map((detail: any) => (
                   <div
                     key={detail.course_id}
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50 dark:border-white/5 dark:bg-white/[0.01]"
                   >
                     <div className="min-w-0 space-y-1">
-                      <span className="text-xs font-extrabold uppercase tracking-wider text-brand-500 block">Course</span>
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-amber-500 block">Pro Subscription</span>
+                      <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 capitalize">
+                        {detail.course_name}
+                      </h4>
+                    </div>
+
+                    <div className="mt-2 sm:mt-0 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left sm:text-right flex flex-col sm:items-end gap-2">
+                      <div>
+                        {currentExpiryEpoch === -1 ? (
+                          <span>Lifetime Access</span>
+                        ) : (
+                          <span>Access Expires: {currentExpiryEpoch ? new Date(currentExpiryEpoch * 1000).toLocaleDateString() : "Lifetime"}</span>
+                        )}
+                        <span className="block mt-0.5 opacity-55">Included with PRO Tier</span>
+                      </div>
+                      <Link 
+                        href={`/courses/${detail.course_id}`}
+                        className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-700 transition-colors"
+                      >
+                        Go to Course <ArrowLeft size={10} className="rotate-180" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Individual Course Purchases Card */}
+          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-gray-900/50">
+            <h2 className="text-sm font-extrabold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-1.5">
+              <ShoppingBag size={14} className="text-brand-500" />
+              <span>Individual Purchases ({individualPurchasesList.length})</span>
+            </h2>
+
+            {individualPurchasesList.length === 0 ? (
+              <div className="border border-dashed border-gray-250/70 dark:border-gray-800 rounded-2xl p-8 text-center bg-gray-50/20 dark:bg-gray-950/10">
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No individual purchases</p>
+                <p className="text-xs text-gray-400 mt-1">You haven't bought any specific courses individually.</p>
+                <Link
+                  href="/courses"
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 font-bold uppercase tracking-wider"
+                >
+                  Browse Course Catalog <ArrowLeft size={12} className="rotate-180" />
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {individualPurchasesList.map((detail: any) => (
+                  <div
+                    key={detail.course_id}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50 dark:border-white/5 dark:bg-white/[0.01]"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-brand-500 block">Course Purchase</span>
                       <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 capitalize">
                         {detail.course_name}
                       </h4>
@@ -289,7 +353,7 @@ export default function SubscriptionPage() {
                 ))}
               </div>
             )}
-            
+
             {/* Support Section */}
             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-xs text-gray-500 font-medium">

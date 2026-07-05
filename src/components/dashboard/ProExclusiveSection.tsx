@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Crown, MessageSquare, Mic, Video, Building2 } from "lucide-react";
+import { Crown, MessageSquare, Video, Users } from "lucide-react";
 import { fadeInUp, staggerContainer } from "@/utils/animations";
 
 export function ProExclusiveSection() {
@@ -11,15 +11,15 @@ export function ProExclusiveSection() {
     {
       title: "1:1 Mentorship",
       description: "Schedule sessions with experienced engineers",
-      icon: MessageSquare,
+      icon: Users,
       href: "/pro/personalized",
       gradient: "from-amber-400 to-orange-500",
     },
     {
-      title: "Mock Interviews",
-      description: "Realistic interview practice with feedback",
-      icon: Mic,
-      href: "/pro/personalized",
+      title: "Priority Support",
+      description: "Get quick assistance from our technical staff",
+      icon: MessageSquare,
+      href: "/support",
       gradient: "from-rose-400 to-pink-600",
     },
     {
@@ -28,13 +28,6 @@ export function ProExclusiveSection() {
       icon: Video,
       href: "/live-sessions",
       gradient: "from-emerald-400 to-teal-600",
-    },
-    {
-      title: "Company Tags",
-      description: "Problems tagged by target company",
-      icon: Building2,
-      href: "/practice/companies",
-      gradient: "from-sky-400 to-blue-600",
     },
   ];
 
@@ -52,7 +45,7 @@ export function ProExclusiveSection() {
         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Pro Tools</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {proExclusiveTools.map((tool) => (
           <motion.div key={tool.title} variants={fadeInUp}>
             <Link href={tool.href} className="block group">

@@ -1,24 +1,24 @@
-import { Users, Building2, BookOpen, MessageSquare } from "lucide-react";
+import { Users, BookOpen, MessageSquare, Compass } from "lucide-react";
 
 export const PRO_HERO = {
   badge: "CrackDSA Pro",
   headlineLine1: "Master DSA. Crack FAANG.",
   headlineLine2: "With Expert Guidance.",
-  subtitle: "Unlock company-specific tags, priority 1-on-1 mentorship, and exclusive masterclasses. Stop guessing and start progressing.",
+  subtitle: "Unlock priority 1-on-1 mentorship, exclusive masterclasses, and tailored study plans. Stop guessing and start progressing.",
 };
 
 export const PRO_FEATURES = [
   {
     title: "1-on-1 FAANG Mentorship",
-    description: "Get paired with engineers from top product companies. They review your code, guide your roadmap, and conduct mock interviews.",
+    description: "Get paired with engineers from top product companies. They review your code, guide your roadmap, and provide expert code reviews.",
     icon: Users,
     color: "text-amber-500",
     bg: "bg-amber-500/10"
   },
   {
-    title: "Company-Specific Tags",
-    description: "Stop solving random problems. Unlock the exact problem sets asked by Google, Amazon, Microsoft, and Meta in the last 6 months.",
-    icon: Building2,
+    title: "Tailored Coding Roadmaps",
+    description: "Accelerate your learning with custom roadmaps designed for your level and target roles. Learn step-by-step without getting lost.",
+    icon: Compass,
     color: "text-blue-500",
     bg: "bg-blue-500/10"
   },
@@ -45,7 +45,7 @@ export const PRO_PRICING = [
     price: "₹999",
     period: "/month",
     description: "Perfect for short-term interview prep.",
-    features: ["Access to all company tags", "Community support", "Masterclass recordings"],
+    features: ["Access to all premium roadmaps", "Community support", "Masterclass recordings"],
     highlight: false
   },
   {
@@ -54,7 +54,7 @@ export const PRO_PRICING = [
     price: "₹4,999",
     period: "/6 months",
     description: "The most popular choice for dedicated learners.",
-    features: ["Everything in Monthly", "2 Mock Interviews per month", "Priority doubt resolution", "Resume reviews"],
+    features: ["Everything in Monthly", "Dedicated mentor check-ins", "Priority doubt resolution", "Resume reviews"],
     highlight: true
   },
   {
@@ -71,7 +71,7 @@ export const PRO_PRICING = [
 export const PRO_FAQS = [
   {
     q: "How does the 1-on-1 mentorship work?",
-    a: "You'll be matched with a mentor based on your target companies. You can schedule weekly syncs to review your progress, get resume feedback, or conduct mock interviews."
+    a: "You'll be matched with a mentor based on your target companies. You can schedule weekly syncs to review your progress, get resume feedback, and plan your preparation."
   },
   {
     q: "Can I upgrade or downgrade later?",
@@ -79,10 +79,11 @@ export const PRO_FAQS = [
   },
   {
     q: "Is the content updated regularly?",
-    a: "Absolutely. We update our company tags and problem sheets every single week based on recent interview experiences shared by our community."
+    a: "Absolutely. We update our advanced learning sheets and problem sheets every single week based on recent interview experiences shared by our community."
   },
   {
     q: "What if I'm a complete beginner?",
     a: "PRO is designed for all levels. Our AI roadmap will sequence your learning from absolute basics up to hard-level FAANG problems."
   }
 ];
+

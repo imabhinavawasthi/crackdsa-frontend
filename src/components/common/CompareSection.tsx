@@ -30,7 +30,7 @@ const features = [
   {
     title: "Job Readiness",
     other: "Generic certificates of completion",
-    crackdsa: "Industry-validated mock interviews & referrals",
+    crackdsa: "Direct referral network & resume reviews",
     icon: <ShieldCheck className="w-5 h-5" />,
   },
 ];

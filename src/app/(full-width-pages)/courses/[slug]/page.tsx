@@ -17,7 +17,8 @@ import {
   ChevronUp,
   Code2,
   Terminal,
-  Cpu
+  Cpu,
+  Play
 } from "lucide-react";
 import { CourseSummary, Instructor } from "@/types/course";
 import { fetchCourseDetail } from "@/api/courses";
@@ -28,6 +29,7 @@ import { FeedbackSection } from "@/components/courses/FeedbackSection";
 import { CompareProModal } from "@/components/courses/CompareProModal";
 import AspectRatioImage from "@/components/common/AspectRatioImage";
 import { BACKEND_URL } from "@/config/api";
+import { useAuth } from "@/context/AuthContext";
 
 // Reusable animations
 const fadeIn = {
@@ -40,6 +42,8 @@ export default function CourseLandingPage() {
   const router = useRouter();
   const slug = params?.slug as string;
   
+  const { user, isLoggedIn } = useAuth();
+  
   const [expandedSyllabus, setExpandedSyllabus] = useState<number | null>(0);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
@@ -47,6 +51,11 @@ export default function CourseLandingPage() {
   const [course, setCourse] = useState<CourseSummary | null>(null);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Check if student is enrolled in the course
+  const isEnrolled = isLoggedIn && user?.enrolled_courses?.some((c: any) => c.course_id === slug || c.course_id === course?.id);
+  const isProAccess = isEnrolled && user?.pro_courses?.some((c: any) => c.course_id === slug || c.course_id === course?.id);
+  const isPurchasedAccess = isEnrolled && user?.purchased_courses?.some((c: any) => c.course_id === slug || c.course_id === course?.id);
 
   useEffect(() => {
     async function fetchCourseData() {
@@ -127,24 +136,29 @@ export default function CourseLandingPage() {
             <span className="text-sm font-bold">Back to Academy</span>
           </Link>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsCompareModalOpen(true)}
-              className="hidden md:flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-brand-600 dark:text-brand-400 bg-brand-50 hover:bg-brand-100 dark:bg-brand-500/10 dark:hover:bg-brand-500/20 rounded-full transition-colors"
-            >
-              <Trophy size={16} /> Compare PRO
-            </button>
-            <Link
-              href={`/checkout/course/${course.slug}`}
-              className="px-5 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-full transition-colors shadow-lg shadow-brand-500/20"
-            >
-              Enroll Now
-            </Link>
-            <Link
-              href={`/courses/${course.slug}/learn`}
-              className="hidden sm:block px-5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
-            >
-              Go to Classroom
-            </Link>
+            {isEnrolled ? (
+              <Link
+                href={`/courses/${course.slug}/learn`}
+                className="px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-full transition-colors shadow-lg shadow-emerald-500/20"
+              >
+                Go to Classroom
+              </Link>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsCompareModalOpen(true)}
+                  className="hidden md:flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-brand-600 dark:text-brand-400 bg-brand-50 hover:bg-brand-100 dark:bg-brand-500/10 dark:hover:bg-brand-500/20 rounded-full transition-colors"
+                >
+                  <Trophy size={16} /> Compare PRO
+                </button>
+                <Link
+                  href={`/checkout/course/${course.slug}`}
+                  className="px-5 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-full transition-colors shadow-lg shadow-brand-500/20"
+                >
+                  Enroll Now
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -194,21 +208,45 @@ export default function CourseLandingPage() {
               {/* Call to Action Button */}
               <motion.div 
                 initial="hidden" animate="visible" variants={fadeIn}
-                className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4"
+                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4 w-full"
               >
-                <Link
-                  href={`/checkout/course/${course.slug}`}
-                  className="px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black text-lg transition-colors shadow-lg shadow-brand-500/30 w-full sm:w-auto flex items-center justify-center gap-2"
-                >
-                  Enroll Now - ₹{course.price}
-                </Link>
-                {course.is_pro && (
-                  <Link
-                    href="/checkout/pro"
-                    className="px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-2xl font-black text-lg transition-colors w-full sm:w-auto flex items-center justify-center gap-2"
-                  >
-                    <Trophy size={20} className="text-amber-500" /> Unlock with PRO
-                  </Link>
+                {isEnrolled ? (
+                  <div className="w-full sm:w-auto flex flex-col items-center lg:items-start gap-3">
+                    <Link
+                      href={`/courses/${course.slug}/learn`}
+                      className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-lg transition-all shadow-lg shadow-emerald-500/35 w-full sm:w-auto flex items-center justify-center gap-2"
+                    >
+                      <Play size={22} className="fill-white" />
+                      <span>Enter Classroom</span>
+                    </Link>
+                    <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-450 mt-1">
+                      <CheckCircle2 size={16} />
+                      {isProAccess ? (
+                        <span>You are enrolled (Included in Pro)</span>
+                      ) : isPurchasedAccess ? (
+                        <span>You are enrolled (Bought)</span>
+                      ) : (
+                        <span>You are enrolled</span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <Link
+                      href={`/checkout/course/${course.slug}`}
+                      className="px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black text-lg transition-colors shadow-lg shadow-brand-500/30 w-full sm:w-auto flex items-center justify-center gap-2"
+                    >
+                      Enroll Now - ₹{course.price}
+                    </Link>
+                    {course.is_pro && (
+                      <Link
+                        href="/checkout/pro"
+                        className="px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-2xl font-black text-lg transition-colors w-full sm:w-auto flex items-center justify-center gap-2"
+                      >
+                        <Trophy size={20} className="text-amber-500" /> Unlock with PRO
+                      </Link>
+                    )}
+                  </>
                 )}
               </motion.div>
 
@@ -386,73 +424,75 @@ export default function CourseLandingPage() {
         )}
 
         {/* --- 4. Pricing & Final CTA Section --- */}
-        <section className="px-4 max-w-5xl mx-auto pt-24">
-          <div className="bg-gradient-to-br from-brand-900 to-indigo-950 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/30 rounded-full blur-[80px]" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/30 rounded-full blur-[80px]" />
-            
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+        {!isEnrolled && (
+          <section className="px-4 max-w-5xl mx-auto pt-24">
+            <div className="bg-gradient-to-br from-brand-900 to-indigo-950 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/30 rounded-full blur-[80px]" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/30 rounded-full blur-[80px]" />
               
-              <div className="flex-1 space-y-6 text-center md:text-left">
-                <h2 className="text-3xl md:text-4xl font-extrabold">Ready to clear your interviews?</h2>
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-3 justify-center md:justify-start">
-                    <CheckCircle2 className="text-brand-400" />
-                    <span className="font-medium text-gray-200">Lifetime access to all materials</span>
-                  </li>
-                  <li className="flex items-center gap-3 justify-center md:justify-start">
-                    <CheckCircle2 className="text-brand-400" />
-                    <span className="font-medium text-gray-200">1:1 Doubt resolution support</span>
-                  </li>
-                  <li className="flex items-center gap-3 justify-center md:justify-start">
-                    <CheckCircle2 className="text-brand-400" />
-                    <span className="font-medium text-gray-200">Premium Discord community access</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-3xl w-full md:w-96 shrink-0 text-center">
-                <div className="mb-2">
-                  <span className="text-gray-300 font-bold uppercase tracking-widest text-xs">Standalone Price</span>
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+                
+                <div className="flex-1 space-y-6 text-center md:text-left">
+                  <h2 className="text-3xl md:text-4xl font-extrabold">Ready to clear your interviews?</h2>
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3 justify-center md:justify-start">
+                      <CheckCircle2 className="text-brand-400" />
+                      <span className="font-medium text-gray-200">Lifetime access to all materials</span>
+                    </li>
+                    <li className="flex items-center gap-3 justify-center md:justify-start">
+                      <CheckCircle2 className="text-brand-400" />
+                      <span className="font-medium text-gray-200">1:1 Doubt resolution support</span>
+                    </li>
+                    <li className="flex items-center gap-3 justify-center md:justify-start">
+                      <CheckCircle2 className="text-brand-400" />
+                      <span className="font-medium text-gray-200">Premium Discord community access</span>
+                    </li>
+                  </ul>
                 </div>
-                <div className="flex items-baseline justify-center gap-2 mb-6">
-                  {course.price === 0 ? (
-                    <span className="text-5xl font-black text-emerald-400">Free</span>
-                  ) : (
+
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-3xl w-full md:w-96 shrink-0 text-center">
+                  <div className="mb-2">
+                    <span className="text-gray-300 font-bold uppercase tracking-widest text-xs">Standalone Price</span>
+                  </div>
+                  <div className="flex items-baseline justify-center gap-2 mb-6">
+                    {course.price === 0 ? (
+                      <span className="text-5xl font-black text-emerald-400">Free</span>
+                    ) : (
+                      <>
+                        <span className="text-5xl font-black">₹{course.price}</span>
+                        {course.original_price > course.price && (
+                          <span className="text-xl text-gray-400 line-through">₹{course.original_price}</span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  
+                  <Link
+                    href={`/checkout/course/${course.slug}`}
+                    className="flex items-center justify-center gap-2 w-full rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-4 text-base font-bold transition-colors shadow-lg shadow-brand-500/25 mb-4"
+                  >
+                    {course.price === 0 ? "Enroll for Free" : "Buy Course Now"}
+                  </Link>
+
+                  {course.is_pro && (
                     <>
-                      <span className="text-5xl font-black">₹{course.price}</span>
-                      {course.original_price > course.price && (
-                        <span className="text-xl text-gray-400 line-through">₹{course.original_price}</span>
-                      )}
+                      <p className="text-xs text-gray-300 mb-4">OR</p>
+
+                      <Link
+                        href="/checkout/pro"
+                        className="flex items-center justify-center gap-2 w-full rounded-2xl bg-white text-brand-900 hover:bg-gray-100 px-6 py-4 text-sm font-bold transition-colors"
+                      >
+                        <Trophy size={16} />
+                        Unlock with PRO
+                      </Link>
                     </>
                   )}
                 </div>
-                
-                <Link
-                  href={`/checkout/course/${course.slug}`}
-                  className="flex items-center justify-center gap-2 w-full rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-4 text-base font-bold transition-colors shadow-lg shadow-brand-500/25 mb-4"
-                >
-                  {course.price === 0 ? "Enroll for Free" : "Buy Course Now"}
-                </Link>
 
-                {course.is_pro && (
-                  <>
-                    <p className="text-xs text-gray-300 mb-4">OR</p>
-
-                    <Link
-                      href="/checkout/pro"
-                      className="flex items-center justify-center gap-2 w-full rounded-2xl bg-white text-brand-900 hover:bg-gray-100 px-6 py-4 text-sm font-bold transition-colors"
-                    >
-                      <Trophy size={16} />
-                      Unlock with PRO
-                    </Link>
-                  </>
-                )}
               </div>
-
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* --- 5. Support / Contact Footer --- */}
         <ContactFooterCard />

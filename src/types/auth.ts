@@ -48,8 +48,9 @@ export type User = {
   };
   metadata?: Record<string, any>;
   is_pro_active?: boolean;
+  pro_courses?: EnrolledCourse[];
+  purchased_courses?: EnrolledCourse[];
   enrolled_courses?: EnrolledCourse[];
-  // Legacy fields (will be undefined from /me)
+  // Legacy fields
   pro_subscription?: any;
-  purchased_courses?: any;
 };

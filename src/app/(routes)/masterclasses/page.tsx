@@ -23,7 +23,7 @@ export default function MasterclassesPage() {
   const features = [
     {
       title: "Interview Preparation",
-      description: "Curated mock interviews, resume reviews, and behavioral prep by top tech veterans.",
+      description: "Structured interview strategies, resume reviews, and behavioral prep by top tech veterans.",
       icon: Target,
       color: "from-emerald-500 to-teal-500",
       bgLight: "bg-emerald-50",

@@ -91,6 +91,19 @@ export default function DashboardPage() {
     [isLoading, problemsSolved, streak]
   );
 
+  const combinedCourses = useMemo(() => {
+    const proCourses = (user?.pro_courses || []).map(c => ({ ...c, is_pro_course: true }));
+    const purchasedCourses = (user?.purchased_courses || []).map(c => ({ ...c, is_pro_course: false }));
+    
+    const combined = [...purchasedCourses];
+    proCourses.forEach(proCourse => {
+      if (!combined.some(c => c.course_id === proCourse.course_id)) {
+        combined.push(proCourse);
+      }
+    });
+    return combined;
+  }, [user?.pro_courses, user?.purchased_courses]);
+
   // Show loading spinner while auth is resolving
   if (authLoading) {
     return (
@@ -123,7 +136,7 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-6xl space-y-10 pb-16 pt-6 px-4">
         <UserGreetingSection firstName={firstName} isPro stats={stats} dailyProblem={dailyProblem} />
         <ActiveRoadmapSection isLoading={isLoading} activeRoadmap={activeRoadmap} isLoggedIn isPro />
-        <EnrolledCoursesSection enrolledCourses={user?.enrolled_courses || []} />
+        <EnrolledCoursesSection enrolledCourses={combinedCourses} />
         <ProExclusiveSection />
         <FeatureShowcaseSection isLoggedIn />
         <EcosystemSection />
@@ -137,6 +150,7 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-6xl space-y-10 pb-16 pt-6 px-4">
       <UserGreetingSection firstName={firstName} isPro={false} stats={stats} dailyProblem={dailyProblem} />
       <ActiveRoadmapSection isLoading={isLoading} activeRoadmap={activeRoadmap} isLoggedIn isPro={false} />
+      {combinedCourses.length > 0 && <EnrolledCoursesSection enrolledCourses={combinedCourses} />}
       <FeatureShowcaseSection isLoggedIn />
       <FeaturedDSASheetsSection />
       <ProFeaturesSection isPro={false} />

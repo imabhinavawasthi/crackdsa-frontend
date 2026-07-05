@@ -23,7 +23,8 @@ import {
   HelpCircle,
   GraduationCap,
   ChevronDown,
-  Rocket
+  Rocket,
+  Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BACKEND_URL } from "@/config/api";
@@ -88,7 +89,7 @@ export default function LearnPage() {
   const searchParams = useSearchParams();
   const courseSlug = params?.slug as string;
 
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const firstName = user?.full_name ? user.full_name.split(" ")[0] : "";
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
@@ -454,11 +455,44 @@ export default function LearnPage() {
     }
   };
 
-  if (loading) {
+  if (loading || isAuthLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 space-y-4">
         <div className="h-10 w-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
         <p className="text-sm font-bold text-gray-500 dark:text-gray-400">Loading your customized classroom workspace...</p>
+      </div>
+    );
+  }
+
+  // Enrollment security check on frontend
+  const isEnrolled = isLoggedIn && user?.enrolled_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id);
+
+  if (!isEnrolled) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-[#0B0F19] px-6 select-none font-sans">
+        <div className="max-w-md w-full text-center py-10 px-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl shadow-lg">
+          <div className="flex w-14 h-14 mx-auto items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/15 mb-5 animate-pulse">
+            <Lock size={26} />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Classroom Locked</h3>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+            You are not enrolled in this course yet. Enroll in this course to gain complete lifetime access to video lectures, worksheets, and discussion groups.
+          </p>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href={`/courses/${courseSlug}`}
+              className="inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand-500/15 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>View Course Details</span>
+            </Link>
+            <Link
+              href="/courses"
+              className="inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-350 text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>Back to Academy</span>
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

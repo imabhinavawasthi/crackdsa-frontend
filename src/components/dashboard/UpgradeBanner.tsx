@@ -34,10 +34,10 @@ export function UpgradeBanner({ isLoggedIn }: UpgradeBannerProps) {
                 {isLoggedIn ? "Upgrade to Pro" : "Start with Pro"}
               </h3>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 max-w-md leading-relaxed font-medium">
-                Unlock 1:1 mentorship, mock interviews, live classes, company-specific problems, and all premium courses.
+                Unlock priority 1:1 mentorship, live masterclasses, premium roadmaps, and all pro courses.
               </p>
               <div className="flex flex-wrap gap-3 mt-3">
-                {["1:1 Mentorship", "Mock Interviews", "Live Classes", "All Courses"].map((item) => (
+                {["1:1 Mentorship", "Live Classes", "Premium Roadmaps", "All Courses"].map((item) => (
                   <span key={item} className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
                     <CheckCircle2 size={12} className="text-amber-500" /> {item}
                   </span>

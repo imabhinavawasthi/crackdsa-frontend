@@ -3,12 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BookOpen, ChevronRight, GraduationCap, Crown, ArrowUpRight } from "lucide-react";
+import { BookOpen, ChevronRight, GraduationCap, Crown, ArrowUpRight, ShoppingBag } from "lucide-react";
 import { fadeInUp, staggerContainer } from "@/utils/animations";
 
 interface CourseItem {
   course_id: string;
   course_name: string;
+  is_pro_course?: boolean;
 }
 
 interface EnrolledCoursesSectionProps {
@@ -31,7 +32,7 @@ export function EnrolledCoursesSection({ enrolledCourses }: EnrolledCoursesSecti
             <BookOpen size={18} className="text-purple-500" />
             <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Your Courses</h2>
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Included with your Pro subscription</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Your active curriculum tracks and learning pathways</p>
         </div>
         <Link
           href="/courses"
@@ -53,8 +54,17 @@ export function EnrolledCoursesSection({ enrolledCourses }: EnrolledCoursesSecti
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{course.course_name}</h3>
                     <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      <Crown size={11} className="text-amber-500" />
-                      <span className="font-semibold">Included in Pro</span>
+                      {course.is_pro_course ? (
+                        <>
+                          <Crown size={11} className="text-amber-500" />
+                          <span className="font-semibold text-amber-600 dark:text-amber-400">Included in Pro</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag size={11} className="text-brand-500" />
+                          <span className="font-semibold text-brand-600 dark:text-brand-400">Individual Purchase</span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <ArrowUpRight size={16} className="text-gray-300 dark:text-gray-600 group-hover:text-brand-500 transition-colors shrink-0" />

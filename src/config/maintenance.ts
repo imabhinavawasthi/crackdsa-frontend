@@ -8,8 +8,7 @@
 // List of domains that should show the Coming Soon page
 export const MAINTENANCE_DOMAINS = [
   'crackdsa.com',
-  'www.crackdsa.com',
-  'localhost', // For local development testing
+  'www.crackdsa.com'
 ];
 
 /**

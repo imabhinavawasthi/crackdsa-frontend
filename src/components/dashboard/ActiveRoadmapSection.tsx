@@ -144,7 +144,7 @@ export function ActiveRoadmapSection({
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2 border border-emerald-100 dark:border-emerald-500/20">
-                  <Activity size={12} className="animate-pulse" /> Active Path
+                  <Activity size={12} className="animate-pulse" /> Active Roadmap
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight line-clamp-1">
                   {activeRoadmap.title}
