@@ -87,7 +87,7 @@ export const SOLUTION_FEATURES = [
   {
     icon: Zap,
     title: "Curated DSA Sheets",
-    desc: "Blind 75, CrackDSA 75, Pattern Mastery — structured sheets with difficulty progression built in.",
+    desc: "CrackDSA 75, Pattern Mastery — structured sheets with difficulty progression built in.",
     accent: "text-amber-400",
   },
   {
@@ -132,7 +132,7 @@ export const PRACTICE_HIGHLIGHTS = [
   },
   {
     title: "Curated DSA Sheets",
-    desc: "Blind 75, Striver SDE Sheet, CrackDSA 75 — structured problem sets with difficulty progression.",
+    desc: "Pattern Mastery, Abhinav's SDE Sheet, CrackDSA 75 — structured problem sets with difficulty progression.",
     href: "/dsa-sheet",
     icon: FileText,
     accent: "text-emerald-400",

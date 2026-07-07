@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Search } from "lucide-react";
+import Link from "next/link";
+import { Search, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/common/PageHeader";
 import ErrorState from "@/components/common/ErrorState";
@@ -112,6 +113,38 @@ export default function DSASheetsPage() {
           ))}
         </div>
       </div>
+
+      {/* Premium AI Sheet Customizer CTA */}
+      {!loading && !error && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-[2rem] border border-violet-500/30 dark:border-violet-500/20 bg-gradient-to-br from-violet-600/10 via-indigo-650/5 to-transparent backdrop-blur-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6"
+        >
+          {/* Decorative Glowing Orbs */}
+          <div className="absolute -left-10 -top-10 w-40 h-40 bg-violet-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-fuchsia-500/20 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10 space-y-3 flex-1">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
+              Need a Custom DSA Sheet?
+            </h2>
+            <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium max-w-2xl leading-relaxed">
+              Don&apos;t restrict yourself to static sheets. Create a customized prep plan tailored to your target companies, topics, timelines, and current coding level.
+            </p>
+          </div>
+
+          <div className="relative z-10 shrink-0">
+            <Link 
+              href="/roadmap"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-2xl transition-all duration-300 shadow-xl shadow-violet-600/25 hover:shadow-violet-600/40 hover:-translate-y-0.5 group cursor-pointer text-sm"
+            >
+              <span>Personalised Roadmap</span>
+              <Sparkles size={16} className="transition-transform group-hover:scale-110" />
+            </Link>
+          </div>
+        </motion.div>
+      )}
 
       {/* Loading Skeleton */}
       {loading && (

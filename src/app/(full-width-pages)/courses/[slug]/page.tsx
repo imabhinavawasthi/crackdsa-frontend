@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,9 +27,9 @@ import { ContactFooterCard } from "@/components/common/ContactFooterCard";
 import { InstructorSection } from "@/components/courses/InstructorSection";
 import { FeedbackSection } from "@/components/courses/FeedbackSection";
 import { CompareProModal } from "@/components/courses/CompareProModal";
-import AspectRatioImage from "@/components/common/AspectRatioImage";
 import { BACKEND_URL } from "@/config/api";
 import { useAuth } from "@/context/AuthContext";
+import AspectFallbackImage from "@/components/common/AspectFallbackImage";
 
 // Reusable animations
 const fadeIn = {
@@ -51,6 +51,7 @@ export default function CourseLandingPage() {
   const [course, setCourse] = useState<CourseSummary | null>(null);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
+
 
   // Check if student is enrolled in the course
   const isEnrolled = isLoggedIn && user?.enrolled_courses?.some((c: any) => c.course_id === slug || c.course_id === course?.id);
@@ -224,7 +225,7 @@ export default function CourseLandingPage() {
                       {isProAccess ? (
                         <span>You are enrolled (Included in Pro)</span>
                       ) : isPurchasedAccess ? (
-                        <span>You are enrolled (Bought)</span>
+                        <span>You are enrolled (Purchased)</span>
                       ) : (
                         <span>You are enrolled</span>
                       )}
@@ -283,19 +284,17 @@ export default function CourseLandingPage() {
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="order-1 lg:order-2 w-full aspect-[16/9] rounded-3xl relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden shadow-2xl shadow-brand-500/10 group"
+              className="order-1 lg:order-2 w-full lg:w-[480px] shrink-0"
             >
-              {course.metadata?.thumbnail_url ? (
-                <AspectRatioImage
-                  src={course.metadata.thumbnail_url}
+              {course && (
+                <AspectFallbackImage
+                  src={course.metadata?.thumbnail_url}
+                  localSrc={`/images/course/${course.slug}.png`}
                   alt={`${course.title} thumbnail`}
-                  ratio="16/9"
-                  className="w-full h-full group-hover:scale-105 transition-transform duration-700"
+                  title={course.title}
+                  subtitle={`${course.metadata?.difficulty || "Beginner"} • ${course.metadata?.duration_weeks || 0} weeks`}
+                  className="rounded-3xl shadow-2xl shadow-brand-500/10 border border-gray-200 dark:border-gray-800"
                 />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center opacity-30">
-                  <Icon className="w-32 h-32 text-gray-400 dark:text-gray-500" />
-                </div>
               )}
             </motion.div>
 

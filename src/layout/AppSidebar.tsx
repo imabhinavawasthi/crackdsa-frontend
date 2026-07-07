@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
-import { MoreHorizontal, ChevronDown, User } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
   NavItem,
@@ -19,6 +19,42 @@ const AppSidebar: React.FC = () => {
   const { isLoggedIn } = useAuth();
   const [mounted, setMounted] = useState(false);
 
+  const [openSubmenu, setOpenSubmenu] = useState<{
+    type: string;
+    index: number;
+  } | null>(null);
+  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
+    {}
+  );
+  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const isActive = useCallback((path: string) => path === pathname, [pathname]);
+
+  const restoreActiveSubmenu = useCallback(() => {
+    let submenuMatched = false;
+    const sections = pathname.startsWith("/admin") ? adminSidebarSections : sidebarSections;
+    sections.forEach((section) => {
+      section.items.forEach((nav, index) => {
+        if (nav.subItems) {
+          const parentMatched = nav.path && isActive(nav.path);
+          const subItemMatched = nav.subItems.some((subItem) => isActive(subItem.path));
+
+          if (parentMatched || subItemMatched) {
+            setOpenSubmenu({
+              type: section.key,
+              index,
+            });
+            submenuMatched = true;
+          }
+        }
+      });
+    });
+
+    if (!submenuMatched) {
+      setOpenSubmenu(null);
+    }
+  }, [pathname, isActive]);
+
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       setMounted(true);
@@ -27,10 +63,74 @@ const AppSidebar: React.FC = () => {
     return () => window.clearTimeout(timeoutId);
   }, []);
 
+  useEffect(() => {
+    restoreActiveSubmenu();
+  }, [restoreActiveSubmenu]);
+
+  useEffect(() => {
+    // Set the height of the submenu items when the submenu is opened
+    if (openSubmenu !== null) {
+      const key = `${openSubmenu.type}-${openSubmenu.index}`;
+      if (subMenuRefs.current[key]) {
+        setSubMenuHeight((prevHeights) => ({
+          ...prevHeights,
+          [key]: subMenuRefs.current[key]?.scrollHeight || 0,
+        }));
+      }
+    }
+  }, [openSubmenu]);
+
   const closeSidebarOnMobile = () => {
     if (window.innerWidth < 1024) {
       setIsMobileOpen(false);
     }
+  };
+
+  const handleSubmenuToggle = (index: number, menuType: string) => {
+    setOpenSubmenu((prevOpenSubmenu) => {
+      if (
+        prevOpenSubmenu &&
+        prevOpenSubmenu.type === menuType &&
+        prevOpenSubmenu.index === index
+      ) {
+        return null;
+      }
+      return { type: menuType, index };
+    });
+  };
+
+  const renderBadge = (item: any) => {
+    if (item.badge) {
+      return item.badge;
+    }
+
+    if (item.tag) {
+      const bgClass = item.tagBg || "bg-brand-50 text-brand-600 border-brand-200 dark:bg-brand-500/10 dark:text-brand-400 dark:border-brand-500/20";
+      const colorClass = item.tagColor || "";
+      return (
+        <span className={`px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded border ${bgClass} ${colorClass} select-none`}>
+          {item.tag}
+        </span>
+      );
+    }
+
+    if (item.new) {
+      return (
+        <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded border bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 select-none">
+          NEW
+        </span>
+      );
+    }
+
+    if (item.pro) {
+      return (
+        <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs border border-transparent dark:from-amber-600 dark:to-orange-600 select-none scale-95 shrink-0">
+          PRO
+        </span>
+      );
+    }
+
+    return null;
   };
 
   const renderMenuItems = (
@@ -39,7 +139,19 @@ const AppSidebar: React.FC = () => {
   ) => (
     <ul className="flex flex-col gap-1">
       {navItems.map((nav, index) => (
-        <li key={nav.name}>
+        <li 
+          key={nav.name}
+          onMouseEnter={() => {
+            if (nav.subItems && window.innerWidth >= 1024) {
+              setOpenSubmenu({ type: menuType, index });
+            }
+          }}
+          onMouseLeave={() => {
+            if (nav.subItems && window.innerWidth >= 1024) {
+              restoreActiveSubmenu();
+            }
+          }}
+        >
           {nav.subItems ? (
             <Link
               href={nav.path || "#"}
@@ -74,17 +186,27 @@ const AppSidebar: React.FC = () => {
                 )
               })()}
               {(isExpanded || isHovered || isMobileOpen) && (
-                <span className={`menu-item-text`}>{nav.name}</span>
+                <>
+                  <span className={`menu-item-text`}>{nav.name}</span>
+                  {renderBadge(nav) && (
+                    <span className="ml-2 flex shrink-0">{renderBadge(nav)}</span>
+                  )}
+                </>
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDown
-                  className={`ml-auto w-5 h-5 transition-transform duration-200  ${
-                    openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
-                      ? "rotate-180 text-brand-500"
-                      : ""
-                  }`}
-                />
+                <>
+                  <ChevronDown
+                    className={`ml-auto w-5 h-5 transition-transform duration-200 group-hover:hidden ${
+                      openSubmenu?.type === menuType &&
+                      openSubmenu?.index === index
+                        ? "rotate-180 text-brand-500"
+                        : ""
+                    }`}
+                  />
+                  <ArrowRight
+                    className="ml-auto w-5 h-5 text-brand-500 hidden group-hover:block transition-all duration-200"
+                  />
+                </>
               )}
             </Link>
           ) : (
@@ -109,7 +231,12 @@ const AppSidebar: React.FC = () => {
                   )
                 })()}
                 {(isExpanded || isHovered || isMobileOpen) && (
-                  <span className={`menu-item-text`}>{nav.name}</span>
+                  <>
+                    <span className={`menu-item-text`}>{nav.name}</span>
+                    {renderBadge(nav) && (
+                      <span className="ml-2 flex shrink-0">{renderBadge(nav)}</span>
+                    )}
+                  </>
                 )}
               </Link>
             )
@@ -151,18 +278,11 @@ const AppSidebar: React.FC = () => {
                         </span>
                       )}
                       {subItem.name}
-                      <span className="flex items-center gap-1.5 ml-auto">
-                        {subItem.new && (
-                          <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded border bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
-                            NEW
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded border bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">
-                            PRO
-                          </span>
-                        )}
-                      </span>
+                      {renderBadge(subItem) && (
+                        <span className="flex items-center gap-1.5 ml-auto shrink-0">
+                          {renderBadge(subItem)}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 ))}
@@ -173,75 +293,6 @@ const AppSidebar: React.FC = () => {
       ))}
     </ul>
   );
-  
-  const [openSubmenu, setOpenSubmenu] = useState<{
-    type: string;
-    index: number;
-  } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {}
-  );
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  // const isActive = (path: string) => path === pathname;
-   const isActive = useCallback((path: string) => path === pathname, [pathname]);
-
-  useEffect(() => {
-    // Check if the current path matches any submenu item or its parent main path
-    let submenuMatched = false;
-    const sections = pathname.startsWith("/admin") ? adminSidebarSections : sidebarSections;
-    sections.forEach((section) => {
-      section.items.forEach((nav, index) => {
-        if (nav.subItems) {
-          const parentMatched = nav.path && isActive(nav.path);
-          const subItemMatched = nav.subItems.some((subItem) => isActive(subItem.path));
-
-          if (parentMatched || subItemMatched) {
-            setOpenSubmenu({
-              type: section.key,
-              index,
-            });
-            submenuMatched = true;
-          }
-        }
-      });
-    });
-
-    // If no submenu item matches, close the open submenu
-    if (!submenuMatched) {
-      const timeoutId = window.setTimeout(() => {
-      setOpenSubmenu(null);
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-    }
-  }, [pathname, isActive]);
-
-  useEffect(() => {
-    // Set the height of the submenu items when the submenu is opened
-    if (openSubmenu !== null) {
-      const key = `${openSubmenu.type}-${openSubmenu.index}`;
-      if (subMenuRefs.current[key]) {
-        setSubMenuHeight((prevHeights) => ({
-          ...prevHeights,
-          [key]: subMenuRefs.current[key]?.scrollHeight || 0,
-        }));
-      }
-    }
-  }, [openSubmenu]);
-
-  const handleSubmenuToggle = (index: number, menuType: string) => {
-    setOpenSubmenu((prevOpenSubmenu) => {
-      if (
-        prevOpenSubmenu &&
-        prevOpenSubmenu.type === menuType &&
-        prevOpenSubmenu.index === index
-      ) {
-        return null;
-      }
-      return { type: menuType, index };
-    });
-  };
 
   if (!mounted) {
     return (
@@ -275,7 +326,12 @@ const AppSidebar: React.FC = () => {
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        if (window.innerWidth >= 1024) {
+          restoreActiveSubmenu();
+        }
+      }}
     >
       <div
         className={`py-4 hidden lg:flex ${

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Terminal, Cpu, Code2, Clock, Star, Users } from "lucide-react";
 import { CourseSummary } from "@/types/course";
-import AspectRatioImage from "@/components/common/AspectRatioImage";
+import AspectFallbackImage from "@/components/common/AspectFallbackImage";
 
 export function CourseCard({ course, index }: { course: CourseSummary; index: number }) {
   // Pick an icon based on ID/category
@@ -21,20 +21,14 @@ export function CourseCard({ course, index }: { course: CourseSummary; index: nu
       className="flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-brand-500/10 hover:border-brand-500/30 transition-all duration-300 group h-full cursor-pointer"
     >
       {/* Thumbnail Area (16:9 ratio) */}
-      <div className="w-full aspect-[16/9] relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 group">
-        {course.metadata?.thumbnail_url ? (
-          <AspectRatioImage
-            src={course.metadata.thumbnail_url}
-            alt={`${course.title} thumbnail`}
-            ratio="16/9"
-            className="group-hover:scale-105 transition-transform duration-500 w-full h-full"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 group-hover:scale-110 transition-all duration-500">
-            <Icon className="w-16 h-16 text-gray-400 dark:text-gray-500" />
-          </div>
-        )}
-      </div>
+      <AspectFallbackImage
+        src={course.metadata?.thumbnail_url}
+        localSrc={`/images/course/${course.slug}.png`}
+        alt={`${course.title} thumbnail`}
+        title={course.title}
+        subtitle={`${course.metadata?.difficulty || "Beginner"} • ${course.metadata?.duration_weeks || 0} weeks`}
+        className="border-b border-gray-100 dark:border-gray-800"
+      />
 
       <div className="p-6 flex flex-col flex-1 relative">
         <div className="flex items-start justify-between mb-5 relative z-10">

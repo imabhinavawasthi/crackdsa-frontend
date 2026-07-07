@@ -103,10 +103,10 @@ export default function AdminDSASheetsList() {
                 </tr>
               ) : (
                 filteredSheets.map((sheet) => {
-                  const numTopics = sheet.sheet_json?.topics?.length || 0;
-                  const numProblems = sheet.sheet_json?.topics?.reduce((acc, topic) => 
+                  const numTopics = sheet.total_topics ?? (sheet.sheet_json?.topics?.length || 0);
+                  const numProblems = sheet.total_problems ?? (sheet.sheet_json?.topics?.reduce((acc, topic) => 
                     acc + topic.steps.reduce((sAcc, step) => sAcc + (step.problems?.length || 0), 0)
-                  , 0) || 0;
+                  , 0) || 0);
 
                   return (
                     <tr key={sheet.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors">

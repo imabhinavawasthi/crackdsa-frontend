@@ -110,14 +110,15 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 12 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.1 }}
+              className="flex justify-center lg:justify-start"
             >
-              <div className="inline-flex items-center gap-3 p-[1px] rounded-full bg-gradient-to-r from-brand-500/30 via-indigo-500/30 to-purple-500/30">
-                <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-gray-950/90 backdrop-blur-md text-xs font-semibold text-gray-200">
+              <div className="inline-flex items-center gap-3 p-[1.5px] rounded-full bg-gradient-to-r from-brand-500/50 via-violet-500/50 to-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.15)]">
+                <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-gray-950/80 backdrop-blur-2xl text-[10px] font-black uppercase tracking-widest text-brand-200">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500" />
                   </span>
-                  First AI Driven DSA Platform
+                  First Ever Personalised DSA Platform
                 </div>
               </div>
             </motion.div>
@@ -144,7 +145,7 @@ export default function HeroSection() {
               className="text-lg sm:text-xl text-gray-400 max-w-lg leading-relaxed font-medium"
             >
               AI-personalised roadmaps, pattern-first curriculum, and curated
-              DSA sheets — everything you need to crack your dream company.
+              DSA sheets, everything you need to crack your dream company.
             </motion.p>
 
             {/* Premium CTA buttons */}

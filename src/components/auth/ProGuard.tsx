@@ -11,7 +11,8 @@ export const PRO_ROUTES = [
   "/pro/dashboard",
   "/pro/personalized",
   "/live-sessions",
-  "/roadmap/onboarding"
+  "/roadmap/onboarding",
+  "/resources"
 ];
 
 function ProLockedScreen() {
@@ -20,9 +21,9 @@ function ProLockedScreen() {
 
   const benefits = [
     "Personalized DSA Preparation Roadmap",
-    "Weekly Elite 1-on-1 Mentor Sync-ups",
-    "Advanced Live System Design Masterclasses",
-    "Priority TA Doubt Support (under 15 mins)"
+    "Weekly Elite Live Doubt Solving Sessions and Masterclasses",
+    "Access to all Courses and Premium Resources",
+    "Exclusive Pro Community and Networking Opportunities"
   ];
 
   return (

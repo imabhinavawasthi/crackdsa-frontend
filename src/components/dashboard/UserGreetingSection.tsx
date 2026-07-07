@@ -48,7 +48,7 @@ export function UserGreetingSection({
           )}
         </div>
         <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-          {isPro ? "Welcome back to your premium workspace." : "Welcome back — let's practice, learn and grow."}
+          {isPro ? "Welcome back to your premium workspace." : "Welcome back, let's practice, learn and grow."}
         </p>
       </div>
 

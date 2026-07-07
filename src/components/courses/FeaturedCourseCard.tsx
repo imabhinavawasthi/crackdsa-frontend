@@ -1,14 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Crown, ArrowRight, BookOpen, ChevronDown, ChevronUp, CheckCircle2, Code2, Terminal, Cpu, Star, Users } from "lucide-react";
+import { motion } from "framer-motion";
+import { Zap, ArrowRight, CheckCircle2, Code2, Terminal, Cpu, Star, Users } from "lucide-react";
 import { CourseSummary } from "@/types/course";
-import AspectRatioImage from "@/components/common/AspectRatioImage";
 import { formatTag } from "@/utils/string";
+import AspectFallbackImage from "@/components/common/AspectFallbackImage";
 
 export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
-  const [expandedSyllabus, setExpandedSyllabus] = useState(false);
-
   // Pick an icon based on ID/category
   let Icon = Code2;
   if (course.id.includes("python") || course.slug.includes("python")) Icon = Terminal;
@@ -119,20 +117,14 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
           <div className="lg:w-[360px] shrink-0 space-y-6 flex flex-col justify-start">
             
             {/* Thumbnail */}
-            <div className="w-full aspect-[16/9] rounded-3xl relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden group shadow-lg">
-              {course.metadata?.thumbnail_url ? (
-                <AspectRatioImage
-                  src={course.metadata.thumbnail_url}
-                  alt={`${course.title} thumbnail`}
-                  ratio="16/9"
-                  className="w-full h-full group-hover:scale-105 transition-transform duration-700"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 group-hover:scale-110 transition-all duration-700">
-                  <Icon className="w-20 h-20 text-gray-400 dark:text-gray-500" />
-                </div>
-              )}
-            </div>
+            <AspectFallbackImage
+              src={course.metadata?.thumbnail_url}
+              localSrc={`/images/course/${course.slug}.png`}
+              alt={`${course.title} thumbnail`}
+              title={course.title}
+              subtitle={`${course.metadata?.difficulty || "Beginner"} • ${course.metadata?.duration_weeks || 0} weeks`}
+              className="rounded-3xl shadow-lg border border-gray-200 dark:border-gray-800"
+            />
 
             <div className="p-6 rounded-3xl bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800 space-y-6">
               

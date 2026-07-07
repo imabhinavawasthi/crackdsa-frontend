@@ -150,7 +150,7 @@ export default function CoursesPage() {
           transition={{ delay: 0.2 }}
           className="text-gray-500 dark:text-gray-400 text-sm sm:text-base leading-relaxed font-medium max-w-2xl mx-auto"
         >
-          We don't just sell courses; we engineer outcomes. Our specialized tracks adapt to your pace, providing 1:1 doubt support and industry-validated problems to ensure you conquer your next big interview.
+          We don't just sell courses; we engineer outcomes. Our specialized tracks adapt to your pace, providing live doubt sessions and industry-validated problems to ensure you conquer your next big interview.
         </motion.p>
 
         {/* Impact Highlights */}

@@ -15,7 +15,7 @@ import {
 
 export const platformFeatures = [
   {
-    title: "AI-Powered Roadmap",
+    title: "Personalized Roadmap",
     description: "Get a personalized learning path engineered by AI, tailored to your target companies and skill level.",
     icon: Compass,
     href: "/roadmap",
@@ -45,25 +45,32 @@ export const platformFeatures = [
 
 export const proFeatures = [
   {
-    title: "1:1 Mentorship",
-    description: "Personal guidance from engineers at top companies. Review your roadmap, resumes, and career path.",
-    icon: Users,
-    gradient: "from-amber-400 to-orange-500",
-    href: "/pro/personalized",
-  },
-  {
-    title: "Priority Support",
-    description: "Get unstuck quickly with dedicated support for your queries. Help is available when you need it.",
-    icon: MessageSquare,
-    gradient: "from-rose-400 to-pink-600",
-    href: "/support",
-  },
-  {
-    title: "Live Classes",
-    description: "Interactive sessions with expert instructors. Ask questions in real-time and learn alongside peers.",
+    title: "Live Classes & Masterclasses",
+    description: "Interactive sessions with expert instructors, live problem solving, and system design masterclasses.",
     icon: Video,
     gradient: "from-emerald-400 to-teal-600",
     href: "/live-sessions",
+  },
+  {
+    title: "Access to All Courses",
+    description: "Get complete access to all self-paced, premium video courses and upcoming preparation cohorts.",
+    icon: GraduationCap,
+    gradient: "from-purple-500 to-violet-600",
+    href: "/courses",
+  },
+  {
+    title: "Personalized Roadmap Builder",
+    description: "Unlock the AI custom planner to build tailored roadmap and DSA sheets matching your dream companies.",
+    icon: Compass,
+    gradient: "from-blue-500 to-indigo-600",
+    href: "/roadmap",
+  },
+  {
+    title: "All Handbooks & Resources",
+    description: "Download cheat sheets, interview notes, patterns handbooks, and structural review notes.",
+    icon: FileText,
+    gradient: "from-amber-400 to-orange-500",
+    href: "/resources",
   },
 ];
 
@@ -109,12 +116,12 @@ export const featuredDSASheets = [
     tag: "Comprehensive",
   },
   {
-    id: "blind-75",
-    title: "Blind 75",
-    description: "The classic curated set from Blind. Perfect for last-minute interview revision.",
+    id: "pattern-mastery",
+    title: "Pattern Mastery",
+    description: "Master the most important DSA patterns with curated problems and detailed explanations.",
     problemCount: 75,
     difficulty: "Medium" as const,
-    image: "/images/sheets/blind-75.png",
+    image: "/images/sheets/pattern-mastery.png",
     color: "from-emerald-500 to-teal-600",
     tag: "Classic",
   },

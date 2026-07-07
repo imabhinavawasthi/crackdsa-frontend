@@ -26,7 +26,9 @@ import {
   MessageCircle,
   UserKey,
   UserStarIcon,
-  GoalIcon
+  GoalIcon,
+  FolderTree,
+  Users
 } from "lucide-react";
 import type { NavItem, SidebarSectionType, UserMenuItem } from "@/types/sidebar";
 export type { NavItem, SidebarSectionType } from "@/types/sidebar";
@@ -41,11 +43,17 @@ export const learningItems: NavItem[] = [
     icon: <GraduationCap size={20} />,
     name: "Courses",
     path: "/courses",
+    pro: true,
   },
   {
     icon: <Route size={20} />,
     name: "My Roadmap",
     path: "/roadmap",
+    badge: (
+      <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-md bg-purple-500/10 text-purple-600 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30 select-none animate-pulse shrink-0">
+        BETA
+      </span>
+    )
   },
   {
     icon: <Compass size={20} />,
@@ -69,16 +77,20 @@ export const practiceItems: NavItem[] = [
     path: "/dsa-sheet",
     subItems: [
       {
+        name: "Patterns",
+        path: "/dsa-sheet/pattern-mastery",
+        icon: <FolderTree size={16} />,
+        new: true
+      },
+      {
         name: "Sprint 75",
         path: "/dsa-sheet/crackdsa-revision-sprint",
-        icon: <Zap size={16} />,
-        new: true,
+        icon: <Zap size={16} />
       },
       {
         name: "0 to Hero DSA",
         path: "/dsa-sheet/0-to-hero-dsa",
-        icon: <GraduationCap size={16} />,
-        pro: true,
+        icon: <GraduationCap size={16} />
       }
     ],
   },
@@ -209,19 +221,28 @@ export const proItems: NavItem[] = [
     icon: <GoalIcon size={20} />,
     name: "Pro Dashboard",
     path: "/pro/dashboard",
+    new: true,
   },
   {
     icon: <TvMinimalPlay size={20} />,
     name: "Live Classes",
     path: "/live-sessions",
+    pro: true,
+  },
+    {
+    icon: <FileText size={20} />,
+    name: "Resources & Notes",
+    path: "/resources",
+    pro: true,
   },
   {
     icon: <UserStarIcon size={20} />,
     name: "Personalized",
     path: "/pro/personalized",
     subItems: [
-      { name: "1-on-1 Mentorship", path: "/pro/personalized/mentorship", icon: <UserKey size={16} />, pro: true },
-      { name: "Doubt Solving Sessions", path: "/pro/personalized/doubt-solving", icon: <MessageCircle size={16} />, pro: true },
+      { name: "Mentorship", path: "/pro/personalized/mentorship", icon: <UserKey size={16} />, pro: true },
+      { name: "Doubt Solving Sessions", path: "/pro/personalized/doubt-solving-sessions", icon: <MessageCircle size={16} />, pro: true },
+      { name: "Mock Interviews", path: "/pro/personalized/mock-interviews", icon: <Users size={16} />, new: true },
     ],
   }
 ];
