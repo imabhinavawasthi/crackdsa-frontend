@@ -105,6 +105,102 @@ export default function CourseLandingPage() {
     );
   }
 
+  if (course.status === "upcoming") {
+    return (
+      <div className="min-h-screen relative overflow-hidden bg-gray-50/50 dark:bg-[#0B0F19] flex items-center justify-center p-4 sm:p-6 md:p-10">
+        {/* Background blobs */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-brand-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+        {/* Content card */}
+        <div className="relative z-10 w-full max-w-4xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] p-6 sm:p-10 shadow-2xl flex flex-col md:flex-row gap-8 sm:gap-10 items-center">
+          
+          {/* Left Column: Image Banner */}
+          <div className="w-full md:w-[320px] shrink-0">
+            <AspectFallbackImage
+              src={course.metadata?.thumbnail_url}
+              localSrc={`/images/course/${course.slug}.png`}
+              alt={`${course.title} thumbnail`}
+              title={course.title}
+              subtitle="Upcoming Course"
+              className="rounded-3xl border border-gray-200 dark:border-gray-800 shadow-md"
+            />
+          </div>
+
+          {/* Right Column: Text and Details */}
+          <div className="flex-1 space-y-5 text-left w-full">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link 
+                href="/courses"
+                className="inline-flex items-center gap-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 hover:text-brand-500 transition-colors uppercase tracking-widest"
+              >
+                <ChevronLeft size={12} className="stroke-[2.5]" />
+                <span>Catalog</span>
+              </Link>
+              <span className="rounded-lg bg-gradient-to-r from-brand-500 to-indigo-500 text-white px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest shadow-md shadow-brand-500/15">
+                Upcoming Course
+              </span>
+              {course.is_pro && (
+                <span className="text-[9px] font-black bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-lg uppercase tracking-wider">
+                  PRO Included
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
+                {course.title}
+              </h1>
+              <div 
+                className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed prose prose-sm dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: course.description }}
+              />
+            </div>
+
+            {course.tags && course.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {course.tags.map((tag) => (
+                  <span 
+                    key={tag}
+                    className="px-3 py-1.5 rounded-xl bg-gray-50 dark:bg-gray-800/60 text-[11px] font-bold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800/80"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="border-t border-gray-100 dark:border-gray-800/80 pt-4 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Expected Price</span>
+                <div className="flex items-baseline gap-2">
+                  {course.price === 0 ? (
+                    <span className="text-2xl font-black text-emerald-500">Free</span>
+                  ) : (
+                    <>
+                      <span className="text-2xl font-black text-gray-900 dark:text-white">₹{course.price}</span>
+                      {course.original_price > course.price && (
+                        <span className="text-sm font-bold text-gray-400 line-through">₹{course.original_price}</span>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800/40 border border-gray-200/60 dark:border-gray-800/60 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                </span>
+                Curriculum in Development
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Fallback Icon
   let Icon = Code2;
   if (course.id.includes("python") || course.slug.includes("python")) Icon = Terminal;

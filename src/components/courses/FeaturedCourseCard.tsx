@@ -1,25 +1,26 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Zap, ArrowRight, CheckCircle2, Code2, Terminal, Cpu, Star, Users } from "lucide-react";
+import { Zap, ArrowRight, CheckCircle2, Code2, Terminal, Cpu, Star, Users, Calendar } from "lucide-react";
 import { CourseSummary } from "@/types/course";
 import { formatTag } from "@/utils/string";
 import AspectFallbackImage from "@/components/common/AspectFallbackImage";
 
 export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
+  const upcoming = course.status === "upcoming";
+
   // Pick an icon based on ID/category
   let Icon = Code2;
   if (course.id.includes("python") || course.slug.includes("python")) Icon = Terminal;
   if (course.id.includes("os") || course.slug.includes("system-design")) Icon = Cpu;
 
-  return (
-    <Link href={`/courses/${course.slug}`} className="block relative z-10 cursor-pointer group focus:outline-none">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-      >
-        <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-indigo-500 rounded-[2.5rem] blur opacity-25" />
+  const cardContent = (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
+      <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-indigo-500 rounded-[2.5rem] blur opacity-25" />
       <div className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] overflow-hidden shadow-2xl p-8 sm:p-12">
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
           
@@ -27,44 +28,52 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
           <div className="flex-1 space-y-6">
             
             <div className="flex flex-col space-y-5">
-                <div className="flex flex-wrap items-center gap-3">
-                  {course.is_popular && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-brand-500 text-white shadow-md shadow-brand-500/20">
-                      <Zap size={12} /> Popular
-                    </span>
-                  )}
-                  <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                    {course.metadata?.difficulty || "Beginner"}
+              <div className="flex flex-wrap items-center gap-3">
+                {upcoming ? (
+                  <span className="rounded-lg bg-gradient-to-r from-brand-500 to-indigo-500 text-white px-3 py-1 text-[10px] font-black uppercase tracking-widest shadow-md shadow-brand-500/15">
+                    Upcoming Course
                   </span>
-                </div>
-
-                <div>
-                  <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-3">
-                    {course.title}
-                  </h2>
-                  
-                  {/* Stats Row */}
-                  {(course.metadata?.rating || course.metadata?.number_of_students) && (
-                    <div className="flex items-center gap-4">
-                      {course.metadata?.rating && (
-                        <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 dark:text-gray-400">
-                          <Star size={16} className="text-amber-500 fill-amber-500" />
-                          <span>{course.metadata.rating}</span>
-                        </div>
-                      )}
-                      {course.metadata?.rating && course.metadata?.number_of_students && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700" />
-                      )}
-                      {course.metadata?.number_of_students && (
-                        <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 dark:text-gray-400">
-                          <Users size={16} className="text-brand-500" />
-                          <span>{course.metadata.number_of_students > 1000 ? `${(course.metadata.number_of_students / 1000).toFixed(1)}k` : course.metadata.number_of_students} Enrolled</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <>
+                    {course.is_popular && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-brand-500 text-white shadow-md shadow-brand-500/20">
+                        <Zap size={12} /> Popular
+                      </span>
+                    )}
+                    <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                      {course.metadata?.difficulty || "Beginner"}
+                    </span>
+                  </>
+                )}
               </div>
+
+              <div>
+                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight leading-[1.1] mb-3">
+                  {course.title}
+                </h2>
+                
+                {/* Stats Row (Hidden for upcoming) */}
+                {!upcoming && (course.metadata?.rating || course.metadata?.number_of_students) && (
+                  <div className="flex items-center gap-4">
+                    {course.metadata?.rating && (
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 dark:text-gray-400">
+                        <Star size={16} className="text-amber-500 fill-amber-500" />
+                        <span>{course.metadata.rating}</span>
+                      </div>
+                    )}
+                    {course.metadata?.rating && course.metadata?.number_of_students && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700" />
+                    )}
+                    {course.metadata?.number_of_students && (
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-gray-600 dark:text-gray-400">
+                        <Users size={16} className="text-brand-500" />
+                        <span>{course.metadata.number_of_students > 1000 ? `${(course.metadata.number_of_students / 1000).toFixed(1)}k` : course.metadata.number_of_students} Enrolled</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
 
             <div 
               className="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed font-medium line-clamp-4 prose prose-gray dark:prose-invert max-w-none"
@@ -82,8 +91,8 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
               ))}
             </div>
 
-            {/* Stats Grid - Only show if stats exist */}
-            {(course.metadata?.duration_weeks || course.total_videos || course.total_problems || course.total_articles) ? (
+            {/* Stats Grid - Hidden for upcoming */}
+            {!upcoming && (course.metadata?.duration_weeks || course.total_videos || course.total_problems || course.total_articles) ? (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
                 {course.metadata?.duration_weeks ? (
                   <div className="flex flex-col gap-1">
@@ -122,7 +131,7 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
               localSrc={`/images/course/${course.slug}.png`}
               alt={`${course.title} thumbnail`}
               title={course.title}
-              subtitle={`${course.metadata?.difficulty || "Beginner"} • ${course.metadata?.duration_weeks || 0} weeks`}
+              subtitle={upcoming ? "Upcoming Course" : `${course.metadata?.difficulty || "Beginner"} • ${course.metadata?.duration_weeks || 0} weeks`}
               className="rounded-3xl shadow-lg border border-gray-200 dark:border-gray-800"
             />
 
@@ -150,67 +159,41 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-2 flex items-center gap-1.5">
                   <CheckCircle2 size={14} className="text-emerald-500" />
-                  Lifetime Access
+                  {upcoming ? "Lifetime Access Upon Release" : "Lifetime Access"}
                 </p>
               </div>
 
               <div className="space-y-3 relative z-20">
-                <Link
-                  href={`/courses/${course.slug}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex items-center justify-center gap-2 w-full rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-6 py-4 text-sm font-bold shadow-xl shadow-brand-500/20 hover:shadow-brand-500/30 transition-all group/btn"
-                >
-                  <span>View Details</span>
-                  <ArrowRight size={16} className="transition-transform group-hover/btn:translate-x-1" />
-                </Link>
+                {upcoming ? (
+                  <div className="flex items-center justify-center gap-2 w-full rounded-2xl bg-gray-150 dark:bg-gray-800 text-gray-400 dark:text-gray-500 px-6 py-4 text-sm font-bold border border-gray-250/20 dark:border-gray-700/30 select-none cursor-default">
+                    <Calendar size={16} />
+                    <span>Coming Soon</span>
+                  </div>
+                ) : (
+                  <Link
+                    href={`/courses/${course.slug}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center justify-center gap-2 w-full rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-6 py-4 text-sm font-bold shadow-xl shadow-brand-500/20 hover:shadow-brand-500/30 transition-all group/btn"
+                  >
+                    <span>View Details</span>
+                    <ArrowRight size={16} className="transition-transform group-hover/btn:translate-x-1" />
+                  </Link>
+                )}
               </div>
             </div>
-
-            {/* Syllabus Accordion Preview */}
-            {/* {course.metadata?.marketing_syllabus && course.metadata.marketing_syllabus.length > 0 && (
-              <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 relative z-20">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setExpandedSyllabus(!expandedSyllabus);
-                  }}
-                  className="w-full flex items-center justify-between px-5 py-3.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-all focus:outline-none"
-                >
-                  <span className="flex items-center gap-2">
-                    <BookOpen size={14} className="text-brand-500" />
-                    <span>View Curriculum</span>
-                  </span>
-                  {expandedSyllabus ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {expandedSyllabus && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden border-t border-gray-100 dark:border-gray-800"
-                    >
-                      <ul className="px-5 py-4 space-y-3">
-                        {course.metadata.marketing_syllabus.map((item: string, idx: number) => (
-                          <li key={idx} className="flex items-start gap-2.5 text-xs text-gray-600 dark:text-gray-400 font-medium">
-                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 text-[9px] font-bold mt-0.5">
-                              {idx + 1}
-                            </span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )} */}
-          </div>
           </div>
         </div>
-      </motion.div>
+      </div>
+    </motion.div>
+  );
+
+  if (upcoming) {
+    return <div className="block relative z-10 select-none">{cardContent}</div>;
+  }
+
+  return (
+    <Link href={`/courses/${course.slug}`} className="block relative z-10 cursor-pointer group focus:outline-none">
+      {cardContent}
     </Link>
   );
 }

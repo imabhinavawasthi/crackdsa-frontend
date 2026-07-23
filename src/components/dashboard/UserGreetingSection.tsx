@@ -58,7 +58,7 @@ export function UserGreetingSection({
         animate="visible"
         className="flex gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide items-stretch"
       >
-        {stats && stats.map((stat) => (
+        {/* {stats && stats.map((stat) => (
           <motion.div
             key={stat.label}
             variants={scaleIn}
@@ -72,7 +72,7 @@ export function UserGreetingSection({
               <p className="text-lg font-black leading-none text-gray-900 dark:text-white mt-0.5">{stat.value}</p>
             </div>
           </motion.div>
-        ))}
+        ))} */}
 
         {dailyProblem && (
           <motion.div variants={scaleIn}>
@@ -85,7 +85,7 @@ export function UserGreetingSection({
                 <Zap size={15} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[9px] font-black uppercase tracking-wider text-brand-500 dark:text-brand-400">Daily Problem</p>
+                <p className="text-[9px] font-black uppercase tracking-wider text-brand-500 dark:text-brand-400">Today&apos;s Problem</p>
                 <p className="text-xs font-bold text-gray-900 dark:text-white mt-0.5 truncate">{dailyProblem.title}</p>
               </div>
               <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${

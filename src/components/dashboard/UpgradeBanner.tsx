@@ -8,9 +8,11 @@ import { fadeInUp } from "@/utils/animations";
 
 interface UpgradeBannerProps {
   isLoggedIn: boolean;
+  title?: string;
+  description?: string;
 }
 
-export function UpgradeBanner({ isLoggedIn }: UpgradeBannerProps) {
+export function UpgradeBanner({ isLoggedIn, title, description }: UpgradeBannerProps) {
   return (
     <motion.section
       initial="hidden"
@@ -31,10 +33,10 @@ export function UpgradeBanner({ isLoggedIn }: UpgradeBannerProps) {
             </div>
             <div>
               <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
-                {isLoggedIn ? "Upgrade to Pro" : "Start with Pro"}
+                {title || (isLoggedIn ? "Upgrade to Pro" : "Start with Pro")}
               </h3>
               <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 max-w-md leading-relaxed font-medium">
-                Unlock live masterclasses, doubt sessions, premium roadmaps, and all pro courses.
+                {description || "Unlock live masterclasses, doubt sessions, premium roadmaps, and all pro courses."}
               </p>
               <div className="flex flex-wrap gap-3 mt-3">
                 {["Weekly Doubt Sessions", "Live Classes", "Premium Roadmaps", "All Courses"].map((item) => (

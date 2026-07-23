@@ -1,24 +1,29 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Terminal, Cpu, Code2, Clock, Star, Users } from "lucide-react";
+import { ArrowRight, Terminal, Cpu, Code2, Clock, Star, Users, Calendar } from "lucide-react";
 import { CourseSummary } from "@/types/course";
 import AspectFallbackImage from "@/components/common/AspectFallbackImage";
 
 export function CourseCard({ course, index }: { course: CourseSummary; index: number }) {
+  const upcoming = course.status === "upcoming";
+
   // Pick an icon based on ID/category
   let Icon = Code2;
   if (course.id.includes("python") || course.slug.includes("python")) Icon = Terminal;
   if (course.id.includes("os") || course.slug.includes("system-design")) Icon = Cpu;
 
-  return (
-    <Link href={`/courses/${course.slug}`} className="block focus:outline-none h-full">
+  const cardContent = (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.5 }}
-      whileHover={{ y: -6 }}
-      className="flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-brand-500/10 hover:border-brand-500/30 transition-all duration-300 group h-full cursor-pointer"
+      whileHover={upcoming ? {} : { y: -6 }}
+      className={`flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm transition-all duration-300 group h-full ${
+        upcoming 
+          ? "border-gray-200/60 dark:border-gray-800/60" 
+          : "hover:shadow-xl hover:shadow-brand-500/10 hover:border-brand-500/30 cursor-pointer"
+      }`}
     >
       {/* Thumbnail Area (16:9 ratio) */}
       <AspectFallbackImage
@@ -26,7 +31,7 @@ export function CourseCard({ course, index }: { course: CourseSummary; index: nu
         localSrc={`/images/course/${course.slug}.png`}
         alt={`${course.title} thumbnail`}
         title={course.title}
-        subtitle={`${course.metadata?.difficulty || "Beginner"} • ${course.metadata?.duration_weeks || 0} weeks`}
+        subtitle={upcoming ? "Upcoming Course" : `${course.metadata?.difficulty || "Beginner"} • ${course.metadata?.duration_weeks || 0} weeks`}
         className="border-b border-gray-100 dark:border-gray-800"
       />
 
@@ -40,14 +45,22 @@ export function CourseCard({ course, index }: { course: CourseSummary; index: nu
             <Icon size={24} />
           </div>
           <div className="flex flex-col items-end gap-1.5">
-            <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
-              {course.metadata?.difficulty || "Beginner"}
-            </span>
-            {course.metadata?.duration_weeks ? (
-              <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                <Clock size={10} /> {course.metadata.duration_weeks} Weeks
+            {upcoming ? (
+              <span className="rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 text-white px-2.5 py-1 text-[9px] font-black uppercase tracking-widest shadow-xs">
+                Upcoming
               </span>
-            ) : null}
+            ) : (
+              <>
+                <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                  {course.metadata?.difficulty || "Beginner"}
+                </span>
+                {course.metadata?.duration_weeks ? (
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    <Clock size={10} /> {course.metadata.duration_weeks} Weeks
+                  </span>
+                ) : null}
+              </>
+            )}
           </div>
         </div>
 
@@ -60,8 +73,8 @@ export function CourseCard({ course, index }: { course: CourseSummary; index: nu
             dangerouslySetInnerHTML={{ __html: course.description }}
           />
           
-          {/* Stats Row */}
-          {(course.metadata?.rating || course.metadata?.number_of_students) && (
+          {/* Stats Row (Hidden for upcoming) */}
+          {!upcoming && (course.metadata?.rating || course.metadata?.number_of_students) && (
             <div className="flex items-center gap-3 pt-2">
               {course.metadata?.rating && (
                 <div className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-400">
@@ -82,38 +95,53 @@ export function CourseCard({ course, index }: { course: CourseSummary; index: nu
           )}
         </div>
 
-      <div className="border-t border-gray-100 dark:border-gray-800/80 pt-4 mt-auto flex items-center justify-between">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</span>
-            {course.is_pro && (
-              <span className="text-[8px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                PRO Included
+        <div className="border-t border-gray-100 dark:border-gray-800/80 pt-4 mt-auto flex items-center justify-between">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                {upcoming ? "Expected Price" : "Price"}
               </span>
-            )}
+              {course.is_pro && (
+                <span className="text-[8px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                  PRO Included
+                </span>
+              )}
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              {course.price === 0 ? (
+                <span className="text-lg font-black text-emerald-500">Free</span>
+              ) : (
+                <>
+                  <span className="text-lg font-black text-gray-900 dark:text-white">₹{course.price}</span>
+                  {course.original_price > course.price && (
+                    <span className="text-xs font-bold text-gray-400 line-through">₹{course.original_price}</span>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-          <div className="flex items-baseline gap-1.5">
-            {course.price === 0 ? (
-              <span className="text-lg font-black text-emerald-500">Free</span>
-            ) : (
-              <>
-                <span className="text-lg font-black text-gray-900 dark:text-white">₹{course.price}</span>
-                {course.original_price > course.price && (
-                  <span className="text-xs font-bold text-gray-400 line-through">₹{course.original_price}</span>
-                )}
-              </>
-            )}
-          </div>
+          
+          {upcoming ? (
+            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 select-none">
+              <Calendar size={18} />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-brand-500 group-hover:text-white transition-colors">
+              <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          )}
         </div>
-        
-        <div
-          className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-brand-500 group-hover:text-white transition-colors"
-        >
-          <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
-        </div>
-      </div>
       </div>
     </motion.div>
+  );
+
+  if (upcoming) {
+    return <div className="block h-full select-none">{cardContent}</div>;
+  }
+
+  return (
+    <Link href={`/courses/${course.slug}`} className="block focus:outline-none h-full">
+      {cardContent}
     </Link>
   );
 }

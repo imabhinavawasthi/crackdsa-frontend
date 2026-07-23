@@ -12,7 +12,7 @@ const features = [
   {
     title: "Mentorship",
     other: "Non-existent or taught by teaching assistants",
-    crackdsa: "1:1 mentorship from FAANG / Product-based engineers",
+    crackdsa: "Live mentorship from top engineers with 1:1 guidance and feedback",
     icon: <Users className="w-5 h-5" />,
   },
   {
@@ -26,16 +26,14 @@ const features = [
     other: "Outdated recorded lectures from years ago",
     crackdsa: "Constantly evolving with current industry trends",
     icon: <TrendingUp className="w-5 h-5" />,
-  },
-  {
-    title: "Job Readiness",
-    other: "Generic certificates of completion",
-    crackdsa: "Direct referral network & resume reviews",
-    icon: <ShieldCheck className="w-5 h-5" />,
-  },
+  }
 ];
 
-export function CompareSection() {
+interface CompareSectionProps {
+  forceDark?: boolean;
+}
+
+export function CompareSection({ forceDark = false }: CompareSectionProps) {
   return (
     <section className="py-24 px-4 relative overflow-hidden">
       <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-brand-500/5 rounded-full blur-[120px] pointer-events-none" />
@@ -47,7 +45,11 @@ export function CompareSection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-black uppercase tracking-widest border border-brand-500/20"
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border border-brand-500/20 ${
+              forceDark 
+                ? "bg-brand-500/10 text-brand-400" 
+                : "bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400"
+            }`}
           >
             Why Choose Us?
           </motion.div>
@@ -56,7 +58,9 @@ export function CompareSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight"
+            className={`text-3xl md:text-5xl font-black tracking-tight ${
+              forceDark ? "text-white" : "text-gray-900 dark:text-white"
+            }`}
           >
             The <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-500">CrackDSA</span> Advantage
           </motion.h2>
@@ -65,17 +69,29 @@ export function CompareSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto"
+            className={`font-medium max-w-2xl mx-auto ${
+              forceDark ? "text-gray-400" : "text-gray-500 dark:text-gray-400"
+            }`}
           >
             Don't waste time on endless problem solving without direction. See why top candidates prefer our engineered learning approach.
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] overflow-hidden bg-white dark:bg-gray-900 shadow-2xl">
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-0 border rounded-[2.5rem] overflow-hidden shadow-2xl ${
+          forceDark 
+            ? "border-gray-800 bg-gray-900" 
+            : "border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+        }`}>
           
           {/* Other Platforms Column */}
-          <div className="p-8 md:p-12 bg-gray-50/50 dark:bg-gray-900/50">
-            <h3 className="text-2xl font-black text-gray-400 dark:text-gray-500 mb-8 flex items-center justify-center gap-3 border-b border-gray-200 dark:border-gray-800 pb-6">
+          <div className={`p-8 md:p-12 ${
+            forceDark ? "bg-gray-900/50" : "bg-gray-50/50 dark:bg-gray-900/50"
+          }`}>
+            <h3 className={`text-2xl font-black mb-8 flex items-center justify-center gap-3 border-b pb-6 ${
+              forceDark 
+                ? "text-gray-500 border-gray-800" 
+                : "text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-800"
+            }`}>
               Other Platforms
             </h3>
             <div className="space-y-8">
@@ -90,8 +106,12 @@ export function CompareSection() {
                 >
                   <XCircle className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-1">{feature.title}</h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">{feature.other}</p>
+                    <h4 className={`text-sm font-bold mb-1 ${
+                      forceDark ? "text-white" : "text-gray-900 dark:text-white"
+                    }`}>{feature.title}</h4>
+                    <p className={`text-sm font-medium leading-relaxed ${
+                      forceDark ? "text-gray-400" : "text-gray-500 dark:text-gray-400"
+                    }`}>{feature.other}</p>
                   </div>
                 </motion.div>
               ))}
@@ -99,9 +119,17 @@ export function CompareSection() {
           </div>
 
           {/* CrackDSA Column */}
-          <div className="p-8 md:p-12 bg-gradient-to-br from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 relative">
+          <div className={`p-8 md:p-12 relative ${
+            forceDark 
+              ? "bg-gradient-to-br from-brand-900/20 to-indigo-900/20" 
+              : "bg-gradient-to-br from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20"
+          }`}>
             <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-brand-500 to-indigo-500 hidden md:block" />
-            <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-brand-400 dark:to-indigo-400 mb-8 flex items-center justify-center gap-3 border-b border-brand-200 dark:border-brand-800/30 pb-6">
+            <h3 className={`text-2xl font-black mb-8 flex items-center justify-center gap-3 border-b pb-6 ${
+              forceDark 
+                ? "text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-indigo-400 border-gray-850/30" 
+                : "text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-brand-400 dark:to-indigo-400 border-brand-200 dark:border-brand-800/30"
+            }`}>
               CrackDSA
             </h3>
             <div className="space-y-8">
@@ -114,12 +142,20 @@ export function CompareSection() {
                   transition={{ delay: idx * 0.1 }}
                   className="flex items-start gap-4"
                 >
-                  <div className="p-1 rounded-full bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 shrink-0">
+                  <div className={`p-1 rounded-full shrink-0 ${
+                    forceDark 
+                      ? "bg-brand-500/20 text-brand-400" 
+                      : "bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400"
+                  }`}>
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-1">{feature.title}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 font-medium leading-relaxed">{feature.crackdsa}</p>
+                    <h4 className={`text-sm font-bold mb-1 ${
+                      forceDark ? "text-white" : "text-gray-900 dark:text-white"
+                    }`}>{feature.title}</h4>
+                    <p className={`text-sm font-medium leading-relaxed ${
+                      forceDark ? "text-gray-300" : "text-gray-605 dark:text-gray-305"
+                    }`}>{feature.crackdsa}</p>
                   </div>
                 </motion.div>
               ))}

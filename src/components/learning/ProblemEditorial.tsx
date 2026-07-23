@@ -6,6 +6,8 @@ import { fetchVideoDetails, VideoLectureDetail } from "@/api/videos";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import VideoCard from "./VideoCard";
+import { useAuth } from "@/context/AuthContext";
+import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
 
 interface RelatedArticle {
   id: string;
@@ -19,6 +21,9 @@ interface ProblemEditorialProps {
 }
 
 const ProblemEditorial: React.FC<ProblemEditorialProps> = ({ videoIds = [], articles = [] }) => {
+  const { user, isLoggedIn } = useAuth();
+  const isPro = user?.is_pro_active === true;
+
   const [videos, setVideos] = useState<VideoLectureDetail[]>([]);
   const [loading, setLoading] = useState(!!(videoIds && videoIds.length > 0));
   const [activeVideo, setActiveVideo] = useState<VideoLectureDetail | null>(null);
@@ -68,6 +73,18 @@ const ProblemEditorial: React.FC<ProblemEditorialProps> = ({ videoIds = [], arti
 
   const hasVideos = videos.length > 0;
   const hasArticles = articles && articles.length > 0;
+
+  if (!isPro) {
+    return (
+      <div className="py-6 select-none w-full">
+        <UpgradeBanner
+          isLoggedIn={isLoggedIn}
+          title="PRO Access Required"
+          description="Unlock video explanations, conceptual breakdowns, code walking, and all other exclusive resources by upgrading to CrackDSA PRO."
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
