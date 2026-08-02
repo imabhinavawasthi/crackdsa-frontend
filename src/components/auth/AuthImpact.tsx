@@ -25,7 +25,7 @@ export default function AuthImpact() {
         <Image
           width={180}
           height={36}
-          src="/images/logo/auth-logo.svg"
+          src="/images/logo/logo.svg"
           alt="CrackDSA Logo"
           className="drop-shadow-2xl"
         />

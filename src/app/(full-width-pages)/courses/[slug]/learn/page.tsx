@@ -87,7 +87,9 @@ export default function LearnPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const courseSlug = params?.slug as string;
+  const rawCourseSlug = params?.slug as string;
+  const DEFAULT_DSA_SLUG = process.env.NEXT_PUBLIC_DSA_COURSE_SLUG || "data-structures-algorithms-mastery-program";
+  const courseSlug = rawCourseSlug === "dsa" ? DEFAULT_DSA_SLUG : rawCourseSlug;
 
   const { user, isLoggedIn, isLoading: isAuthLoading } = useAuth();
   const firstName = user?.full_name ? user.full_name.split(" ")[0] : "";

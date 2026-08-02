@@ -3,6 +3,7 @@ export interface CourseSectionItem {
   title: string;
   type: "video" | "problem" | "article";
   asset_id: string;
+  slug?: string;
   is_free: boolean;
   duration_label: string;
 }
@@ -53,6 +54,7 @@ export interface CourseSummary {
   total_articles?: number;
   tags?: string[];
   sections?: CourseSection[];
+  curriculum?: CourseSection[];
   metadata?: {
     thumbnail_url?: string;
     difficulty?: string;
@@ -64,6 +66,7 @@ export interface CourseSummary {
     [key: string]: any;
   };
   is_active?: boolean;
+  status?: string;
   created_at?: string;
   updated_at?: string;
 }

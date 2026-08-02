@@ -41,13 +41,13 @@ export const learningItems: NavItem[] = [
   },
   {
     icon: <GraduationCap size={20} />,
-    name: "Courses",
-    path: "/courses",
-    pro: true,
+    name: "Learn DSA",
+    path: "/dsa",
+    new: true,
   },
   {
     icon: <Route size={20} />,
-    name: "My Roadmap",
+    name: "Roadmap",
     path: "/roadmap",
     badge: (
       <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-md bg-purple-500/10 text-purple-600 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30 select-none animate-pulse shrink-0">
@@ -55,14 +55,6 @@ export const learningItems: NavItem[] = [
       </span>
     )
   },
-  {
-    icon: <Compass size={20} />,
-    name: "Learn",
-    path: "/learn",
-    subItems: [
-      { name: "DSA", path: "/learn/dsa", icon: <Code2 size={16} />, new: true },
-    ],
-  }
 ];
 
 export const practiceItems: NavItem[] = [

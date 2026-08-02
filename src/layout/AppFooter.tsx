@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, ExternalLink } from "lucide-react";
+import Logo from "@/components/common/Logo";
 import { SOCIALS as SOCIALS_CONST, CONTACT_INFO } from "@/constants/contact";
 
 // ─── Inline social SVGs (lucide doesn't include brand icons) ─────────────────
@@ -127,22 +128,7 @@ const AppFooter: React.FC = () => {
 
           {/* Brand column — spans full width on mobile */}
           <div className="col-span-2 lg:col-span-1 space-y-4">
-            <Link href="/" className="inline-block">
-              <Image
-                src="/images/logo/logo.svg"
-                alt="CrackDSA"
-                width={130}
-                height={34}
-                className="dark:hidden"
-              />
-              <Image
-                src="/images/logo/logo-dark.svg"
-                alt="CrackDSA"
-                width={130}
-                height={34}
-                className="hidden dark:block"
-              />
-            </Link>
+            <Logo href="/" width={130} height={34} />
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs">
               Master data structures &amp; algorithms with structured courses, curated sheets, and real interview prep.
             </p>

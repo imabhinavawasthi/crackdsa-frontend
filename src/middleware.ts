@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
     // - The `/coming-soon` page itself (to avoid infinite rewrites)
     // - Internal NextJS assets (`/_next/`)
     // - API routes (`/api/`)
-    // - Static files containing extensions (e.g. `/favicon.ico`, `/logo.png`)
+    // - Static files containing extensions (e.g. `/favicon.ico`, `/logo.svg`)
     const isExempt =
       pathname === '/coming-soon' ||
       pathname.startsWith('/_next/') ||

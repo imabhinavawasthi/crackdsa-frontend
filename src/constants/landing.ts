@@ -1,52 +1,69 @@
 import {
+  MonitorPlay,
+  Send,
+  MessageCircle,
+  Users,
   Target,
   BarChart3,
   Brain,
   Layers,
   Zap,
   TrendingUp,
-  Users,
-  MessageCircle,
-  Code2,
-  Award,
-  MonitorPlay,
-  Send,
   BookOpen,
-  Building2,
-  FileText,
-  Crown,
   Rocket,
   Headphones,
+  Crown,
   Radio,
   GraduationCap,
   FolderOpen,
+  Building2,
+  FileText
 } from "lucide-react";
 import { SOCIALS } from "@/constants/contact";
+import { LANDING_CONFIG } from "@/config/landing.config";
 
-// ─── Hero ────────────────────────────────────────────────────────────────────
+export * from "@/config/landing.config";
 
-export const HERO_ROTATING_WORDS = ["patterns.", "clarity.", "confidence."];
+// Backward compatibility exports
+export const HERO_ROTATING_WORDS = LANDING_CONFIG.hero.rotatingWords;
+export const HERO_VIDEO_ID = LANDING_CONFIG.hero.videoYoutubeId;
+export const HERO_TESTIMONIALS = LANDING_CONFIG.hero.testimonials;
+export const TRUST_COMPANIES = LANDING_CONFIG.trust.companies;
+export const TESTIMONIALS = LANDING_CONFIG.testimonials.items;
+export const PLATFORM_STATS = LANDING_CONFIG.statsBar;
 
-export const HERO_VIDEO_ID = "G7fdasRHmq4";
-
-export const HERO_STATS = [
-  { bold: "20k+", label: "learners" },
-  { bold: "50k+", label: "community" },
-  { bold: "75+", label: "curated problems" },
+export const COMMUNITY_LINKS = [
+  {
+    href: SOCIALS.youtube.crackdsa,
+    icon: MonitorPlay,
+    label: "YouTube",
+    accent: "hover:border-red-500/30 hover:text-red-400",
+  },
+  {
+    href: SOCIALS.telegram,
+    icon: Send,
+    label: "Telegram",
+    accent: "hover:border-blue-400/30 hover:text-blue-400",
+  },
+  {
+    href: SOCIALS.whatsapp.channel,
+    icon: MessageCircle,
+    label: "WhatsApp",
+    accent: "hover:border-emerald-500/30 hover:text-emerald-400",
+  },
+  {
+    href: SOCIALS.linkedin.crackdsa,
+    icon: Users,
+    label: "LinkedIn",
+    accent: "hover:border-brand-500/30 hover:text-brand-400",
+  },
 ];
 
-// ─── Trust Bar ───────────────────────────────────────────────────────────────
-
-export const TRUST_COMPANIES = [
-  "Google",
-  "Amazon",
-  "Microsoft",
-  "Linkedin",
-  "Zeta",
-  "Zomato",
+export const FOOTER_SOCIAL_LINKS = [
+  { href: SOCIALS.youtube.crackdsa, icon: MonitorPlay },
+  { href: SOCIALS.telegram, icon: Send },
+  { href: SOCIALS.linkedin.crackdsa, icon: Users },
 ];
-
-// ─── Problem Section ─────────────────────────────────────────────────────────
 
 export const PROBLEM_CARDS = [
   {
@@ -69,8 +86,6 @@ export const PROBLEM_CARDS = [
   },
 ];
 
-// ─── Solution / Features ─────────────────────────────────────────────────────
-
 export const SOLUTION_FEATURES = [
   {
     icon: Brain,
@@ -82,7 +97,7 @@ export const SOLUTION_FEATURES = [
     icon: Layers,
     title: "Pattern-First Curriculum",
     desc: "Learn sliding window, two pointers, binary search — the actual patterns interviewers test, not random problems.",
-    accent: "text-blue-light-400",
+    accent: "text-cyan-400",
   },
   {
     icon: Zap,
@@ -98,20 +113,16 @@ export const SOLUTION_FEATURES = [
   },
 ];
 
-// ─── PRO Subscription ────────────────────────────────────────────────────────
-
 export const PRO_BENEFITS = [
-  { label: "All Courses Access", icon: BookOpen },
-  { label: "Personalised Roadmap", icon: Rocket },
+  { label: "DSA Master Course Access", icon: BookOpen },
+  { label: "Personalised AI Roadmap", icon: Rocket },
   { label: "1:1 Mentorship", icon: Headphones },
   { label: "Priority Support", icon: Crown },
   { label: "CrackDSA Pro Community", icon: Users },
   { label: "All Live Classes", icon: Radio },
   { label: "Doubt Solving Sessions", icon: MessageCircle },
-  { label: "All Future Courses", icon: GraduationCap },
+  { label: "Notes & Resources", icon: GraduationCap },
 ];
-
-// ─── Practice Section ────────────────────────────────────────────────────────
 
 export const PRACTICE_HIGHLIGHTS = [
   {
@@ -138,76 +149,4 @@ export const PRACTICE_HIGHLIGHTS = [
     accent: "text-emerald-400",
     border: "border-emerald-500/20 hover:border-emerald-500/40",
   },
-];
-
-// ─── Platform Stats ──────────────────────────────────────────────────────────
-
-export const PLATFORM_STATS = [
-  { value: "20k+", label: "Active Learners", icon: Users },
-  { value: "50k+", label: "Community Members", icon: MessageCircle },
-  { value: "75+", label: "Curated Problems", icon: Code2 },
-  { value: "5+", label: "FAANG Mentors", icon: Award },
-];
-
-// ─── Testimonials ────────────────────────────────────────────────────────────
-
-export const TESTIMONIALS = [
-  {
-    quote:
-      "CrackDSA's pattern approach changed everything. I stopped memorising and started understanding. Cleared Amazon SDE-1 in 2 months.",
-    name: "Priya S.",
-    role: "SDE-1, Amazon",
-    color: "from-amber-500 to-orange-500",
-  },
-  {
-    quote:
-      "The structured roadmap saved me from the chaos of random problem solving. The progress tracking kept me accountable every single day.",
-    name: "Rahul M.",
-    role: "SDE-2, Microsoft",
-    color: "from-brand-500 to-blue-light-500",
-  },
-  {
-    quote:
-      "Best investment I made for my career. The community is incredibly supportive and the curated sheets are gold for interview prep.",
-    name: "Sneha K.",
-    role: "SDE, Google",
-    color: "from-emerald-500 to-teal-500",
-  },
-];
-
-// ─── Community Links ─────────────────────────────────────────────────────────
-
-export const COMMUNITY_LINKS = [
-  {
-    href: SOCIALS.youtube.crackdsa,
-    icon: MonitorPlay,
-    label: "YouTube",
-    accent: "hover:border-red-500/30 hover:text-red-400",
-  },
-  {
-    href: SOCIALS.telegram,
-    icon: Send,
-    label: "Telegram",
-    accent: "hover:border-blue-light-500/30 hover:text-blue-light-400",
-  },
-  {
-    href: SOCIALS.whatsapp.channel,
-    icon: MessageCircle,
-    label: "WhatsApp",
-    accent: "hover:border-emerald-500/30 hover:text-emerald-400",
-  },
-  {
-    href: SOCIALS.linkedin.crackdsa,
-    icon: Users,
-    label: "LinkedIn",
-    accent: "hover:border-brand-500/30 hover:text-brand-400",
-  },
-];
-
-// ─── Footer Links ────────────────────────────────────────────────────────────
-
-export const FOOTER_SOCIAL_LINKS = [
-  { href: SOCIALS.youtube.crackdsa, icon: MonitorPlay },
-  { href: SOCIALS.telegram, icon: Send },
-  { href: SOCIALS.linkedin.crackdsa, icon: Users },
 ];

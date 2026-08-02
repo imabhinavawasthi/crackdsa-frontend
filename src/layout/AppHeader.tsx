@@ -3,6 +3,7 @@
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import ReferEarnButton from "@/components/common/ReferEarnButton";
 import LoginButton from "@/components/common/LoginButton";
+import Logo from "@/components/common/Logo";
 import UserDropdown from "@/components/header/UserDropdown";
 import Separator from "@/components/ui/separator/separator";
 import { useSidebar } from "@/context/SidebarContext";
@@ -73,10 +74,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen })
             )}
           </button>
 
-          <Link href="/" className="lg:hidden">
-            <Image width={154} height={32} className="dark:hidden" src="./images/logo/logo.svg" alt="Logo" />
-            <Image width={154} height={32} className="hidden dark:block" src="./images/logo/logo-dark.svg" alt="Logo" />
-          </Link>
+          <Logo href="/" className="lg:hidden" width={154} height={32} />
 
           <button
             onClick={toggleApplicationMenu}
@@ -91,7 +89,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen })
             <NavigationMenuList className="flex items-center gap-5">
               {navLinks.map((link) => (
                 <NavigationMenuItem key={link.name}>
-                  <Link href={link.href} passHref legacyBehavior>
+                  <Link href={link.href} passHref>
                     <NavigationMenuLink
                       className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors bg-transparent hover:bg-transparent focus:bg-transparent ${pathname === link.href
                           ? "text-brand-500 hover:text-brand-500"

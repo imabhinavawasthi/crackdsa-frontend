@@ -40,10 +40,10 @@ export function ActiveRoadmapSection({
 
   if (!activeRoadmap) {
     const roadmapNodes = [
-      { label: "Arrays", delay: 0, x: 0 },
-      { label: "Trees", delay: 0.15, x: 1 },
-      { label: "Graphs", delay: 0.3, x: 2 },
-      { label: "DP", delay: 0.45, x: 3 },
+      { label: "Arrays", icon: Code2, delay: 0 },
+      { label: "Trees", icon: Layers, delay: 0.12 },
+      { label: "Graphs", icon: Compass, delay: 0.24 },
+      { label: "DP", icon: Brain, delay: 0.36 },
     ];
 
     return (
@@ -55,11 +55,44 @@ export function ActiveRoadmapSection({
         transition={{ duration: 0.5 }}
       >
         <Link href="/roadmap" className="block group">
-          <div className="relative overflow-hidden rounded-xl border border-brand-500/20 bg-linear-to-br from-brand-50/80 to-indigo-50/60 dark:from-brand-950/30 dark:to-indigo-950/20 px-5 py-4 shadow-sm shadow-brand-500/5 backdrop-blur-sm transition-all hover:shadow-md hover:shadow-brand-500/10 hover:-translate-y-0.5">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/8 dark:bg-brand-500/15 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/3 group-hover:bg-brand-500/15 transition-colors duration-700" />
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-200/50 dark:border-emerald-500/12 bg-white/80 dark:bg-[#0D111C]/65 backdrop-blur-2xl px-6 py-5 transition-all duration-500 hover:shadow-[0_16px_48px_rgba(16,185,129,0.12)] hover:-translate-y-1 hover:border-emerald-400/40 dark:hover:border-emerald-500/25">
+
+            {/* Ambient glow orbs */}
+            <div className="absolute -right-16 -top-16 w-44 h-44 rounded-full bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 opacity-[0.06] dark:opacity-[0.1] blur-3xl group-hover:scale-150 group-hover:opacity-[0.12] dark:group-hover:opacity-[0.2] transition-all duration-700 pointer-events-none" />
+            <div className="absolute -left-12 -bottom-12 w-32 h-32 rounded-full bg-gradient-to-br from-teal-500 to-emerald-500 opacity-0 group-hover:opacity-[0.06] dark:group-hover:opacity-[0.1] blur-3xl transition-all duration-700 pointer-events-none" />
 
             <div className="relative z-10 flex items-center gap-5">
-              <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+              {/* Compass icon with orbiting sparkle */}
+              <div className="relative shrink-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 text-white shadow-[0_6px_16px_-3px_rgba(16,185,129,0.4)] group-hover:scale-110 group-hover:rotate-2 transition-all duration-500">
+                  <Sparkles size={22} />
+                </div>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  className="absolute -inset-1.5 pointer-events-none"
+                >
+                  <span className="absolute -top-0.5 left-1/2 w-1.5 h-1.5 rounded-full bg-emerald-400 dark:bg-emerald-300 opacity-70" />
+                </motion.div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h3 className="text-base font-extrabold text-gray-900 dark:text-white tracking-tight">
+                    AI Personalised Roadmap
+                  </h3>
+                  <span className="rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider border bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20 flex items-center gap-1">
+                    <Sparkles size={8} className="animate-pulse" /> AI
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+                  AI builds a personalized path based on your skills, goals & target companies.
+                </p>
+              </div>
+
+              {/* Animated topic nodes with connecting lines — visible on sm+ */}
+              <div className="hidden sm:flex items-center shrink-0">
                 {roadmapNodes.map((node, i) => (
                   <React.Fragment key={node.label}>
                     <motion.div
@@ -68,50 +101,36 @@ export function ActiveRoadmapSection({
                       transition={{ delay: node.delay + 0.3, duration: 0.4, type: "spring", stiffness: 200 }}
                       className="relative flex flex-col items-center"
                     >
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-brand-500 to-indigo-500 text-white shadow-sm shadow-brand-500/20">
-                        {i === 0 && <Code2 size={14} />}
-                        {i === 1 && <Layers size={14} />}
-                        {i === 2 && <Compass size={14} />}
-                        {i === 3 && <Brain size={14} />}
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-sm shadow-emerald-500/20 group-hover:shadow-emerald-500/30 transition-shadow">
+                        <node.icon size={14} />
                       </div>
-                      <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">{node.label}</span>
+                      <span className="text-[8px] font-bold text-gray-400 dark:text-gray-500 mt-1 whitespace-nowrap">{node.label}</span>
                     </motion.div>
                     {i < roadmapNodes.length - 1 && (
                       <motion.div
                         initial={{ scaleX: 0, opacity: 0 }}
                         animate={{ scaleX: 1, opacity: 1 }}
                         transition={{ delay: node.delay + 0.5, duration: 0.3 }}
-                        className="w-5 h-0.5 rounded-full bg-linear-to-r from-brand-400 to-indigo-400 mb-4 origin-left"
+                        className="w-4 h-px rounded-full bg-gradient-to-r from-emerald-300 to-teal-300 dark:from-emerald-500/40 dark:to-teal-500/40 mb-4 origin-left"
                       />
                     )}
                   </React.Fragment>
                 ))}
                 <motion.div
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: [0.3, 0.8, 0.3] }}
+                  animate={{ opacity: [0.3, 0.7, 0.3] }}
                   transition={{ delay: 1, duration: 2, repeat: Infinity }}
                   className="flex items-center gap-0.5 mb-4 ml-1"
                 >
-                  <span className="w-1 h-1 rounded-full bg-brand-400" />
-                  <span className="w-1 h-1 rounded-full bg-brand-400" />
-                  <span className="w-1 h-1 rounded-full bg-brand-400" />
+                  <span className="w-1 h-1 rounded-full bg-emerald-400/60" />
+                  <span className="w-1 h-1 rounded-full bg-emerald-400/60" />
+                  <span className="w-1 h-1 rounded-full bg-emerald-400/60" />
                 </motion.div>
               </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="inline-flex items-center gap-1.5 rounded-md bg-white/60 dark:bg-brand-500/10 backdrop-blur-sm px-2 py-1 text-[9px] font-black uppercase tracking-widest text-brand-600 dark:text-brand-400 mb-2 border border-white/80 dark:border-brand-500/20">
-                  <Sparkles size={10} className="animate-pulse" />
-                  AI-Powered
-                </div>
-                <h3 className="text-base font-black text-gray-900 dark:text-white tracking-tight">Create Your Custom Roadmap</h3>
-                <p className="mt-0.5 text-xs font-medium text-gray-500 dark:text-gray-400 max-w-xs leading-relaxed">
-                  AI builds a personalized path based on your skills, goals & target companies.
-                </p>
-              </div>
-
-              <div className="relative inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-brand-500/15 transition-all group-hover:bg-brand-500 group-hover:-translate-y-0.5">
-                <Compass size={13} /> Generate
-                <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" />
+              {/* Arrow */}
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 dark:bg-white/5 text-gray-400 dark:text-gray-500 transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-emerald-500 group-hover:via-teal-500 group-hover:to-cyan-600 group-hover:text-white group-hover:shadow-sm">
+                <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-0.5" />
               </div>
             </div>
           </div>

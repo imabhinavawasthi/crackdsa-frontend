@@ -1,3 +1,4 @@
+export * from "./HeroFeaturesSection";
 export * from "./UserGreetingSection";
 export * from "./ActiveRoadmapSection";
 export * from "./FeatureShowcaseSection";
