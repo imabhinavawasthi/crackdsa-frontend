@@ -126,7 +126,7 @@ export async function logout(): Promise<void> {
   const token = getStoredToken();
   if (token) {
     try {
-      await fetch(`${BACKEND_URL}/api/v1/oauth/logout`, {
+      await fetch(`${BACKEND_URL}/api/v1/auth/logout`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

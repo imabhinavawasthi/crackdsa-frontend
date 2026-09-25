@@ -111,7 +111,7 @@ export const featuredDSASheets = [
     description: "Comprehensive DSA preparation from beginner to advanced concepts.",
     problemCount: 150,
     difficulty: "Mixed" as const,
-    image: "/images/sheets/striver-sde.png",
+    image: "/images/sheets/sde.png",
     color: "from-orange-500 to-rose-600",
     tag: "Comprehensive",
   },
