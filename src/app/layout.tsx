@@ -1,10 +1,13 @@
-import { Inter } from 'next/font/google';
+import { Onest } from 'next/font/google';
 import { Metadata } from 'next';
 import './globals.css';
 import ClientLayout, { ThemeScript } from './ClientLayout';
 import { Analytics } from "@vercel/analytics/next"
 
-const inter = Inter({ subsets: ["latin"] });
+const onest = Onest({
+  subsets: ["latin"],
+  variable: "--font-onest",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -44,11 +47,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={onest.variable}>
       <head>
         <ThemeScript />
       </head>
-      <body className={`${inter.className} dark:bg-gray-900 transition-colors duration-300`}>
+      <body className={`${onest.className} dark:bg-gray-900 transition-colors duration-300`}>
         <ClientLayout>{children}</ClientLayout>
         <Analytics />
       </body>
