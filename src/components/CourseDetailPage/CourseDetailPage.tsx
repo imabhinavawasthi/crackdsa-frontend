@@ -16,8 +16,6 @@ interface CourseDetailPageProps {
 const Divider = () => <hr className="border-gray-200" />;
 
 const CourseDetailPage = ({ course, curriculum }: CourseDetailPageProps) => {
-  console.log('curriculum', curriculum[1]?.items);
-  console.log('curriculum', curriculum[1]?.subsections);
   const outcomes = toStringList(course.metadata?.learning_outcomes);
   const prerequisites = toStringList(course.metadata?.prerequisites);
   const includes = getCourseIncludes(course);

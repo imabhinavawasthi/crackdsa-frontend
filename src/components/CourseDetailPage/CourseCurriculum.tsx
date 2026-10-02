@@ -1,9 +1,11 @@
 'use client';
 
-import { ChevronDown, ChevronRight, Clock, Code2, FileText, Video } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clock, Code2, FileText, PlayCircle, Video } from 'lucide-react';
 import { useState } from 'react';
 
 import type { CourseSection, CourseSectionItem } from '@/types/course';
+
+import FreeVideoPreviewDialog from './FreeVideoPreviewDialog';
 
 const ITEM_ICONS = { video: Video, problem: Code2, article: FileText } as const;
 
@@ -31,8 +33,9 @@ const SectionCounts = ({ sections, className = '' }: { sections: CourseSection[]
   );
 };
 
-const LessonRow = ({ item }: { item: CourseSectionItem }) => {
+const LessonRow = ({ item, onPreview }: { item: CourseSectionItem; onPreview: (item: CourseSectionItem) => void }) => {
   const Icon = ITEM_ICONS[item.type] ?? Video;
+  const canPreview = item.is_free && item.type === 'video';
   return (
     <li className="flex items-center justify-between gap-4 border-t border-gray-100 py-3 pl-12 pr-4 text-sm text-gray-600">
       <span className="flex min-w-0 items-center gap-3">
@@ -40,6 +43,15 @@ const LessonRow = ({ item }: { item: CourseSectionItem }) => {
         <span className="truncate">{item.title}</span>
         {item.is_free && (
           <span className="rounded bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-600">Free</span>
+        )}
+        {canPreview && (
+          <button
+            type="button"
+            onClick={() => onPreview(item)}
+            className="flex shrink-0 items-center gap-1 text-xs font-semibold text-brand-600 hover:underline"
+          >
+            <PlayCircle className="size-3.5" /> Preview
+          </button>
         )}
       </span>
       {item.duration_label && (
@@ -53,6 +65,8 @@ const LessonRow = ({ item }: { item: CourseSectionItem }) => {
 
 const CourseCurriculum = ({ curriculum }: { curriculum: CourseSection[] }) => {
   const [open, setOpen] = useState<Set<string>>(() => new Set(curriculum[0] ? [curriculum[0].id] : []));
+
+  const [previewItem, setPreviewItem] = useState<CourseSectionItem | null>(null);
 
   if (curriculum.length === 0) return null;
 
@@ -104,14 +118,14 @@ const CourseCurriculum = ({ curriculum }: { curriculum: CourseSection[] }) => {
               {isOpen && (
                 <div>
                   {section.items && section.items.length > 0 && (
-                    <ul>{section.items.map((item) => <LessonRow key={item.id} item={item} />)}</ul>
+                    <ul>{section.items.map((item) => <LessonRow key={item.id} item={item} onPreview={setPreviewItem} />)}</ul>
                   )}
                   {(section.subsections ?? []).map((sub) => (
                     <div key={sub.id}>
                       <p className="border-t border-gray-100 bg-gray-50 py-2 pl-12 pr-4 text-xs font-semibold uppercase tracking-wide text-gray-500">
                         {sub.title}
                       </p>
-                      <ul>{(sub.items ?? []).map((item) => <LessonRow key={item.id} item={item} />)}</ul>
+                      <ul>{(sub.items ?? []).map((item) => <LessonRow key={item.id} item={item} onPreview={setPreviewItem} />)}</ul>
                     </div>
                   ))}
                 </div>
@@ -120,6 +134,8 @@ const CourseCurriculum = ({ curriculum }: { curriculum: CourseSection[] }) => {
           );
         })}
       </div>
+
+      <FreeVideoPreviewDialog item={previewItem} onClose={() => setPreviewItem(null)} />
     </section>
   );
 };
