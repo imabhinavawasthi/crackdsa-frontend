@@ -14,8 +14,6 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     fetchCourseCurriculum(slug),
   ]);
 
-  console.log('course', course);
-
   if (!course) notFound();
 
   return (

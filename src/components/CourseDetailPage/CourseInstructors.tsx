@@ -37,8 +37,10 @@ const CourseInstructors = ({ instructors }: { instructors: Instructor[] }) => {
               )}
               <div>
                 <p className="text-lg font-bold text-gray-900">{instructor.name}</p>
-                {instructor.company && (
-                  <p className="text-sm font-medium text-brand-600">{instructor.company}</p>
+                {(instructor.role || instructor.company) && (
+                  <p className="text-sm font-medium text-brand-600">
+                    {[instructor.role, instructor.company].filter(Boolean).join(' @ ')}
+                  </p>
                 )}
                 {instructor.bio && <p className="mt-2 text-sm leading-6 text-gray-600">{instructor.bio}</p>}
               </div>

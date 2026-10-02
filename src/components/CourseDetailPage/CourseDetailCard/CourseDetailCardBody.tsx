@@ -20,7 +20,7 @@ const Radio = ({ checked }: { checked: boolean }) => (
 );
 
 const CourseDetailCardBody = ({ course }: { course: CourseSummary }) => {
-  const [plan, setPlan] = useState<Plan>('individual');
+  const [plan, setPlan] = useState<Plan>('pro');
   const discount = getDiscountPercent(course.price, course.original_price);
   const hours = course.metadata?.duration_hours;
 
@@ -76,18 +76,25 @@ const CourseDetailCardBody = ({ course }: { course: CourseSummary }) => {
       </div>
 
       {/* Pro plan */}
-      <div className="p-6">
+      <div className="p-4">
+       <div className="relative overflow-hidden rounded-xl border-2 border-brand-500 bg-linear-to-br from-brand-25 to-white p-5 shadow-md">
+        <span className="absolute right-0 top-0 rounded-bl-lg bg-brand-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+          Best value
+        </span>
         <button type="button" onClick={() => setPlan('pro')} className="flex w-full items-start gap-3 text-left">
           <Radio checked={plan === 'pro'} />
-          <span>
-            <span className="block text-sm text-gray-600">Subscribe and save</span>
+          <span className="flex-1">
+            <span className="block text-sm text-gray-600">Subscribe to</span>
             <span className="block text-xl font-bold text-gray-900">CrackDSA Pro</span>
+            <span className="mt-1 block text-sm text-gray-600">
+              One subscription for every course, live sessions, masterclasses and roadmaps to crack your next interview.
+            </span>
           </span>
         </button>
 
         {plan === 'pro' && (
           <div className="mt-5 space-y-4">
-            <div className="flex gap-2.5 rounded-lg bg-brand-25 p-4 text-sm text-gray-700">
+            <div className="flex gap-2.5 rounded-lg border border-brand-100 bg-white p-4 text-sm text-gray-700">
               <Info className="mt-0.5 size-4 shrink-0 text-brand-600" />
               <p>
                 <span className="font-semibold text-gray-900">Pro members don&apos;t pay per course.</span>{' '}
@@ -113,6 +120,7 @@ const CourseDetailCardBody = ({ course }: { course: CourseSummary }) => {
             </Link>
           </div>
         )}
+       </div>
       </div>
 
       <div className="p-4">

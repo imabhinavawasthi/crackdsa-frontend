@@ -2,6 +2,7 @@ import { CourseSummary, CourseSection } from '@/types/course';
 import CourseDetailCard from './CourseDetailCard/CourseDetailCard';
 import CourseDetailCardBody from './CourseDetailCard/CourseDetailCardBody';
 import CourseDetailCardHeader from './CourseDetailCard/CourseDetailCardHeader';
+import CourseCertificate from './CourseCertificate';
 import CourseCurriculum from './CourseCurriculum';
 import CourseDetailHero from './CourseDetailHero';
 import CourseInstructors from './CourseInstructors';
@@ -107,6 +108,9 @@ const CourseDetailPage = ({ course, curriculum }: CourseDetailPageProps) => {
             <CourseCurriculum curriculum={curriculum} />
           </>
         )}
+
+        <Divider />
+        <CourseCertificate />
 
         {course.instructors && course.instructors.length > 0 && (
           <>
