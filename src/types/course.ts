@@ -49,6 +49,7 @@ export interface CourseSummary {
   is_popular?: boolean;
   category?: string;
   instructor_ids: string[];
+  instructors?: Instructor[];
   total_problems: number;
   total_videos?: number;
   total_articles?: number;
