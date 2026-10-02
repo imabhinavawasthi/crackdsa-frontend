@@ -16,7 +16,8 @@ interface CourseDetailPageProps {
 const Divider = () => <hr className="border-gray-200" />;
 
 const CourseDetailPage = ({ course, curriculum }: CourseDetailPageProps) => {
-  console.log('curriculum', curriculum);
+  console.log('curriculum', curriculum[1]?.items);
+  console.log('curriculum', curriculum[1]?.subsections);
   const outcomes = toStringList(course.metadata?.learning_outcomes);
   const prerequisites = toStringList(course.metadata?.prerequisites);
   const includes = getCourseIncludes(course);
@@ -31,7 +32,7 @@ const CourseDetailPage = ({ course, curriculum }: CourseDetailPageProps) => {
 
       <CourseDetailHero course={course} />
 
-      <div className="px-4 pb-2 pt-2 lg:hidden">
+      <div className="px-4 pt-2 pb-2 lg:hidden">
         <h2 className="text-xl font-bold text-gray-900">Purchase options</h2>
         <div className="mt-3 rounded-lg border border-gray-200 bg-white">
           <CourseDetailCardBody course={course} />
@@ -51,7 +52,7 @@ const CourseDetailPage = ({ course, curriculum }: CourseDetailPageProps) => {
         <WhatWillYouLearn outcomes={outcomes} />
         {outcomes.length > 0 && <Divider />}
 
-        {tags.length > 0 && (
+        {/* {tags.length > 0 && (
           <>
             <section>
               <h2 className="text-2xl font-bold text-gray-900">Explore the toolkit</h2>
@@ -68,7 +69,7 @@ const CourseDetailPage = ({ course, curriculum }: CourseDetailPageProps) => {
             </section>
             <Divider />
           </>
-        )}
+        )} */}
 
         <section>
           <h2 className="text-2xl font-bold text-gray-900">This course includes</h2>
@@ -92,8 +93,12 @@ const CourseDetailPage = ({ course, curriculum }: CourseDetailPageProps) => {
           <>
             <Divider />
             <section>
-              <h2 className="text-2xl font-bold text-gray-900">Who this is for</h2>
-              <p className="mt-3 text-sm leading-7 text-gray-600">{prerequisites.join(' ')}</p>
+              <h2 className="text-2xl font-bold text-gray-900">Prerequisites</h2>
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-gray-600 marker:text-gray-400">
+                {prerequisites.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
             </section>
           </>
         )}

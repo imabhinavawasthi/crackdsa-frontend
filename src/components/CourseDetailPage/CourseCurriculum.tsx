@@ -7,9 +7,29 @@ import type { CourseSection, CourseSectionItem } from '@/types/course';
 
 const ITEM_ICONS = { video: Video, problem: Code2, article: FileText } as const;
 
-const countItems = (section: CourseSection) =>
-  (section.items?.length ?? 0) +
-  (section.subsections ?? []).reduce((sum, sub) => sum + (sub.items?.length ?? 0), 0);
+const countType = (sections: CourseSection[], type: CourseSectionItem['type']) =>
+  sections
+    .flatMap((section) => [...(section.items ?? []), ...(section.subsections ?? []).flatMap((sub) => sub.items ?? [])])
+    .filter((item) => item.type === type).length;
+
+const SectionCounts = ({ sections, className = '' }: { sections: CourseSection[]; className?: string }) => {
+  const videos = countType(sections, 'video');
+  const problems = countType(sections, 'problem');
+  return (
+    <span className={`flex shrink-0 items-center gap-3 text-gray-500 ${className}`}>
+      {videos > 0 && (
+        <span className="flex items-center gap-1">
+          <Video className="size-3.5" /> {videos} {videos === 1 ? 'video' : 'videos'}
+        </span>
+      )}
+      {problems > 0 && (
+        <span className="flex items-center gap-1">
+          <Code2 className="size-3.5" /> {problems} {problems === 1 ? 'problem' : 'problems'}
+        </span>
+      )}
+    </span>
+  );
+};
 
 const LessonRow = ({ item }: { item: CourseSectionItem }) => {
   const Icon = ITEM_ICONS[item.type] ?? Video;
@@ -36,7 +56,6 @@ const CourseCurriculum = ({ curriculum }: { curriculum: CourseSection[] }) => {
 
   if (curriculum.length === 0) return null;
 
-  const totalLessons = curriculum.reduce((sum, s) => sum + countItems(s), 0);
   const allOpen = open.size === curriculum.length;
 
   const toggle = (id: string) =>
@@ -50,9 +69,10 @@ const CourseCurriculum = ({ curriculum }: { curriculum: CourseSection[] }) => {
     <section>
       <h2 className="text-2xl font-bold text-gray-900">Course curriculum</h2>
       <div className="mt-2 flex items-center justify-between">
-        <p className="text-sm text-gray-500">
-          {curriculum.length} sections · {totalLessons} lessons
-        </p>
+        <div className="flex items-center gap-3 text-sm text-gray-500">
+          <span>{curriculum.length} sections</span>
+          <SectionCounts sections={curriculum} className="text-sm" />
+        </div>
         <button
           type="button"
           onClick={() => setOpen(allOpen ? new Set() : new Set(curriculum.map((s) => s.id)))}
@@ -78,7 +98,7 @@ const CourseCurriculum = ({ curriculum }: { curriculum: CourseSection[] }) => {
                   <Chevron className="size-4 text-brand-500" />
                   {section.title}
                 </span>
-                <span className="shrink-0 text-xs text-gray-500">{countItems(section)} lessons</span>
+                <SectionCounts sections={[section]} className="text-xs" />
               </button>
 
               {isOpen && (
