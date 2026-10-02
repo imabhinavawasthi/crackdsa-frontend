@@ -37,10 +37,10 @@ const LessonRow = ({ item, onPreview }: { item: CourseSectionItem; onPreview: (i
   const Icon = ITEM_ICONS[item.type] ?? Video;
   const canPreview = item.is_free && item.type === 'video';
   return (
-    <li className="flex items-center justify-between gap-4 border-t border-gray-100 py-3 pl-12 pr-4 text-sm text-gray-600">
-      <span className="flex min-w-0 items-center gap-3">
+    <li className="flex flex-col gap-1.5 border-t border-gray-100 py-3 pl-11 pr-4 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pl-12">
+      <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
         <Icon className="size-4 shrink-0 text-brand-500" />
-        <span className="truncate">{item.title}</span>
+        <span className="min-w-0 break-words">{item.title}</span>
         {item.is_free && (
           <span className="rounded bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-600">Free</span>
         )}
@@ -55,7 +55,7 @@ const LessonRow = ({ item, onPreview }: { item: CourseSectionItem; onPreview: (i
         )}
       </span>
       {item.duration_label && (
-        <span className="flex shrink-0 items-center gap-1.5 text-xs text-gray-500">
+        <span className="flex shrink-0 items-center gap-1.5 text-xs text-gray-500 max-sm:pl-7">
           <Clock className="size-3.5" /> {item.duration_label}
         </span>
       )}
@@ -82,8 +82,8 @@ const CourseCurriculum = ({ curriculum }: { curriculum: CourseSection[] }) => {
   return (
     <section>
       <h2 className="text-2xl font-bold text-gray-900">Course curriculum</h2>
-      <div className="mt-2 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-sm text-gray-500">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
           <span>{curriculum.length} sections</span>
           <SectionCounts sections={curriculum} className="text-sm" />
         </div>
@@ -106,13 +106,13 @@ const CourseCurriculum = ({ curriculum }: { curriculum: CourseSection[] }) => {
                 type="button"
                 onClick={() => toggle(section.id)}
                 aria-expanded={isOpen}
-                className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left hover:bg-gray-50"
+                className="flex w-full flex-col gap-2 px-4 py-4 text-left hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
               >
-                <span className="flex items-center gap-3 text-sm font-semibold text-gray-900">
-                  <Chevron className="size-4 text-brand-500" />
+                <span className="flex min-w-0 items-start gap-3 text-sm font-semibold text-gray-900">
+                  <Chevron className="mt-0.5 size-4 shrink-0 text-brand-500" />
                   {section.title}
                 </span>
-                <SectionCounts sections={[section]} className="text-xs" />
+                <SectionCounts sections={[section]} className="pl-7 text-xs sm:pl-0" />
               </button>
 
               {isOpen && (
@@ -122,7 +122,7 @@ const CourseCurriculum = ({ curriculum }: { curriculum: CourseSection[] }) => {
                   )}
                   {(section.subsections ?? []).map((sub) => (
                     <div key={sub.id}>
-                      <p className="border-t border-gray-100 bg-gray-50 py-2 pl-12 pr-4 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <p className="border-t border-gray-100 bg-gray-50 py-2 pl-11 pr-4 text-xs font-semibold uppercase sm:pl-12 tracking-wide text-gray-500">
                         {sub.title}
                       </p>
                       <ul>{(sub.items ?? []).map((item) => <LessonRow key={item.id} item={item} onPreview={setPreviewItem} />)}</ul>

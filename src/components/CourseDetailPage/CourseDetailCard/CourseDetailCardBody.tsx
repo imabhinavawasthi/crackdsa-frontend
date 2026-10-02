@@ -20,7 +20,7 @@ const Radio = ({ checked }: { checked: boolean }) => (
 );
 
 const CourseDetailCardBody = ({ course }: { course: CourseSummary }) => {
-  const [plan, setPlan] = useState<Plan>('pro');
+  const [plan, setPlan] = useState<Plan>('individual');
   const discount = getDiscountPercent(course.price, course.original_price);
   const hours = course.metadata?.duration_hours;
 
@@ -39,6 +39,42 @@ const CourseDetailCardBody = ({ course }: { course: CourseSummary }) => {
 
   return (
     <div className="divide-y divide-gray-200">
+      {/* Individual course */}
+      <div className="p-6">
+        <button type="button" onClick={() => setPlan('individual')} className="flex w-full items-start gap-3 text-left">
+          <Radio checked={plan === 'individual'} />
+          <span>
+            <span className="block text-sm text-gray-600">Buy individual course</span>
+            <span className="flex items-baseline gap-3">
+              <span className="text-2xl font-bold text-gray-900">{formatPrice(course.price)}</span>
+              {discount > 0 && (
+                <>
+                  <span className="text-sm text-gray-500 line-through">{formatPrice(course.original_price)}</span>
+                  <span className="text-sm font-medium text-brand-600">{discount}% off</span>
+                </>
+              )}
+            </span>
+          </span>
+        </button>
+
+        {plan === 'individual' && (
+          <div className="mt-5 space-y-4">
+            {includes.length > 0 && (
+              <ul className="space-y-2.5">
+                {includes.map(({ icon: Icon, label }) => (
+                  <li key={label} className="flex items-center gap-3 text-sm text-gray-600">
+                    <Icon className="size-4 text-brand-500" /> {label}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button className="w-full rounded-lg border-2 border-brand-500 py-3 text-sm font-bold text-brand-600 hover:bg-brand-25">
+              Buy this course
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Pro plan */}
       <div className="p-6">
         <button type="button" onClick={() => setPlan('pro')} className="flex w-full items-start gap-3 text-left">
@@ -75,42 +111,6 @@ const CourseDetailCardBody = ({ course }: { course: CourseSummary }) => {
             >
               Start subscription
             </Link>
-          </div>
-        )}
-      </div>
-
-      {/* Individual course */}
-      <div className="p-6">
-        <button type="button" onClick={() => setPlan('individual')} className="flex w-full items-start gap-3 text-left">
-          <Radio checked={plan === 'individual'} />
-          <span>
-            <span className="block text-sm text-gray-600">Buy individual course</span>
-            <span className="flex items-baseline gap-3">
-              <span className="text-2xl font-bold text-gray-900">{formatPrice(course.price)}</span>
-              {discount > 0 && (
-                <>
-                  <span className="text-sm text-gray-500 line-through">{formatPrice(course.original_price)}</span>
-                  <span className="text-sm font-medium text-brand-600">{discount}% off</span>
-                </>
-              )}
-            </span>
-          </span>
-        </button>
-
-        {plan === 'individual' && (
-          <div className="mt-5 space-y-4">
-            {includes.length > 0 && (
-              <ul className="space-y-2.5">
-                {includes.map(({ icon: Icon, label }) => (
-                  <li key={label} className="flex items-center gap-3 text-sm text-gray-600">
-                    <Icon className="size-4 text-brand-500" /> {label}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <button className="w-full rounded-lg border-2 border-brand-500 py-3 text-sm font-bold text-brand-600 hover:bg-brand-25">
-              Buy this course
-            </button>
           </div>
         )}
       </div>
