@@ -140,7 +140,7 @@ export function CourseCard({ course, index }: { course: CourseSummary; index: nu
   }
 
   return (
-    <Link href={`/courses/${course.slug}`} className="block focus:outline-none h-full">
+    <Link href={`/course/${course.slug}`} className="block focus:outline-none h-full">
       {cardContent}
     </Link>
   );
