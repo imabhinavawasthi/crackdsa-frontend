@@ -53,8 +53,8 @@ export default function CourseListingPage() {
             Learn the part that moves you forward.
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-blue-100/80 sm:text-lg">
-            Practical courses for developers and career switchers. Compare the signal, find your pace, and choose a next
-            step you can actually finish.
+            Practical courses for developers and career switchers.Find your pace, and choose a next step you can
+            actually finish.
           </p>
         </div>
       </section>

@@ -1,138 +1,123 @@
-import React from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight, Terminal, Cpu, Code2, Clock, Star, Users, Calendar } from "lucide-react";
-import { CourseSummary } from "@/types/course";
-import AspectFallbackImage from "@/components/common/AspectFallbackImage";
+import React from 'react';
+import Link from 'next/link';
+import { ArrowRight, Calendar, Clock, Star } from 'lucide-react';
+import { CourseSummary } from '@/types/course';
+import AspectFallbackImage from '@/components/common/AspectFallbackImage';
+
+function formatDuration(meta: CourseSummary['metadata']): string | null {
+  if (meta?.duration_hours) return `${meta.duration_hours}h`;
+  if (meta?.duration_weeks) return `${meta.duration_weeks} weeks`;
+  return null;
+}
 
 export function CourseCard({ course, index }: { course: CourseSummary; index: number }) {
-  const upcoming = course.status === "upcoming";
+  console.log('course card', course);
+  const upcoming = course.status === 'upcoming';
+  const meta = course.metadata;
+  const duration = formatDuration(meta);
+  const instructorNames = course.instructors?.map((i) => i.name).join(', ');
+  const discount =
+    course.original_price > course.price
+      ? Math.round(((course.original_price - course.price) / course.original_price) * 100)
+      : 0;
 
-  // Pick an icon based on ID/category
-  let Icon = Code2;
-  if (course.id.includes("python") || course.slug.includes("python")) Icon = Terminal;
-  if (course.id.includes("os") || course.slug.includes("system-design")) Icon = Cpu;
+  const badge = upcoming ? 'Upcoming' : course.is_popular ? 'Bestseller' : course.is_pro ? 'Pro' : null;
 
   const cardContent = (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      whileHover={upcoming ? {} : { y: -6 }}
-      className={`flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm transition-all duration-300 group h-full ${
-        upcoming 
-          ? "border-gray-200/60 dark:border-gray-800/60" 
-          : "hover:shadow-xl hover:shadow-brand-500/10 hover:border-brand-500/30 cursor-pointer"
+    <div
+      className={`group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white font-(family-name:--font-space-grotesk) shadow-sm transition-all duration-300 dark:border-gray-800 dark:bg-gray-900 ${
+        upcoming ? '' : 'hover:shadow-brand-500/10 hover:border-brand-500/30 cursor-pointer hover:shadow-xl'
       }`}
     >
-      {/* Thumbnail Area (16:9 ratio) */}
-      <AspectFallbackImage
-        src={course.metadata?.thumbnail_url}
-        localSrc={`/images/course/${course.slug}.png`}
-        alt={`${course.title} thumbnail`}
-        title={course.title}
-        subtitle={upcoming ? "Upcoming Course" : `${course.metadata?.difficulty || "Beginner"} • ${course.metadata?.duration_weeks || 0} weeks`}
-        className="border-b border-gray-100 dark:border-gray-800"
-      />
+      {/* Thumbnail */}
+      <div className="relative">
+        <AspectFallbackImage
+          src={meta?.thumbnail_url}
+          localSrc={`/images/course/${course.slug}.png`}
+          alt={`${course.title} thumbnail`}
+          title={course.title}
+        />
+        {badge && (
+          <span className="text-brand-700 absolute top-3 left-3 z-20 rounded-md bg-white px-3 py-1.5 text-[11px] font-extrabold tracking-wider uppercase shadow-sm">
+            {badge}
+          </span>
+        )}
+      </div>
 
-      <div className="p-6 flex flex-col flex-1 relative">
-        <div className="flex items-start justify-between mb-5 relative z-10">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner shrink-0 ${
-            index % 3 === 0 ? "bg-blue-50 dark:bg-blue-500/10 text-blue-500" :
-            index % 3 === 1 ? "bg-amber-50 dark:bg-amber-500/10 text-amber-500" :
-            "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500"
-          }`}>
-            <Icon size={24} />
-          </div>
-          <div className="flex flex-col items-end gap-1.5">
-            {upcoming ? (
-              <span className="rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 text-white px-2.5 py-1 text-[9px] font-black uppercase tracking-widest shadow-xs">
-                Upcoming
+      <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
+        {course.category && (
+          <span className="text-brand-600 dark:text-brand-400 mb-2 text-xs font-extrabold tracking-wider uppercase">
+            {course.category}
+          </span>
+        )}
+
+        <h4 className="mb-1.5 text-lg leading-snug text-gray-900 dark:text-white">{course.title}</h4>
+
+        <div
+          className="prose prose-sm prose-gray dark:prose-invert line-clamp-2 max-w-none text-sm leading-relaxed text-neutral-500 dark:text-gray-400"
+          dangerouslySetInnerHTML={{ __html: course.description }}
+        />
+
+        {instructorNames && <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">By {instructorNames}</p>}
+
+        {/* Meta row */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
+          {!upcoming && meta?.rating ? (
+            <>
+              <span className="flex items-center gap-1 font-bold text-amber-600">
+                <Star size={14} className="fill-amber-500 text-amber-500" />
+                {meta.rating}
               </span>
-            ) : (
-              <>
-                <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                  {course.metadata?.difficulty || "Beginner"}
-                </span>
-                {course.metadata?.duration_weeks ? (
-                  <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                    <Clock size={10} /> {course.metadata.duration_weeks} Weeks
-                  </span>
-                ) : null}
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-2 mb-4 flex-1 relative z-10">
-          <h4 className="text-xl font-black text-gray-900 dark:text-white leading-tight">
-            {course.title}
-          </h4>
-          <div 
-            className="text-xs text-gray-500 dark:text-gray-400 font-medium line-clamp-2 leading-relaxed prose prose-sm prose-gray dark:prose-invert max-w-none mb-3"
-            dangerouslySetInnerHTML={{ __html: course.description }}
-          />
-          
-          {/* Stats Row (Hidden for upcoming) */}
-          {!upcoming && (course.metadata?.rating || course.metadata?.number_of_students) && (
-            <div className="flex items-center gap-3 pt-2">
-              {course.metadata?.rating && (
-                <div className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-400">
-                  <Star size={14} className="text-amber-500 fill-amber-500" />
-                  <span>{course.metadata.rating}</span>
-                </div>
-              )}
-              {course.metadata?.rating && course.metadata?.number_of_students && (
-                <div className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
-              )}
-              {course.metadata?.number_of_students && (
-                <div className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-400">
-                  <Users size={14} className="text-brand-500" />
-                  <span>{course.metadata.number_of_students > 1000 ? `${(course.metadata.number_of_students / 1000).toFixed(1)}k` : course.metadata.number_of_students} Enrolled</span>
-                </div>
-              )}
-            </div>
+              {meta.number_of_students ? <span>({meta.number_of_students.toLocaleString()})</span> : null}
+            </>
+          ) : null}
+          {duration && (
+            <>
+              {!upcoming && meta?.rating ? <span className="text-gray-300 dark:text-gray-700">·</span> : null}
+              <span className="flex items-center gap-1">
+                <Clock size={14} /> {duration}
+              </span>
+            </>
+          )}
+          {meta?.difficulty && (
+            <>
+              <span className="text-gray-300 dark:text-gray-700">·</span>
+              <span className="capitalize">{meta.difficulty}</span>
+            </>
           )}
         </div>
 
-        <div className="border-t border-gray-100 dark:border-gray-800/80 pt-4 mt-auto flex items-center justify-between">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                {upcoming ? "Expected Price" : "Price"}
-              </span>
-              {course.is_pro && (
-                <span className="text-[8px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                  PRO Included
-                </span>
-              )}
-            </div>
-            <div className="flex items-baseline gap-1.5">
+        {/* Footer */}
+        <div className="mt-auto flex items-end justify-between gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
+          <div className="flex flex-col pt-4">
+            <div className="flex items-baseline gap-2">
               {course.price === 0 ? (
-                <span className="text-lg font-black text-emerald-500">Free</span>
+                <span className="text-2xl font-extrabold text-emerald-500">Free</span>
               ) : (
                 <>
-                  <span className="text-lg font-black text-gray-900 dark:text-white">₹{course.price}</span>
-                  {course.original_price > course.price && (
-                    <span className="text-xs font-bold text-gray-400 line-through">₹{course.original_price}</span>
-                  )}
+                  <span className="text-2xl font-extrabold text-gray-900 dark:text-white">₹{course.price}</span>
+                  {discount > 0 && <span className="text-sm text-gray-400 line-through">₹{course.original_price}</span>}
                 </>
               )}
             </div>
+            {discount > 0 && (
+              <span className="text-brand-600 dark:text-brand-400 mt-1 text-xs font-bold">{discount}% off</span>
+            )}
           </div>
-          
+
           {upcoming ? (
-            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 select-none">
-              <Calendar size={18} />
-            </div>
+            <span className="flex items-center gap-2 rounded-lg bg-gray-50 px-5 py-3 text-sm font-semibold text-gray-400 select-none dark:bg-gray-800">
+              <Calendar size={16} /> Coming soon
+            </span>
           ) : (
-            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-brand-500 group-hover:text-white transition-colors">
-              <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
-            </div>
+            <span className="bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 group-hover:bg-brand-500 flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition-colors group-hover:text-white">
+              View course
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+            </span>
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
   if (upcoming) {
@@ -140,7 +125,7 @@ export function CourseCard({ course, index }: { course: CourseSummary; index: nu
   }
 
   return (
-    <Link href={`/course/${course.slug}`} className="block focus:outline-none h-full">
+    <Link href={`/course/${course.slug}`} className="block h-full focus:outline-none">
       {cardContent}
     </Link>
   );
