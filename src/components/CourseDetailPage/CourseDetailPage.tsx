@@ -38,9 +38,9 @@ const CourseDetailPage = ({ course, curriculum }: CourseDetailPageProps) => {
       </div>
 
       {/* Desktop: card floats over the hero */}
-      <div className="hidden lg:pointer-events-none lg:absolute lg:inset-x-0 lg:top-0 lg:z-10 lg:block lg:pt-28">
-        <div className="mx-auto flex max-w-6xl justify-end">
-          <div className="pointer-events-auto w-full lg:w-90">
+      <div className="hidden lg:pointer-events-none lg:absolute lg:inset-0 lg:z-10 lg:block lg:pt-28">
+        <div className="mx-auto flex h-full max-w-6xl items-start justify-end">
+          <div className="pointer-events-auto sticky top-24 w-full lg:w-90">
             <CourseDetailCard course={course} />
           </div>
         </div>
