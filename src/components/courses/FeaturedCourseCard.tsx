@@ -171,7 +171,7 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
                   </div>
                 ) : (
                   <Link
-                    href={`/courses/${course.slug}`}
+                    href={`/course/${course.slug}`}
                     onClick={(e) => e.stopPropagation()}
                     className="flex items-center justify-center gap-2 w-full rounded-2xl bg-brand-600 hover:bg-brand-700 text-white px-6 py-4 text-sm font-bold shadow-xl shadow-brand-500/20 hover:shadow-brand-500/30 transition-all group/btn"
                   >
@@ -192,7 +192,7 @@ export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
   }
 
   return (
-    <Link href={`/courses/${course.slug}`} className="block relative z-10 cursor-pointer group focus:outline-none">
+    <Link href={`/course/${course.slug}`} className="block relative z-10 cursor-pointer group focus:outline-none">
       {cardContent}
     </Link>
   );

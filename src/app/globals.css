@@ -4,7 +4,8 @@
 
 @theme {
   --font-*: initial;
-  --font-inter: Inter, sans-serif;
+  --font-onest: var(--font-onest), 'Onest', sans-serif;
+  --font-inter: var(--font-onest), 'Onest', sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -63,6 +64,42 @@
   --color-blue-light-800: #065986;
   --color-blue-light-900: #0b4a6f;
   --color-blue-light-950: #062c41;
+  
+ /* our color start  */
+
+  /* Blue (includes the navy shades) */
+  --color-blue-50:  #eff6ff;     /* tw pill & badge backgrounds */
+  --color-blue-100: #dbeafe;     /* tw · hero paragraph text, soft hover */
+  --color-blue-200: #bedbff;     /* tw · horizon glow in the hero */
+  --color-blue-300: #9db4ff;     /* links & blue text on navy, light illustration squares */
+  --color-blue-400: #5b7dfb;     /* hero gradient, orbs */
+  --color-blue-600: #2446f0;     /* BRAND · buttons, icons, badge text */
+  --color-blue-700: #1b36cb;     /* hover / pressed on blue */
+  --color-blue-800: #0f1a5c;     /* hero gradient, raised controls on navy */
+  --color-blue-900: #0b1134;     /* navy section background */
+  --color-blue-950: #060a22;     /* hero top, page frame */
+ 
+  /* Sky */
+  --color-sky-100: #dff2fe;      /* tw · bottom of the hero gradient */
+  --color-sky-300: #74d4ff;      /* tw · light-blue illustration accents */
+ 
+  /* Neutral (slate) */
+  --color-slate-100: #f1f5f9;    /* tw · wells inside cards */
+  --color-slate-200: #e2e8f0;    /* tw · light section background, lines inside cards */
+  --color-slate-300: #cad5e2;    /* tw · borders on light; muted text on navy */
+  --color-slate-600: #45556c;    /* tw · secondary text on light */
+  --color-slate-950: #020618;    /* tw · headlines and body text */
+ 
+  /* Accents (illustration only, small doses) */
+  --color-violet-200: #ddd6ff;   /* tw · lavender haze in hero corners */
+  --color-pink-300: #f2a3c3;     /* the single warm pop */
+  
+
+
+  /* our colors end */
+
+  --color-sky-50: #eaf0fc;
+  --color-sky-200: #bcd4f8;
 
   --color-gray-25: #fcfcfd;
   --color-gray-50: #f9fafb;
@@ -188,7 +225,7 @@
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-inter z-1 bg-gray-50;
+    @apply relative font-normal font-onest z-1 bg-gray-50;
   }
 }
 
@@ -772,7 +809,7 @@ span.flatpickr-weekday,
 
 .ql-container.ql-snow {
   border: none !important;
-  font-family: var(--font-inter), sans-serif !important;
+  font-family: var(--font-onest), sans-serif !important;
   background-color: transparent !important;
 }
 
@@ -1130,3 +1167,84 @@ span.flatpickr-weekday,
   animation: pulseGlow 4s ease-in-out infinite;
 }
 
+/* code by dev */
+
+/* Horizon — gradients from the reference design (Tailwind CSS v4)
+   Built only from palette.css colours. Import after palette.css.
+   Every gradient is a utility class: <section class="bg-hero">… */
+
+/* 1. Hero background — night sky to daylight, top to bottom,
+      with lavender haze in both lower corners */
+@utility bg-hero {
+  background:
+    radial-gradient(40% 35% at 0% 88%, var(--color-violet-200) 0%, transparent 100%),
+    radial-gradient(40% 35% at 100% 88%, var(--color-violet-200) 0%, transparent 100%),
+    linear-gradient(180deg,
+      var(--color-blue-950) 0%,
+      var(--color-blue-800) 22%,
+      var(--color-blue-600) 50%,
+      var(--color-blue-400) 64%,
+      var(--color-blue-200) 82%,
+      var(--color-sky-100) 100%);
+}
+
+/* 2. Night section — navy with a faint lighter glow from the top */
+@utility bg-night {
+  background:
+    radial-gradient(70% 45% at 50% 0%, var(--color-blue-800) 0%, transparent 100%),
+    var(--color-blue-900);
+}
+
+/* 3. Progress / skill bar — the "Figma skills 100%" fill */
+@utility bg-meter {
+  background: linear-gradient(90deg,
+    var(--color-blue-800) 0%,
+    var(--color-blue-600) 45%,
+    var(--color-sky-300) 80%,
+    var(--color-pink-300) 100%);
+}
+
+/* 4. Colour strip — the small blue-to-pink bar floating in the hero */
+@utility bg-strip {
+  background: linear-gradient(90deg,
+    var(--color-blue-400) 0%,
+    var(--color-sky-300) 55%,
+    var(--color-pink-300) 100%);
+}
+
+/* 5. Orb — the glossy sphere (Figma logo circle, AI icon disc) */
+@utility bg-orb {
+  background: radial-gradient(circle at 30% 28%,
+    var(--color-sky-300) 0%,
+    var(--color-blue-400) 38%,
+    var(--color-blue-600) 72%,
+    var(--color-blue-700) 100%);
+}
+
+/* 6. Glass tile — the frosted blue squares (Figma tile in the hero, texture pack) */
+@utility bg-glass-tile {
+  background:
+    linear-gradient(160deg, rgb(255 255 255 / 0.45) 0%, transparent 45%),
+    linear-gradient(135deg, var(--color-blue-300) 0%, var(--color-blue-400) 45%, var(--color-blue-600) 100%);
+}
+
+/* 7. Glow ring — the blue-to-sky outline around the AI chip ("Ask AI", "Make it beautiful").
+      Put on a wrapper with p-[1.5px] rounded-full; the chip inside is bg-white. */
+@utility bg-glow-ring {
+  background: linear-gradient(90deg, var(--color-blue-600) 0%, var(--color-sky-300) 50%, var(--color-blue-400) 100%);
+}
+
+/* 8. Card rim — the blue-to-pink edge light on the hero's white card (right side) */
+@utility bg-rim {
+  background: linear-gradient(180deg, var(--color-blue-400) 0%, var(--color-pink-300) 100%);
+}
+
+/* 9. Card well — the soft panel behind each feature illustration */
+@utility bg-well {
+  background: radial-gradient(120% 90% at 50% 100%, var(--color-white) 0%, var(--color-slate-100) 60%);
+}
+
+/* 10. Grid squares — the swatches in "Working with Gradients"; mix these on small tiles */
+@utility bg-swatch-a { background: linear-gradient(135deg, var(--color-blue-300), var(--color-blue-600)); }
+@utility bg-swatch-b { background: linear-gradient(135deg, var(--color-sky-300), var(--color-blue-400)); }
+@utility bg-swatch-c { background: linear-gradient(135deg, var(--color-violet-200), var(--color-blue-400)); }
