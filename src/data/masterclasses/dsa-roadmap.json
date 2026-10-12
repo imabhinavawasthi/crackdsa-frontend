@@ -1,0 +1,210 @@
+{
+  "slug": "dsa-roadmap",
+  "title": "The DSA Roadmap Masterclass",
+  "hero": {
+    "heading": "Master the DSA Roadmap & Crack Interviews in Just 3 Hours",
+    "subheading": "Join 10,000+ learners who stopped guessing what to study next, followed a structured path, and landed offers at top product companies, all in one live masterclass.",
+    "badges": [
+      {
+        "icon": "layout",
+        "label": "3 Hours"
+      },
+      {
+        "icon": "calendar",
+        "label": "Starts 4th Nov"
+      },
+      {
+        "icon": "clock",
+        "label": "7PM to 10PM"
+      }
+    ],
+    "cta": {
+      "label": "Claim your spot",
+      "href": "/pro"
+    },
+    "video": {
+      "thumbnail": null,
+      "url": null,
+      "instructorName": "Gaurav Sharma"
+    }
+  },
+  "audience": {
+    "heading": "Who is this masterclass for?",
+    "subheading": "If you see yourself below, this session is built for you",
+    "items": [
+      { "icon": "graduation", "title": "College students", "description": "Pre-final and final year students preparing for campus placements." },
+      { "icon": "briefcase", "title": "Working professionals", "description": "Engineers who want to switch to a better product company." },
+      { "icon": "compass", "title": "Self-taught beginners", "description": "Anyone starting DSA from scratch who feels lost about where to begin." },
+      { "icon": "refresh", "title": "Career switchers", "description": "People moving into software from non-CS backgrounds." },
+      { "icon": "target", "title": "Stuck in preparation", "description": "Learners who have solved many problems but still fail interviews." },
+      { "icon": "rocket", "title": "Aspiring FAANG candidates", "description": "Those aiming for top-tier companies who need a clear, structured plan." }
+    ]
+  },
+  "outcomes": {
+    "badge": "Outcomes",
+    "heading": "What you'll walk away with",
+    "subheading": "Concrete results you can use the day after the masterclass",
+    "items": [
+      { "icon": "map", "title": "A clear DSA roadmap", "description": "Know exactly which topics to study, in what order, and when to move on.", "metric": "12 topics, 1 path" },
+      { "icon": "zap", "title": "Faster problem solving", "description": "Recognise common patterns quickly instead of treating every problem as new.", "metric": "15+ core patterns" },
+      { "icon": "calendar", "title": "Your personal study plan", "description": "A week-by-week schedule built around your timeline and current level.", "metric": "3-6 month plan" },
+      { "icon": "chart", "title": "Smarter practice habits", "description": "Choose the right problems and review them so every hour compounds.", "metric": null },
+      { "icon": "shield", "title": "Interview confidence", "description": "Understand what interviewers expect and how to communicate your approach.", "metric": null },
+      { "icon": "rocket", "title": "A path to top companies", "description": "Know the gap between where you are and what product companies hire for.", "metric": "FAANG-ready checklist" }
+    ]
+  },
+  "instructor": {
+    "heading": "Meet your instructor",
+    "name": "Gaurav Sharma",
+    "title": "Founder, CrackDSA",
+    "photo": null,
+    "bio": [
+      "Hey folks, I'm Gaurav Sharma, and I'm excited to be your mentor for this masterclass.",
+      "I've helped **10,000+ learners** build a structured approach to DSA through CrackDSA, the platform I founded to make interview preparation clear and affordable.",
+      "Before CrackDSA, I worked as a software engineer building **large-scale backend systems**, and I have taken **200+ interviews** on both sides of the table.",
+      "Today my DSA content has crossed **5M+ views**, and students from CrackDSA have landed offers at companies like **Google, Amazon and Microsoft**.",
+      "Now, I'm here to share everything I've learned with you."
+    ],
+    "socials": [
+      { "platform": "linkedin", "stats": [{ "value": "50M+", "label": "Impressions" }, { "value": "100K+", "label": "Followers" }] },
+      { "platform": "instagram", "stats": [{ "value": "200K+", "label": "Instagram" }] },
+      { "platform": "youtube", "stats": [{ "value": "150K+", "label": "Subscribers" }] }
+    ]
+  },
+  "reviews": {
+    "heading": "From our students",
+    "featured": [
+      {
+        "headline": "Cracked Google in 4 months",
+        "quote": "The roadmap removed all my confusion. I stopped jumping between topics and followed one clear path that actually matched what interviewers ask.",
+        "name": "Rahul Verma",
+        "subtitle": "Attended the DSA Roadmap Masterclass",
+        "photo": null
+      },
+      {
+        "headline": "From 0 to 120 problems in 6 weeks",
+        "quote": "The practice strategy part changed how I study. Pattern-based revision made problems feel familiar instead of random.",
+        "name": "Priya Singh",
+        "subtitle": "Attended the DSA Roadmap Masterclass",
+        "photo": null
+      },
+      {
+        "headline": "Finally a plan I could stick to",
+        "quote": "I built my weekly schedule during the session itself and never lost track of what to do next.",
+        "name": "Aman Gupta",
+        "subtitle": "Attended the DSA Roadmap Masterclass",
+        "photo": null
+      }
+    ],
+    "videos": [
+      { "name": "Sneha Iyer", "thumbnail": null, "url": null },
+      { "name": "Karan Mehta", "thumbnail": null, "url": null },
+      { "name": "Neha Sharma", "thumbnail": null, "url": null }
+    ],
+    "quoteCard": {
+      "quote": "An eye-opener. It changed how I approach DSA completely!",
+      "name": "Ankit Rao"
+    }
+  },
+  "faq": {
+    "badge": "Common questions",
+    "heading": "Everything you're wondering about",
+    "items": [
+      { "question": "What is the DSA Roadmap Masterclass?", "answer": "A live 3-hour session that walks you through what to learn in DSA, in which order, and how deep to go, ending with a personal study plan." },
+      { "question": "How will the masterclass be conducted?", "answer": "It runs live on Zoom with real-time Q&A. You can ask questions in chat throughout and during the dedicated Q&A at the end." },
+      { "question": "Is the masterclass completely online?", "answer": "Yes. You only need a laptop or phone with a stable internet connection to join from anywhere." },
+      { "question": "Will I get a recording of the session?", "answer": "Yes, registered attendees get access to the recording for a limited time after the live session ends." },
+      { "question": "What if I can't attend on the scheduled date?", "answer": "You can still register and watch the recording afterwards, though you will miss the live Q&A." },
+      { "question": "Do I need prior DSA knowledge?", "answer": "No. The masterclass is designed for beginners and intermediate learners, and starts from the fundamentals." },
+      { "question": "Which programming language is used?", "answer": "The roadmap is language-agnostic. Examples are shown in Python and C++, and the plan applies to any language you prefer." },
+      { "question": "Is there a refund policy?", "answer": "If the masterclass is not useful, you can request a refund within 24 hours of attending the live session." }
+    ]
+  },
+  "stickyBar": {
+    "title": "DSA Roadmap Masterclass",
+    "cta": { "label": "Join the free Masterclass", "href": "/pro" },
+    "originalPrice": "₹1,999",
+    "price": "Free",
+    "offerEndsAt": "2026-11-04T19:00:00+05:30"
+  },
+  "description": "A structured walkthrough of what to learn, in which order, and how deep to go, so you can prepare for DSA interviews without wasting months on the wrong topics.",
+  "level": "Beginner to Intermediate",
+  "curriculum": {
+    "heading": "What we will cover in this masterclass",
+    "subheading": "Four focused modules, taught live and built to be applied immediately",
+    "modules": [
+      {
+        "title": "Why most DSA preparation fails",
+        "duration": "30 min",
+        "description": "The patterns behind stalled progress and how to avoid them.",
+        "topics": ["Tutorial hell vs real practice", "Common preparation mistakes", "What interviewers really test"]
+      },
+      {
+        "title": "The roadmap, end to end",
+        "duration": "60 min",
+        "description": "From complexity analysis and arrays to graphs and dynamic programming.",
+        "topics": ["Complexity & arrays", "Hashing, stacks & queues", "Trees & graphs", "Recursion & dynamic programming"]
+      },
+      {
+        "title": "Practice strategy",
+        "duration": "45 min",
+        "description": "How to pick problems, review them, and measure progress.",
+        "topics": ["Pattern-based problem selection", "Spaced revision", "Tracking your progress"]
+      },
+      {
+        "title": "Building your personal plan",
+        "duration": "45 min",
+        "description": "Turn the roadmap into a schedule that fits your timeline.",
+        "topics": ["Assessing your current level", "Weekly schedule template", "Live Q&A"]
+      }
+    ]
+  },
+  "placements": {
+    "heading": "Our students are getting hired at the world's best companies",
+    "subheading": "Real learners who followed the roadmap and converted it into offers",
+    "students": [
+      {
+        "name": "Rahul Verma",
+        "photo": null,
+        "role": "SDE-2",
+        "company": "Google",
+        "package": "₹58 LPA"
+      },
+      {
+        "name": "Priya Singh",
+        "photo": null,
+        "role": "SDE-1",
+        "company": "Amazon",
+        "package": "₹44 LPA"
+      },
+      {
+        "name": "Aman Gupta",
+        "photo": null,
+        "role": "Software Engineer",
+        "company": "Microsoft",
+        "package": "₹49 LPA"
+      },
+      {
+        "name": "Sneha Iyer",
+        "photo": null,
+        "role": "SDE-1",
+        "company": "Atlassian",
+        "package": "₹42 LPA"
+      },
+      {
+        "name": "Karan Mehta",
+        "photo": null,
+        "role": "MTS",
+        "company": "Adobe",
+        "package": "₹38 LPA"
+      },
+      {
+        "name": "Neha Sharma",
+        "photo": null,
+        "role": "Backend Engineer",
+        "company": "Flipkart",
+        "package": "₹36 LPA"
+      }
+    ]
+  }
+}

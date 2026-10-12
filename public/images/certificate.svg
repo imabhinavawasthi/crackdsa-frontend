@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850">
+  <rect width="1200" height="850" fill="#ffffff"/>
+  <rect x="30" y="30" width="1140" height="790" fill="none" stroke="#f97316" stroke-width="6"/>
+  <rect x="50" y="50" width="1100" height="750" fill="none" stroke="#fdba74" stroke-width="2"/>
+  <g text-anchor="middle" font-family="Georgia, serif" fill="#111827">
+    <text x="600" y="170" font-size="30" letter-spacing="8" fill="#ea580c">CRACKDSA</text>
+    <text x="600" y="270" font-size="64" font-weight="bold">Certificate of Completion</text>
+    <text x="600" y="350" font-size="24" fill="#6b7280">This is to certify that</text>
+    <text x="600" y="440" font-size="56" font-style="italic">Your Name</text>
+    <line x1="300" y1="465" x2="900" y2="465" stroke="#d1d5db" stroke-width="2"/>
+    <text x="600" y="525" font-size="24" fill="#6b7280">has successfully completed the course</text>
+    <text x="600" y="590" font-size="36" font-weight="bold">Course Title</text>
+    <line x1="170" y1="710" x2="420" y2="710" stroke="#9ca3af" stroke-width="2"/>
+    <text x="295" y="740" font-size="18" fill="#6b7280">Date</text>
+    <line x1="780" y1="710" x2="1030" y2="710" stroke="#9ca3af" stroke-width="2"/>
+    <text x="905" y="740" font-size="18" fill="#6b7280">CrackDSA Team</text>
+  </g>
+  <circle cx="600" cy="690" r="50" fill="#f97316"/>
+  <circle cx="600" cy="690" r="40" fill="none" stroke="#ffffff" stroke-width="3"/>
+</svg>

@@ -24,9 +24,10 @@ import { useActiveStreak } from "@/hooks/useActiveStreak";
 interface AppHeaderProps {
   onToggleSidebar?: () => void;
   isSidebarOpen?: boolean;
+  hideSidebarToggle?: boolean;
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen }) => {
+const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen, hideSidebarToggle }) => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const { user, isLoggedIn, isLoading } = useAuth();
   const activeStreak = useActiveStreak();
@@ -60,7 +61,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen })
     <header className="sticky top-0 w-full z-99999 border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/80">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-1.5 sm:gap-4 lg:justify-normal lg:px-0 lg:py-2">
-          <button
+          {!hideSidebarToggle && <button
             className="flex items-center justify-center w-9 h-9 text-gray-500 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
             onClick={handleToggle}
             aria-label="Toggle Sidebar"
@@ -72,9 +73,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen })
             ) : (
               <PanelLeftOpen size={18} />
             )}
-          </button>
+          </button>}
 
-          <Logo href="/" className="lg:hidden" width={154} height={32} />
+          <Logo href="/" className={hideSidebarToggle ? "" : "lg:hidden"} width={154} height={32} />
 
           <button
             onClick={toggleApplicationMenu}

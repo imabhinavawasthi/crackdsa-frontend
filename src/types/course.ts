@@ -49,6 +49,7 @@ export interface CourseSummary {
   is_popular?: boolean;
   category?: string;
   instructor_ids: string[];
+  instructors?: Instructor[];
   total_problems: number;
   total_videos?: number;
   total_articles?: number;
@@ -74,6 +75,7 @@ export interface CourseSummary {
 export interface Instructor {
   id: string;
   name: string;
+  role?: string;
   company?: string;
   bio?: string;
   avatar_url?: string;
