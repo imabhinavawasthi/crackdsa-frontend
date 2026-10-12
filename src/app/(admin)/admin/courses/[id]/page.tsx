@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import CourseAdminHeader from "@/components/admin/CourseAdminHeader";
 
 type InstructorSchema = {
   name: string;
@@ -241,33 +242,7 @@ export default function AdminCourseDetailsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-20 px-4">
       
-      {/* Back Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link 
-            href="/admin/courses" 
-            className="p-2.5 rounded-xl border border-gray-250 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-955 dark:hover:text-white bg-white dark:bg-gray-900 transition-all shadow-sm"
-          >
-            <ArrowLeft size={16} />
-          </Link>
-          <div>
-            <span className="text-[10px] font-black text-brand-500 uppercase tracking-widest block leading-none mb-1">Academy Catalog Console</span>
-            <h1 className="text-xl sm:text-2xl font-black text-gray-955 dark:text-white tracking-tight">
-              Course Details & Syllabus
-            </h1>
-          </div>
-        </div>
-        
-        {course && (
-          <button 
-            onClick={() => router.push(`/admin/courses/${course.id}/edit`)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-gray-750 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:bg-gray-55 dark:hover:bg-gray-900 rounded-xl transition-all shadow-sm cursor-pointer bg-white dark:bg-gray-950"
-          >
-            <Edit3 size={15} />
-            <span>Edit Specifications & Syllabus</span>
-          </button>
-        )}
-      </div>
+      {course && <CourseAdminHeader course={course} />}
 
       {loading ? (
         <div className="bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-3xl p-12 text-center space-y-4">

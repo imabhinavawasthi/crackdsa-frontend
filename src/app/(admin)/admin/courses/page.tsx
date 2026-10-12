@@ -19,7 +19,8 @@ import {
   AlertCircle,
   Eye,
   Layers,
-  DollarSign
+  DollarSign,
+  ListTree
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -297,29 +298,36 @@ export default function AdminCoursesPage() {
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className="flex items-center gap-2 justify-end">
+          <div className="flex items-center gap-1.5 justify-end">
             <button
               onClick={() => router.push(`/admin/courses/${item.id}`)}
               className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
-              title="View syllabus tree details"
+              title="View course overview"
             >
               <Eye size={15} />
             </button>
             <button
               onClick={() => router.push(`/admin/courses/${item.id}/edit`)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors"
-              title="Edit course metadata & builder"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors cursor-pointer"
+              title="Edit course details & metadata"
             >
               <Edit3 size={13} />
-              Edit
+              Details
+            </button>
+            <button
+              onClick={() => router.push(`/admin/courses/${item.id}/curriculum`)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/20 border border-brand-500/20 transition-colors cursor-pointer"
+              title="Open Curriculum & Syllabus Builder"
+            >
+              <ListTree size={13} />
+              Curriculum
             </button>
             <button
               onClick={() => handleDelete(item.id, item.title)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border border-transparent transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
               title="Soft delete course"
             >
               <Trash2 size={13} />
-              Delete
             </button>
           </div>
         );

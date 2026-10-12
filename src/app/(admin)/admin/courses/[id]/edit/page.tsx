@@ -1,14 +1,15 @@
 "use client";
 
 import { BACKEND_URL } from "@/config/api";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getStoredToken } from "@/functions/auth";
-import { Lock, ArrowLeft, Loader2, AlertCircle, RotateCcw } from "lucide-react";
+import { Lock, Loader2, AlertCircle, RotateCcw } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import CourseEditor from "@/components/admin/CourseEditor";
+import CourseAdminHeader from "@/components/admin/CourseAdminHeader";
+import CourseDetailsEditor from "@/components/admin/CourseDetailsEditor";
 
 export default function EditCoursePage() {
   const params = useParams();
@@ -21,7 +22,7 @@ export default function EditCoursePage() {
 
   const backendUrl = BACKEND_URL;
 
-  const fetchCourseData = async () => {
+  const fetchCourseData = useCallback(async () => {
     const token = getStoredToken();
     if (!token) return;
 
@@ -32,7 +33,7 @@ export default function EditCoursePage() {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) {
-        throw new Error("Failed to load course properties.");
+        throw new Error("Failed to load course details.");
       }
       const data = await res.json();
       setCourseData(data);
@@ -42,24 +43,26 @@ export default function EditCoursePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [backendUrl, courseId]);
 
   useEffect(() => {
     if (isLoggedIn && user?.roles?.includes("admin") && courseId) {
       fetchCourseData();
     }
-  }, [isLoggedIn, user, courseId, backendUrl]);
+  }, [isLoggedIn, user, courseId, fetchCourseData]);
 
   useEffect(() => {
-    document.title = "Edit Course | CrackDSA Admin";
-  }, []);
+    if (courseData?.title) {
+      document.title = `Edit Details: ${courseData.title} | CrackDSA Admin`;
+    }
+  }, [courseData]);
 
   if (authLoading || loading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 size={32} className="animate-spin text-brand-500" />
         <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold">
-          {authLoading ? "Verifying secure admin parameters..." : "Loading course registry..."}
+          {authLoading ? "Verifying admin access..." : "Loading course registry..."}
         </p>
       </div>
     );
@@ -104,7 +107,7 @@ export default function EditCoursePage() {
         </div>
         <button 
           onClick={fetchCourseData}
-          className="inline-flex items-center gap-2 px-4 py-2 mt-4 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-bold text-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 mt-4 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-bold text-sm transition-colors cursor-pointer"
         >
           <RotateCcw size={14} />
           Retry Connection
@@ -114,23 +117,12 @@ export default function EditCoursePage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
-      <div className="flex items-center gap-4">
-        <Link 
-          href="/admin/courses" 
-          className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white bg-white dark:bg-gray-950 transition-all shadow-sm"
-        >
-          <ArrowLeft size={16} />
-        </Link>
-        <div>
-          <span className="text-[10px] font-black text-brand-500 uppercase tracking-widest block leading-none mb-1">Catalog Registry</span>
-          <h1 className="text-xl sm:text-2xl font-black text-gray-955 dark:text-white tracking-tight">
-            Editing: {courseData.title}
-          </h1>
-        </div>
-      </div>
+    <div className="max-w-6xl mx-auto space-y-8 pb-20 px-4">
+      {/* Shared Admin Header with Tabs */}
+      <CourseAdminHeader course={courseData} />
 
-      <CourseEditor mode="edit" initialData={courseData} />
+      {/* Dedicated Course Details Editor */}
+      <CourseDetailsEditor mode="edit" initialData={courseData} />
     </div>
   );
 }
