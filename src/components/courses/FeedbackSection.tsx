@@ -18,7 +18,7 @@ export function FeedbackSection({ feedbacks }: { feedbacks: Testimonial[] }) {
           <Heart size={14} /> Student Success Stories
         </div>
         <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-          Don't just take our word for it
+          Don&apos;t just take our word for it
         </h2>
         <p className="text-gray-500 dark:text-gray-400 font-medium max-w-2xl mx-auto text-lg">
           Thousands of students have cracked their dream jobs using our structured learning approach.

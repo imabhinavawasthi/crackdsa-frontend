@@ -1,14 +1,14 @@
 import { BACKEND_URL } from "@/config/api";
-import { getStoredToken } from "@/functions/auth";
+import { getValidAccessToken } from "@/functions/auth";
 
-function authHeaders(): HeadersInit {
-  const token = getStoredToken();
+async function authHeaders(): Promise<HeadersInit> {
+  const token = await getValidAccessToken();
   return token ? { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
 }
 
 export async function fetchAdminCoupons() {
   const res = await fetch(`${BACKEND_URL}/api/v1/admin/payments/coupons`, {
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch coupons");
   return res.json();
@@ -17,7 +17,7 @@ export async function fetchAdminCoupons() {
 export async function createAdminCoupon(data: any) {
   const res = await fetch(`${BACKEND_URL}/api/v1/admin/payments/coupons`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: await authHeaders(),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -30,7 +30,7 @@ export async function createAdminCoupon(data: any) {
 export async function updateAdminCoupon(id: string, data: any) {
   const res = await fetch(`${BACKEND_URL}/api/v1/admin/payments/coupons/${id}`, {
     method: "PUT",
-    headers: authHeaders(),
+    headers: await authHeaders(),
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -43,7 +43,7 @@ export async function updateAdminCoupon(id: string, data: any) {
 export async function deleteAdminCoupon(id: string) {
   const res = await fetch(`${BACKEND_URL}/api/v1/admin/payments/coupons/${id}`, {
     method: "DELETE",
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error("Failed to delete coupon");
 }
@@ -54,7 +54,7 @@ export async function fetchAdminTransactions(status?: string, purchaseType?: str
   if (purchaseType) url.searchParams.append("purchase_type", purchaseType);
 
   const res = await fetch(url.toString(), {
-    headers: authHeaders(),
+    headers: await authHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch transactions");
   return res.json();

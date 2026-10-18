@@ -1,4 +1,4 @@
-import { getStoredToken } from "@/functions/auth";
+import { getAuthHeaders, getValidAccessToken } from "@/functions/auth";
 import { BACKEND_URL } from "@/config/api";
 
 export interface UserAssetState {
@@ -22,13 +22,11 @@ export interface UpdateAssetStatePayload {
  * Fetches all asset states for the currently authenticated user.
  */
 export async function fetchUserAssetStates(): Promise<UserAssetState[]> {
-  const token = getStoredToken();
-  if (!token) return [];
+  const authHeaders = await getAuthHeaders();
+  if (!("Authorization" in authHeaders)) return [];
 
   const res = await fetch(`${BACKEND_URL}/api/v1/user/assets/states`, {
-    headers: {
-      "Authorization": `Bearer ${token}`
-    }
+    headers: authHeaders,
   });
 
   if (!res.ok) {
@@ -46,7 +44,7 @@ export async function updateUserAssetState(
   assetId: string,
   payload: UpdateAssetStatePayload
 ): Promise<UserAssetState> {
-  const token = getStoredToken();
+  const token = await getValidAccessToken();
   if (!token) {
     throw new Error("Authentication token not found");
   }

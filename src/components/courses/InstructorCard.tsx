@@ -44,6 +44,7 @@ export function InstructorCard({ instructor }: { instructor: FullInstructor }) {
         className={`w-28 h-28 sm:w-32 sm:h-32 shrink-0 rounded-[1.5rem] bg-gradient-to-br ${instructor.color || "from-gray-700 to-gray-900"} flex items-center justify-center shadow-inner relative overflow-hidden group`}
       >
         {instructor.profile_image_url ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img 
             src={instructor.profile_image_url} 
             alt={instructor.name}

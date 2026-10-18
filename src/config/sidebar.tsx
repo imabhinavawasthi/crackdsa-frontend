@@ -11,28 +11,28 @@ import {
   GraduationCap,
   ChevronLeft,
   Video,
-  Compass,
   User,
   HelpCircle,
-  Network,
   SheetIcon,
   Zap,
   Bookmark,
   Sparkles,
-  Code2,
   Tag,
   CreditCard,
   TvMinimalPlay,
   MessageCircle,
-  UserKey,
-  UserStarIcon,
   GoalIcon,
   FolderTree,
-  Users
+  Users,
+  Trophy,
+  FileCode,
+  FileCheck,
+  Crown,
 } from "lucide-react";
 import type { NavItem, SidebarSectionType, UserMenuItem } from "@/types/sidebar";
 export type { NavItem, SidebarSectionType } from "@/types/sidebar";
 
+// ─── 1. Learning Section ─────────────────────────────────────────────────────
 export const learningItems: NavItem[] = [
   {
     icon: <LayoutDashboard size={20} />,
@@ -40,55 +40,58 @@ export const learningItems: NavItem[] = [
     path: "/dashboard",
   },
   {
-    icon: <GraduationCap size={20} />,
-    name: "Learn DSA",
-    path: "/dsa",
+    icon: <BookOpen size={20} />,
+    name: "Courses",
+    path: "/courses",
     new: true,
   },
   {
-    icon: <Route size={20} />,
-    name: "Roadmap",
-    path: "/roadmap",
-    badge: (
-      <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-md bg-purple-500/10 text-purple-600 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30 select-none animate-pulse shrink-0">
-        BETA
-      </span>
-    )
+    icon: <Sparkles size={20} />,
+    name: "Masterclasses",
+    path: "/masterclasses",
+  },
+  {
+    icon: <TvMinimalPlay size={20} />,
+    name: "Live Classes",
+    path: "/live-sessions",
+    pro: true,
   },
 ];
 
-export const practiceItems: NavItem[] = [
+// ─── 2. DSA Section ──────────────────────────────────────────────────────────
+export const dsaItems: NavItem[] = [
   {
-    icon: <Network size={20} />,
-    name: "Practice DSA",
-    path: "/practice",
+    icon: <GraduationCap size={20} />,
+    name: "DSA Course",
+    path: "/dsa",
   },
   {
     icon: <Sheet size={20} />,
     name: "DSA Sheets",
     path: "/dsa-sheet",
+    new: true,
     subItems: [
       {
         name: "Patterns",
         path: "/dsa-sheet/pattern-mastery",
         icon: <FolderTree size={16} />,
-        new: true
+        new: true,
       },
       {
         name: "Sprint 75",
         path: "/dsa-sheet/crackdsa-revision-sprint",
-        icon: <Zap size={16} />
+        icon: <Zap size={16} />,
       },
       {
         name: "0 to Hero DSA",
         path: "/dsa-sheet/0-to-hero-dsa",
-        icon: <GraduationCap size={16} />
-      }
+        icon: <GraduationCap size={16} />,
+      },
     ],
   },
   {
     icon: <Layers size={20} />,
-    name: "Topics",
+    name: "TopicWise",
     path: "/practice/topics",
     subItems: [
       { name: "Array", path: "/practice/topics/array" },
@@ -100,7 +103,7 @@ export const practiceItems: NavItem[] = [
   },
   {
     icon: <Building2 size={20} />,
-    name: "Companies",
+    name: "CompanyWise",
     path: "/practice/companies",
     subItems: [
       { name: "Google", path: "/practice/companies/google" },
@@ -112,6 +115,58 @@ export const practiceItems: NavItem[] = [
   },
 ];
 
+// Backwards compatibility alias
+export const practiceItems = dsaItems;
+
+// ─── 3. Competitive Programming Section ───────────────────────────────────────
+export const cpItems: NavItem[] = [
+  {
+    icon: <Trophy size={20} />,
+    name: "Newbie to Expert Sheet",
+    path: "/dsa-sheet/newbie-to-expert",
+    new: true,
+  },
+  {
+    icon: <FileCode size={20} />,
+    name: "Contest Editorials",
+    path: "/contests/editorials",
+  },
+  {
+    icon: <MessageCircle size={20} />,
+    name: "Post Contest Discussion",
+    path: "/contests/discussion",
+    pro: true,
+  },
+];
+
+// ─── 4. Interview Prep Section ───────────────────────────────────────────────
+export const interviewPrepItems: NavItem[] = [
+  {
+    icon: <FileText size={20} />,
+    name: "CS Fundamental Notes",
+    path: "/cs-fundamentals",
+    new: true,
+  },
+  {
+    icon: <Users size={20} />,
+    name: "Mock Interview 1:1",
+    path: "/mock-interviews",
+    pro: true,
+  },
+  {
+    icon: <HelpCircle size={20} />,
+    name: "Live Doubt Session",
+    path: "/doubt-sessions",
+    pro: true,
+  },
+  {
+    icon: <FileCheck size={20} />,
+    name: "Resume Builder",
+    path: "/resume",
+  },
+];
+
+// ─── 5. Account Section (as it is) ───────────────────────────────────────────
 export const accountItems: NavItem[] = [
   {
     icon: <User size={20} />,
@@ -129,9 +184,60 @@ export const accountItems: NavItem[] = [
       { name: "Bookmarked Items", path: "/profile/bookmarks", icon: <Bookmark size={16} /> },
       { name: "My Notes", path: "/profile/notes", icon: <FileText size={16} /> },
     ],
-  }
+  },
 ];
 
+// ─── 6. PRO Section ──────────────────────────────────────────────────────────
+export const proItems: NavItem[] = [
+  {
+    icon: <Crown size={20} />,
+    name: "Pro Membership",
+    path: "/pro",
+    pro: true,
+  },
+  {
+    icon: <GoalIcon size={20} />,
+    name: "Pro Dashboard",
+    path: "/pro/dashboard",
+  },
+];
+
+// ─── Sidebar Sections Registry ───────────────────────────────────────────────
+export const sidebarSections: SidebarSectionType[] = [
+  {
+    title: "Learning",
+    items: learningItems,
+    key: "learning",
+  },
+  {
+    title: "DSA",
+    items: dsaItems,
+    key: "dsa",
+  },
+  {
+    title: "Competitive Programming",
+    items: cpItems,
+    key: "cp",
+  },
+  {
+    title: "Interview Prep",
+    items: interviewPrepItems,
+    key: "interview-prep",
+  },
+  {
+    title: "Account",
+    items: accountItems,
+    key: "account",
+    requireAuth: true,
+  },
+  {
+    title: "PRO",
+    items: proItems,
+    key: "pro",
+  },
+];
+
+// ─── Admin Navigation (Intact) ───────────────────────────────────────────────
 export const adminNavItems: NavItem[] = [
   {
     icon: <LayoutDashboard size={20} />,
@@ -193,76 +299,6 @@ export const adminOthersItems: NavItem[] = [
   },
 ];
 
-export type { UserMenuItem } from "@/types/sidebar";
-
-export const userMenuItems: UserMenuItem[] = [
-  {
-    name: "My Profile",
-    path: "/profile",
-    icon: <User size={18} />,
-  },
-  {
-    name: "Help & Support",
-    path: "/support",
-    icon: <HelpCircle size={18} />,
-  },
-];
-
-export const proItems: NavItem[] = [
-  {
-    icon: <GoalIcon size={20} />,
-    name: "Pro Dashboard",
-    path: "/pro/dashboard",
-    new: true,
-  },
-  {
-    icon: <TvMinimalPlay size={20} />,
-    name: "Live Classes",
-    path: "/live-sessions",
-    pro: true,
-  },
-    {
-    icon: <FileText size={20} />,
-    name: "Resources & Notes",
-    path: "/resources",
-    pro: true,
-  },
-  {
-    icon: <UserStarIcon size={20} />,
-    name: "Personalized",
-    path: "/pro/personalized",
-    subItems: [
-      { name: "Mentorship", path: "/pro/personalized/mentorship", icon: <UserKey size={16} />, pro: true },
-      { name: "Doubt Solving Sessions", path: "/pro/personalized/doubt-solving-sessions", icon: <MessageCircle size={16} />, pro: true },
-      { name: "Mock Interviews", path: "/pro/personalized/mock-interviews", icon: <Users size={16} />, new: true },
-    ],
-  }
-];
-
-export const sidebarSections: SidebarSectionType[] = [
-  {
-    title: "Learning",
-    items: learningItems,
-    key: "main",
-  },
-  {
-    title: "Practice",
-    items: practiceItems,
-    key: "others",
-  },
-  {
-    title: "PRO",
-    items: proItems,
-    key: "pro",
-  },
-  {
-    title: "Account",
-    items: accountItems,
-    key: "account",
-    requireAuth: true,
-  },
-];
-
 export const adminSidebarSections: SidebarSectionType[] = [
   {
     title: "Admin Panel",
@@ -276,3 +312,15 @@ export const adminSidebarSections: SidebarSectionType[] = [
   },
 ];
 
+export const userMenuItems: UserMenuItem[] = [
+  {
+    name: "My Profile",
+    path: "/profile",
+    icon: <User size={18} />,
+  },
+  {
+    name: "Help & Support",
+    path: "/support",
+    icon: <HelpCircle size={18} />,
+  },
+];

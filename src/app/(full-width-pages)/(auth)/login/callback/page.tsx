@@ -19,14 +19,17 @@ function AuthCallbackPageContent() {
       // 1. Extract access_token & refresh_token from URL searchParams
       const accessToken = searchParams.get("access_token");
       const refreshToken = searchParams.get("refresh_token");
+      const expiresIn = searchParams.get("expires_in");
       
       // 2. Fallback: Check if it's in the hash (Supabase sometimes puts it there)
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const tokenFromHash = hashParams.get("access_token");
       const refreshTokenFromHash = hashParams.get("refresh_token");
+      const expiresInFromHash = hashParams.get("expires_in");
       
       const finalToken = accessToken || tokenFromHash;
       const finalRefreshToken = refreshToken || refreshTokenFromHash;
+      const finalExpiresIn = parseInt(expiresIn || expiresInFromHash || "3600", 10) || 3600;
 
       if (finalToken) {
         // 3. Store the tokens locally
@@ -34,6 +37,10 @@ function AuthCallbackPageContent() {
         if (finalRefreshToken) {
           localStorage.setItem("crackdsa_refresh_token", finalRefreshToken);
         }
+        localStorage.setItem(
+          "crackdsa_expires_at",
+          (Math.floor(Date.now() / 1000) + finalExpiresIn).toString()
+        );
         
         // 4. Force a profile refetch in AuthContext
         await refetch();

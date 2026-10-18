@@ -1,19 +1,13 @@
-import { getStoredToken } from "@/functions/auth";
+import { getAuthHeaders } from "@/functions/auth";
 import { BACKEND_URL } from "@/config/api";
 import { PracticeProblem, TopicSummary, CompanySummary } from "@/types/practice";
-
-/** Shared helper — builds auth headers if a token exists. */
-function authHeaders(): HeadersInit {
-  const token = getStoredToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 /**
  * Fetches the details of a single practice problem by its slug or ID.
  */
 export async function fetchProblemDetail(slug: string): Promise<PracticeProblem> {
   const res = await fetch(`${BACKEND_URL}/api/v1/practice-problems/${slug}`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) {
     throw new Error(res.status === 404 ? "Problem not found" : "Failed to load problem details");
@@ -33,7 +27,7 @@ export async function fetchProblems(limit?: number, offset?: number): Promise<Pr
   if (queryString) url += `?${queryString}`;
 
   const res = await fetch(url, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch practice problems catalog.");
   return res.json();
@@ -44,7 +38,7 @@ export async function fetchProblems(limit?: number, offset?: number): Promise<Pr
  */
 export async function fetchCompanyProblems(slug: string): Promise<PracticeProblem[]> {
   const res = await fetch(`${BACKEND_URL}/api/v1/practice-problems/companies/${slug}`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch problems for this company.");
   return res.json();
@@ -55,7 +49,7 @@ export async function fetchCompanyProblems(slug: string): Promise<PracticeProble
  */
 export async function fetchTopicProblems(slug: string): Promise<PracticeProblem[]> {
   const res = await fetch(`${BACKEND_URL}/api/v1/practice-problems/topics/${slug}`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch problems for this topic.");
   return res.json();
@@ -67,7 +61,7 @@ export async function fetchTopicProblems(slug: string): Promise<PracticeProblem[
  */
 export async function fetchTopicsSummary(): Promise<TopicSummary[]> {
   const res = await fetch(`${BACKEND_URL}/api/v1/practice-problems/topics-summary`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch topics summary.");
   return res.json();
@@ -79,7 +73,7 @@ export async function fetchTopicsSummary(): Promise<TopicSummary[]> {
  */
 export async function fetchCompaniesSummary(): Promise<CompanySummary[]> {
   const res = await fetch(`${BACKEND_URL}/api/v1/practice-problems/companies-summary`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch companies summary.");
   return res.json();

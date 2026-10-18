@@ -1,8 +1,8 @@
 import { BACKEND_URL } from "@/config/api";
-import { getStoredToken } from "./auth";
+import { getValidAccessToken } from "./auth";
 
-function authHeaders(): HeadersInit {
-  const token = getStoredToken();
+async function authHeaders(): Promise<HeadersInit> {
+  const token = await getValidAccessToken();
   return token ? { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
 }
 
@@ -13,7 +13,7 @@ export async function fetchEligibleCoupons(purchaseType: string, targetId?: stri
 
   const res = await fetch(url.toString(), {
     method: "GET",
-    headers: authHeaders(),
+    headers: await authHeaders(),
     credentials: "omit",
   });
 
@@ -27,7 +27,7 @@ export async function fetchEligibleCoupons(purchaseType: string, targetId?: stri
 export async function applyCoupon(code: string, purchaseType: string, targetId?: string) {
   const res = await fetch(`${BACKEND_URL}/api/v1/checkout/apply-coupon`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: await authHeaders(),
     credentials: "omit",
     body: JSON.stringify({
       code,
@@ -47,7 +47,7 @@ export async function applyCoupon(code: string, purchaseType: string, targetId?:
 export async function createOrder(purchaseType: string, targetId?: string, couponCode?: string, targetName?: string) {
   const res = await fetch(`${BACKEND_URL}/api/v1/checkout/create-order`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: await authHeaders(),
     credentials: "omit",
     body: JSON.stringify({
       purchase_type: purchaseType,
@@ -71,7 +71,7 @@ export async function createOrder(purchaseType: string, targetId?: string, coupo
 export async function fetchMyTransactions() {
   const res = await fetch(`${BACKEND_URL}/api/v1/checkout/transactions`, {
     method: "GET",
-    headers: authHeaders(),
+    headers: await authHeaders(),
     credentials: "omit",
   });
 

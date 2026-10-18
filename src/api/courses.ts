@@ -1,12 +1,6 @@
-import { getStoredToken } from "@/functions/auth";
+import { getAuthHeaders } from "@/functions/auth";
 import { BACKEND_URL } from "@/config/api";
 import { CourseSummary, CourseSection } from "@/types/course";
-
-/** Shared helper — builds auth headers if a token exists. */
-function authHeaders(): HeadersInit {
-  const token = getStoredToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 export interface BatchTopicDetailItem {
   title: string;
@@ -30,7 +24,7 @@ export interface BatchTopicResponse {
  */
 export async function fetchCourses(): Promise<CourseSummary[]> {
   const res = await fetch(`${BACKEND_URL}/api/v1/courses`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch courses catalog.");
   return res.json();
@@ -41,7 +35,7 @@ export async function fetchCourses(): Promise<CourseSummary[]> {
  */
 export async function fetchCourseDetail(slug: string): Promise<CourseSummary> {
   const res = await fetch(`${BACKEND_URL}/api/v1/courses/${slug}`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch course details.");
   return res.json();
@@ -53,7 +47,7 @@ export async function fetchCourseDetail(slug: string): Promise<CourseSummary> {
 export async function fetchCourseCurriculum(slug: string): Promise<CourseSection[]> {
   try {
     const res = await fetch(`${BACKEND_URL}/api/v1/courses/${slug}/curriculum`, {
-      headers: authHeaders(),
+      headers: await getAuthHeaders(),
     });
     if (!res.ok) return [];
     return res.json();
@@ -71,13 +65,14 @@ export async function fetchBatchTopicDetails(
   topics: string[]
 ): Promise<BatchTopicResponse | null> {
   try {
+    const authHeaders = await getAuthHeaders();
     const res = await fetch(
       `${BACKEND_URL}/api/v1/courses/${courseIdOrSlug}/batch-topic-details`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...authHeaders(),
+          ...authHeaders,
         },
         body: JSON.stringify({ topics }),
       }

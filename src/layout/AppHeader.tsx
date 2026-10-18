@@ -8,11 +8,10 @@ import UserDropdown from "@/components/header/UserDropdown";
 import Separator from "@/components/ui/separator/separator";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
-import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Compass, BookOpen, Users, PanelLeftOpen, PanelLeftClose, Flame, Sparkles } from "lucide-react";
+import { BookOpen, Users, PanelLeftOpen, PanelLeftClose, Flame, Sparkles, Video } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -52,7 +51,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen, h
   };
 
   const navLinks = [
-    { name: "My Roadmap", href: "/roadmap", icon: <Compass size={18} /> },
+    { name: "Live Classes", href: "/live-sessions", icon: <Video size={18} /> },
     { name: "Masterclasses", href: "/masterclasses", icon: <BookOpen size={18} /> },
     { name: "Community", href: "/community", icon: <Users size={18} /> },
   ];
@@ -90,17 +89,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen, h
             <NavigationMenuList className="flex items-center gap-5">
               {navLinks.map((link) => (
                 <NavigationMenuItem key={link.name}>
-                  <Link href={link.href} passHref>
-                    <NavigationMenuLink
-                      className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors bg-transparent hover:bg-transparent focus:bg-transparent ${pathname === link.href
-                          ? "text-brand-500 hover:text-brand-500"
-                          : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                        }`}
-                    >
-                      <span className="text-brand-500/50">{link.icon}</span>
-                      {link.name}
-                    </NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuLink
+                    render={<Link href={link.href} />}
+                    className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors bg-transparent hover:bg-transparent focus:bg-transparent ${pathname === link.href
+                        ? "text-brand-500 hover:text-brand-500"
+                        : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      }`}
+                  >
+                    <span className="text-brand-500/50">{link.icon}</span>
+                    {link.name}
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>

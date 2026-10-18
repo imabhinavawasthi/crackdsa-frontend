@@ -2,8 +2,8 @@ import { Rocket } from "lucide-react";
 
 export default function SidebarCTA() {
   return (
-    <div className="mx-auto mb-10 w-full max-w-60 rounded-[30px] bg-linear-to-r from-brand-500 via-purple-500 to-cyan-400 p-[1.5px]">
-      <div className="rounded-[28px] border border-white/80 bg-white/95 p-4 backdrop-blur-sm transition-colors duration-300 dark:border-white/10 dark:bg-gray-950/90">
+    <div className="mx-auto mb-10 w-full rounded-[24px] bg-linear-to-r from-brand-500 via-purple-500 to-cyan-400 p-[1.5px]">
+      <div className="rounded-[22px] border border-white/80 bg-white/95 p-3.5 backdrop-blur-sm transition-colors duration-300 dark:border-white/10 dark:bg-gray-950/90">
         <p className="mb-2 text-[10px] font-semibold uppercase text-brand-500 dark:text-brand-400">
           crackdsa pro
         </p>

@@ -30,7 +30,6 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Run middleware on all paths except standard static assets and API routes
 export const config = {
   matcher: [
     /*
@@ -39,7 +38,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - static extensions (svg, png, jpg, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
   ],
 };

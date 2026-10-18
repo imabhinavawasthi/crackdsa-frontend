@@ -20,7 +20,7 @@ export default function RoutesLayout({
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
-    ? "lg:ml-[260px]"
+    ? "lg:ml-[280px]"
     : "lg:ml-[72px]";
 
   return (

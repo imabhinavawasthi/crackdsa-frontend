@@ -5,7 +5,7 @@ import Image from "next/image";
 import Logo from "@/components/common/Logo";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
-import { MoreHorizontal, ChevronDown, User, ArrowRight } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User, ArrowRight, Crown } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
   NavItem,
@@ -106,10 +106,10 @@ const AppSidebar: React.FC = () => {
     }
 
     if (item.tag) {
-      const bgClass = item.tagBg || "bg-brand-50 text-brand-600 border-brand-200 dark:bg-brand-500/10 dark:text-brand-400 dark:border-brand-500/20";
+      const bgClass = item.tagBg || "bg-brand-500/10 text-brand-600 dark:text-brand-400 border-brand-500/20";
       const colorClass = item.tagColor || "";
       return (
-        <span className={`px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded border ${bgClass} ${colorClass} select-none`}>
+        <span className={`inline-flex items-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full border shadow-2xs select-none shrink-0 ${bgClass} ${colorClass}`}>
           {item.tag}
         </span>
       );
@@ -117,7 +117,8 @@ const AppSidebar: React.FC = () => {
 
     if (item.new) {
       return (
-        <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded border bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 select-none">
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-2xs select-none shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           NEW
         </span>
       );
@@ -125,7 +126,8 @@ const AppSidebar: React.FC = () => {
 
     if (item.pro) {
       return (
-        <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs border border-transparent dark:from-amber-600 dark:to-orange-600 select-none scale-95 shrink-0">
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full border border-amber-500/25 bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 shadow-2xs select-none shrink-0">
+          <Crown className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
           PRO
         </span>
       );
@@ -138,7 +140,7 @@ const AppSidebar: React.FC = () => {
     navItems: NavItem[],
     menuType: string
   ) => (
-    <ul className="flex flex-col gap-1">
+    <ul className="flex flex-col gap-0.5">
       {navItems.map((nav, index) => (
         <li 
           key={nav.name}
@@ -156,6 +158,7 @@ const AppSidebar: React.FC = () => {
           {nav.subItems ? (
             <Link
               href={nav.path || "#"}
+              title={nav.name}
               onClick={(e) => {
                 handleSubmenuToggle(index, menuType);
                 if (!nav.path || nav.path === "#") {
@@ -164,7 +167,7 @@ const AppSidebar: React.FC = () => {
                   closeSidebarOnMobile();
                 }
               }}
-              className={`menu-item group  ${
+              className={`menu-item group ${
                 openSubmenu?.type === menuType && openSubmenu?.index === index
                   ? "menu-item-active"
                   : "menu-item-inactive"
@@ -175,12 +178,12 @@ const AppSidebar: React.FC = () => {
               }`}
             >
               {(() => {
-                const isActive = openSubmenu?.type === menuType && openSubmenu?.index === index;
+                const isItemOpen = openSubmenu?.type === menuType && openSubmenu?.index === index;
                 return (
-                  <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 ${
-                    isActive
+                  <span className={`flex items-center justify-center w-7 h-7 rounded-lg shrink-0 transition-colors duration-200 ${
+                    isItemOpen
                       ? "bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
-                      : "bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10"
+                      : "bg-gray-100/80 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-200/70 dark:group-hover:bg-white/10"
                   }`}>
                     {nav.icon}
                   </span>
@@ -188,25 +191,18 @@ const AppSidebar: React.FC = () => {
               })()}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <>
-                  <span className={`menu-item-text`}>{nav.name}</span>
-                  {renderBadge(nav) && (
-                    <span className="ml-2 flex shrink-0">{renderBadge(nav)}</span>
-                  )}
-                </>
-              )}
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <>
-                  <ChevronDown
-                    className={`ml-auto w-5 h-5 transition-transform duration-200 group-hover:hidden ${
-                      openSubmenu?.type === menuType &&
-                      openSubmenu?.index === index
-                        ? "rotate-180 text-brand-500"
-                        : ""
-                    }`}
-                  />
-                  <ArrowRight
-                    className="ml-auto w-5 h-5 text-brand-500 hidden group-hover:block transition-all duration-200"
-                  />
+                  <span className="menu-item-text">{nav.name}</span>
+                  <div className="ml-auto flex items-center gap-1.5 shrink-0 pl-1">
+                    {renderBadge(nav)}
+                    <ChevronDown
+                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                        openSubmenu?.type === menuType &&
+                        openSubmenu?.index === index
+                          ? "rotate-180 text-brand-500"
+                          : "group-hover:text-gray-600 dark:group-hover:text-gray-200"
+                      }`}
+                    />
+                  </div>
                 </>
               )}
             </Link>
@@ -214,18 +210,23 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 href={nav.path}
+                title={nav.name}
                 onClick={closeSidebarOnMobile}
                 className={`menu-item group ${
                   isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+                } ${
+                  !isExpanded && !isHovered
+                    ? "lg:justify-center"
+                    : "lg:justify-start"
                 }`}
               >
                 {(() => {
                   const itemActive = isActive(nav.path!);
                   return (
-                    <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 ${
+                    <span className={`flex items-center justify-center w-7 h-7 rounded-lg shrink-0 transition-colors duration-200 ${
                       itemActive
                         ? "bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
-                        : "bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10"
+                        : "bg-gray-100/80 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-200/70 dark:group-hover:bg-white/10"
                     }`}>
                       {nav.icon}
                     </span>
@@ -233,9 +234,11 @@ const AppSidebar: React.FC = () => {
                 })()}
                 {(isExpanded || isHovered || isMobileOpen) && (
                   <>
-                    <span className={`menu-item-text`}>{nav.name}</span>
+                    <span className="menu-item-text">{nav.name}</span>
                     {renderBadge(nav) && (
-                      <span className="ml-2 flex shrink-0">{renderBadge(nav)}</span>
+                      <div className="ml-auto flex shrink-0 items-center pl-1">
+                        {renderBadge(nav)}
+                      </div>
                     )}
                   </>
                 )}
@@ -255,11 +258,12 @@ const AppSidebar: React.FC = () => {
                     : "0px",
               }}
             >
-              <ul className="mt-1 space-y-0.5 ml-8">
+              <ul className="mt-1 space-y-0.5 ml-7 pl-2 border-l border-gray-100 dark:border-white/5">
                 {nav.subItems.map((subItem) => (
                   <li key={subItem.name}>
                     <Link
                       href={subItem.path}
+                      title={subItem.name}
                       onClick={closeSidebarOnMobile}
                       className={`menu-dropdown-item ${
                         isActive(subItem.path)
@@ -271,18 +275,18 @@ const AppSidebar: React.FC = () => {
                         <span
                           className={`shrink-0 ${
                             isActive(subItem.path)
-                              ? "menu-item-icon-active"
-                              : "menu-item-icon-inactive"
+                              ? "text-brand-500 dark:text-brand-400"
+                              : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
                           }`}
                         >
                           {subItem.icon}
                         </span>
                       )}
-                      {subItem.name}
+                      <span className="truncate whitespace-nowrap flex-1 text-left">{subItem.name}</span>
                       {renderBadge(subItem) && (
-                        <span className="flex items-center gap-1.5 ml-auto shrink-0">
+                        <div className="ml-auto flex items-center shrink-0 pl-1">
                           {renderBadge(subItem)}
-                        </span>
+                        </div>
                       )}
                     </Link>
                   </li>
@@ -298,7 +302,7 @@ const AppSidebar: React.FC = () => {
   if (!mounted) {
     return (
       <aside
-        className="fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-4 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen border-r border-gray-200 w-18 lg:translate-x-0"
+        className="fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-3 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen border-r border-gray-200 w-[72px] lg:translate-x-0"
       >
         <div className="py-4 hidden lg:flex lg:justify-center">
           <Link href="/">
@@ -316,13 +320,13 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-4 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-3 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
         ${
           isExpanded || isMobileOpen
-            ? "w-65"
+            ? "w-[280px]"
             : isHovered
-            ? "w-65"
-            : "w-18"
+            ? "w-[280px]"
+            : "w-[72px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
@@ -336,7 +340,7 @@ const AppSidebar: React.FC = () => {
     >
       <div
         className={`py-4 hidden lg:flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start px-1"
         }`}
       >
         <Logo
@@ -348,15 +352,15 @@ const AppSidebar: React.FC = () => {
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar text-[14px]">
         <nav className="mb-6">
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             {(() => {
               const sections = pathname.startsWith("/admin") ? adminSidebarSections : sidebarSections;
               return sections.map((section) => {
                 if (section.requireAuth && !isLoggedIn) {
                   return (
-                    <div key={section.key} className="">
+                    <div key={section.key} className="py-0.5">
                       <h2
-                        className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
+                        className={`mb-1 px-2.5 text-[11px] font-bold uppercase tracking-wider flex items-center leading-5 text-gray-400 dark:text-gray-500 select-none ${
                           !isExpanded && !isHovered
                             ? "lg:justify-center"
                             : "justify-start"
@@ -365,10 +369,10 @@ const AppSidebar: React.FC = () => {
                         {isExpanded || isHovered || isMobileOpen ? (
                           section.title
                         ) : (
-                          <MoreHorizontal size={20} />
+                          <MoreHorizontal size={18} />
                         )}
                       </h2>
-                      <ul className="flex flex-col gap-1">
+                      <ul className="flex flex-col gap-0.5">
                         <li>
                           <Link
                             href="/login"
@@ -377,11 +381,11 @@ const AppSidebar: React.FC = () => {
                               isActive("/login") ? "menu-item-active" : "menu-item-inactive"
                             }`}
                           >
-                            <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10`}>
+                            <span className={`flex items-center justify-center w-7 h-7 rounded-lg shrink-0 transition-colors duration-200 bg-gray-100/80 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-200/70 dark:group-hover:bg-white/10`}>
                               <User size={18} />
                             </span>
                             {(isExpanded || isHovered || isMobileOpen) && (
-                              <span className={`menu-item-text`}>Sign In</span>
+                              <span className="menu-item-text">Sign In</span>
                             )}
                           </Link>
                         </li>
@@ -391,9 +395,9 @@ const AppSidebar: React.FC = () => {
                 }
 
                 return (
-                  <div key={section.key} className="">
+                  <div key={section.key} className="py-0.5">
                     <h2
-                      className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
+                      className={`mb-1 px-2.5 text-[11px] font-bold uppercase tracking-wider flex items-center leading-5 text-gray-400 dark:text-gray-500 select-none ${
                         !isExpanded && !isHovered
                           ? "lg:justify-center"
                           : "justify-start"
@@ -402,7 +406,7 @@ const AppSidebar: React.FC = () => {
                       {isExpanded || isHovered || isMobileOpen ? (
                         section.title
                       ) : (
-                        <MoreHorizontal size={20} />
+                        <MoreHorizontal size={18} />
                       )}
                     </h2>
                     {renderMenuItems(section.items, section.key)}

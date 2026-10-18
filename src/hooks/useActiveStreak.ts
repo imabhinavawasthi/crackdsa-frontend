@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getStoredToken } from "@/functions/auth";
+import { getValidAccessToken } from "@/functions/auth";
 import { calculateActiveStreak } from "@/utils/streak";
 import { BACKEND_URL } from "@/config/api";
 
@@ -23,7 +23,7 @@ export function useActiveStreak(): number {
 
     const compute = async () => {
       try {
-        const token = getStoredToken();
+        const token = await getValidAccessToken();
         if (!token) return;
 
         const res = await fetch(`${backendUrl}/api/v1/user/assets/states`, {

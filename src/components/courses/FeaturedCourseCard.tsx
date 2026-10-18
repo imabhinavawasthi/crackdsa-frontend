@@ -1,18 +1,12 @@
-import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Zap, ArrowRight, CheckCircle2, Code2, Terminal, Cpu, Star, Users, Calendar } from "lucide-react";
+import { Zap, ArrowRight, CheckCircle2, Star, Users, Calendar } from "lucide-react";
 import { CourseSummary } from "@/types/course";
 import { formatTag } from "@/utils/string";
 import AspectFallbackImage from "@/components/common/AspectFallbackImage";
 
 export function FeaturedCourseCard({ course }: { course: CourseSummary }) {
   const upcoming = course.status === "upcoming";
-
-  // Pick an icon based on ID/category
-  let Icon = Code2;
-  if (course.id.includes("python") || course.slug.includes("python")) Icon = Terminal;
-  if (course.id.includes("os") || course.slug.includes("system-design")) Icon = Cpu;
 
   const cardContent = (
     <motion.div

@@ -1,132 +1,228 @@
-import React from 'react';
-import Link from 'next/link';
-import { ArrowRight, Calendar, Clock, Star } from 'lucide-react';
-import { CourseSummary } from '@/types/course';
-import AspectFallbackImage from '@/components/common/AspectFallbackImage';
+"use client";
 
-function formatDuration(meta: CourseSummary['metadata']): string | null {
-  if (meta?.duration_hours) return `${meta.duration_hours}h`;
-  if (meta?.duration_weeks) return `${meta.duration_weeks} weeks`;
+import React from "react";
+import Link from "next/link";
+import { ArrowRight, Clock, Play, FileCode, CheckCircle2, Crown, Sparkles } from "lucide-react";
+import { CourseSummary } from "@/types/course";
+import { CourseThumbnail } from "./CourseThumbnail";
+
+interface CourseCardProps {
+  course: CourseSummary;
+  isFeatured?: boolean;
+}
+
+/**
+ * Strips HTML tags and entities to output clean, readable plain text for card previews.
+ */
+function cleanDescription(html?: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Formats duration from real course metadata if non-zero.
+ */
+function formatDuration(meta?: CourseSummary["metadata"]): string | null {
+  if (!meta) return null;
+  if (meta.duration_hours && meta.duration_hours > 0) {
+    return `${meta.duration_hours}h`;
+  }
+  if (meta.duration_weeks && meta.duration_weeks > 0) {
+    return `${meta.duration_weeks}w`;
+  }
   return null;
 }
 
-export function CourseCard({ course, index }: { course: CourseSummary; index: number }) {
-  console.log('course card', course);
-  const upcoming = course.status === 'upcoming';
+/**
+ * Normalizes category display label.
+ */
+function formatCategory(category?: string): string {
+  if (!category) return "GENERAL";
+  const cat = category.toLowerCase().trim();
+  if (cat === "core-dsa" || cat === "dsa") return "DSA";
+  if (cat === "interview-prep") return "INTERVIEW PREP";
+  if (cat === "programming") return "PROGRAMMING";
+  if (cat === "system-design") return "SYSTEM DESIGN";
+  return category.toUpperCase();
+}
+
+export function CourseCard({ course, isFeatured = false }: CourseCardProps) {
+  const isUpcoming = course.status === "upcoming";
   const meta = course.metadata;
   const duration = formatDuration(meta);
-  const instructorNames = course.instructors?.map((i) => i.name).join(', ');
-  const discount =
-    course.original_price > course.price
-      ? Math.round(((course.original_price - course.price) / course.original_price) * 100)
-      : 0;
+  const plainDescription = cleanDescription(course.description);
+  const displayCategory = formatCategory(course.category);
+  const isCsCategory = displayCategory.includes("INTERVIEW") || displayCategory.includes("CS");
 
-  const badge = upcoming ? 'Upcoming' : course.is_popular ? 'Bestseller' : course.is_pro ? 'Pro' : null;
+  // Real pricing & discount calculation
+  const price = course.price ?? 0;
+  const originalPrice = course.original_price ?? 0;
+  const hasDiscount = Boolean(originalPrice && price && originalPrice > price);
+  const discountPercent = hasDiscount
+    ? Math.round(((originalPrice - price) / originalPrice) * 100)
+    : 0;
 
-  const cardContent = (
-    <div
-      className={`group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white font-(family-name:--font-space-grotesk) shadow-sm transition-all duration-300 dark:border-gray-800 dark:bg-gray-900 ${
-        upcoming ? '' : 'hover:shadow-brand-500/10 hover:border-brand-500/30 cursor-pointer hover:shadow-xl'
-      }`}
-    >
-      {/* Thumbnail */}
+  // Real data-driven badge
+  const badgeLabel = isUpcoming
+    ? "UPCOMING"
+    : course.is_popular
+    ? "BESTSELLER"
+    : null;
+
+  const isPrimaryAction = course.is_popular || isFeatured;
+
+  return (
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-gray-700 transition-all duration-200">
+      {/* 1. Thumbnail Area with Badges */}
       <div className="relative">
-        <AspectFallbackImage
-          src={meta?.thumbnail_url}
-          localSrc={`/images/course/${course.slug}.png`}
-          alt={`${course.title} thumbnail`}
-          title={course.title}
-        />
-        {badge && (
-          <span className="text-brand-700 absolute top-3 left-3 z-20 rounded-md bg-white px-3 py-1.5 text-[11px] font-extrabold tracking-wider uppercase shadow-sm">
-            {badge}
+        <CourseThumbnail course={course} />
+
+        {/* Real Badges: Left-pinned */}
+        {badgeLabel && (
+          <span
+            className={`absolute top-3 left-3 text-[10.5px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-xs select-none ${
+              badgeLabel === "BESTSELLER"
+                ? "bg-[#0f172a] text-white shadow-md"
+                : "bg-slate-900/80 backdrop-blur-xs text-white"
+            }`}
+          >
+            {badgeLabel}
+          </span>
+        )}
+
+        {/* Included in Pro Badge: Right-pinned */}
+        {course.is_pro && (
+          <span className="absolute top-3 right-3 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-xs select-none bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center gap-1">
+            <Crown size={11} className="fill-white" />
+            <span>Included in Pro</span>
           </span>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
-        {course.category && (
-          <span className="text-brand-600 dark:text-brand-400 mb-2 text-xs font-extrabold tracking-wider uppercase">
-            {course.category}
-          </span>
+      {/* 2. Card Body */}
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        {/* Category Label */}
+        <span
+          className={`text-[11px] font-black tracking-wider uppercase mb-1.5 ${
+            isCsCategory
+              ? "text-emerald-500 dark:text-emerald-400"
+              : "text-[#2563eb] dark:text-blue-400"
+          }`}
+        >
+          {displayCategory}
+        </span>
+
+        {/* Title */}
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-snug line-clamp-2 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          {course.title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-[13px] leading-relaxed text-slate-500 dark:text-slate-400 line-clamp-3 min-h-[58px] mb-4">
+          {plainDescription}
+        </p>
+
+        {/* Real Metadata Row - Displays ONLY fields that actually exist */}
+        {(Boolean(course.total_videos) || Boolean(course.total_problems) || duration || meta?.access_duration || course.is_pro) && (
+          <div className="pt-3.5 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium mb-4">
+            {Boolean(course.total_videos && course.total_videos > 0) && (
+              <div className="flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-xs bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                  <Play size={9} className="fill-slate-500 text-slate-500 translate-x-0.2" />
+                </span>
+                <span>{course.total_videos} lessons</span>
+              </div>
+            )}
+
+            {Boolean(course.total_problems && course.total_problems > 0) && (
+              <div className="flex items-center gap-1.5">
+                <FileCode size={13} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                <span>{course.total_problems} problems</span>
+              </div>
+            )}
+
+            {duration && (
+              <div className="flex items-center gap-1.5">
+                <Clock size={13} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                <span>{duration}</span>
+              </div>
+            )}
+
+            {(meta?.access_duration || course.is_pro) && (
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 size={13} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                <span>{meta?.access_duration || "Lifetime access"}</span>
+              </div>
+            )}
+          </div>
         )}
 
-        <h4 className="mb-1.5 text-lg leading-snug text-gray-900 dark:text-white">{course.title}</h4>
-
-        <div
-          className="prose prose-sm prose-gray dark:prose-invert line-clamp-2 max-w-none text-sm leading-relaxed text-neutral-500 dark:text-gray-400"
-          dangerouslySetInnerHTML={{ __html: course.description }}
-        />
-
-        {instructorNames && <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">By {instructorNames}</p>}
-
-        {/* Meta row */}
-        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
-          {!upcoming && meta?.rating ? (
-            <>
-              <span className="flex items-center gap-1 font-bold text-amber-600">
-                <Star size={14} className="fill-amber-500 text-amber-500" />
-                {meta.rating}
-              </span>
-              {meta.number_of_students ? <span>({meta.number_of_students.toLocaleString()})</span> : null}
-            </>
-          ) : null}
-          {duration && (
-            <>
-              {!upcoming && meta?.rating ? <span className="text-gray-300 dark:text-gray-700">·</span> : null}
-              <span className="flex items-center gap-1">
-                <Clock size={14} /> {duration}
-              </span>
-            </>
-          )}
-          {meta?.difficulty && (
-            <>
-              <span className="text-gray-300 dark:text-gray-700">·</span>
-              <span className="capitalize">{meta.difficulty}</span>
-            </>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-auto flex items-end justify-between gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
-          <div className="flex flex-col pt-4">
-            <div className="flex items-baseline gap-2">
-              {course.price === 0 ? (
-                <span className="text-2xl font-extrabold text-emerald-500">Free</span>
+        {/* 3. Card Footer: Price & CTA Row */}
+        <div className="mt-auto pt-4 flex items-center justify-between gap-3">
+          {/* Real Pricing Section */}
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-1.5">
+              {price === 0 ? (
+                <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                  Free
+                </span>
               ) : (
                 <>
-                  <span className="text-2xl font-extrabold text-gray-900 dark:text-white">₹{course.price}</span>
-                  {discount > 0 && <span className="text-sm text-gray-400 line-through">₹{course.original_price}</span>}
+                  <span className="text-xl font-black text-slate-900 dark:text-white">
+                    ₹{price.toLocaleString("en-IN")}
+                  </span>
+                  {hasDiscount && (
+                    <span className="text-xs text-slate-400 line-through font-normal">
+                      ₹{originalPrice.toLocaleString("en-IN")}
+                    </span>
+                  )}
                 </>
               )}
             </div>
-            {discount > 0 && (
-              <span className="text-brand-600 dark:text-brand-400 mt-1 text-xs font-bold">{discount}% off</span>
-            )}
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              {hasDiscount && (
+                <span className="text-xs font-bold text-[#2563eb] dark:text-blue-400">
+                  {discountPercent}% off
+                </span>
+              )}
+              {course.is_pro && (
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <Sparkles size={10} className="shrink-0" />
+                  Free with Pro
+                </span>
+              )}
+            </div>
           </div>
 
-          {upcoming ? (
-            <span className="flex items-center gap-2 rounded-lg bg-gray-50 px-5 py-3 text-sm font-semibold text-gray-400 select-none dark:bg-gray-800">
-              <Calendar size={16} /> Coming soon
+          {/* Action CTA */}
+          {isUpcoming ? (
+            <span className="inline-flex items-center px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 select-none">
+              Coming Soon
             </span>
           ) : (
-            <span className="bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 group-hover:bg-brand-500 flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition-colors group-hover:text-white">
-              View course
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-            </span>
+            <Link
+              href={`/course/${course.slug}`}
+              className={`inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer ${
+                isPrimaryAction
+                  ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-xs"
+                  : "bg-[#eff6ff] dark:bg-blue-950/40 hover:bg-[#2563eb] text-[#2563eb] hover:text-white dark:text-blue-400 dark:hover:text-white"
+              }`}
+            >
+              <span>View Course</span>
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+            </Link>
           )}
         </div>
       </div>
-    </div>
-  );
-
-  if (upcoming) {
-    return <div className="block h-full select-none">{cardContent}</div>;
-  }
-
-  return (
-    <Link href={`/course/${course.slug}`} className="block h-full focus:outline-none">
-      {cardContent}
-    </Link>
+    </article>
   );
 }

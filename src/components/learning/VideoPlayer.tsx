@@ -274,7 +274,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   if (source.type === "mock") {
     return (
       <div 
-        className={`relative w-full overflow-hidden rounded-3xl bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl aspect-video flex flex-col items-center justify-center p-8 text-center space-y-4`}
+        className={`relative w-full overflow-hidden rounded-3xl bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl aspect-video flex flex-col items-center justify-center p-8 text-center space-y-3`}
       >
         <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/10">
           <AlertCircle size={20} />
@@ -283,17 +283,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <h4 className="text-sm font-black text-red-600">Video Asset Not Available</h4>
           <p className="text-xs text-red-500/80 mt-1 font-semibold">The specified lecture video could not be resolved or is not configured.</p>
         </div>
-        {url && url !== "BasicsMemoryLayoutYouTubeId" && (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 transition-colors cursor-pointer"
-          >
-            <span>Open External Resource Link</span>
-            <ExternalLink size={12} />
-          </a>
-        )}
       </div>
     );
   }
@@ -314,9 +303,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         
         <button
           onClick={() => setHasStarted(true)}
-          className="relative z-10 w-16 h-16 rounded-full bg-brand-500/90 border border-brand-400/30 text-white flex items-center justify-center shadow-lg transition-all duration-300 transform group-hover/player:scale-110 hover:bg-brand-500 hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] cursor-pointer"
+          className="relative z-10 w-16 h-16 rounded-full bg-blue-600/90 border border-blue-400/30 text-white flex items-center justify-center shadow-lg transition-all duration-300 transform group-hover/player:scale-110 hover:bg-blue-600 hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] cursor-pointer"
         >
-          <Play fill="white" size={26} className="ml-1 text-white" />
+          <Play fill="white" size={26} className="translate-x-0.5 text-white" />
         </button>
         
         <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between">
@@ -354,10 +343,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           />
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className={`p-5 rounded-full bg-brand-500/20 backdrop-blur-md border border-brand-500/40 text-white transition-all duration-300 scale-75 opacity-0 ${
+            <div className={`p-5 rounded-full bg-blue-600/20 backdrop-blur-md border border-blue-500/40 text-white transition-all duration-300 scale-75 opacity-0 ${
               !isPlaying && !showControls ? "scale-100 opacity-100" : ""
             }`}>
-              <Play fill="white" size={32} className="ml-1" />
+              <Play fill="white" size={32} className="translate-x-0.5" />
             </div>
           </div>
 
