@@ -220,11 +220,21 @@ export default function ProgressPage() {
 
   const getBookmarkDetails = (state: any) => {
     if (state.asset_type === "problem") {
-      const problem = problems.find((p) => p.id === state.asset_id);
+      if (state.asset_id && state.asset_id.startsWith("cp:")) {
+        return {
+          title: state.metadata?.problem_name || state.metadata?.title || "CP Sheet Problem",
+          subtitle: "CP Sheet",
+          href: "/cp/newbie-to-expert",
+          icon: <Dumbbell size={12} />,
+          iconColor: "bg-blue-500/10 text-blue-500",
+          diffColor: "text-blue-500",
+        };
+      }
+      const problem = problems.find((p) => p.id === state.asset_id || p.slug === state.asset_id);
       return {
-        title: problem?.title || "Unknown Problem",
+        title: problem?.title || "Practice Problem",
         subtitle: problem?.difficulty || "Problem",
-        href: problem?.slug ? `/problem/${problem.slug}` : "#",
+        href: problem?.slug ? `/problem/${problem.slug}` : "/practice",
         icon: <Dumbbell size={12} />,
         iconColor: "bg-brand-500/10 text-brand-500",
         diffColor:

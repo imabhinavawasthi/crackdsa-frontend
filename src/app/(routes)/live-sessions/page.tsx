@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { ChevronLeft, ChevronRight, RefreshCw, BookOpen } from "lucide-react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight, RefreshCw, BookOpen, ArrowLeft } from "lucide-react";
 import { LiveClass, LiveClassCounts } from "@/types/live-class";
 import { fetchLiveClasses } from "@/api/live-classes";
 import { LiveClassesHeroBanner } from "@/components/live-classes/LiveClassesHeroBanner";
@@ -11,6 +12,7 @@ import {
   ClassStatusFilter 
 } from "@/components/live-classes/LiveClassesToolbar";
 import { LiveClassCard } from "@/components/live-classes/LiveClassCard";
+import { ProMembershipPromoCard } from "@/components/courses/ProMembershipPromoCard";
 
 export default function LiveSessionsPage() {
   const [classes, setClasses] = useState<LiveClass[]>([]);
@@ -103,6 +105,17 @@ export default function LiveSessionsPage() {
 
   return (
     <div className="w-full space-y-7 pb-16 pt-1">
+      {/* Top Navigation */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors"
+        >
+          <ArrowLeft size={14} />
+          <span>Back to Dashboard</span>
+        </Link>
+      </div>
+
       {/* 1. Deep Navy Hero Banner matching Courses Header aesthetic */}
       <LiveClassesHeroBanner />
 
@@ -252,6 +265,11 @@ export default function LiveSessionsPage() {
           )}
         </div>
       )}
+
+      {/* 7. CrackDSA Pro Membership Promo Card */}
+      <div className="pt-4">
+        <ProMembershipPromoCard />
+      </div>
     </div>
   );
 }

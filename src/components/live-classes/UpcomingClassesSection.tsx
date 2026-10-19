@@ -189,10 +189,6 @@ export function UpcomingClassesSection({
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-50 via-white to-blue-50/40 dark:from-gray-900 dark:via-gray-900 dark:to-blue-950/20 border border-slate-200/90 dark:border-gray-800 p-5 sm:p-6 shadow-2xs">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1.5 max-w-xl">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-[11px] font-bold uppercase tracking-wider">
-                <Sparkles size={12} />
-                Live Schedules
-              </div>
               <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                 No Live Sessions Scheduled Right Now
               </h3>

@@ -1,126 +1,99 @@
 import { CourseSummary, CourseSection } from '@/types/course';
 import CourseDetailCard from './CourseDetailCard/CourseDetailCard';
-import CourseDetailCardBody from './CourseDetailCard/CourseDetailCardBody';
-import CourseDetailCardHeader from './CourseDetailCard/CourseDetailCardHeader';
 import CourseCertificate from './CourseCertificate';
 import CourseCurriculum from './CourseCurriculum';
 import CourseDetailHero from './CourseDetailHero';
 import CourseInstructors from './CourseInstructors';
 import WhatWillYouLearn from './WhatWillYouLearn';
-import { getCourseIncludes, stripHtml, toStringList } from './courseDetailUtils';
+import AboutThisCourse from './AboutThisCourse';
+import CoursePrerequisites from './CoursePrerequisites';
+import { getCourseIncludes, toStringList } from './courseDetailUtils';
 
 interface CourseDetailPageProps {
   course: CourseSummary;
   curriculum: CourseSection[];
 }
 
-const Divider = () => <hr className="border-gray-200" />;
+const Divider = () => <hr className="border-gray-200 dark:border-gray-800" />;
 
-const CourseDetailPage = ({ course, curriculum }: CourseDetailPageProps) => {
+export default function CourseDetailPage({ course, curriculum }: CourseDetailPageProps) {
   const outcomes = toStringList(course.metadata?.learning_outcomes);
-  const prerequisites = toStringList(course.metadata?.prerequisites);
   const includes = getCourseIncludes(course);
-  const tags = course.tags ?? [];
 
   return (
-    <div className="bg-brand-25/40 relative">
-      {/* Mobile: thumbnail first, then title block, then purchase options */}
-      <div className="lg:hidden">
-        <CourseDetailCardHeader course={course} />
+    <div className="relative bg-white dark:bg-[#070B14] min-h-screen text-gray-900 dark:text-gray-100 transition-colors">
+      {/* 1. Hero Section with perfectly aligned desktop floating card */}
+      <CourseDetailHero 
+        course={course} 
+        curriculum={curriculum} 
+        card={<CourseDetailCard course={course} curriculum={curriculum} />}
+      />
+
+      {/* Mobile: Card rendered right below hero */}
+      <div className="px-4 py-6 lg:hidden">
+        <CourseDetailCard course={course} curriculum={curriculum} />
       </div>
 
-      <CourseDetailHero course={course} />
+      {/* 2. Top Sales Section: Features on Left alongside the floating card */}
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        {/* Left Column Area: What you'll learn & This course includes */}
+        <div className="lg:max-w-[calc(100%-420px)] xl:max-w-[calc(100%-450px)] space-y-10">
+          <WhatWillYouLearn outcomes={outcomes} />
 
-      <div className="px-4 pt-2 pb-2 lg:hidden">
-        <h2 className="text-xl font-bold text-gray-900">Purchase options</h2>
-        <div className="mt-3 rounded-lg border border-gray-200 bg-white">
-          <CourseDetailCardBody course={course} />
+          {outcomes.length > 0 && <Divider />}
+
+          {includes.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">This course includes</h2>
+              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {includes.map(({ title, subtitle, icon: Icon }) => (
+                  <div
+                    key={title}
+                    className="flex items-center gap-3.5 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/80 p-4 shadow-xs"
+                  >
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
+                      <Icon className="size-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">{title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{subtitle}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
 
-      {/* Desktop: card floats over the hero */}
-      <div className="hidden lg:pointer-events-none lg:absolute lg:inset-0 lg:z-10 lg:block lg:pt-28">
-        <div className="mx-auto flex h-full max-w-6xl items-start justify-end">
-          <div className="pointer-events-auto sticky top-24 w-full lg:w-90">
-            <CourseDetailCard course={course} />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <Divider />
+      </div>
+
+      {/* 3. Main 2-Column Section (About + Prerequisites on Left, Curriculum on Right) */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Left Column: About this course + Prerequisites */}
+          <div className="space-y-8">
+            <AboutThisCourse course={course} />
+            <CoursePrerequisites course={course} />
+          </div>
+
+          {/* Right Column: Course Curriculum */}
+          <div>
+            <CourseCurriculum curriculum={curriculum} />
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl space-y-10 px-4 py-10 lg:pr-104">
-        <WhatWillYouLearn outcomes={outcomes} />
-        {outcomes.length > 0 && <Divider />}
-
-        {/* {tags.length > 0 && (
-          <>
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">Explore the toolkit</h2>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="border-brand-200 bg-brand-50 text-brand-700 rounded-full border px-4 py-1.5 text-xs font-medium capitalize"
-                  >
-                    {tag.replace(/-/g, ' ')}
-                  </span>
-                ))}
-              </div>
-            </section>
-            <Divider />
-          </>
-        )} */}
-
-        <section>
-          <h2 className="text-2xl font-bold text-gray-900">This course includes</h2>
-          <ul className="mt-5 grid gap-5 sm:grid-cols-2">
-            {includes.map(({ title, subtitle }) => (
-              <li key={title}>
-                <p className="text-sm font-semibold text-gray-900">{title}</p>
-                <p className="text-xs text-gray-500">{subtitle}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <Divider />
-
-        <section>
-          <h2 className="text-2xl font-bold text-gray-900">About this course</h2>
-          <p className="mt-3 text-sm leading-7 text-gray-600">{stripHtml(course.description)}</p>
-        </section>
-
-        {prerequisites.length > 0 && (
-          <>
-            <Divider />
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900">Prerequisites</h2>
-              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-gray-600 marker:text-gray-400">
-                {prerequisites.map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
-            </section>
-          </>
-        )}
-
-        {curriculum.length > 0 && (
-          <>
-            <Divider />
-            <CourseCurriculum curriculum={curriculum} />
-          </>
-        )}
-
+      {/* 4. Bottom Section: Certificate & Instructors */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 space-y-10">
         <Divider />
         <CourseCertificate />
 
-        {course.instructors && course.instructors.length > 0 && (
-          <>
-            <Divider />
-            <CourseInstructors instructors={course.instructors} />
-          </>
-        )}
+        <Divider />
+        <CourseInstructors instructors={course.instructors || []} />
       </div>
     </div>
   );
-};
-
-export default CourseDetailPage;
+}

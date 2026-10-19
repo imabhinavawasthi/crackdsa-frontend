@@ -8,51 +8,14 @@ import { LayoutDashboard, ChevronRight, ArrowRight } from "lucide-react";
 import { featuredDSASheets } from "@/config/dashboard";
 import { fadeInUp, staggerContainer } from "@/utils/animations";
 
+import { SheetThumbnailArtwork } from "@/components/dsa/SheetThumbnailArtwork";
+
 function FeaturedCard({ sheet }: { sheet: any }) {
-  const [imgSrc, setImgSrc] = React.useState(`/images/${sheet.id}.png`);
-  const [isFallback, setIsFallback] = React.useState(false);
-
-  const handleImageError = () => {
-    if (!isFallback) {
-      setImgSrc("/images/sheet-background-1.png");
-      setIsFallback(true);
-    }
-  };
-
   return (
     <Link href={`/dsa-sheet/${sheet.id}`} className="block group h-full">
-      <div className="relative overflow-hidden rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm h-full transition-all hover:shadow-xl hover:-translate-y-1 hover:border-gray-300/80 dark:hover:border-gray-700/80">
-        <div className={`relative w-full aspect-video overflow-hidden bg-gradient-to-br ${sheet.color || "from-violet-500 to-indigo-650"}`}>
-          <Image
-            src={imgSrc}
-            alt={sheet.title}
-            fill
-            className="object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-            onError={handleImageError}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          
-          {isFallback && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10 bg-black/10">
-              <span className="text-sm md:text-base font-black text-white uppercase tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] select-none leading-snug">
-                {sheet.title}
-              </span>
-              <span className="text-[10px] font-bold text-violet-300 dark:text-violet-400 mt-1.5 uppercase tracking-widest drop-shadow-sm select-none">
-                {sheet.difficulty} • {sheet.problemCount} problems
-              </span>
-            </div>
-          )}
-          
-          <div className="absolute top-3 left-3 z-10">
-            <span className="rounded-md bg-white/20 backdrop-blur-md px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white border border-white/20">
-              {sheet.tag}
-            </span>
-          </div>
-          <div className="absolute bottom-3 right-3 z-10">
-            <span className="rounded-md bg-black/30 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-white">
-              {sheet.problemCount} problems
-            </span>
-          </div>
+      <div className="relative overflow-hidden rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm h-full transition-all hover:shadow-xl hover:-translate-y-1 hover:border-violet-500/40 dark:hover:border-violet-500/40">
+        <div className="relative w-full aspect-[16/10] overflow-hidden border-b border-gray-100 dark:border-gray-800/80">
+          <SheetThumbnailArtwork sheet={sheet} />
         </div>
 
         <div className="p-5">

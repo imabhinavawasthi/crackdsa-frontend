@@ -46,8 +46,7 @@ function IconWhatsapp() {
 const QUICK_LINKS = [
   { label: "Dashboard",  href: "/dashboard" },
   { label: "Courses",    href: "/courses" },
-  { label: "Learn DSA",  href: "/learn" },
-  { label: "My Roadmap", href: "/roadmap" },
+  { label: "Learn DSA",  href: "/course/dsa" },
   { label: "Progress",   href: "/progress" },
 ];
 

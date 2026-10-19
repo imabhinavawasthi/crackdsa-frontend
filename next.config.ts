@@ -73,6 +73,21 @@ const nextConfig: NextConfig = {
         destination: "/live-sessions",
         permanent: true,
       },
+      {
+        source: "/dsa-sheets",
+        destination: "/dsa-sheet",
+        permanent: true,
+      },
+      {
+        source: "/contest-editorials",
+        destination: "/contests/editorials",
+        permanent: true,
+      },
+      {
+        source: "/contests",
+        destination: "/contests/editorials",
+        permanent: true,
+      },
     ];
   },
 };

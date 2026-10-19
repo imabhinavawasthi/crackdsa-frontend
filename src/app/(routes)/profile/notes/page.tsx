@@ -11,6 +11,7 @@ import {
   Video,
   BookOpen,
   MessageSquareText,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -37,6 +38,8 @@ export default function NotesPage() {
   const [problems, setProblems] = useState<any[]>([]);
   const [videos, setVideos] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
+  const [liveClasses, setLiveClasses] = useState<any[]>([]);
+  const [cpProblems, setCpProblems] = useState<any[]>([]);
   const [userStates, setUserStates] = useState<any[]>([]);
   const [filterType, setFilterType] = useState<AssetType>("all");
 
@@ -56,12 +59,15 @@ export default function NotesPage() {
           ? { Authorization: `Bearer ${token}` }
           : undefined;
 
-        const [problemsRes, videosRes, articlesRes, statesRes] = await Promise.all([
-          fetch(`${backendUrl}/api/v1/practice-problems`, { headers }),
-          fetch(`${backendUrl}/api/v1/video-lectures`, { headers }),
-          fetch(`${backendUrl}/api/v1/articles`, { headers }),
-          fetch(`${backendUrl}/api/v1/user/assets/states`, { headers }),
-        ]);
+        const [problemsRes, videosRes, articlesRes, liveClassesRes, cpRes, statesRes] =
+          await Promise.all([
+            fetch(`${backendUrl}/api/v1/practice-problems`, { headers }),
+            fetch(`${backendUrl}/api/v1/video-lectures`, { headers }),
+            fetch(`${backendUrl}/api/v1/articles`, { headers }),
+            fetch(`${backendUrl}/api/v1/live-classes`, { headers }),
+            fetch(`${backendUrl}/api/v1/cp/newbie-to-expert`, { headers }),
+            fetch(`${backendUrl}/api/v1/user/assets/states`, { headers }),
+          ]);
 
         if (problemsRes.ok) setProblems(await problemsRes.json());
         if (videosRes.ok) {
@@ -71,6 +77,14 @@ export default function NotesPage() {
         if (articlesRes.ok) {
           const aData = await articlesRes.json();
           setArticles(Array.isArray(aData) ? aData : (aData.items || []));
+        }
+        if (liveClassesRes && liveClassesRes.ok) {
+          const lcData = await liveClassesRes.json();
+          setLiveClasses(Array.isArray(lcData) ? lcData : (lcData.items || []));
+        }
+        if (cpRes && cpRes.ok) {
+          const cpData = await cpRes.json();
+          setCpProblems(cpData.problems || []);
         }
         if (statesRes.ok) {
           setUserStates((await statesRes.json()) || []);
@@ -125,30 +139,90 @@ export default function NotesPage() {
 
   const getAssetInfo = (note: NoteEntry) => {
     if (note.asset_type === "problem") {
-      const problem = problems.find((p) => p.id === note.asset_id);
+      // 1. Check CP Sheet Problem
+      if (note.asset_id && note.asset_id.startsWith("cp:")) {
+        const rawId = note.asset_id.replace(/^cp:/, "");
+        const cp = cpProblems.find(
+          (p) => p.id === rawId || p.id === note.asset_id || p.problem_name === rawId
+        );
+        if (cp) {
+          return {
+            title: cp.problem_name,
+            href: "/cp/newbie-to-expert",
+            icon: <Trophy size={14} />,
+            iconColor: "bg-blue-500/10 text-blue-500",
+            typeLabel: `CP Problem (${cp.difficulty})`,
+          };
+        }
+        return {
+          title: "CP Sheet Problem",
+          href: "/cp/newbie-to-expert",
+          icon: <Trophy size={14} />,
+          iconColor: "bg-blue-500/10 text-blue-500",
+          typeLabel: "CP Problem",
+        };
+      }
+
+      // 2. Standard Practice Problem
+      const problem = problems.find(
+        (p) => p.id === note.asset_id || p.slug === note.asset_id
+      );
+      if (problem) {
+        return {
+          title: problem.title,
+          href: problem.slug ? `/problem/${problem.slug}` : "/practice",
+          icon: <Dumbbell size={14} />,
+          iconColor: "bg-brand-500/10 text-brand-500",
+          typeLabel: "Problem",
+        };
+      }
+
       return {
-        title: problem?.title || "Unknown Problem",
-        href: problem?.slug ? `/problem/${problem.slug}` : "#",
+        title: "Practice Problem",
+        href: "/practice",
         icon: <Dumbbell size={14} />,
         iconColor: "bg-brand-500/10 text-brand-500",
         typeLabel: "Problem",
       };
     }
     if (note.asset_type === "video") {
+      // 1. Check Live Class Recording
+      const liveClass = liveClasses.find((lc) => lc.id === note.asset_id);
+      if (liveClass) {
+        return {
+          title: liveClass.class_name,
+          href: `/live-sessions/${liveClass.id}`,
+          icon: <Video size={14} />,
+          iconColor: "bg-rose-500/10 text-rose-500",
+          typeLabel: "Live Class Recording",
+        };
+      }
+
+      // 2. Course Lecture Video
       const video = videos.find((v) => v.id === note.asset_id);
+      if (video) {
+        return {
+          title: video.title,
+          href: video.course_slug ? `/learn/${video.course_slug}` : "/learn",
+          icon: <Video size={14} />,
+          iconColor: "bg-blue-500/10 text-blue-500",
+          typeLabel: "Course Lecture",
+        };
+      }
+
       return {
-        title: video?.title || "Unknown Video",
-        href: "#",
+        title: "Video Recording",
+        href: "/live-sessions",
         icon: <Video size={14} />,
-        iconColor: "bg-blue-500/10 text-blue-500",
+        iconColor: "bg-rose-500/10 text-rose-500",
         typeLabel: "Video",
       };
     }
     if (note.asset_type === "article") {
       const article = articles.find((a) => a.id === note.asset_id);
       return {
-        title: article?.title || "Unknown Article",
-        href: "#",
+        title: article?.title || "Article",
+        href: "/learn",
         icon: <BookOpen size={14} />,
         iconColor: "bg-purple-500/10 text-purple-500",
         typeLabel: "Article",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/common/PageHeader";
 import ErrorState from "@/components/common/ErrorState";
@@ -64,6 +64,17 @@ export default function DSASheetsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-8 sm:space-y-10 pb-20 select-none">
+      {/* Top Back Navigation */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400 transition-colors"
+        >
+          <ArrowLeft size={14} />
+          <span>Back to Dashboard</span>
+        </Link>
+      </div>
+
       {/* Header Section */}
       <PageHeader
         title={
@@ -114,50 +125,20 @@ export default function DSASheetsPage() {
         </div>
       </div>
 
-      {/* Premium AI Sheet Customizer CTA */}
-      {!loading && !error && (
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[2rem] border border-violet-500/30 dark:border-violet-500/20 bg-gradient-to-br from-violet-600/10 via-indigo-650/5 to-transparent backdrop-blur-2xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6"
-        >
-          {/* Decorative Glowing Orbs */}
-          <div className="absolute -left-10 -top-10 w-40 h-40 bg-violet-500/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-fuchsia-500/20 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="relative z-10 space-y-3 flex-1">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
-              Need a Custom DSA Sheet?
-            </h2>
-            <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 font-medium max-w-2xl leading-relaxed">
-              Don&apos;t restrict yourself to static sheets. Create a customized prep plan tailored to your target companies, topics, timelines, and current coding level.
-            </p>
-          </div>
-
-          <div className="relative z-10 shrink-0">
-            <Link 
-              href="/roadmap"
-              className="inline-flex items-center gap-2 px-6 py-3.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-2xl transition-all duration-300 shadow-xl shadow-violet-600/25 hover:shadow-violet-600/40 hover:-translate-y-0.5 group cursor-pointer text-sm"
-            >
-              <span>Personalised Roadmap</span>
-              <Sparkles size={16} className="transition-transform group-hover:scale-110" />
-            </Link>
-          </div>
-        </motion.div>
-      )}
-
       {/* Loading Skeleton */}
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex flex-col h-72 rounded-[2rem] border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/40 p-8 space-y-4">
-              <Skeleton className="h-8 w-3/4 rounded-lg" />
-              <Skeleton className="h-4 w-full rounded" />
-              <Skeleton className="h-4 w-5/6 rounded" />
-              <div className="flex-grow" />
-              <div className="grid grid-cols-2 gap-4 border-t border-gray-100 dark:border-gray-800 pt-6">
-                <Skeleton className="h-8 w-20 rounded" />
-                <Skeleton className="h-8 w-20 rounded" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex flex-col rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-xs animate-pulse">
+              <div className="w-full aspect-[16/10] bg-slate-200 dark:bg-slate-800" />
+              <div className="p-6 space-y-3.5 flex-1">
+                <div className="h-6 w-3/4 rounded-lg bg-slate-200 dark:bg-slate-800" />
+                <div className="h-4 w-full rounded bg-slate-100 dark:bg-slate-800/60" />
+                <div className="h-4 w-5/6 rounded bg-slate-100 dark:bg-slate-800/60" />
+                <div className="pt-4 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between">
+                  <div className="h-4 w-20 rounded bg-slate-100 dark:bg-slate-800/60" />
+                  <div className="h-4 w-24 rounded bg-slate-100 dark:bg-slate-800/60" />
+                </div>
               </div>
             </div>
           ))}

@@ -6,7 +6,6 @@ import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import AppFooter from "@/layout/AppFooter";
 import SessionExpiredBanner from "@/components/auth/SessionExpiredBanner";
-import CrackDSAAgent from "@/components/common/CrackDSAAgent";
 import { ProGuard } from "@/components/auth/ProGuard";
 import React from "react";
 
@@ -37,7 +36,6 @@ export default function RoutesLayout({
         </div>
         <AppFooter />
       </div>
-      <CrackDSAAgent />
     </div>
   );
 }

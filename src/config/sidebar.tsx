@@ -63,7 +63,7 @@ export const dsaItems: NavItem[] = [
   {
     icon: <GraduationCap size={20} />,
     name: "DSA Course",
-    path: "/dsa",
+    path: "/course/dsa",
   },
   {
     icon: <Sheet size={20} />,
@@ -122,28 +122,22 @@ export const practiceItems = dsaItems;
 export const cpItems: NavItem[] = [
   {
     icon: <Trophy size={20} />,
-    name: "Newbie to Expert Sheet",
-    path: "/dsa-sheet/newbie-to-expert",
+    name: "Newbie to Expert",
+    path: "/cp/newbie-to-expert",
     new: true,
   },
   {
     icon: <FileCode size={20} />,
     name: "Contest Editorials",
     path: "/contests/editorials",
-  },
-  {
-    icon: <MessageCircle size={20} />,
-    name: "Post Contest Discussion",
-    path: "/contests/discussion",
-    pro: true,
-  },
+  }
 ];
 
 // ─── 4. Interview Prep Section ───────────────────────────────────────────────
 export const interviewPrepItems: NavItem[] = [
   {
     icon: <FileText size={20} />,
-    name: "CS Fundamental Notes",
+    name: "CS Fundamentals",
     path: "/cs-fundamentals",
     new: true,
   },
@@ -151,12 +145,6 @@ export const interviewPrepItems: NavItem[] = [
     icon: <Users size={20} />,
     name: "Mock Interview 1:1",
     path: "/mock-interviews",
-    pro: true,
-  },
-  {
-    icon: <HelpCircle size={20} />,
-    name: "Live Doubt Session",
-    path: "/doubt-sessions",
     pro: true,
   },
   {
@@ -194,12 +182,7 @@ export const proItems: NavItem[] = [
     name: "Pro Membership",
     path: "/pro",
     pro: true,
-  },
-  {
-    icon: <GoalIcon size={20} />,
-    name: "Pro Dashboard",
-    path: "/pro/dashboard",
-  },
+  }
 ];
 
 // ─── Sidebar Sections Registry ───────────────────────────────────────────────

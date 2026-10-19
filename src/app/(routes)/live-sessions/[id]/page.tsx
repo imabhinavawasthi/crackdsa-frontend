@@ -181,6 +181,7 @@ export default function LiveClassDetailPage() {
           <VideoPlayer
             url={classItem.class_recording}
             title={classItem.class_name}
+            thumbnailUrl={classItem.thumbnail_url || classItem.class_image || undefined}
           />
         ) : (
           <div className="w-full aspect-video rounded-2xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center p-8 space-y-3 text-center text-slate-400">

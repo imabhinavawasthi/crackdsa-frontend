@@ -6,10 +6,12 @@ import {
   Calendar, 
   Clock, 
   ArrowRight, 
+  Play,
   Code2, 
   Network, 
-  Database, 
-  FileText
+  Cpu,
+  Trophy,
+  Video
 } from "lucide-react";
 import { LiveClass } from "@/types/live-class";
 import { formatClassDateTime } from "./calendarUtils";
@@ -39,9 +41,78 @@ function formatTopicName(topic?: string | null): string {
     .join(" ");
 }
 
+/**
+ * Topic Artwork Background for classes without custom thumbnails
+ */
+function ThemedCardBackground({ topic, className = "" }: { topic?: string | null; className?: string }) {
+  const t = (topic || "").toLowerCase();
+
+  // 1. CS Fundamentals (Emerald / Dark Green)
+  if (t.includes("cs") || t.includes("os") || t.includes("dbms") || t.includes("network")) {
+    return (
+      <div className={`absolute inset-0 bg-gradient-to-br from-[#031710] via-[#06241a] to-[#010a07] overflow-hidden ${className}`}>
+        <div className="absolute -top-10 -right-10 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/30 transition-all duration-700" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-teal-600/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#10b98115_1px,transparent_1px)] [background-size:18px_18px] pointer-events-none" />
+        
+        {/* Subtle Watermark Graphic */}
+        <div className="absolute right-4 bottom-3 text-emerald-400/[0.08] pointer-events-none group-hover:text-emerald-400/[0.15] group-hover:scale-105 transition-all duration-500">
+          <Cpu size={110} strokeWidth={1.2} />
+        </div>
+      </div>
+    );
+  }
+
+  // 2. System Design / Architecture (Cyan / Cobalt Blue)
+  if (t.includes("system") || t.includes("design") || t.includes("architecture") || t.includes("cloud")) {
+    return (
+      <div className={`absolute inset-0 bg-gradient-to-br from-[#051529] via-[#082243] to-[#020b14] overflow-hidden ${className}`}>
+        <div className="absolute -top-10 -right-10 w-44 h-44 bg-sky-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-sky-500/30 transition-all duration-700" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-600/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#38bdf815_1px,transparent_1px)] [background-size:18px_18px] pointer-events-none" />
+        
+        {/* Subtle Watermark Graphic */}
+        <div className="absolute right-4 bottom-3 text-sky-400/[0.08] pointer-events-none group-hover:text-sky-400/[0.15] group-hover:scale-105 transition-all duration-500">
+          <Network size={110} strokeWidth={1.2} />
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Competitive Programming (Violet / Magenta)
+  if (t.includes("competitive") || t.includes("contest") || t.includes("codeforces") || t.includes("leetcode")) {
+    return (
+      <div className={`absolute inset-0 bg-gradient-to-br from-[#160627] via-[#240b3f] to-[#0a0212] overflow-hidden ${className}`}>
+        <div className="absolute -top-10 -right-10 w-44 h-44 bg-purple-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-purple-500/30 transition-all duration-700" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-pink-600/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#a855f715_1px,transparent_1px)] [background-size:18px_18px] pointer-events-none" />
+        
+        {/* Subtle Watermark Graphic */}
+        <div className="absolute right-4 bottom-3 text-purple-400/[0.08] pointer-events-none group-hover:text-purple-400/[0.15] group-hover:scale-105 transition-all duration-500">
+          <Trophy size={110} strokeWidth={1.2} />
+        </div>
+      </div>
+    );
+  }
+
+  // 4. Default / DSA (Royal Sapphire & Indigo)
+  return (
+    <div className={`absolute inset-0 bg-gradient-to-br from-[#050D2E] via-[#091745] to-[#030718] overflow-hidden ${className}`}>
+      <div className="absolute -top-10 -right-10 w-48 h-48 bg-blue-600/25 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-600/35 transition-all duration-700" />
+      <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-600/20 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:18px_18px] pointer-events-none" />
+      
+      {/* Subtle Watermark Graphic */}
+      <div className="absolute right-4 bottom-3 text-blue-400/[0.08] pointer-events-none group-hover:text-blue-400/[0.15] group-hover:scale-105 transition-all duration-500">
+        <Code2 size={110} strokeWidth={1.2} />
+      </div>
+    </div>
+  );
+}
+
 export function LiveClassCard({ classItem }: LiveClassCardProps) {
   const [imageError, setImageError] = useState(false);
-  const { dateLabel, timeRangeLabel, badgeDateLabel } = formatClassDateTime(
+  const { dateLabel, badgeDateLabel } = formatClassDateTime(
     classItem.class_time_epoch ?? undefined,
     classItem.class_duration ?? 60
   );
@@ -51,64 +122,35 @@ export function LiveClassCard({ classItem }: LiveClassCardProps) {
   const isUpcoming = classItem.status === "upcoming";
   const subtopics = classItem.class_subtopics || [];
 
-  // Determine topic icon
-  const nameLower = (classItem.class_name || "").toLowerCase();
-  let TopicIcon = Code2;
-  if (nameLower.includes("graph") || nameLower.includes("tree") || nameLower.includes("bfs") || nameLower.includes("dfs")) {
-    TopicIcon = Network;
-  } else if (nameLower.includes("dp") || nameLower.includes("database") || nameLower.includes("array") || nameLower.includes("sliding window")) {
-    TopicIcon = Database;
-  } else if (nameLower.includes("system design") || nameLower.includes("os") || nameLower.includes("architecture")) {
-    TopicIcon = FileText;
-  }
-
-  const imageUrl = classItem.thumbnail_url || classItem.class_image;
+  const rawImageUrl = classItem.thumbnail_url || classItem.class_image;
 
   return (
-    <div className="group flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl bg-white dark:bg-gray-900 border border-slate-200/90 dark:border-gray-800 shadow-2xs hover:shadow-md hover:border-blue-500/40 transition-all duration-300">
+    <div className="group flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl bg-white dark:bg-gray-900 border border-slate-200/90 dark:border-gray-800 shadow-xs hover:shadow-xl hover:shadow-blue-500/5 hover:border-blue-500/40 transition-all duration-300">
       <Link href={detailUrl} className="block">
         {/* 1. Square-ish Top Media Banner */}
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-[#060E2E] via-[#0b1740] to-[#040817] p-4 flex flex-col justify-between select-none">
-          {/* If custom image or YouTube thumbnail is provided and hasn't errored */}
-          {imageUrl && !imageError ? (
+        <div className="relative aspect-[16/10] w-full overflow-hidden p-4 flex flex-col justify-between select-none">
+          {/* Custom image or dynamic themed vector background */}
+          {rawImageUrl && !imageError ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={imageUrl}
+                src={rawImageUrl}
                 alt={classItem.class_name}
                 onError={() => setImageError(true)}
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/45" />
             </>
           ) : (
-            /* Premium Generated Card Artwork with Title and Date/Time */
-            <>
-              {/* Subtle background glow orbs & grid */}
-              <div className="absolute -top-12 -right-12 w-36 h-36 bg-blue-600/25 rounded-full blur-2xl pointer-events-none group-hover:bg-blue-600/35 transition-all" />
-              <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-indigo-600/20 rounded-full blur-xl pointer-events-none" />
-              <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-
-              {/* Watermark Icon */}
-              <div className="absolute right-3 bottom-2 text-white/[0.04] pointer-events-none group-hover:text-white/[0.07] group-hover:scale-110 transition-all duration-500">
-                <TopicIcon size={96} />
-              </div>
-
-              {/* Center Artwork: Title & Date Preview */}
-              <div className="relative z-10 my-auto py-2 space-y-2">
-                <h4 className="text-sm sm:text-base font-extrabold text-white line-clamp-2 leading-snug tracking-tight drop-shadow-sm group-hover:text-blue-200 transition-colors">
-                  {classItem.class_name}
-                </h4>
-
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-blue-200">
-                  <Calendar size={12} className="text-blue-400 shrink-0" />
-                  <span>{badgeDateLabel}</span>
-                  <span className="text-white/40">•</span>
-                  <span>{timeRangeLabel.split("-")[0]?.trim()}</span>
-                </div>
-              </div>
-            </>
+            <ThemedCardBackground topic={classItem.class_topic} />
           )}
+
+          {/* Centered Optical Play Button (reveals & expands on hover) */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-full bg-white/95 text-blue-600 shadow-2xl flex items-center justify-center transition-all duration-300 transform group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-[0_0_30px_rgba(37,99,235,0.6)]">
+              <Play fill="currentColor" size={24} className="translate-x-0.5" />
+            </div>
+          </div>
 
           {/* Floating Top Header Badges */}
           <div className="relative z-10 flex items-center justify-between gap-2">
@@ -134,11 +176,16 @@ export function LiveClassCard({ classItem }: LiveClassCardProps) {
             )}
           </div>
 
-          {/* Floating Bottom Info (Duration) */}
-          <div className="relative z-10 flex items-center justify-end">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-white text-[10px] font-semibold">
+          {/* Floating Bottom Info (Date & Duration) */}
+          <div className="relative z-10 flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white/90 text-[10px] font-bold border border-white/10">
+              <Calendar size={11} className="text-blue-400" />
+              <span>{badgeDateLabel}</span>
+            </span>
+
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white/90 text-[10px] font-bold border border-white/10">
               <Clock size={11} className="text-blue-400" />
-              {formatDurationMinutes(classItem.class_duration)}
+              <span>{formatDurationMinutes(classItem.class_duration)}</span>
             </span>
           </div>
         </div>
@@ -199,10 +246,11 @@ export function LiveClassCard({ classItem }: LiveClassCardProps) {
       <div className="px-5 pb-5 pt-0">
         <Link
           href={detailUrl}
-          className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-gray-800/60 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition-all duration-200 cursor-pointer shadow-2xs"
+          className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-gray-800/60 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition-all duration-200 cursor-pointer shadow-2xs group/btn"
         >
-          <span>View Session &amp; Notes</span>
-          <ArrowRight size={13} />
+          <Video size={13} className="text-blue-500 group-hover/btn:text-white transition-colors" />
+          <span>Watch Recording &amp; Notes</span>
+          <ArrowRight size={13} className="group-hover/btn:translate-x-0.5 transition-transform" />
         </Link>
       </div>
     </div>

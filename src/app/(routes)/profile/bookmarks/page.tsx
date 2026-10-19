@@ -12,6 +12,7 @@ import {
   Loader2,
   ArrowLeft,
   Filter,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -29,6 +30,8 @@ export default function BookmarksPage() {
   const [problems, setProblems] = useState<any[]>([]);
   const [videos, setVideos] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
+  const [liveClasses, setLiveClasses] = useState<any[]>([]);
+  const [cpProblems, setCpProblems] = useState<any[]>([]);
   const [userStates, setUserStates] = useState<any[]>([]);
   const [filterType, setFilterType] = useState<AssetType>("all");
 
@@ -46,12 +49,15 @@ export default function BookmarksPage() {
         const token = getStoredToken();
         const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-        const [problemsRes, videosRes, articlesRes, statesRes] = await Promise.all([
-          fetch(`${backendUrl}/api/v1/practice-problems`, { headers }),
-          fetch(`${backendUrl}/api/v1/video-lectures`, { headers }),
-          fetch(`${backendUrl}/api/v1/articles`, { headers }),
-          fetch(`${backendUrl}/api/v1/user/assets/states`, { headers }),
-        ]);
+        const [problemsRes, videosRes, articlesRes, liveClassesRes, cpRes, statesRes] =
+          await Promise.all([
+            fetch(`${backendUrl}/api/v1/practice-problems`, { headers }),
+            fetch(`${backendUrl}/api/v1/video-lectures`, { headers }),
+            fetch(`${backendUrl}/api/v1/articles`, { headers }),
+            fetch(`${backendUrl}/api/v1/live-classes`, { headers }),
+            fetch(`${backendUrl}/api/v1/cp/newbie-to-expert`, { headers }),
+            fetch(`${backendUrl}/api/v1/user/assets/states`, { headers }),
+          ]);
 
         if (problemsRes.ok) setProblems(await problemsRes.json());
         if (videosRes.ok) {
@@ -61,6 +67,14 @@ export default function BookmarksPage() {
         if (articlesRes.ok) {
           const aData = await articlesRes.json();
           setArticles(Array.isArray(aData) ? aData : (aData.items || []));
+        }
+        if (liveClassesRes && liveClassesRes.ok) {
+          const lcData = await liveClassesRes.json();
+          setLiveClasses(Array.isArray(lcData) ? lcData : (lcData.items || []));
+        }
+        if (cpRes && cpRes.ok) {
+          const cpData = await cpRes.json();
+          setCpProblems(cpData.problems || []);
         }
         if (statesRes.ok) {
           setUserStates((await statesRes.json()) || []);
@@ -99,38 +113,108 @@ export default function BookmarksPage() {
 
   const getAssetDetails = (state: any) => {
     if (state.asset_type === "problem") {
-      const problem = problems.find((p) => p.id === state.asset_id);
+      // 1. Check CP Sheet problem (starts with "cp:")
+      if (state.asset_id && state.asset_id.startsWith("cp:")) {
+        const rawId = state.asset_id.replace(/^cp:/, "");
+        const cp = cpProblems.find(
+          (p) => p.id === rawId || p.id === state.asset_id || p.problem_name === rawId
+        );
+        if (cp) {
+          return {
+            title: cp.problem_name,
+            subtitle: `CP Sheet • Rating ${cp.difficulty}`,
+            href: "/cp/newbie-to-expert",
+            icon: <Trophy size={16} />,
+            iconColor: "bg-blue-500/10 text-blue-500",
+            diffColor: "text-blue-500",
+            tags: ["Codeforces", `${cp.difficulty}`],
+          };
+        }
+        return {
+          title: state.metadata?.problem_name || state.metadata?.title || "CP Sheet Problem",
+          subtitle: "CP Sheet",
+          href: "/cp/newbie-to-expert",
+          icon: <Trophy size={16} />,
+          iconColor: "bg-blue-500/10 text-blue-500",
+          diffColor: "text-blue-500",
+          tags: ["Codeforces"],
+        };
+      }
+
+      // 2. Standard Practice Problem
+      const problem = problems.find(
+        (p) => p.id === state.asset_id || p.slug === state.asset_id
+      );
+      if (problem) {
+        return {
+          title: problem.title,
+          subtitle: problem.difficulty || "Practice Problem",
+          href: problem.slug ? `/problem/${problem.slug}` : "/practice",
+          icon: <Dumbbell size={16} />,
+          iconColor: "bg-brand-500/10 text-brand-500",
+          diffColor:
+            problem.difficulty === "Easy"
+              ? "text-emerald-500"
+              : problem.difficulty === "Hard"
+              ? "text-rose-500"
+              : "text-amber-500",
+          tags: problem.tags || [],
+        };
+      }
+
       return {
-        title: problem?.title || "Unknown Problem",
-        subtitle: problem?.difficulty || "",
-        href: problem?.slug ? `/problem/${problem.slug}` : "#",
+        title: state.metadata?.title || "Practice Problem",
+        subtitle: "Problem",
+        href: "/practice",
         icon: <Dumbbell size={16} />,
         iconColor: "bg-brand-500/10 text-brand-500",
-        diffColor:
-          problem?.difficulty === "Easy"
-            ? "text-emerald-500"
-            : problem?.difficulty === "Hard"
-            ? "text-rose-500"
-            : "text-amber-500",
-        tags: problem?.tags || [],
+        diffColor: "text-amber-500",
+        tags: [],
       };
     } else if (state.asset_type === "video") {
+      // 1. Check Live Class Recording / Session
+      const liveClass = liveClasses.find((lc) => lc.id === state.asset_id);
+      if (liveClass) {
+        return {
+          title: liveClass.class_name,
+          subtitle: "Live Class Recording",
+          href: `/live-sessions/${liveClass.id}`,
+          icon: <Video size={16} />,
+          iconColor: "bg-rose-500/10 text-rose-500",
+          diffColor: "text-rose-500",
+          tags: ["Live Class", liveClass.instructor_name || "Recording"],
+        };
+      }
+
+      // 2. Course Lecture Video
       const video = videos.find((v) => v.id === state.asset_id);
+      if (video) {
+        return {
+          title: video.title,
+          subtitle: "Course Lecture",
+          href: video.course_slug ? `/learn/${video.course_slug}` : "/learn",
+          icon: <Video size={16} />,
+          iconColor: "bg-blue-500/10 text-blue-500",
+          diffColor: "text-gray-500",
+          tags: ["Lecture"],
+        };
+      }
+
       return {
-        title: video?.title || "Unknown Video",
+        title: state.metadata?.class_name || state.metadata?.title || "Video Recording",
         subtitle: "Video",
-        href: "#", // Can't open directly easily without course context
+        href: "/live-sessions",
         icon: <Video size={16} />,
-        iconColor: "bg-blue-500/10 text-blue-500",
+        iconColor: "bg-rose-500/10 text-rose-500",
         diffColor: "text-gray-500",
         tags: [],
       };
     } else if (state.asset_type === "article") {
       const article = articles.find((a) => a.id === state.asset_id);
       return {
-        title: article?.title || "Unknown Article",
+        title: article?.title || state.metadata?.title || "Article",
         subtitle: "Article",
-        href: "#", // Can't open directly easily
+        href: "/learn",
         icon: <BookOpen size={16} />,
         iconColor: "bg-purple-500/10 text-purple-500",
         diffColor: "text-gray-500",

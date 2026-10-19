@@ -80,6 +80,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
@@ -92,6 +93,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   useEffect(() => {
     setHasStarted(false);
     setIsPlaying(false);
+    setImgError(false);
     setCurrentTime(0);
   }, [url]);
 
@@ -287,30 +289,52 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
-  // 2. Poster Preview State (if thumbnailUrl is provided and user hasn't clicked play)
-  if (thumbnailUrl && !hasStarted && source.type !== "html5") {
+  // 2. Poster Preview State (if video has not been started yet)
+  const effectiveThumbnail =
+    !imgError && (
+      thumbnailUrl ||
+      (source.type === "youtube"
+        ? `https://img.youtube.com/vi/${source.idOrUrl}/hqdefault.jpg`
+        : undefined)
+    );
+
+  if (!hasStarted && source.type !== "html5") {
     return (
       <div 
-        className={`relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl aspect-video group/player flex items-center justify-center`}
+        className="relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl aspect-video group/player flex items-center justify-center select-none"
       >
-        <AspectRatioImage
-          src={thumbnailUrl}
-          alt={title}
-          ratio="16/9"
-          className="absolute inset-0 w-full h-full opacity-80 group-hover/player:scale-105 transition-transform duration-700"
-        />
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+        {effectiveThumbnail ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={effectiveThumbnail}
+            alt={title}
+            onError={() => setImgError(true)}
+            className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover/player:scale-105 transition-transform duration-700"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#060E2E] via-[#0b1740] to-[#040817]">
+            <div className="absolute w-72 h-72 bg-blue-600/20 rounded-full blur-3xl pointer-events-none -top-12 -right-12" />
+            <div className="absolute w-64 h-64 bg-indigo-600/15 rounded-full blur-2xl pointer-events-none -bottom-8 -left-8" />
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:20px_20px]" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] transition-colors duration-300 group-hover/player:bg-black/30" />
         
+        {/* Dead-Center Play Button */}
         <button
-          onClick={() => setHasStarted(true)}
-          className="relative z-10 w-16 h-16 rounded-full bg-blue-600/90 border border-blue-400/30 text-white flex items-center justify-center shadow-lg transition-all duration-300 transform group-hover/player:scale-110 hover:bg-blue-600 hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] cursor-pointer"
+          onClick={() => {
+            setHasStarted(true);
+            setIsPlaying(true);
+          }}
+          className="relative z-10 size-16 sm:size-20 rounded-full bg-blue-600/95 hover:bg-blue-600 border border-blue-400/40 text-white flex items-center justify-center shadow-xl transition-all duration-300 transform group-hover/player:scale-110 hover:shadow-[0_0_35px_rgba(37,99,235,0.7)] cursor-pointer"
+          aria-label="Play video"
         >
-          <Play fill="white" size={26} className="translate-x-0.5 text-white" />
+          <Play fill="white" size={28} className="translate-x-0.5 text-white" />
         </button>
         
-        <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between">
-          <span className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg text-[10px] font-bold text-white border border-white/10 uppercase tracking-wide">
-            Lecture Preview: {title}
+        <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
+          <span className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/10 uppercase tracking-wide truncate max-w-[85%]">
+            {title}
           </span>
         </div>
       </div>
@@ -342,11 +366,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             preload="metadata"
           />
 
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className={`p-5 rounded-full bg-blue-600/20 backdrop-blur-md border border-blue-500/40 text-white transition-all duration-300 scale-75 opacity-0 ${
-              !isPlaying && !showControls ? "scale-100 opacity-100" : ""
-            }`}>
-              <Play fill="white" size={32} className="translate-x-0.5" />
+          <div 
+            onClick={handlePlayPause}
+            className={`absolute inset-0 flex items-center justify-center cursor-pointer transition-opacity duration-300 ${
+              !isPlaying ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className="size-16 sm:size-20 rounded-full bg-blue-600/90 border border-blue-400/40 text-white flex items-center justify-center shadow-xl transition-transform duration-300 transform hover:scale-110">
+              <Play fill="white" size={28} className="translate-x-0.5 text-white" />
             </div>
           </div>
 
