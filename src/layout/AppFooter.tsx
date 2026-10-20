@@ -2,12 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Mail, ExternalLink } from "lucide-react";
+import { Mail, ExternalLink, MapPin, Building2, Globe, Sparkles } from "lucide-react";
 import Logo from "@/components/common/Logo";
 import { SOCIALS as SOCIALS_CONST, CONTACT_INFO } from "@/constants/contact";
 
-// ─── Inline social SVGs (lucide doesn't include brand icons) ─────────────────
+// ─── Inline Social SVGs ───────────────────────────────────────────────────────
 
 function IconLinkedin() {
   return (
@@ -43,67 +42,73 @@ function IconWhatsapp() {
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const QUICK_LINKS = [
-  { label: "Dashboard",  href: "/dashboard" },
-  { label: "Courses",    href: "/courses" },
-  { label: "Learn DSA",  href: "/course/dsa" },
-  { label: "Progress",   href: "/progress" },
+const PLATFORM_LINKS = [
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Courses", href: "/courses" },
+  { label: "DSA Course", href: "/course/dsa" },
+  { label: "Progress", href: "/progress" },
 ];
 
 const PRACTICE_LINKS = [
-  { label: "Practice DSA",  href: "/practice" },
-  { label: "DSA Sheets",    href: "/dsa-sheet" },
-  { label: "Topics",        href: "/practice/topics" },
-  { label: "Companies",     href: "/practice/companies" },
-  { label: "Masterclasses", href: "/masterclasses" },
+  { label: "DSA Sheets", href: "/dsa-sheet" },
+  { label: "Newbie to Expert Sheet", href: "/cp/newbie-to-expert", badge: "Popular" },
+  { label: "Topicwise", href: "/practice/topics" },
+  { label: "Companywise", href: "/practice/companies" },
+  { label: "Contest Editorials", href: "/contests" },
 ];
 
 const COMPANY_LINKS = [
-  { label: "Community",      href: "/community" },
-  { label: "Refer & Earn",   href: "/refer-earn" },
+  { label: "Community", href: "/community" },
+  { label: "Refer & Earn", href: "/refer-earn" },
   { label: "Privacy Policy", href: "/privacy" },
-  { label: "Terms of Use",   href: "/terms" },
+  { label: "Terms of Use", href: "/terms" },
 ];
 
 const SOCIALS = [
-  { icon: <IconYoutube />,  href: SOCIALS_CONST.youtube.crackdsa,  label: "YouTube" },
+  { icon: <IconYoutube />, href: SOCIALS_CONST.youtube.crackdsa, label: "YouTube" },
   { icon: <IconLinkedin />, href: SOCIALS_CONST.linkedin.crackdsa, label: "LinkedIn" },
-  { icon: <IconTelegram />, href: SOCIALS_CONST.telegram,          label: "Telegram" },
-  { icon: <IconWhatsapp />, href: SOCIALS_CONST.whatsapp.channel,  label: "WhatsApp" },
+  { icon: <IconTelegram />, href: SOCIALS_CONST.telegram, label: "Telegram" },
+  { icon: <IconWhatsapp />, href: SOCIALS_CONST.whatsapp.channel, label: "WhatsApp" },
 ];
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Sub-component: FooterColumn ──────────────────────────────────────────────
 
 interface FooterColumnProps {
   title: string;
-  links: { label: string; href: string; external?: boolean }[];
+  links: { label: string; href: string; badge?: string; external?: boolean }[];
 }
 
 function FooterColumn({ title, links }: FooterColumnProps) {
   return (
     <div className="space-y-4">
-      <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+      <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-gray-900 dark:text-gray-100 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
         {title}
       </h4>
       <ul className="space-y-2.5">
-        {links.map(({ label, href, external }) => (
+        {links.map(({ label, href, badge, external }) => (
           <li key={label}>
             {external ? (
               <a
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-200"
+                className="group inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-200"
               >
-                {label}
-                <ExternalLink size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span>{label}</span>
+                <ExternalLink size={12} className="opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
               </a>
             ) : (
               <Link
                 href={href}
-                className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-200"
+                className="group inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-200"
               >
-                {label}
+                <span className="group-hover:translate-x-0.5 transition-transform duration-200">{label}</span>
+                {badge && (
+                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400 border border-brand-200/50 dark:border-brand-500/30">
+                    {badge}
+                  </span>
+                )}
               </Link>
             )}
           </li>
@@ -116,57 +121,150 @@ function FooterColumn({ title, links }: FooterColumnProps) {
 // ─── AppFooter ────────────────────────────────────────────────────────────────
 
 const AppFooter: React.FC = () => {
-  const year = new Date().getFullYear();
-
   return (
-    <footer className="mt-auto border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-      <div className="px-4 md:px-6 py-10 md:py-12">
+    <footer className="mt-auto border-t border-gray-200/90 dark:border-gray-800 bg-gradient-to-b from-white via-gray-50/50 to-gray-100/70 dark:from-gray-900 dark:via-gray-950/60 dark:to-gray-950 text-foreground transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8 space-y-12">
 
-        {/* Top grid: brand + 3 link columns */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+        {/* 1. Main Navigation Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
 
-          {/* Brand column — spans full width on mobile */}
-          <div className="col-span-2 lg:col-span-1 space-y-4">
-            <Logo href="/" width={130} height={34} />
-            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs">
-              Master data structures &amp; algorithms with structured courses, curated sheets, and real interview prep.
+          {/* Col 1 & 2: Brand, Value Proposition & Sister Platform Card */}
+          <div className="lg:col-span-2 space-y-5">
+            <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
+              <Logo href="/" width={150} height={36} />
+            </Link>
+
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed max-w-sm">
+              The premier platform for mastering Data Structures &amp; Algorithms, curated contest problem sheets, CS fundamentals, and accelerating your tech career with real interview mentorship.
             </p>
 
-            {/* Social icons */}
-            <div className="flex items-center gap-2 pt-1">
-              {SOCIALS.map(({ icon, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-brand-500/10 dark:hover:text-brand-400 border border-gray-200 dark:border-gray-700 transition-all duration-200"
-                >
-                  {icon}
-                </a>
-              ))}
+            {/* Social Links */}
+            <div className="space-y-2 pt-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Connect with our Community
+              </span>
+              <div className="flex items-center gap-2">
+                {SOCIALS.map(({ icon, href, label }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="w-8 h-8 rounded-xl flex items-center justify-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800/80 hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-brand-500/10 dark:hover:text-brand-400 border border-gray-200 dark:border-gray-700/80 shadow-2xs hover:scale-105 transition-all duration-200"
+                  >
+                    {icon}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Sister Platform Card */}
+            <div className="pt-2">
+              <a
+                href="https://coding75.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between p-3.5 rounded-2xl border border-blue-500/20 bg-blue-50/40 dark:bg-blue-500/5 hover:border-blue-500/40 hover:bg-blue-50/80 dark:hover:bg-blue-500/10 transition-all max-w-sm"
+              >
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    <span className="text-xs font-bold text-gray-900 dark:text-white">
+                      Sister Platform: coding75.com
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                    Learn Agentic AI and Latest Tech 🚀
+                  </p>
+                </div>
+                <ExternalLink className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </a>
             </div>
           </div>
 
-          {/* Link columns */}
-          <FooterColumn title="Platform" links={QUICK_LINKS} />
+          {/* Col 3: Platform */}
+          <FooterColumn title="Platform" links={PLATFORM_LINKS} />
+
+          {/* Col 4: Practice */}
           <FooterColumn title="Practice" links={PRACTICE_LINKS} />
-          <FooterColumn title="Company"  links={COMPANY_LINKS} />
+
+          {/* Col 5: Company */}
+          <FooterColumn title="Company" links={COMPANY_LINKS} />
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-10 pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
-            © {year} CrackDSA. All rights reserved.
-          </p>
-          <a
-            href={`mailto:${CONTACT_INFO.email}`}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
-          >
-            <Mail size={12} />
-            {CONTACT_INFO.email}
-          </a>
+        {/* 2. Corporate & Office Addresses Strip */}
+        <div className="p-6 rounded-3xl border border-gray-200/90 dark:border-gray-800 bg-white/70 dark:bg-gray-900/60 backdrop-blur-md shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                <Building2 className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-900 dark:text-white">
+                  Maa Lalita Edtech Private Limited
+                </p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  Parent entity of crackDSA &amp; coding75
+                </p>
+              </div>
+            </div>
+
+            <a
+              href={`mailto:${CONTACT_INFO.email}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100/80 dark:bg-gray-800/80 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-gray-200/80 dark:hover:bg-gray-700/80 transition-all self-start sm:self-auto"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>{CONTACT_INFO.email}</span>
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-600 dark:text-gray-400 pt-1">
+            <div className="flex items-start gap-2.5">
+              <MapPin className="w-4 h-4 text-brand-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-gray-200">Regional Office</p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                  Indiranagar, Bangalore - 208021
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5">
+              <MapPin className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-gray-200">Registered Office</p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                  Kanpur, Uttar Pradesh - 208021
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Bottom Bar: Copyright & Sister Platform Link */}
+        <div className="pt-4 border-t border-gray-200/80 dark:border-gray-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+          <div className="space-y-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+              © 2026 crackDSA™ • A part of Maa Lalita Edtech Private Limited. All rights reserved.
+            </p>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500">
+              Handcrafted for engineers preparing for FAANG, Top Tier-1 Tech &amp; Global Product Companies.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <span>Sister Platform:</span>
+            <a
+              href="https://coding75.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-bold text-brand-600 dark:text-brand-400 hover:underline"
+            >
+              <span>coding75.com</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
         </div>
 
       </div>

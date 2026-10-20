@@ -28,6 +28,8 @@ import {
   FileCode,
   FileCheck,
   Crown,
+  Rocket,
+  Gift,
 } from "lucide-react";
 import type { NavItem, SidebarSectionType, UserMenuItem } from "@/types/sidebar";
 export type { NavItem, SidebarSectionType } from "@/types/sidebar";
@@ -297,9 +299,29 @@ export const adminSidebarSections: SidebarSectionType[] = [
 
 export const userMenuItems: UserMenuItem[] = [
   {
+    name: "Dashboard",
+    path: "/dashboard",
+    icon: <Rocket size={18} />,
+  },
+  {
+    name: "My Progress",
+    path: "/progress",
+    icon: <Trophy size={18} />,
+  },
+  {
     name: "My Profile",
     path: "/profile",
     icon: <User size={18} />,
+  },
+  {
+    name: "CrackDSA Pro Pass",
+    path: "/pro",
+    icon: <Sparkles size={18} />,
+  },
+  {
+    name: "Refer & Earn",
+    path: "/refer-earn",
+    icon: <Gift size={18} />,
   },
   {
     name: "Help & Support",

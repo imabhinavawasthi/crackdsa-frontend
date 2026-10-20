@@ -17,7 +17,7 @@ export function PlatformLogo({ platform, size = 32, className = "" }: PlatformLo
   if (p.includes("codeforces") || p === "cf") {
     return (
       <div 
-        className={`flex items-center justify-center shrink-0 rounded-xl bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-gray-800 p-2 shadow-2xs ${className}`}
+        className={`flex items-center justify-center shrink-0 rounded-xl bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 p-2 shadow-2xs ${className}`}
         style={{ width: size + 16, height: size + 16 }}
       >
         <Image
@@ -35,7 +35,7 @@ export function PlatformLogo({ platform, size = 32, className = "" }: PlatformLo
   if (p.includes("leetcode") || p === "lc") {
     return (
       <div 
-        className={`flex items-center justify-center shrink-0 rounded-xl bg-amber-500/10 border border-amber-500/20 p-2 shadow-2xs ${className}`}
+        className={`flex items-center justify-center shrink-0 rounded-xl bg-amber-500/10 dark:bg-slate-800 border border-amber-500/20 dark:border-slate-700 p-2 shadow-2xs ${className}`}
         style={{ width: size + 16, height: size + 16 }}
       >
         <Image
@@ -53,7 +53,7 @@ export function PlatformLogo({ platform, size = 32, className = "" }: PlatformLo
   if (p.includes("codechef") || p === "cc") {
     return (
       <div 
-        className={`flex items-center justify-center shrink-0 rounded-xl bg-[#5B4636]/10 dark:bg-[#5B4636]/20 border border-[#5B4636]/20 p-2 shadow-2xs ${className}`}
+        className={`flex items-center justify-center shrink-0 rounded-xl bg-[#5B4636]/10 dark:bg-slate-800 border border-[#5B4636]/20 dark:border-slate-700 p-2 shadow-2xs ${className}`}
         style={{ width: size + 16, height: size + 16 }}
       >
         <Image

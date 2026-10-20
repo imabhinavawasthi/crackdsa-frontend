@@ -32,10 +32,6 @@ export default function CSFundamentalsPage() {
         <div className="absolute -bottom-20 -right-20 size-72 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-500/10 dark:bg-brand-500/15 border border-brand-500/30 text-brand-700 dark:text-brand-400 text-xs font-black uppercase tracking-wider">
-            <Sparkles size={12} className="animate-pulse" />
-            Interview Preparation Library
-          </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
             CS <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 dark:from-brand-400 dark:via-brand-500 dark:to-indigo-400">Fundamentals</span>

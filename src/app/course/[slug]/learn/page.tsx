@@ -449,20 +449,33 @@ export default function LearnPage() {
   // Access checking
   const isEnrolled = Boolean(
     isLoggedIn && (
-      user?.role === "admin" ||
-      user?.is_pro ||
+      user?.roles?.includes("admin") ||
+      user?.is_pro_active ||
       user?.enrolled_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id) ||
-      user?.pro_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id)
+      user?.pro_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id) ||
+      user?.purchased_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id)
     )
   );
 
+  // If user is not enrolled in the course, redirect directly to the course details page
+  useEffect(() => {
+    if (!loading && !isAuthLoading && !isEnrolled && courseSlug) {
+      const targetSlug = course?.slug || courseSlug;
+      router.replace(`/course/${targetSlug}`);
+    }
+  }, [loading, isAuthLoading, isEnrolled, courseSlug, course?.slug, router]);
+
   const canAccessActiveItem = isEnrolled || (activeItem && activeItem.is_free);
 
-  if (loading || isAuthLoading) {
+  if (loading || isAuthLoading || !isEnrolled) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 space-y-4">
         <div className="h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-bold text-gray-500 dark:text-gray-400">Loading your customized classroom workspace...</p>
+        <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+          {!isEnrolled && !isAuthLoading && !loading
+            ? "Redirecting to course details..."
+            : "Loading your customized classroom workspace..."}
+        </p>
       </div>
     );
   }
