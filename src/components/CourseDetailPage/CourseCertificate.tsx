@@ -100,18 +100,6 @@ export default function CourseCertificate() {
                   className="h-full w-full object-cover"
                 />
               </div>
-
-              {/* Floating Verified Pill Top-Right */}
-              <div className="absolute top-5 right-5 sm:top-6 sm:right-6 flex items-center gap-1.5 rounded-full bg-blue-600/90 text-white px-3 py-1 text-[11px] font-bold shadow-lg backdrop-blur-md">
-                <Sparkles className="size-3" />
-                <span>Verified by CrackDSA</span>
-              </div>
-
-              {/* Floating QR Tag Bottom-Left */}
-              <div className="absolute bottom-5 left-5 sm:bottom-6 sm:left-6 hidden sm:flex items-center gap-1.5 rounded-full bg-white/90 dark:bg-gray-900/90 text-gray-800 dark:text-gray-200 px-3 py-1 text-[11px] font-bold shadow-md border border-gray-200/60 dark:border-gray-700/60 backdrop-blur-md">
-                <QrCode className="size-3.5 text-blue-600 dark:text-blue-400" />
-                <span>Unique ID &amp; QR Protected</span>
-              </div>
             </div>
           </div>
         </div>

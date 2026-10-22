@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
   Sparkles,
@@ -13,7 +14,9 @@ import {
   CreditCard,
   Crown,
   Lock,
-  ShoppingBag
+  ShoppingBag,
+  RefreshCw,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import WhatsAppSupportButton from "@/components/common/WhatsAppSupportButton";
@@ -21,37 +24,64 @@ import { motion } from "framer-motion";
 import LoginRequired from "@/components/common/LoginRequired";
 import { BACKEND_URL } from "@/config/api";
 
-export default function SubscriptionPage() {
-  const { isLoggedIn, user, isLoading: isAuthLoading } = useAuth();
-  const [subscriptionDetails, setSubscriptionDetails] = React.useState<any>(null);
-  const [isDetailsLoading, setIsDetailsLoading] = React.useState(true);
+function SubscriptionContent() {
+  const { isLoggedIn, user, isLoading: isAuthLoading, refetch } = useAuth();
+  const searchParams = useSearchParams();
+  const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  React.useEffect(() => {
+  const fetchDetails = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("crackdsa_access_token");
+      if (!token) {
+        setIsDetailsLoading(false);
+        return;
+      }
+      const res = await fetch(`${BACKEND_URL}/api/v1/auth/subscription-details`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSubscriptionDetails(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch subscription details:", e);
+    } finally {
+      setIsDetailsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!isLoggedIn) {
       setIsDetailsLoading(false);
       return;
     }
-    
-    async function fetchDetails() {
-      try {
-        const token = localStorage.getItem("crackdsa_access_token");
-        const res = await fetch(`${BACKEND_URL}/api/v1/auth/subscription-details`, {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setSubscriptionDetails(data);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsDetailsLoading(false);
-      }
-    }
+
+    // Always fetch details and sync auth user state
     fetchDetails();
-  }, [isLoggedIn]);
+    refetch().catch(() => {});
+
+    // If coming with status=success (post-checkout), trigger follow-up sync to guarantee DB consistency
+    if (searchParams.get("status") === "success") {
+      const timer = setTimeout(() => {
+        fetchDetails();
+        refetch().catch(() => {});
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoggedIn, searchParams, fetchDetails, refetch]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.allSettled([fetchDetails(), refetch()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (isAuthLoading || isDetailsLoading) {
     return (
@@ -81,10 +111,19 @@ export default function SubscriptionPage() {
     );
   }
 
-  const isPro = user?.is_pro_active || false;
-  
   const proSub = subscriptionDetails?.pro_subscription || {};
   const purchasedCourses = subscriptionDetails?.purchased_courses || {};
+
+  // Instant evaluation: active if user.is_pro_active OR database pro_subscription is active
+  const nowEpoch = Math.floor(Date.now() / 1000);
+  const isProFromSub = Boolean(
+    proSub?.subscription_active_till_epoch === -1 ||
+      (typeof proSub?.subscription_active_till_epoch === "number" &&
+        proSub.subscription_active_till_epoch > nowEpoch) ||
+      proSub?.is_active === true
+  );
+
+  const isPro = Boolean(user?.is_pro_active || isProFromSub);
   
   const proSubscriptionCourses = user?.pro_courses || [];
   
@@ -138,7 +177,25 @@ export default function SubscriptionPage() {
           Back to Profile
         </Link>
 
-        <div className="flex items-center justify-between">
+        {/* Post-Payment Celebration Banner */}
+        {searchParams.get("status") === "success" && (
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-xs font-bold">
+              <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+              <span>Payment Verified! Your CrackDSA Pro membership is active. Welcome aboard 🎉</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleManualRefresh}
+              className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+            >
+              <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
+              <span>Sync</span>
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="space-y-1">
             <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
               <span className="p-2 rounded-xl bg-violet-500/10 text-violet-500">
@@ -150,6 +207,16 @@ export default function SubscriptionPage() {
               Manage your active subscription, premium benefits, and course enrollments.
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 text-xs font-bold text-gray-700 dark:text-gray-200 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={isRefreshing ? "animate-spin" : ""} />
+            <span>{isRefreshing ? "Syncing..." : "Sync Status"}</span>
+          </button>
         </div>
       </div>
 
@@ -389,5 +456,19 @@ export default function SubscriptionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SubscriptionPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-4xl mx-auto py-12 px-4 flex items-center justify-center min-h-[60vh]">
+          <Loader2 size={24} className="animate-spin text-brand-500" />
+        </div>
+      }
+    >
+      <SubscriptionContent />
+    </Suspense>
   );
 }

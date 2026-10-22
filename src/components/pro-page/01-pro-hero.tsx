@@ -12,6 +12,7 @@ import {
   Sparkles,
   Video,
   Rocket,
+  User,
 } from "lucide-react";
 import { HERO_CONFIG } from "@/config/pro-page-config";
 import { HERO_SOCIAL_LOGOS } from "@/config/pro-logos";
@@ -123,26 +124,19 @@ export function ProHero() {
 
             {/* Social Proof: 1200+ students already enrolled to pro */}
             <div className="flex items-center gap-3 pt-2">
-              <div className="flex -space-x-2.5 overflow-hidden">
-                {HERO_CONFIG.socialProof.avatars.map((avatar, idx) => (
-                  <div
-                    key={idx}
-                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-900 overflow-hidden bg-gray-200 dark:bg-gray-800"
-                  >
-                    <Image
-                      src={avatar}
-                      alt="Student"
-                      width={32}
-                      height={32}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ))}
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
+                <User className="w-4 h-4" />
               </div>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                <strong className="text-gray-900 dark:text-white font-extrabold">{HERO_CONFIG.socialProof.studentCount}</strong>{" "}
-                {HERO_CONFIG.socialProof.text}
-              </p>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <span>
+                  <strong className="text-gray-900 dark:text-white font-extrabold">{HERO_CONFIG.socialProof.studentCount}</strong>{" "}
+                  {HERO_CONFIG.socialProof.text}
+                </span>
+                <span className="text-gray-300 dark:text-gray-700 hidden sm:inline">•</span>
+                <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                  {HERO_CONFIG.socialProof.pricingNote}
+                </span>
+              </div>
             </div>
 
             {/* Quick Value Highlights */}

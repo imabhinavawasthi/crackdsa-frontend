@@ -271,12 +271,12 @@ export function LandingNavbar() {
         <div className="flex items-center gap-2 sm:gap-3">
           
           {/* Start Free Button */}
-          <Link
+          {isLoggedIn && <Link
             href="/dsa-sheet"
             className="hidden sm:inline-flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-gray-100 dark:hover:bg-gray-800/70 border border-gray-200 dark:border-gray-800 transition-all hover:border-brand-500/30"
           >
             <span>Start Learning for Free</span>
-          </Link>
+          </Link>}
 
           {/* CrackDSA Pro High-Conversion Pill */}
           <Link

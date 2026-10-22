@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, HelpCircle, Sparkles, ArrowRight } from "lucide-react";
+import { PRO_PRICING_CONFIG } from "@/config/pro-pricing";
 
 interface FAQItem {
   question: string;
@@ -45,7 +46,7 @@ const FAQS: FAQItem[] = [
     category: "Pricing & Billing",
     question: "How does the Pro pricing work? Is it really less than ₹10/day?",
     answer:
-      "Yes! Traditional coding bootcamps charge ₹50,000 to ₹1,50,000 with predatory income-share agreements. CrackDSA Pro is priced transparently from ₹799/month (~₹26/day) or ₹5,999 for 2 full years (~₹8/day) — less than ₹10 a day and cheaper than a cup of tea! There are zero hidden fees, zero loan lock-ins, and you can cancel renewal anytime with 1-click.",
+      `Yes! Traditional coding bootcamps charge ₹50,000 to ₹1,50,000 with predatory income-share agreements. CrackDSA Pro is priced transparently from ₹${PRO_PRICING_CONFIG.monthly.price}/month (~₹26/day) or ₹${PRO_PRICING_CONFIG.yearly.price.toLocaleString("en-IN")} for 2 full years (~₹8/day) — less than ₹10 a day and cheaper than a cup of tea! There are zero hidden fees, zero loan lock-ins, and you can cancel renewal anytime with 1-click.`,
   },
   {
     category: "Placements & Career",

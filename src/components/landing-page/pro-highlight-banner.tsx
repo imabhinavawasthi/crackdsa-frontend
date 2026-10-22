@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { PRO_PRICING_CONFIG } from "@/config/pro-pricing";
 import {
   Sparkles,
   ArrowRight,
@@ -70,8 +71,8 @@ export function ProHighlightBanner() {
 
   const planHighlights = [
     {
-      name: "Monthly Pro",
-      price: "₹799",
+      name: PRO_PRICING_CONFIG.monthly.name,
+      price: `₹${PRO_PRICING_CONFIG.monthly.price.toLocaleString("en-IN")}`,
       period: "/ month",
       daily: "₹26 / day",
       desc: "Flexible sprint for immediate upcoming technical interviews.",
@@ -79,17 +80,17 @@ export function ProHighlightBanner() {
       highlight: false,
     },
     {
-      name: "2-Year Pro Pass",
-      price: "₹5,999",
+      name: PRO_PRICING_CONFIG.yearly.name,
+      price: `₹${PRO_PRICING_CONFIG.yearly.price.toLocaleString("en-IN")}`,
       period: "for 2 full years",
       daily: "< ₹8 / day",
       desc: "Complete college preparation access. Continuous live classes and placement drops.",
-      badge: "🚀 Most Popular • Save ₹10,000",
+      badge: "🚀 Most Popular",
       highlight: true,
     },
     {
-      name: "Lifetime Pass",
-      price: "₹9,999",
+      name: PRO_PRICING_CONFIG.lifetime.name,
+      price: `₹${PRO_PRICING_CONFIG.lifetime.price.toLocaleString("en-IN")}`,
       period: "one-time payment",
       daily: "Pay once, learn forever",
       desc: "Permanent unrestricted access to all future batches, updates, and masterclasses.",

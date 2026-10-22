@@ -6,95 +6,114 @@
 export interface ProPricingTier {
   id: "monthly" | "yearly" | "lifetime";
   name: string;
-  tagline: string;
+  subtitle: string;
   price: number; // in INR
   originalPrice: number; // in INR
-  durationDays: number; // 30, 365, -1 for lifetime
   billingPeriod: string;
-  dailyCostEquivalent: string;
   discountPercent: number;
   highlighted?: boolean;
-  badge?: string;
-  savingsNote: string;
-  features: { title: string; subtitle?: string; included: boolean }[];
+  topBadge?: string;
+  pillBadge: string;
+  pillColor: string;
+  buttonText: string;
+  features: string[];
 }
 
 export const PRO_PRICING_CONFIG: Record<string, ProPricingTier> = {
   monthly: {
     id: "monthly",
     name: "Monthly Pro",
-    tagline: "High-intensity interview preparation with flexible monthly commitment.",
+    subtitle: "Flexible monthly access",
     price: 799,
     originalPrice: 1599,
-    durationDays: 30,
     billingPeriod: "per month",
-    dailyCostEquivalent: "₹26 / day",
     discountPercent: 50,
-    badge: "⚡ Flexible • Monthly Access",
-    savingsNote: "Save ₹800 every month",
+    pillBadge: "FLEXIBLE",
+    pillColor: "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20",
+    buttonText: "Get Monthly Pro",
     features: [
-      { title: "Complete DSA Course & Video Lectures", included: true },
-      { title: "Weekly Live DSA Classes (Interactive Problem Solving)", included: true },
-      { title: "Weekly Live Doubt Clearing Classes", included: true },
-      { title: "CS Fundamentals Notes (OS, DBMS, Networks)", included: true },
-      { title: "System Design Notes (LLD & HLD)", included: true },
-      { title: "Free Access to all Competitive Programming Content", included: true },
-      { title: "Pro Telegram/Discord Community Access", included: true },
-      { title: "Curated Tech Opportunities & Job Drops", included: true },
-      { title: "Access to Live & Recorded Masterclasses", included: true },
+      "Complete DSA Course (200+ lectures)",
+      "Weekly Live DSA Classes",
+      "Live Doubt Clearing Sessions",
+      "CP Sheets & Contest Editorials",
+      "CS Fundamentals Notes",
+      "Access to Masterclasses",
+      "Pro Community & Mentorship Chat",
+      "Curated Job Opportunities & Resources",
     ],
   },
   yearly: {
     id: "yearly",
     name: "2-Year Pro Pass",
-    tagline: "Complete college preparation access. Full 2 years of live classes, continuous doubt resolution, and placement drops.",
+    subtitle: "Complete interview preparation",
     price: 5999,
-    originalPrice: 15999,
-    durationDays: 730,
-    billingPeriod: "for 2 years (24 months)",
-    dailyCostEquivalent: "₹8 / day",
+    originalPrice: 16999,
+    billingPeriod: "",
     discountPercent: 62,
     highlighted: true,
-    badge: "🚀 Complete College Prep",
-    savingsNote: "Save ₹10,000 (Full 2-year college prep access for <₹8/day)",
+    topBadge: "MOST POPULAR",
+    pillBadge: "BEST VALUE",
+    pillColor: "bg-blue-500/20 text-blue-300 border border-blue-400/30",
+    buttonText: "Get 2-Year Pro Pass",
     features: [
-      { title: "Complete DSA Course & Video Lectures", included: true },
-      { title: "Weekly Live DSA Classes throughout 2 Full Years (730 Days)", included: true },
-      { title: "Weekly Live Doubt Clearing with Lead Mentors", included: true },
-      { title: "CS Fundamentals Notes (OS, DBMS, Networks)", included: true },
-      { title: "System Design Notes (LLD & HLD)", included: true },
-      { title: "Free Access to all Competitive Programming Content", included: true },
-      { title: "VIP Pro Community + Priority Mentor Chat", included: true },
-      { title: "Curated Tech Opportunities & Daily Hiring Drops", included: true },
-      { title: "Access to all Upcoming Masterclasses & Workshops", included: true },
+      "Everything in Monthly Pro",
+      "2 Years of Access (no renewals)",
+      "All Future Updates & New Content",
+      "All Live Classes, Recordings & Notes",
+      "Contest Editorials & CP Sheets",
+      "CS Fundamentals & System Design",
+      "Pro Community & Mentor Interaction",
+      "Curated Job Opportunities & Hiring Resources",
     ],
   },
   lifetime: {
     id: "lifetime",
     name: "Lifetime Member Pass",
-    tagline: "Pay once, learn forever. Unrestricted lifetime access across your entire software engineering career.",
+    subtitle: "Pay once, learn forever",
     price: 9999,
-    originalPrice: 29999,
-    durationDays: -1,
+    originalPrice: 20000,
     billingPeriod: "one-time payment",
-    dailyCostEquivalent: "0",
-    discountPercent: 67,
-    badge: "👑 Ultimate Career Pass",
-    savingsNote: "Save ₹20,000 forever with zero renewal fees",
+    discountPercent: 50,
+    pillBadge: "LONG-TERM",
+    pillColor: "bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20",
+    buttonText: "Get Lifetime Member Pass",
     features: [
-      { title: "Permanent Lifetime Access to Complete DSA Curriculum", included: true },
-      { title: "All Future Live Batches & Updated Lecture Modules", included: true },
-      { title: "Permanent Weekly Live Doubt Clearing Access", included: true },
-      { title: "Lifetime CS Fundamentals & System Design Updates", included: true },
-      { title: "All Future Competitive Programming Roadmaps", included: true },
-      { title: "Lifetime Membership in Pro Alumni Network", included: true },
-      { title: "Perpetual Curated Tech Opportunities & Hiring Drops", included: true },
-      { title: "Every Future Masterclass & Tech Bootcamp Included", included: true },
+      "Everything in 2-Year Pro",
+      "Lifetime Access to All Current Content",
+      "All Future Updates (Courses, Notes, Sheets)",
+      "Lifetime Access to Live Class Recordings",
+      "PRO Community — Lifetime Access",
+      "Curated Job Opportunities & Resources",
+      "No Renewals, No Hidden Fees",
+      "Best Value for Long-Term Learners",
     ],
   },
 };
 
 export const PRO_PRICING_PLANS: ProPricingTier[] = Object.values(PRO_PRICING_CONFIG);
+
+export const PRICING_TRUST_BADGES = [
+  {
+    title: "Great Value",
+    subtitle: "Save up to 62% compared to monthly billing",
+    type: "piggy",
+  },
+  {
+    title: "Flexible Plans",
+    subtitle: "Choose what fits your timeline. Cancel anytime.",
+    type: "clock",
+  },
+  {
+    title: "All-In-One Access",
+    subtitle: "Courses, live classes, practice sheets, editorials & more.",
+    type: "file",
+  },
+  {
+    title: "Join a Thriving Community",
+    subtitle: "Learn and grow with thousands of aspiring engineers.",
+    type: "users",
+  },
+];
 
 /**
  * Helper to get a pricing plan by ID with safe fallback to yearly

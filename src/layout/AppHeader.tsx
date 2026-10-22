@@ -69,7 +69,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const navLinks = [
     { name: "Courses", href: "/courses", icon: <BookOpen size={18} /> },
     { name: "Live Classes", href: "/live-sessions", icon: <Video size={18} /> },
-    { name: "Masterclasses", href: "/masterclasses", icon: <Sparkles size={18} /> },
+    // { name: "Masterclasses", href: "/masterclasses", icon: <Sparkles size={18} /> },
     { name: "Community", href: "/community", icon: <Users size={18} /> },
   ];
 
@@ -151,12 +151,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
           <div className="flex items-center justify-between w-full lg:w-auto lg:gap-3">
             <div className="flex items-center gap-2.5">
-              {isLoggedIn && user?.is_pro_active && (
+              {(
                 <>
-                  <Link href="/profile/subscription">
+                  <Link href="/pro">
                     <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-linear-to-r from-amber-500 to-orange-500 text-white rounded-lg text-xs font-extrabold uppercase tracking-widest hover:opacity-90 transition-opacity shadow-sm dark:from-amber-600 dark:to-orange-600">
                       <Sparkles size={14} className="text-amber-100" />
-                      <span>PRO</span>
+                      <span>{isLoggedIn && user?.is_pro_active ? "PRO" : "Subscribe to Pro"}</span>
                     </div>
                   </Link>
                   <Separator />

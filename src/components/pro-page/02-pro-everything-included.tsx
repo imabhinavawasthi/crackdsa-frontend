@@ -106,7 +106,7 @@ export function ProEverythingIncluded() {
                   Flagship Course
                 </span>
                 <span className="text-xs font-mono font-medium text-gray-500 dark:text-gray-400">
-                  200+ Lectures • C++, Java & Python
+                  200+ Lectures • Explained from Basics
                 </span>
               </div>
 

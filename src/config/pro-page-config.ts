@@ -26,6 +26,10 @@ import {
   Briefcase,
   Target,
   Terminal,
+  Rocket,
+  BarChart3,
+  Crown,
+  ShoppingCart,
 } from "lucide-react";
 import { PRO_PRICING_CONFIG, PRO_PRICING_PLANS } from "./pro-pricing";
 
@@ -66,13 +70,7 @@ export const HERO_CONFIG = {
   socialProof: {
     studentCount: "1,200+",
     text: "students already enrolled to pro",
-    avatars: [
-      "/pictures/abhinav.jpeg",
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
-    ],
+    pricingNote: `starts from ₹${PRO_PRICING_CONFIG.monthly.price} per month & less than ₹10 per day`,
   },
   previewCards: {
     liveClass: {
@@ -187,7 +185,7 @@ export const EVERYTHING_INCLUDED_CONFIG = {
       icon: BookOpen,
       badge: "Flagship Course",
       badgeColor: "bg-brand-500/10 text-brand-700 dark:text-brand-300 border-brand-500/20",
-      metrics: "200+ Lectures • C++, Java & Python",
+      metrics: "200+ Lectures • Explained from Basics",
       link: "/course/dsa",
       buttonText: "Open Course Curriculum",
       isPrimaryHero: true,
@@ -567,58 +565,96 @@ export const BEYOND_DSA_CONFIG = {
 // 07. WHY CRACKDSA PRO (VALUE COMPARISON) CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
 export const WHY_PRO_CONFIG = {
-  sectionTag: "Unbeatable Value",
+  sectionTag: "UNBEATABLE VALUE",
   title: "Why CrackDSA Pro?",
   subtitle:
-    "Compare the value of all structured learning, live sessions, editorials, and notes combined in one transparent subscription.",
-  standaloneItems: [
-    { name: "Complete DSA Flagship Course (206+ Videos)", standaloneValue: 6999 },
-    { name: "1 Full Year of Weekly Live Problem Solving & Doubt Classes", standaloneValue: 12000 },
-    { name: "Newbie to Expert CP Sheet + Daily Contest Editorials", standaloneValue: 3499 },
-    { name: "CS Fundamentals Revision Notes (OS, DBMS, CN, LLD)", standaloneValue: 2999 },
-    { name: "VIP Pro Community + Curated Job Opportunities", standaloneValue: 1999 },
-  ],
-  totalStandaloneValue: 27496,
-  proPriceMonthly: 799,
-  proPriceYearly: 5999,
+    "Get everything you need for complete interview preparation at a fraction of the cost. Structured learning, live mentorship, premium resources, and a supportive community — all in one plan.",
   savingsPercent: "78%",
-  comparisonTable: [
+  standalone: {
+    tag: "INDIVIDUAL PURCHASES",
+    title: "Buying Resources Separately",
+    subtitle: "Pay for each resource individually and end up spending much more.",
+    items: [
+      {
+        title: "Complete DSA Flagship Course",
+        subtitle: "206+ videos • Explained from Basics",
+        price: 6999,
+        icon: BookOpen,
+        color: "text-blue-600 bg-blue-50 dark:bg-blue-500/10 border-blue-200/60 dark:border-blue-500/20",
+      },
+      {
+        title: "2 Year of Weekly Live Classes",
+        subtitle: "Live problem solving & doubt sessions",
+        price: 12000,
+        icon: Radio,
+        color: "text-rose-500 bg-rose-50 dark:bg-rose-500/10 border-rose-200/60 dark:border-rose-500/20",
+      },
+      {
+        title: "Newbie to Expert CP Sheet + Editorials",
+        subtitle: "Topic-wise sheets • Daily contest editorials",
+        price: 3499,
+        icon: FileText,
+        color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/60 dark:border-emerald-500/20",
+      },
+      {
+        title: "CS Fundamentals Revision Notes",
+        subtitle: "OS, DBMS, CN, LLD and more",
+        price: 2999,
+        icon: Cpu,
+        color: "text-purple-600 bg-purple-50 dark:bg-purple-500/10 border-purple-200/60 dark:border-purple-500/20",
+      },
+      {
+        title: "VIP Community & Job Opportunities",
+        subtitle: "Peer learning, discussions & curated opportunities",
+        price: 1999,
+        icon: Users,
+        color: "text-pink-600 bg-pink-50 dark:bg-pink-500/10 border-pink-200/60 dark:border-pink-500/20",
+      },
+    ],
+    totalPrice: 27496,
+  },
+  proPass: {
+    tag: "ALL-IN-ONE SOLUTION",
+    title: "CrackDSA Pro",
+    subtitle: "Get complete access to all resources with one subscription.",
+    planBadge: "WITH CRACKDSA 2-YEAR PASS",
+    price: PRO_PRICING_CONFIG.yearly.price,
+    durationText: "Full 2 Years Access",
+    perDayText: "Less than ₹8/day",
+    checkpoints: [
+      "Everything included — zero separate upsells",
+      "Instant access to 206+ lectures & upcoming live cohorts",
+      "Permanent community networking & daily job alerts",
+      "Regular contest coverage, editorials, and new resources",
+      "Best value for long-term interview preparation",
+    ],
+    badges: [
+      { label: "Full Access", type: "infinity" },
+      { label: "Regular Updates", type: "play" },
+      { label: "Active Community", type: "users" },
+      { label: "Best Value", type: "star" },
+    ],
+  },
+  bottomBenefits: [
     {
-      feature: "Flagship DSA Master Curriculum",
-      crackdsaPro: "Complete 206+ Videos with Whiteboards & Code",
-      bootcamps: "Basic recordings or rigid 3-month timeline",
-      genericPlatforms: "Disorganized random free videos",
+      title: "Better Value",
+      subtitle: "Save 78% compared to individual purchases",
+      icon: BarChart3,
     },
     {
-      feature: "Weekly Live Problem Solving",
-      crackdsaPro: "Interactive live cohorts with Abhinav every week",
-      bootcamps: "TAs or batch mentors with generic slides",
-      genericPlatforms: "No live classes",
+      title: "Long-Term Access",
+      subtitle: "2 years of uninterrupted learning",
+      icon: Clock,
     },
     {
-      feature: "Weekly Live Doubt Resolution",
-      crackdsaPro: "Scheduled live doubt-solving sessions & community support",
-      bootcamps: "Slow forum ticketing system",
-      genericPlatforms: "Comment section (rarely answered)",
+      title: "Stay Ahead",
+      subtitle: "New content and updates included",
+      icon: Rocket,
     },
     {
-      feature: "Rapid Contest Editorials",
-      crackdsaPro: "Codeforces, LeetCode, CodeChef within hours",
-      bootcamps: "None (only outdated textbook problems)",
-      genericPlatforms: "Scattered community solutions",
-    },
-    {
-      feature: "CS Fundamentals & Notes",
-      crackdsaPro: "Comprehensive OS, DBMS, Networks & LLD notes",
-      bootcamps: "Extra ₹15,000 add-on fee",
-      genericPlatforms: "Textbook articles",
-    },
-    {
-      feature: "Total Investment",
-      crackdsaPro: "Starting at ₹799/mo or <₹8/day (2-Year Pass)",
-      bootcamps: "₹50,000 to ₹1,20,000",
-      genericPlatforms: "₹15,000 - ₹25,000/year",
-      highlight: true,
+      title: "Stronger Together",
+      subtitle: "Learn, discuss, and grow with a like-minded community",
+      icon: Users,
     },
   ],
 };
@@ -630,6 +666,10 @@ export const CHOOSE_PLAN_FAQS = [
   {
     q: "How does CrackDSA Pro work once I subscribe?",
     a: "Immediately upon subscribing, your account is upgraded to Pro status. You unlock instant access to all 206+ DSA video modules, problem sheets with solutions, and receive calendar invites and links for all upcoming weekly live classes and doubt clearing sessions.",
+  },
+  {
+    q: "What if I face any payment issue or activation delay?",
+    a: "If your payment gets interrupted, deducted from your bank, or your account isn't activated automatically, please don't worry! We provide dedicated 24/7 WhatsApp support. Simply tap the WhatsApp button below or message our support number with your transaction details, and our team will resolve it and activate your Pro access immediately.",
   },
   {
     q: "What if I am a complete beginner in programming?",
@@ -646,5 +686,9 @@ export const CHOOSE_PLAN_FAQS = [
   {
     q: "Can I upgrade my monthly subscription to the 2-Year or Lifetime Pass later?",
     a: "Yes! You can upgrade your subscription at any time directly from your profile settings. Any unused balance can be adjusted towards your upgraded pass.",
+  },
+  {
+    q: "What is your refund policy?",
+    a: "We have a strict no-refund policy because instant access to the entire proprietary curriculum, 206+ lectures, problem sheets, and editorial archives is unlocked immediately upon purchase. However, we 100% guarantee top-tier, industry-leading content built by mentors from top tier-1 tech companies. We take extreme pride in the quality, depth, and practical relevance of every single resource.",
   }
 ];

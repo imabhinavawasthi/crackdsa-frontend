@@ -5,16 +5,16 @@ import Link from "next/link";
 import {
   Crown,
   Check,
-  Sparkles,
   ArrowRight,
   HelpCircle,
-  MessageSquare,
-  ShieldCheck,
   ChevronDown,
+  BarChart3,
   Clock,
-  ExternalLink,
+  FileText,
+  Users,
+  BadgePercent,
 } from "lucide-react";
-import { PRO_PRICING_PLANS } from "@/config/pro-pricing";
+import { PRO_PRICING_PLANS, PRICING_TRUST_BADGES } from "@/config/pro-pricing";
 import { CHOOSE_PLAN_FAQS } from "@/config/pro-page-config";
 import { CONTACT_INFO } from "@/constants/contact";
 
@@ -26,7 +26,11 @@ function IconWhatsapp() {
   );
 }
 
-export function ProPricingPlans() {
+interface ProPricingPlansProps {
+  onSelectPlan?: (planId: "monthly" | "yearly" | "lifetime") => void;
+}
+
+export function ProPricingPlans({ onSelectPlan }: ProPricingPlansProps = {}) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const toggleFaq = (idx: number) => {
@@ -34,134 +38,264 @@ export function ProPricingPlans() {
   };
 
   return (
-    <section id="pricing" className="py-16 sm:py-24 relative overflow-hidden bg-gray-50/50 dark:bg-gray-950/40 border-t border-gray-200/80 dark:border-gray-800/80">
-      
-      {/* Background Ambient Glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-brand-500/10 blur-[150px] pointer-events-none rounded-full" />
+    <section
+      id="pricing"
+      className="py-16 sm:py-24 relative overflow-hidden bg-gradient-to-b from-blue-50/40 via-white to-blue-50/30 dark:from-[#070b12] dark:via-[#090f19] dark:to-[#070b12] border-t border-blue-100/60 dark:border-gray-800/80"
+    >
+      {/* Background Subtle Doodle Wave Vectors */}
+      <div className="absolute top-12 left-10 w-32 h-16 pointer-events-none opacity-20 dark:opacity-10 hidden md:block">
+        <svg viewBox="0 0 100 40" fill="none" stroke="currentColor" className="text-blue-500 w-full h-full">
+          <path d="M0 20 Q 25 0, 50 20 T 100 20" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </div>
+      <div className="absolute top-16 right-12 w-32 h-16 pointer-events-none opacity-20 dark:opacity-10 hidden md:block">
+        <svg viewBox="0 0 100 40" fill="none" stroke="currentColor" className="text-blue-500 w-full h-full">
+          <path d="M0 20 Q 25 35, 50 20 T 100 20" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-        
-        {/* Section Header */}
-        <div className="text-center space-y-3 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-700 dark:text-brand-300 text-xs font-black uppercase tracking-wider">
-            <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            <span>Section 08 • Choose Your Plan</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16 relative z-10">
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* SECTION HEADER                                               */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        <div className="text-center space-y-4 max-w-3xl mx-auto">
+          {/* Top Crown Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-300 text-xs font-black uppercase tracking-wider shadow-xs">
+            <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+            <span>CHOOSE YOUR PLAN</span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
-            Transparent Pricing. Everything Unlocked.
+          {/* Big Title */}
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            Less than the price of{" "}
+            <span className="text-blue-600 dark:text-blue-500">
+              a cup of tea per day.
+            </span>
           </h2>
 
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-            Choose the membership that matches your college timeline. Cancel anytime with zero hidden fees.
+          {/* Subtitle */}
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed font-normal max-w-2xl mx-auto">
+            Get complete access to structured learning, live mentorship, premium resources, and a supportive community. Cancel anytime with zero hidden fees.
           </p>
         </div>
 
-        {/* ── 3 Pricing Cards ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch pt-4">
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* 3 PRICING CARDS                                              */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch pt-4">
           {PRO_PRICING_PLANS.map((plan) => {
             const isHighlighted = !!plan.highlighted;
 
             return (
               <div
                 key={plan.id}
-                className={`group relative rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 ${
+                className={`group relative rounded-[28px] p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 ${
                   isHighlighted
-                    ? "bg-gradient-to-b from-brand-900 via-gray-900 to-gray-950 text-white border-2 border-brand-500 shadow-2xl shadow-brand-500/25 md:-translate-y-2"
-                    : "bg-white/90 dark:bg-gray-900/90 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 shadow-xl hover:border-brand-500/40"
+                    ? "bg-[#0b1b36] text-white border-2 border-blue-500 shadow-2xl shadow-blue-500/20 lg:-translate-y-2"
+                    : "bg-white dark:bg-[#0c121e] text-gray-900 dark:text-white border border-gray-200/90 dark:border-gray-800 shadow-xl shadow-gray-500/5 hover:border-blue-300 dark:hover:border-gray-700"
                 }`}
               >
-                {/* Popular / Recommended Pill */}
-                {plan.badge && (
+                {/* Highlight Top Tab: MOST POPULAR */}
+                {plan.topBadge && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black uppercase tracking-wider shadow-md">
-                      {plan.badge}
+                    <span className="px-4 py-1 rounded-t-xl bg-gradient-to-r from-amber-400 to-amber-500 text-gray-950 font-black text-[11px] uppercase tracking-wider shadow-md flex items-center gap-1.5">
+                      <Crown className="w-3.5 h-3.5 fill-gray-950 text-gray-950" />
+                      {plan.topBadge}
                     </span>
                   </div>
                 )}
 
                 <div className="space-y-6">
-                  {/* Tier Title & Tagline */}
-                  <div className="space-y-1.5 text-left">
-                    <h3 className="text-2xl font-black">
-                      {plan.name}
-                    </h3>
-                    <p className={`text-xs ${isHighlighted ? "text-gray-300" : "text-gray-500 dark:text-gray-400"} leading-relaxed`}>
-                      {plan.tagline}
-                    </p>
-                  </div>
-
-                  {/* Pricing Numbers */}
-                  <div className="text-left space-y-1 border-y border-gray-200/40 dark:border-gray-800 py-4">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-5xl font-black font-mono">
-                        ₹{plan.price.toLocaleString("en-IN")}
-                      </span>
-                      <span className={`text-xs font-mono font-bold ${isHighlighted ? "text-gray-400" : "text-gray-500"}`}>
-                        {plan.billingPeriod}
-                      </span>
+                  {/* Top Row: Icon + Title + Pill Badge */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                          isHighlighted
+                            ? "bg-blue-600/30 text-blue-400 border border-blue-400/30"
+                            : "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20"
+                        }`}
+                      >
+                        <BarChart3 className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-black tracking-tight leading-tight">
+                          {plan.name}
+                        </h3>
+                        <p
+                          className={`text-xs ${
+                            isHighlighted ? "text-blue-200" : "text-gray-500 dark:text-gray-400"
+                          } pt-0.5`}
+                        >
+                          {plan.subtitle}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="line-through text-gray-400 dark:text-gray-500 font-mono">
-                        ₹{plan.originalPrice.toLocaleString("en-IN")}
+                    <span
+                      className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider shrink-0 ${plan.pillColor}`}
+                    >
+                      {plan.pillBadge}
+                    </span>
+                  </div>
+
+                  {/* Pricing Block */}
+                  <div
+                    className={`space-y-2 border-y py-4 ${
+                      isHighlighted ? "border-blue-900/60" : "border-gray-100 dark:border-gray-800"
+                    }`}
+                  >
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight">
+                        ₹{plan.price.toLocaleString("en-IN")}
                       </span>
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
-                        Save {plan.discountPercent}%
-                      </span>
-                      {plan.dailyCostEquivalent !== "0" && (
-                        <span className={`font-mono font-bold ${isHighlighted ? "text-amber-300" : "text-amber-600 dark:text-amber-400"}`}>
-                          • {plan.dailyCostEquivalent}
+                      {plan.billingPeriod && (
+                        <span
+                          className={`text-xs font-semibold ${
+                            isHighlighted ? "text-gray-400" : "text-gray-500 dark:text-gray-400"
+                          }`}
+                        >
+                          {plan.billingPeriod}
                         </span>
                       )}
                     </div>
+
+                    {/* Discount & Savings Pill */}
+                    <div className="flex items-center gap-2 text-xs">
+                      {isHighlighted ? (
+                        <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-200 font-bold text-xs border border-blue-400/20 flex items-center gap-1.5">
+                          <span>Save {plan.discountPercent}%</span>
+                          <span>•</span>
+                          <span className="text-amber-400 font-bold">Less than ₹8/day</span>
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs border border-emerald-200/60 dark:border-emerald-500/20">
+                          Save {plan.discountPercent}%
+                        </span>
+                      )}
+
+                      <span
+                        className={`line-through font-mono text-xs ${
+                          isHighlighted ? "text-gray-400" : "text-gray-400 dark:text-gray-500"
+                        }`}
+                      >
+                        ₹{plan.originalPrice.toLocaleString("en-IN")}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Features Checklist */}
-                  <div className="space-y-3 text-left">
-                    <p className={`text-[10px] font-black uppercase tracking-wider ${isHighlighted ? "text-brand-300" : "text-gray-500 dark:text-gray-400"}`}>
-                      What&apos;s Included:
-                    </p>
-                    <ul className="space-y-2.5 text-xs">
-                      {plan.features.map((feat, i) => (
-                        <li key={i} className="flex items-start gap-2.5">
-                          <Check className={`w-4 h-4 shrink-0 mt-0.5 ${isHighlighted ? "text-brand-400" : "text-brand-500"}`} />
-                          <span className={isHighlighted ? "text-gray-200" : "text-gray-700 dark:text-gray-300"}>
-                            {feat.title}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {/* Checklist (8 Items) */}
+                  <ul className="space-y-3 text-xs">
+                    {plan.features.map((feat, i) => (
+                      <li key={i} className="flex items-start gap-2.5">
+                        {isHighlighted ? (
+                          <div className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                            <Check className="w-2.5 h-2.5 stroke-[3]" />
+                          </div>
+                        ) : (
+                          <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5 stroke-[2.5]" />
+                        )}
+                        <span
+                          className={`leading-snug ${
+                            isHighlighted ? "text-gray-200" : "text-gray-700 dark:text-gray-300"
+                          }`}
+                        >
+                          {feat}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                {/* Card CTA */}
-                <div className="pt-6 mt-6 border-t border-gray-200/40 dark:border-gray-800">
-                  <Link
-                    href={`/checkout/pro?plan=${plan.id}`}
-                    className={`w-full py-3.5 px-6 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all ${
-                      isHighlighted
-                        ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-amber-500/25 hover:shadow-amber-500/40"
-                        : "bg-brand-600 hover:bg-brand-500 text-white shadow-brand-500/20 hover:shadow-brand-500/30"
-                    }`}
-                  >
-                    <span>Get {plan.name}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-
-                  <p className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-2">
-                    {plan.savingsNote}
-                  </p>
+                {/* Bottom CTA Button */}
+                <div className="pt-6 mt-6">
+                  {onSelectPlan ? (
+                    <button
+                      type="button"
+                      onClick={() => onSelectPlan(plan.id)}
+                      className={`w-full py-3.5 px-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        isHighlighted
+                          ? "bg-blue-600 hover:bg-blue-500 active:scale-95 text-white shadow-lg shadow-blue-500/30"
+                          : "border border-blue-200 hover:border-blue-500 hover:bg-blue-50/50 dark:border-gray-700 dark:hover:border-blue-500 dark:hover:bg-gray-800 text-blue-600 dark:text-blue-400"
+                      }`}
+                    >
+                      <span>{plan.buttonText}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/checkout/pro?plan=${plan.id}`}
+                      className={`w-full py-3.5 px-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+                        isHighlighted
+                          ? "bg-blue-600 hover:bg-blue-500 active:scale-95 text-white shadow-lg shadow-blue-500/30"
+                          : "border border-blue-200 hover:border-blue-500 hover:bg-blue-50/50 dark:border-gray-700 dark:hover:border-blue-500 dark:hover:bg-gray-800 text-blue-600 dark:text-blue-400"
+                      }`}
+                    >
+                      <span>{plan.buttonText}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* ── Interactive Frequently Asked Questions ── */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* BOTTOM VALUE STRIP (4 TRUST BADGES)                          */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        <div className="rounded-[28px] border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-[#0c121e] p-6 shadow-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {PRICING_TRUST_BADGES.map((badge, idx) => {
+              const renderIcon = () => {
+                if (badge.type === "piggy")
+                  return (
+                    <div className="w-11 h-11 rounded-2xl bg-purple-50 dark:bg-purple-500/10 border border-purple-200/60 dark:border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                      <BadgePercent className="w-5 h-5" />
+                    </div>
+                  );
+                if (badge.type === "clock")
+                  return (
+                    <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                  );
+                if (badge.type === "file")
+                  return (
+                    <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                  );
+                return (
+                  <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                    <Users className="w-5 h-5" />
+                  </div>
+                );
+              };
+
+              return (
+                <div key={idx} className="flex items-center gap-3.5 text-left">
+                  {renderIcon()}
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                      {badge.title}
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                      {badge.subtitle}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* INTERACTIVE FREQUENTLY ASKED QUESTIONS                       */}
+        {/* ───────────────────────────────────────────────────────────── */}
         <div className="max-w-4xl mx-auto space-y-6 pt-6 text-left">
           <div className="text-center space-y-2">
-            <span className="text-xs font-mono font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">
+            <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
               Have Doubts?
             </span>
             <h3 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
@@ -180,15 +314,15 @@ export function ProPricingPlans() {
                   <button
                     type="button"
                     onClick={() => toggleFaq(idx)}
-                    className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-gray-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 cursor-pointer"
+                    className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
                   >
                     <span className="flex items-center gap-3">
-                      <HelpCircle className="w-4 h-4 text-brand-500 shrink-0" />
+                      <HelpCircle className="w-4 h-4 text-blue-500 shrink-0" />
                       {faq.q}
                     </span>
                     <ChevronDown
                       className={`w-4 h-4 text-gray-500 transition-transform duration-300 shrink-0 ${
-                        isOpen ? "rotate-180 text-brand-500" : ""
+                        isOpen ? "rotate-180 text-blue-500" : ""
                       }`}
                     />
                   </button>
@@ -202,71 +336,39 @@ export function ProPricingPlans() {
               );
             })}
           </div>
-        </div>
 
-        {/* ── WhatsApp Direct Consultation Banner ── */}
-        <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-brand-600/10 via-indigo-600/10 to-emerald-600/10 border border-brand-500/20 text-center relative overflow-hidden backdrop-blur-md max-w-4xl mx-auto space-y-5">
-          <div className="space-y-2">
-            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
-              Still have questions about CrackDSA Pro?
-            </h3>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 max-w-lg mx-auto leading-relaxed">
-              Our mentor team is available directly on WhatsApp to guide you on syllabus fit, batch schedules, and customized college roadmaps.
-            </p>
-          </div>
+          {/* WhatsApp Direct Help Banner with 24/7 Support */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-500 text-white shrink-0 shadow-sm">
+                <IconWhatsapp />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 justify-center sm:justify-start">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">
+                    Payment Issue or Queries? 24/7 WhatsApp Support
+                  </p>
+                  <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase">
+                    24/7 Active
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-300 pt-0.5">
+                  Faced any bank deduction, activation delay, or have queries? Chat directly with our team for instant resolution.
+                </p>
+              </div>
+            </div>
 
-          <div>
             <a
-              href={`https://wa.me/${CONTACT_INFO.whatsapp.replace("+", "")}?text=Hi%20CrackDSA!%20I%20have%20questions%20regarding%20CrackDSA%20Pro%20subscription.`}
+              href={`https://wa.me/${CONTACT_INFO.whatsapp}?text=Hi%20CrackDSA%20team,%20I%20have%20questions%20or%20need%20help%20with%20Pro%20subscription%20payment.`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-7 py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-500/25 hover:scale-105 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-md transition-all shrink-0 flex items-center gap-2 cursor-pointer"
             >
               <IconWhatsapp />
-              <span>Chat with Mentors on WhatsApp</span>
+              <span>Chat on WhatsApp</span>
             </a>
           </div>
         </div>
-
-        {/* ── Final High-Impact Subscription CTA Banner ── */}
-        <div className="p-8 sm:p-14 rounded-3xl bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-700 text-white shadow-2xl text-center space-y-6 max-w-5xl mx-auto">
-          <div className="space-y-3">
-            <span className="inline-block px-3 py-1 rounded-full bg-white/15 text-white text-xs font-black uppercase tracking-wider">
-              Limited Intake Cohort
-            </span>
-            <h3 className="text-3xl sm:text-5xl font-black tracking-tight">
-              Transform Your Career with CrackDSA Pro
-            </h3>
-            <p className="text-sm sm:text-base text-brand-100 max-w-2xl mx-auto leading-relaxed">
-              Join 50,000+ ambitious software engineers from 100+ colleges across India and crack tier-1 product companies.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <a
-              href="#pricing"
-              className="px-8 py-4 rounded-2xl bg-white text-gray-950 font-black text-sm sm:text-base shadow-xl hover:bg-gray-100 active:scale-95 transition-all cursor-pointer"
-            >
-              Get Started Now (From ₹799/mo) →
-            </a>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-brand-100 font-semibold pt-2">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-300" />
-              <span>Instant Dashboard Access</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-300" />
-              <span>All 206+ Video Lectures Included</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-300" />
-              <span>Weekly Live Doubt Hours</span>
-            </span>
-          </div>
-        </div>
-
       </div>
     </section>
   );

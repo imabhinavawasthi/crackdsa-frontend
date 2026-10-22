@@ -2,6 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Minus, Crown } from "lucide-react";
 import Link from "next/link";
+import { PRO_PRICING_CONFIG } from "@/config/pro-pricing";
 
 interface CompareProModalProps {
   isOpen: boolean;
@@ -92,7 +93,7 @@ export function CompareProModal({ isOpen, onClose, courseTitle = "This Course", 
                     </td>
                     <td className="pt-8 px-4 text-center relative">
                       <div className="absolute -inset-x-4 inset-y-0 bg-brand-500/5 rounded-b-3xl -z-10 border-x border-b border-brand-500/20" />
-                      <div className="text-2xl font-black text-brand-600 dark:text-brand-400 mb-4">₹999<span className="text-sm text-gray-400 font-bold">/mo</span></div>
+                      <div className="text-2xl font-black text-brand-600 dark:text-brand-400 mb-4">₹{PRO_PRICING_CONFIG.monthly.price}<span className="text-sm text-gray-400 font-bold">/mo</span></div>
                       <Link 
                         href="/checkout/pro"
                         className="block w-full py-3 px-4 rounded-xl font-bold text-sm bg-brand-600 hover:bg-brand-700 text-white transition-colors shadow-lg shadow-brand-500/20"

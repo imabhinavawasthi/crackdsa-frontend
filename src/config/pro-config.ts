@@ -62,13 +62,20 @@ export interface FaqItem {
 // ─────────────────────────────────────────────────────────────────────────────
 // PRICING TIERS (Imported from centralized pro-pricing.ts)
 // ─────────────────────────────────────────────────────────────────────────────
+import {
+  PRO_PRICING_CONFIG,
+  PRO_PRICING_PLANS,
+  getProPlanById,
+  type ProPricingTier,
+} from "./pro-pricing";
+
 export {
   PRO_PRICING_CONFIG,
   PRO_PRICING_PLANS,
   getProPlanById,
   type ProPricingTier,
   type ProPricingTier as PricingPlan,
-} from "./pro-pricing";
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CORE PILLARS / WHAT YOU GET
@@ -362,7 +369,7 @@ export const PRO_COMPARISON_MATRIX: ComparisonItem[] = [
   {
     feature: "Price & Commitment",
     description: "Total financial investment required to prepare for tech placements",
-    coding75Pro: { value: "From ₹799/mo or ₹5,999 for 2 Years (<₹26/day)", positive: true, highlight: true },
+    coding75Pro: { value: `From ₹${PRO_PRICING_CONFIG.monthly.price}/mo or ₹${PRO_PRICING_CONFIG.yearly.price.toLocaleString("en-IN")} for 2 Years (<₹26/day)`, positive: true, highlight: true },
     bootcamps: { value: "₹50,000 to ₹1,50,000 + ISA cuts", positive: false },
     genericPlatforms: { value: "₹3,000 to ₹15,000 per isolated video course", positive: false },
   },
@@ -446,7 +453,7 @@ export const PRO_FAQS: FaqItem[] = [
   },
   {
     question: "What is the cost, and why is it described as 'less than ₹10/day'?",
-    answer: "A monthly pass is just ₹799/month (~₹26/day). Our 2-Year Pro Pass is ₹5,999 for 2 full years (~₹8/day) — less than ₹10 a day and cheaper than a cup of tea! Rather than charging exorbitant bootcamp fees of ₹50,000–₹1,00,000+, we keep our pricing accessible for all ambitious students.",
+    answer: `A monthly pass is just ₹${PRO_PRICING_CONFIG.monthly.price}/month (~₹26/day). Our 2-Year Pro Pass is ₹${PRO_PRICING_CONFIG.yearly.price.toLocaleString("en-IN")} for 2 full years (~₹8/day) — less than ₹10 a day and cheaper than a cup of tea! Rather than charging exorbitant bootcamp fees of ₹50,000–₹1,00,000+, we keep our pricing accessible for all ambitious students.`,
     category: "billing",
   },
   {
