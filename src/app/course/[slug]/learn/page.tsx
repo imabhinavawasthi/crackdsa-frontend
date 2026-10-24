@@ -43,6 +43,7 @@ import { useAuth } from "@/context/AuthContext";
 import StatusSelector from "@/components/learning/StatusSelector";
 import BookmarkButton from "@/components/learning/BookmarkButton";
 import { fetchUserAssetStates as fetchUserAssetStatesFromApi, updateUserAssetState } from "@/api/user";
+import { fetchCourseDetail, fetchCourseCurriculum, fetchInstructors } from "@/api/courses";
 import ReadMoreHTML from "@/components/common/ReadMoreHTML";
 
 // Animation variants for curriculum accordion
@@ -198,31 +199,19 @@ export default function LearnPage() {
     try {
       setLoading(true);
       setError(false);
-      const backendUrl = BACKEND_URL;
       
-      const [courseRes, curriculumRes, instructorsRes] = await Promise.all([
-        fetch(`${backendUrl}/api/v1/courses/${courseSlug}`),
-        fetch(`${backendUrl}/api/v1/courses/${courseSlug}/curriculum`),
-        fetch(`${backendUrl}/api/v1/instructors`)
+      const [courseData, curriculumData, instructorsData] = await Promise.all([
+        fetchCourseDetail(courseSlug),
+        fetchCourseCurriculum(courseSlug),
+        fetchInstructors()
       ]);
       
-      if (!courseRes.ok) {
-        throw new Error(`Server returned status: ${courseRes.status} for course summary`);
-      }
-      if (!curriculumRes.ok) {
-        throw new Error(`Server returned status: ${curriculumRes.status} for curriculum`);
-      }
-      
-      const courseData = await courseRes.json();
-      const curriculumData = await curriculumRes.json();
-      let instructorsData = { items: [] };
-      if (instructorsRes.ok) {
-        instructorsData = await instructorsRes.json();
-        setInstructorsList(instructorsData.items || []);
+      if (instructorsData?.items) {
+        setInstructorsList(instructorsData.items);
       }
       
       // Map instructor IDs to objects
-      const matchedInstructors = (instructorsData.items || []).filter((i: any) => 
+      const matchedInstructors = (instructorsData?.items || []).filter((i: any) => 
         (courseData.instructor_ids || []).includes(i.id)
       );
 

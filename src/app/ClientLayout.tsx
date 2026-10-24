@@ -3,6 +3,7 @@
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { OnboardingRerouteGate } from '@/components/auth/OnboardingRerouteGate';
 import LoadingScreen from '@/components/common/LoadingScreen';
 import NextTopLoader from 'nextjs-toploader';
 import "flatpickr/dist/flatpickr.css";
@@ -38,7 +39,11 @@ function AppContent({ children }: { children: React.ReactNode }) {
     <>
       <LoadingScreen isLoading={isLoading} />
       <div className={isLoading ? "invisible" : "visible"}>
-        <SidebarProvider>{children}</SidebarProvider>
+        <SidebarProvider>
+          <OnboardingRerouteGate>
+            {children}
+          </OnboardingRerouteGate>
+        </SidebarProvider>
       </div>
     </>
   );

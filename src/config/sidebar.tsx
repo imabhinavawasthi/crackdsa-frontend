@@ -55,7 +55,7 @@ export const learningItems: NavItem[] = [
   {
     icon: <TvMinimalPlay size={20} />,
     name: "Live Classes",
-    path: "/live-sessions",
+    path: "/live-classes",
     pro: true,
   },
 ];

@@ -164,30 +164,26 @@ export default function DashboardPage() {
       {/* ─── 1. FULL WIDTH MOUNTAIN HEADER ──────────────────────────── */}
       <DashboardGreeting firstName={firstName} />
 
-      {/* ─── 2. LIVE CLASSES & STREAK CALENDAR ROW ───────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        <div className="lg:col-span-8 flex flex-col h-full">
-          <DashboardLiveClasses upcomingClass={upcomingClass} lastClass={lastClass} />
-        </div>
-
-        <div className="lg:col-span-4 flex flex-col h-full space-y-4">
-          <div className="flex items-center justify-between h-7 shrink-0">
-            <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-              <Flame size={20} className="text-orange-500 fill-orange-500/20" />
-              <span>Daily Streak</span>
-            </h2>
-          </div>
-          <div className="flex-1 flex flex-col">
-            <StreakCalendar
-              activityDates={activityDates}
-              currentStreak={currentStreak}
-              maxStreak={maxStreak}
-            />
-          </div>
-        </div>
+      {/* ─── 2. SECTION NEXT TO HEADER: LIVE CLASSES, EDITORIALS & STREAK ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+        <DashboardLiveClasses
+          upcomingClass={upcomingClass}
+          lastClass={lastClass}
+          loading={loading}
+        />
+        <DashboardEditorials
+          contests={contests}
+          loading={loading}
+        />
+        <StreakCalendar
+          activityDates={activityDates}
+          currentStreak={currentStreak}
+          maxStreak={maxStreak}
+          loading={loading}
+        />
       </div>
 
-      {/* ─── 2. CONTINUE LEARNING (FEATURED DSA & COURSES) ───────────── */}
+      {/* ─── 3. CONTINUE LEARNING (FEATURED DSA & COURSES) ───────────── */}
       <DashboardContinueLearning
         isLoggedIn={isLoggedIn}
         isEnrolledInDSA={isEnrolledInDSA}
@@ -197,14 +193,11 @@ export default function DashboardPage() {
         cpTotalCount={175}
       />
 
-      {/* ─── 3. TWO-COLUMN GRID: EDITORIALS & DSA SHEETS ──────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardEditorials contests={contests} />
+      {/* ─── 4. DSA SHEETS & CS FUNDAMENTALS ─────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <DashboardDSASheets cpSolvedCount={cpSolvedCount} cpTotalCount={175} />
+        <DashboardCSAndMock />
       </div>
-
-      {/* ─── 4. BOTTOM TWO-COLUMN: CS FUNDAMENTALS & MOCK INTERVIEWS ─── */}
-      <DashboardCSAndMock />
 
       {/* ─── 5. POPULAR TOPICS SHORTCUTS ──────────────────────────────── */}
       <DashboardPopularTopics />

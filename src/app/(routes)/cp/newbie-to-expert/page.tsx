@@ -79,6 +79,7 @@ export default function NewbieToExpertPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    document.title = "Newbie to Expert CP Sheet | crackDSA";
     let isMounted = true;
 
     async function loadData() {

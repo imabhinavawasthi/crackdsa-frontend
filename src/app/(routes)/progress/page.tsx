@@ -20,6 +20,8 @@ import { motion } from "framer-motion";
 import { getStoredToken } from "@/functions/auth";
 import { calculateActiveStreak } from "@/utils/streak";
 import { BACKEND_URL } from "@/config/api";
+import { fetchPracticeProblems } from "@/api/problems";
+import { fetchUserAssetStates } from "@/api/user";
 import LoginRequired from "@/components/common/LoginRequired";
 import ActivityHeatmap from "@/components/common/ActivityHeatmap";
 import ErrorState from "@/components/common/ErrorState";
@@ -54,20 +56,13 @@ export default function ProgressPage() {
         const headers = token ? { "Authorization": `Bearer ${token}` } : undefined;
 
         // 1. Fetch practice problems
-        const problemsRes = await fetch(`${backendUrl}/api/v1/practice-problems`, { headers });
-        let problemsList: any[] = [];
-        if (problemsRes.ok) {
-          problemsList = await problemsRes.json();
-          setProblems(problemsList);
-        }
+        const problemsList = await fetchPracticeProblems();
+        setProblems(Array.isArray(problemsList) ? problemsList : []);
 
         // 2. Fetch User progress states
         if (isLoggedIn) {
-          const statesRes = await fetch(`${backendUrl}/api/v1/user/assets/states`, { headers });
-          if (statesRes.ok) {
-            const statesData = await statesRes.json();
-            setUserStates(statesData || []);
-          }
+          const statesData = await fetchUserAssetStates();
+          setUserStates(statesData || []);
         } else {
           // Guest Fallback
           const states: any[] = [];
@@ -86,7 +81,7 @@ export default function ProgressPage() {
           const interactedProblemIds = new Set([...solvedIds, ...bookmarkedIds, ...Object.keys(statusMap)]);
 
           interactedProblemIds.forEach((id) => {
-            const problemObj = problemsList.find((p) => p.id === id);
+            const problemObj = problemsList.find((p: any) => p.id === id);
             const statusVal = statusMap[id] || "pending";
             const isBookmarked = bookmarkedIds.includes(id);
 

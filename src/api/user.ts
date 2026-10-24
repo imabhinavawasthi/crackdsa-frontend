@@ -1,4 +1,4 @@
-import { getAuthHeaders, getValidAccessToken } from "@/functions/auth";
+import { getAuthHeaders, getValidAccessToken } from "@/api/auth";
 import { BACKEND_URL } from "@/config/api";
 
 export interface UserAssetState {
@@ -10,6 +10,7 @@ export interface UserAssetState {
   is_bookmarked: boolean;
   notes?: any[];
   updated_at?: string;
+  last_interacted_at?: string;
 }
 
 export interface UpdateAssetStatePayload {
@@ -60,6 +61,24 @@ export async function updateUserAssetState(
 
   if (!res.ok) {
     throw new Error(`Failed to update asset state for ${assetType} ${assetId}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Fetches subscription details for the currently authenticated user.
+ */
+export async function fetchSubscriptionDetails(): Promise<any> {
+  const authHeaders = await getAuthHeaders();
+  if (!("Authorization" in authHeaders)) return null;
+
+  const res = await fetch(`${BACKEND_URL}/api/v1/auth/subscription-details`, {
+    headers: authHeaders,
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch subscription details");
   }
 
   return res.json();

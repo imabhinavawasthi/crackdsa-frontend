@@ -7,6 +7,7 @@ interface StreakCalendarProps {
   activityDates: string[]; // YYYY-MM-DD strings
   currentStreak: number;
   maxStreak: number;
+  loading?: boolean;
 }
 
 const MONTH_NAMES = [
@@ -20,6 +21,7 @@ export default function StreakCalendar({
   activityDates,
   currentStreak,
   maxStreak,
+  loading = false,
 }: StreakCalendarProps) {
   const today = useMemo(() => new Date(), []);
   const [currentMonthIndex, setCurrentMonthIndex] = useState(today.getMonth());
@@ -98,85 +100,114 @@ export default function StreakCalendar({
   }, [calendarData]);
 
   return (
-    <div className="rounded-2xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 p-4.5 sm:p-5 shadow-xs transition-colors select-none flex flex-col justify-between h-full">
-      {/* ─── Top Bar: Month & Navigation ─────────────────────────────── */}
+    <div className="rounded-2xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6 shadow-xs transition-colors select-none flex flex-col justify-between h-full">
       <div>
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-1.5">
-            <div className="flex size-6 items-center justify-center rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">
-              <CalendarIcon size={13} />
+        {/* ─── Top Header: Daily Streak & Active Streak Badge ────────── */}
+        <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-gray-100 dark:border-gray-800">
+          <h2 className="text-base sm:text-lg font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
+            <Flame size={18} className="text-orange-500 fill-orange-500/20" />
+            <span>Daily Streak</span>
+          </h2>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+            <Flame size={11} className="fill-orange-500 text-orange-500" />
+            {currentStreak}d Streak
+          </span>
+        </div>
+
+        {loading ? (
+          /* Calendar Loading Skeleton */
+          <div className="space-y-3 py-1 animate-pulse">
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-28 rounded bg-gray-200 dark:bg-gray-800" />
+              <div className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-800" />
             </div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-gray-900 dark:text-white">
-              {MONTH_NAMES[currentMonthIndex]} {currentYear}
-            </span>
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: 28 }).map((_, i) => (
+                <div key={i} className="size-6 mx-auto rounded-md bg-gray-200 dark:bg-gray-800" />
+              ))}
+            </div>
           </div>
-
-          <div className="flex items-center gap-0.5">
-            <button
-              type="button"
-              onClick={handlePrevMonth}
-              aria-label="Previous Month"
-              className="flex size-6 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={handleNextMonth}
-              aria-label="Next Month"
-              className="flex size-6 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
-
-        {/* ─── Weekdays Header Row ──────────────────────────────────── */}
-        <div className="grid grid-cols-7 gap-1 text-center mb-1">
-          {WEEKDAYS.map((wd) => (
-            <span
-              key={wd}
-              className="text-[9px] font-bold text-gray-400 dark:text-gray-500"
-            >
-              {wd}
-            </span>
-          ))}
-        </div>
-
-        {/* ─── Days Grid ────────────────────────────────────────────── */}
-        <div className="grid grid-cols-7 gap-1 text-center">
-          {calendarData.map((cell, idx) => {
-            if (!cell.day) {
-              return <div key={`empty-${idx}`} className="size-6 mx-auto" />;
-            }
-
-            return (
-              <div
-                key={cell.dateKey}
-                title={cell.dateKey || undefined}
-                className={`size-6 mx-auto flex items-center justify-center rounded-md text-[11px] font-bold transition-all ${
-                  cell.isActive
-                    ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 shadow-2xs text-[10px]"
-                    : cell.isToday
-                    ? "ring-2 ring-blue-600 dark:ring-blue-400 text-blue-600 dark:text-blue-400 bg-blue-50/60 dark:bg-blue-950/40 font-black"
-                    : cell.isFuture
-                    ? "text-gray-300 dark:text-gray-600 font-normal"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                }`}
-              >
-                {cell.isActive ? (
-                  <span className="text-[10px] leading-none">🔥</span>
-                ) : (
-                  <span>{cell.day}</span>
-                )}
+        ) : (
+          <>
+            {/* ─── Month & Navigation ───────────────────────────────── */}
+            <div className="flex items-center justify-between pb-2 mb-2">
+              <div className="flex items-center gap-1.5">
+                <div className="flex size-6 items-center justify-center rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                  <CalendarIcon size={12} />
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-gray-900 dark:text-white">
+                  {MONTH_NAMES[currentMonthIndex]} {currentYear}
+                </span>
               </div>
-            );
-          })}
-        </div>
+
+              <div className="flex items-center gap-0.5">
+                <button
+                  type="button"
+                  onClick={handlePrevMonth}
+                  aria-label="Previous Month"
+                  className="flex size-6 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextMonth}
+                  aria-label="Next Month"
+                  className="flex size-6 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* ─── Weekdays Header Row ──────────────────────────────── */}
+            <div className="grid grid-cols-7 gap-1 text-center mb-1">
+              {WEEKDAYS.map((wd) => (
+                <span
+                  key={wd}
+                  className="text-[9px] font-bold text-gray-400 dark:text-gray-500"
+                >
+                  {wd}
+                </span>
+              ))}
+            </div>
+
+            {/* ─── Days Grid ────────────────────────────────────────── */}
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {calendarData.map((cell, idx) => {
+                if (!cell.day) {
+                  return <div key={`empty-${idx}`} className="size-6 mx-auto" />;
+                }
+
+                return (
+                  <div
+                    key={cell.dateKey}
+                    title={cell.dateKey || undefined}
+                    className={`size-6 mx-auto flex items-center justify-center rounded-md text-[11px] font-bold transition-all ${
+                      cell.isActive
+                        ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 shadow-2xs text-[10px]"
+                        : cell.isToday
+                        ? "ring-2 ring-blue-600 dark:ring-blue-400 text-blue-600 dark:text-blue-400 bg-blue-50/60 dark:bg-blue-950/40 font-black"
+                        : cell.isFuture
+                        ? "text-gray-300 dark:text-gray-600 font-normal"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    {cell.isActive ? (
+                      <span className="text-[10px] leading-none">🔥</span>
+                    ) : (
+                      <span>{cell.day}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* ─── Footer: Streak Stats ───────────────────────────────────── */}
-      <div className="mt-2.5 pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px]">
+      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-[11px]">
         <div className="flex items-center gap-1">
           <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
             Streak:

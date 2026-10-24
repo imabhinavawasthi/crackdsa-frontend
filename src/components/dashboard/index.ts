@@ -6,15 +6,4 @@ export { default as DashboardEditorials } from "./DashboardEditorials";
 export { default as DashboardDSASheets } from "./DashboardDSASheets";
 export { default as DashboardCSAndMock } from "./DashboardCSAndMock";
 export { default as DashboardPopularTopics } from "./DashboardPopularTopics";
-
-// Legacy exports for any other references
-export * from "./HeroFeaturesSection";
-export * from "./UserGreetingSection";
-export * from "./ActiveRoadmapSection";
-export * from "./FeatureShowcaseSection";
-export * from "./FeaturedDSASheetsSection";
-export * from "./ProFeaturesSection";
-export * from "./EnrolledCoursesSection";
-export * from "./ProExclusiveSection";
-export * from "./EcosystemSection";
 export * from "./UpgradeBanner";

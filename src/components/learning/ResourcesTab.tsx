@@ -1,10 +1,11 @@
 "use client";
 
-import { BACKEND_URL } from "@/config/api";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ExternalLink, Dumbbell, BookOpen, Link2, Loader2 } from "lucide-react";
+import { fetchPracticeProblems } from "@/api/problems";
+import { fetchArticles } from "@/api/articles";
 
 const sectionContainerVariants = {
   hidden: { opacity: 0 },
@@ -60,20 +61,13 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ itemId, backendResources })
     const fetchAssets = async () => {
       try {
         setLoading(true);
-        const backendUrl = BACKEND_URL;
-        const [probsRes, artsRes] = await Promise.all([
-          fetch(`${backendUrl}/api/v1/practice-problems`),
-          fetch(`${backendUrl}/api/v1/articles`)
+        const [probs, arts] = await Promise.all([
+          fetchPracticeProblems(),
+          fetchArticles()
         ]);
 
-        if (probsRes.ok) {
-          const data = await probsRes.json();
-          setProblemsData(Array.isArray(data) ? data : data.items || []);
-        }
-        if (artsRes.ok) {
-          const data = await artsRes.json();
-          setArticlesData(Array.isArray(data) ? data : data.items || []);
-        }
+        setProblemsData(Array.isArray(probs) ? probs : []);
+        setArticlesData(Array.isArray(arts) ? arts : []);
       } catch (e) {
         console.error("Error fetching assets for resources tab", e);
       } finally {

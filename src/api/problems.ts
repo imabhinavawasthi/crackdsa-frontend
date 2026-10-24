@@ -78,3 +78,8 @@ export async function fetchCompaniesSummary(): Promise<CompanySummary[]> {
   if (!res.ok) throw new Error("Unable to fetch companies summary.");
   return res.json();
 }
+
+/**
+ * Alias for fetchProblems
+ */
+export const fetchPracticeProblems = fetchProblems;

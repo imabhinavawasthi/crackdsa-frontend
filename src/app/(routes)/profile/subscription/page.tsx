@@ -22,7 +22,7 @@ import Link from "next/link";
 import WhatsAppSupportButton from "@/components/common/WhatsAppSupportButton";
 import { motion } from "framer-motion";
 import LoginRequired from "@/components/common/LoginRequired";
-import { BACKEND_URL } from "@/config/api";
+import { fetchSubscriptionDetails } from "@/api/user";
 
 function SubscriptionContent() {
   const { isLoggedIn, user, isLoading: isAuthLoading, refetch } = useAuth();
@@ -33,18 +33,8 @@ function SubscriptionContent() {
 
   const fetchDetails = useCallback(async () => {
     try {
-      const token = localStorage.getItem("crackdsa_access_token");
-      if (!token) {
-        setIsDetailsLoading(false);
-        return;
-      }
-      const res = await fetch(`${BACKEND_URL}/api/v1/auth/subscription-details`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await fetchSubscriptionDetails();
+      if (data) {
         setSubscriptionDetails(data);
       }
     } catch (e) {

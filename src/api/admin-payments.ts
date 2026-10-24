@@ -56,6 +56,9 @@ export async function fetchAdminTransactions(status?: string, purchaseType?: str
   const res = await fetch(url.toString(), {
     headers: await authHeaders(),
   });
-  if (!res.ok) throw new Error("Failed to fetch transactions");
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(errorBody.detail || `Failed to fetch transactions (HTTP ${res.status})`);
+  }
   return res.json();
 }

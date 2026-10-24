@@ -79,9 +79,7 @@ export function LandingNavbar() {
         
         {/* ─── Left: Brand Logo & Desktop Nav ───────────────────────── */}
         <div className="flex items-center gap-7">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-            <Logo href="/" width={138} height={34} />
-          </Link>
+          <Logo href="/" width={138} height={34} className="hover:opacity-90 transition-opacity" />
 
           {/* Desktop Navigation Mega Menus */}
           <nav className="hidden lg:flex items-center gap-1 text-xs font-semibold text-gray-600 dark:text-gray-300">

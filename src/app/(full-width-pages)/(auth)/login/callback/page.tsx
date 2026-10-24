@@ -42,15 +42,22 @@ function AuthCallbackPageContent() {
           (Math.floor(Date.now() / 1000) + finalExpiresIn).toString()
         );
         
-        // 4. Force a profile refetch in AuthContext
-        await refetch();
+        // 4. Force a profile refetch in AuthContext to fetch /me and ensure public.users entry
+        const u = await refetch();
         
         // 5. Check localStorage for persistent redirect path
         const redirectTo = localStorage.getItem("crackdsa_login_redirect") || "/";
         localStorage.removeItem("crackdsa_login_redirect"); // Cleanup
         
-        // 6. Redirect to the original page or home
-        router.replace(redirectTo);
+        // 6. If user needs onboarding, redirect to /onboarding preserving return destination
+        if (u?.needs_onboarding) {
+          const onboardingUrl = redirectTo && redirectTo !== "/"
+            ? `/onboarding?redirect_to=${encodeURIComponent(redirectTo)}`
+            : "/onboarding";
+          router.replace(onboardingUrl);
+        } else {
+          router.replace(redirectTo);
+        }
       } else {
         // No token found, redirect to login with error
         console.error("No access_token found in callback URL");

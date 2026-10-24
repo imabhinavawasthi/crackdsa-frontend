@@ -93,7 +93,7 @@ export default function CourseCertificate() {
             <div className="relative rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-gray-50 dark:bg-gray-800/90 p-2.5 sm:p-3 shadow-xl transition-all duration-300 group-hover:scale-[1.01]">
               <div className="relative aspect-[1200/850] w-full overflow-hidden rounded-xl bg-white shadow-inner">
                 <Image
-                  src="/images/certificate.svg"
+                  src="/images/certificate.png"
                   alt="CrackDSA Course Completion Certificate"
                   width={1200}
                   height={850}

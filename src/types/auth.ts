@@ -53,4 +53,7 @@ export type User = {
   enrolled_courses?: EnrolledCourse[];
   // Legacy fields
   pro_subscription?: any;
+  is_new_user?: boolean;
+  needs_onboarding?: boolean;
+  onboarding_completed?: boolean;
 };

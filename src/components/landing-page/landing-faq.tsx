@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, HelpCircle, Sparkles, ArrowRight } from "lucide-react";
 import { PRO_PRICING_CONFIG } from "@/config/pro-pricing";
+import JsonLd from "@/components/common/JsonLd";
 
 interface FAQItem {
   question: string;
@@ -65,12 +66,26 @@ const FAQS: FAQItem[] = [
 export function LandingFAQ() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
   const toggle = (idx: number) => {
     setOpenIdx((prev) => (prev === idx ? null : idx));
   };
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-12">
+      <JsonLd schema={faqSchema} />
       {/* Header */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-xs font-bold">

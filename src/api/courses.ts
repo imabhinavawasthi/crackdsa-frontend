@@ -84,3 +84,12 @@ export async function fetchBatchTopicDetails(
     return null;
   }
 }
+
+/**
+ * Fetches instructors list.
+ */
+export async function fetchInstructors(): Promise<any> {
+  const res = await fetch(`${BACKEND_URL}/api/v1/instructors`);
+  if (!res.ok) return { items: [] };
+  return res.json();
+}

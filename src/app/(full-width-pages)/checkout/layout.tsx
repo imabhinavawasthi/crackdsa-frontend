@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Secure Checkout',
+  title: 'Secure Checkout | crackDSA',
   description: 'Complete your purchase and start mastering your coding interviews today.',
 };
 

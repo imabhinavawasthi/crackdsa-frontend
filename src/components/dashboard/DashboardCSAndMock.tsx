@@ -14,7 +14,7 @@ import {
 
 export default function DashboardCSAndMock() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div className="flex flex-col gap-6 justify-between h-full">
       {/* ─── 1. CS FUNDAMENTALS CARD ─────────────────────────────────── */}
       <div className="rounded-2xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-xs transition-colors flex flex-col justify-between">
         <div>
@@ -51,14 +51,14 @@ export default function DashboardCSAndMock() {
         <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-200/60 dark:border-emerald-800/60">
             <CheckCircle2 size={11} className="stroke-[3]" />
-            3 Modules Ready
+            Interview Focused Notes
           </span>
 
           <Link
             href="/cs-fundamentals"
             className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-bold shadow-xs hover:shadow-md transition-all"
           >
-            <span>Explore Course</span>
+            <span>Check Notes</span>
             <ArrowRight size={13} />
           </Link>
         </div>

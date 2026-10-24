@@ -51,6 +51,9 @@ export default function LiveClassDetailPage() {
       .then((data) => {
         if (isMounted) {
           setClassItem(data);
+          if (data?.class_name) {
+            document.title = `${data.class_name} | crackDSA`;
+          }
           setLoading(false);
         }
       })

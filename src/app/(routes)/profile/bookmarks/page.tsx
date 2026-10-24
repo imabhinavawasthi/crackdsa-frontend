@@ -20,6 +20,12 @@ import { getStoredToken } from "@/functions/auth";
 import LoginRequired from "@/components/common/LoginRequired";
 import ErrorState from "@/components/common/ErrorState";
 import { BACKEND_URL } from "@/config/api";
+import { fetchPracticeProblems } from "@/api/problems";
+import { fetchVideoLectures } from "@/api/videos";
+import { fetchArticles } from "@/api/articles";
+import { fetchLiveClasses } from "@/api/live-classes";
+import { fetchNewbieToExpertSheet } from "@/api/cp";
+import { fetchUserAssetStates } from "@/api/user";
 
 type AssetType = "all" | "problem" | "video" | "article";
 
@@ -46,39 +52,24 @@ export default function BookmarksPage() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const token = getStoredToken();
-        const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-        const [problemsRes, videosRes, articlesRes, liveClassesRes, cpRes, statesRes] =
-          await Promise.all([
-            fetch(`${backendUrl}/api/v1/practice-problems`, { headers }),
-            fetch(`${backendUrl}/api/v1/video-lectures`, { headers }),
-            fetch(`${backendUrl}/api/v1/articles`, { headers }),
-            fetch(`${backendUrl}/api/v1/live-classes`, { headers }),
-            fetch(`${backendUrl}/api/v1/cp/newbie-to-expert`, { headers }),
-            fetch(`${backendUrl}/api/v1/user/assets/states`, { headers }),
-          ]);
+        const [probs, vids, arts, lcs, cpSheet, states] = await Promise.all([
+          fetchPracticeProblems().catch(() => []),
+          fetchVideoLectures().catch(() => []),
+          fetchArticles().catch(() => []),
+          fetchLiveClasses().catch(() => []),
+          fetchNewbieToExpertSheet().catch(() => null),
+          fetchUserAssetStates().catch(() => []),
+        ]);
 
-        if (problemsRes.ok) setProblems(await problemsRes.json());
-        if (videosRes.ok) {
-          const vData = await videosRes.json();
-          setVideos(Array.isArray(vData) ? vData : (vData.items || []));
+        setProblems(probs || []);
+        setVideos(vids || []);
+        setArticles(arts || []);
+        setLiveClasses(Array.isArray(lcs) ? lcs : (lcs?.items || []));
+        if (cpSheet?.problems) {
+          setCpProblems(cpSheet.problems);
         }
-        if (articlesRes.ok) {
-          const aData = await articlesRes.json();
-          setArticles(Array.isArray(aData) ? aData : (aData.items || []));
-        }
-        if (liveClassesRes && liveClassesRes.ok) {
-          const lcData = await liveClassesRes.json();
-          setLiveClasses(Array.isArray(lcData) ? lcData : (lcData.items || []));
-        }
-        if (cpRes && cpRes.ok) {
-          const cpData = await cpRes.json();
-          setCpProblems(cpData.problems || []);
-        }
-        if (statesRes.ok) {
-          setUserStates((await statesRes.json()) || []);
-        }
+        setUserStates(states || []);
       } catch (err) {
         console.error("Error loading bookmarks:", err);
         setError("Unable to sync your bookmarks. Please try again later.");

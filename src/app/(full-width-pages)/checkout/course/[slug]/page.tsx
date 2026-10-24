@@ -26,6 +26,7 @@ import { CourseSummary } from "@/types/course";
 import { PRO_PRICING_CONFIG } from "@/config/pro-pricing";
 import { fetchCourseDetail } from "@/api/courses";
 import { useAuth } from "@/context/AuthContext";
+import Logo from "@/components/common/Logo";
 import {
   applyCoupon,
   createOrder,
@@ -185,7 +186,7 @@ function CourseCheckoutContent() {
         currency: orderData.currency || "INR",
         name: "CrackDSA",
         description: course.title,
-        image: "/images/logo/logo-icon.svg",
+        image: "/images/logo/logo-icon.png",
         order_id: orderData.order_id?.startsWith("order_mock_")
           ? undefined
           : orderData.order_id,
@@ -301,10 +302,7 @@ function CourseCheckoutContent() {
             </Link>
           </div>
 
-          <Link href="/" className="flex items-center gap-2">
-            <Image className="dark:hidden" src="/images/logo/logo.svg" alt="CrackDSA" width={130} height={32} />
-            <Image className="hidden dark:block" src="/images/logo/logo-dark.svg" alt="CrackDSA" width={130} height={32} />
-          </Link>
+          <Logo href="/" />
 
           <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
             <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />

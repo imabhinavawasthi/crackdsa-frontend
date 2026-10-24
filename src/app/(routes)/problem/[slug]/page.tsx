@@ -61,6 +61,9 @@ export default function ProblemDetailPage() {
         setError(null);
         const data = await fetchProblemDetail(slug); 
         setProblem(data);
+        if (data?.title) {
+          document.title = `${data.title} | crackDSA`;
+        }
       } catch (err: any) {
         console.error("Error fetching problem detail:", err);
         setError(err.message || "Something went wrong while loading the problem.");

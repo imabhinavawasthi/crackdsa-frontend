@@ -87,15 +87,15 @@ export function HeroSection() {
       </div>
 
       {/* Floating Algorithmic Badges (Hidden on mobile) */}
-      <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-gray-900/90 border border-brand-500/30 dark:border-brand-500/40 backdrop-blur-md shadow-lg text-[11px] font-mono font-bold text-brand-600 dark:text-brand-400 absolute top-24 left-8 pointer-events-none animate-bounce duration-[4000ms]">
-        <span>⚡ O(N log N) • Binary Search</span>
+      {/* <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-gray-900/90 border border-brand-500/30 dark:border-brand-500/40 backdrop-blur-md shadow-lg text-[11px] font-mono font-bold text-brand-600 dark:text-brand-400 absolute top-24 left-8 pointer-events-none animate-bounce duration-[4000ms]">
+        <span>🔵 Live Classes / Doubts Session</span>
       </div>
       <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-gray-900/90 border border-indigo-500/30 dark:border-indigo-500/40 backdrop-blur-md shadow-lg text-[11px] font-mono font-bold text-indigo-600 dark:text-indigo-400 absolute top-36 right-8 pointer-events-none animate-bounce duration-[5000ms]">
-        <span>dp[i][mask] • Bitmask DP</span>
+        <span>🚀 Complete DSA Course</span>
       </div>
       <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-gray-900/90 border border-emerald-500/30 dark:border-emerald-500/40 backdrop-blur-md shadow-lg text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400 absolute bottom-36 left-8 pointer-events-none animate-bounce duration-[6000ms]">
         <span>🎯 Target: Google, Amazon, Uber</span>
-      </div>
+      </div> */}
 
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-7 my-auto">
         {/* ── Headline & Pitch ──────────────────────────────────────── */}
@@ -135,7 +135,7 @@ export function HeroSection() {
           </Link>
 
           <Link
-            href="/dsa/sheets"
+            href="/dsa-sheets"
             className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-semibold text-sm sm:text-base text-gray-700 dark:text-gray-200 bg-white/90 dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700/80 shadow-xs hover:-translate-y-0.5 active:translate-y-0 transition-all"
           >
             <Layers className="w-4 h-4 text-gray-500 dark:text-gray-400" />

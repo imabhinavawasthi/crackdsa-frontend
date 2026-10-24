@@ -9,10 +9,9 @@ import Link from "next/link";
 // List of routes that require Pro subscription
 export const PRO_ROUTES = [
   "/pro/dashboard",
-  "/pro/personalized",
+  "/live-classes",
   "/live-sessions",
   "/roadmap/onboarding",
-  "/resources"
 ];
 
 function ProLockedScreen() {

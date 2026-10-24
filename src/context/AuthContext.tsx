@@ -21,7 +21,7 @@ type AuthState = {
   isLoading: boolean;
   isLoggedIn: boolean;
   logout: () => Promise<void>;
-  refetch: () => Promise<void>;
+  refetch: () => Promise<User | null>;
   sessionExpired: boolean;
   dismissSessionExpired: () => void;
 };
@@ -44,14 +44,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [sessionExpired, setSessionExpired] = useState(false);
 
   // Initial load - shows loading spinner
-  const initialLoad = useCallback(async () => {
+  const initialLoad = useCallback(async (): Promise<User | null> => {
     setIsLoading(true);
     try {
       const u = await fetchCurrentUser();
       setUser(u);
+      return u;
     } catch (e) {
       console.error("[initialLoad] authentication error:", e);
-      // General network error - do not force a logout if token exists
+      return null;
     } finally {
       setIsLoading(false);
     }

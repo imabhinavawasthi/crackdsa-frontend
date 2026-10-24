@@ -51,6 +51,9 @@ export default function ContestDetailPage() {
         const data = await fetchContestDetail(platform, contestSlug);
         if (isMounted) {
           setContest(data);
+          if (data?.contest) {
+            document.title = `${data.contest} Editorials | crackDSA`;
+          }
         }
       } catch (err: any) {
         console.error("Failed to load contest detail:", err);

@@ -30,6 +30,11 @@ export default function DSATopicDetailPage() {
     );
   }, [slug]);
 
+  useEffect(() => {
+    const title = localModule?.title || (slug ? slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "DSA Topic");
+    document.title = `${title} | crackDSA`;
+  }, [localModule, slug]);
+
   // Fetch full course curriculum from backend
   useEffect(() => {
     async function loadData() {

@@ -182,7 +182,7 @@ export function ProCheckoutDrawer({
         currency: orderData.currency || "INR",
         name: "CrackDSA Pro",
         description: `${plan.name} - Complete Placement Pass`,
-        image: "/images/logo/logo-icon.svg",
+        image: "/images/logo/logo-icon.png",
         order_id: orderData.order_id?.startsWith("order_mock_")
           ? undefined
           : orderData.order_id,

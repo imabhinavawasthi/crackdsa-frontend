@@ -7,17 +7,20 @@ import { fetchAdminTransactions } from "@/api/admin-payments";
 export default function AdminTransactionsPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const [filterStatus, setFilterStatus] = useState("");
   const [filterType, setFilterType] = useState("");
 
   const loadTransactions = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await fetchAdminTransactions(filterStatus, filterType);
-      setTransactions(data);
-    } catch (err) {
-      console.error(err);
+      setTransactions(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error("Failed to load admin transactions:", err);
+      setError(err?.message || "Failed to fetch transactions");
     } finally {
       setLoading(false);
     }
@@ -88,6 +91,10 @@ export default function AdminTransactionsPage() {
                 <tr>
                   <td colSpan={6} className="p-8 text-center"><Loader2 className="animate-spin mx-auto text-brand-500" /></td>
                 </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-red-500 font-medium">{error}</td>
+                </tr>
               ) : transactions.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-gray-500 font-medium">No transactions found for these filters.</td>
@@ -101,7 +108,7 @@ export default function AdminTransactionsPage() {
                     </td>
                     <td className="p-4">
                       <div className="text-sm font-bold text-gray-900 dark:text-white">{tx.users?.full_name || "-"}</div>
-                      <div className="text-xs text-gray-500">{tx.users?.email || "-"}</div>
+                      <div className="text-xs text-gray-500">{tx.users?.email || tx.users?.user_email || "-"}</div>
                     </td>
                     <td className="p-4 font-black text-gray-900 dark:text-white">
                       ₹{tx.amount}
@@ -110,7 +117,7 @@ export default function AdminTransactionsPage() {
                       <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
                         {tx.purchase_type === "pro_subscription" ? "PRO" : "COURSE"}
                       </span>
-                      <div className="text-xs text-gray-500 font-medium mt-1 truncate max-w-[150px]">{tx.target_id || "-"}</div>
+                      <div className="text-xs text-gray-500 font-medium mt-1 truncate max-w-[180px]">{tx.metadata?.target_name || tx.target_id || "-"}</div>
                     </td>
                     <td className="p-4 text-sm font-medium text-gray-600 dark:text-gray-300">
                       {new Date(tx.created_at).toLocaleString()}

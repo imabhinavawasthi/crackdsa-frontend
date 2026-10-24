@@ -5,7 +5,7 @@ import Image from "next/image";
 import Logo from "@/components/common/Logo";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
-import { MoreHorizontal, ChevronDown, User, ArrowRight, Crown } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User, ArrowRight, Crown, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
   NavItem,
@@ -302,17 +302,10 @@ const AppSidebar: React.FC = () => {
   if (!mounted) {
     return (
       <aside
-        className="fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-3 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen border-r border-gray-200 w-[72px] lg:translate-x-0"
+        className="fixed pt-0 flex flex-col top-0 px-3 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen border-r border-gray-200 w-[72px] lg:translate-x-0"
       >
-        <div className="py-4 hidden lg:flex lg:justify-center">
-          <Link href="/">
-            <Image
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
-          </Link>
+        <div className="py-4 flex items-center justify-center w-full">
+          <Logo href="/" variant="icon" width={32} height={32} />
         </div>
       </aside>
     );
@@ -320,7 +313,7 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-3 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed pt-0 flex flex-col top-0 px-3 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
         ${
           isExpanded || isMobileOpen
             ? "w-[280px]"
@@ -338,17 +331,23 @@ const AppSidebar: React.FC = () => {
         }
       }}
     >
-      <div
-        className={`py-4 hidden lg:flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start px-1"
-        }`}
-      >
+      <div className="py-4 flex items-center justify-center relative w-full border-b border-gray-100 dark:border-gray-800/60 lg:border-none">
         <Logo
           href="/"
           variant={isExpanded || isHovered || isMobileOpen ? "full" : "icon"}
           width={isExpanded || isHovered || isMobileOpen ? 150 : 40}
           height={isExpanded || isHovered || isMobileOpen ? 40 : 32}
+          onClick={closeSidebarOnMobile}
         />
+        {isMobileOpen && (
+          <button
+            onClick={closeSidebarOnMobile}
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors lg:hidden cursor-pointer"
+            aria-label="Close Sidebar"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar text-[14px]">
         <nav className="mb-6">

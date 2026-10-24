@@ -204,7 +204,7 @@ const ProblemEditorial: React.FC<ProblemEditorialProps> = ({ videoIds = [], arti
             {articles.map((art) => (
               <a
                 key={art.id}
-                href={`/learn/dsa/${art.slug}`}
+                href={`/dsa/${art.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 hover:bg-gray-50 dark:hover:bg-gray-900 hover:border-brand-500/30 dark:hover:border-brand-500/30 hover:shadow-[0_0_15px_-5px_rgba(var(--color-brand-500),0.15)] transition-all duration-300 group cursor-pointer"

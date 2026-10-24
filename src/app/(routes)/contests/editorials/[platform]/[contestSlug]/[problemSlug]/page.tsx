@@ -55,6 +55,10 @@ export default function ContestProblemPage() {
         const res = await fetchContestProblemEditorial(platform, contestSlug, problemSlug);
         if (isMounted) {
           setData(res);
+          const problemName = res?.problem?.problem_name || (res?.problem as any)?.title;
+          if (problemName) {
+            document.title = `${problemName} - ${res.contest?.contest || "Contest"} | crackDSA`;
+          }
         }
       } catch (err: any) {
         console.error("Failed to load problem editorial:", err);
