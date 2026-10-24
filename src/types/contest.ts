@@ -58,3 +58,20 @@ export interface ContestSuggestionPayload {
   contest_url?: string;
   notes?: string;
 }
+
+export interface ContestPlatformCount {
+  id: string;
+  label: string;
+  count: number;
+}
+
+export interface ContestPaginatedResponse {
+  items: ContestSummary[];
+  total_count: number;
+  total_pages: number;
+  page: number;
+  limit: number;
+  total_contests: number;
+  total_problems: number;
+  platforms: ContestPlatformCount[];
+}

@@ -11,7 +11,8 @@ export interface LiveClass {
   class_subtopics?: string[] | null;
   class_url_slug?: string | null;
   status: "live" | "upcoming" | "completed";
-  visibility?: "public" | "private" | string;
+  visibility?: "public" | "private" | "free" | string;
+  is_locked?: boolean;
   thumbnail_url?: string | null;
   class_image?: string | null;
   created_at?: string | null;
@@ -22,6 +23,7 @@ export interface LiveClassCounts {
   live: number;
   upcoming: number;
   completed: number;
+  free: number;
 }
 
 export interface LiveClassPaginatedResponse {

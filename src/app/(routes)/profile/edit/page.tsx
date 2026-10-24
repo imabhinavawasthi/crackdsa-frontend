@@ -178,7 +178,7 @@ export default function EditProfilePage() {
         <div className="relative z-10 flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-5">
             <div className="relative h-20 w-20 sm:h-24 sm:w-24 overflow-hidden rounded-full border-4 border-white bg-gray-100 dark:border-gray-950">
-              <Image src={user.avatar_url ?? "/images/user/owner.jpg"} alt={user.full_name} width={96} height={96} className="h-full w-full object-cover" />
+              <Image src={user.avatar_url || "/images/user/owner.jpg"} alt={user.full_name} width={96} height={96} className="h-full w-full object-cover" />
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white sm:text-3xl">Edit Profile</h1>

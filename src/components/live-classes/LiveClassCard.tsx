@@ -7,9 +7,10 @@ import {
   Clock, 
   ArrowRight, 
   Play,
+  Lock,
   Code2, 
   Network, 
-  Cpu,
+  Cpu, 
   Trophy,
   Video
 } from "lucide-react";
@@ -145,19 +146,37 @@ export function LiveClassCard({ classItem }: LiveClassCardProps) {
             <ThemedCardBackground topic={classItem.class_topic} />
           )}
 
-          {/* Centered Optical Play Button (reveals & expands on hover) */}
+          {/* Centered Media Action Indicator */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-full bg-white/95 text-blue-600 shadow-2xl flex items-center justify-center transition-all duration-300 transform group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-[0_0_30px_rgba(37,99,235,0.6)]">
-              <Play fill="currentColor" size={24} className="translate-x-0.5" />
-            </div>
+            {classItem.is_locked ? (
+              <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-full bg-black/60 backdrop-blur-md text-amber-400 border border-amber-500/40 shadow-2xl flex items-center justify-center transition-all duration-300 transform group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]">
+                <Lock size={22} />
+              </div>
+            ) : (
+              <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-full bg-white/95 text-blue-600 shadow-2xl flex items-center justify-center transition-all duration-300 transform group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-[0_0_30px_rgba(37,99,235,0.6)]">
+                <Play fill="currentColor" size={24} className="translate-x-0.5" />
+              </div>
+            )}
           </div>
 
           {/* Floating Top Header Badges */}
           <div className="relative z-10 flex items-center justify-between gap-2">
-            {/* Topic Badge */}
-            <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-black/60 backdrop-blur-md text-white border border-white/15 shadow-2xs">
-              {formatTopicName(classItem.class_topic)}
-            </span>
+            {/* Topic Badge & Free / Pro Badge */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-black/60 backdrop-blur-md text-white border border-white/15 shadow-2xs">
+                {formatTopicName(classItem.class_topic)}
+              </span>
+              {classItem.visibility === "free" ? (
+                <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-xs">
+                  FREE
+                </span>
+              ) : classItem.is_locked ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-500/90 backdrop-blur-md text-white shadow-xs">
+                  <Lock size={10} />
+                  PRO
+                </span>
+              ) : null}
+            </div>
 
             {/* Status Pill */}
             {isLive ? (
@@ -244,14 +263,25 @@ export function LiveClassCard({ classItem }: LiveClassCardProps) {
 
       {/* 3. Bottom Card Action */}
       <div className="px-5 pb-5 pt-0">
-        <Link
-          href={detailUrl}
-          className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-gray-800/60 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition-all duration-200 cursor-pointer shadow-2xs group/btn"
-        >
-          <Video size={13} className="text-blue-500 group-hover/btn:text-white transition-colors" />
-          <span>Watch Recording &amp; Notes</span>
-          <ArrowRight size={13} className="group-hover/btn:translate-x-0.5 transition-transform" />
-        </Link>
+        {classItem.is_locked ? (
+          <Link
+            href={detailUrl}
+            className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500 hover:text-white dark:hover:bg-amber-500 dark:hover:text-white transition-all duration-200 cursor-pointer shadow-2xs group/btn border border-amber-500/20"
+          >
+            <Lock size={13} className="text-amber-500 group-hover/btn:text-white transition-colors" />
+            <span>Unlock Recording with Pro</span>
+            <ArrowRight size={13} className="group-hover/btn:translate-x-0.5 transition-transform" />
+          </Link>
+        ) : (
+          <Link
+            href={detailUrl}
+            className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-gray-800/60 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition-all duration-200 cursor-pointer shadow-2xs group/btn"
+          >
+            <Video size={13} className="text-blue-500 group-hover/btn:text-white transition-colors" />
+            <span>Watch Recording &amp; Notes</span>
+            <ArrowRight size={13} className="group-hover/btn:translate-x-0.5 transition-transform" />
+          </Link>
+        )}
       </div>
     </div>
   );

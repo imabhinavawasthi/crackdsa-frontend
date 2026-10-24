@@ -2,10 +2,11 @@
 
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { OnboardingRerouteGate } from '@/components/auth/OnboardingRerouteGate';
 import LoadingScreen from '@/components/common/LoadingScreen';
 import NextTopLoader from 'nextjs-toploader';
+import { usePathname } from 'next/navigation';
 import "flatpickr/dist/flatpickr.css";
 
 // This script will run as early as possible to prevent theme flicker
@@ -32,13 +33,32 @@ export const ThemeScript = () => {
   );
 };
 
+const isProtectedRoute = (path: string): boolean => {
+  return (
+    path.startsWith("/dashboard") ||
+    path.startsWith("/profile") ||
+    path.startsWith("/admin") ||
+    path.startsWith("/checkout") ||
+    path.startsWith("/onboarding") ||
+    path.startsWith("/progress") ||
+    path.startsWith("/resume") ||
+    path.startsWith("/roadmap/onboarding")
+  );
+};
+
 function AppContent({ children }: { children: React.ReactNode }) {
-  const { isLoading } = useTheme();
+  const { isLoading: isThemeLoading } = useTheme();
+  const { isLoading: isAuthLoading } = useAuth();
+  const pathname = usePathname();
+
+  // For protected routes, wait for auth to finish fetching profile before showing page
+  const isProtected = pathname ? isProtectedRoute(pathname) : false;
+  const showLoading = isThemeLoading || (isProtected && isAuthLoading);
 
   return (
     <>
-      <LoadingScreen isLoading={isLoading} />
-      <div className={isLoading ? "invisible" : "visible"}>
+      <LoadingScreen isLoading={showLoading} />
+      <div className={showLoading ? "invisible" : "visible"}>
         <SidebarProvider>
           <OnboardingRerouteGate>
             {children}

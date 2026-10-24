@@ -4,7 +4,7 @@ import React from "react";
 import { Search, X, ChevronDown } from "lucide-react";
 import { LiveClassCounts } from "@/types/live-class";
 
-export type ClassStatusFilter = "all" | "live" | "upcoming" | "completed";
+export type ClassStatusFilter = "all" | "live" | "upcoming" | "completed" | "free";
 
 interface LiveClassesToolbarProps {
   statusFilter: ClassStatusFilter;
@@ -32,6 +32,7 @@ export function LiveClassesToolbar({
     { id: "live", label: "Live Now", count: counts.live },
     { id: "upcoming", label: "Upcoming", count: counts.upcoming },
     { id: "completed", label: "Completed", count: counts.completed },
+    { id: "free", label: "Free Classes", count: counts.free || 0 },
   ] as const;
 
   return (

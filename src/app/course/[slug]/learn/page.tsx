@@ -44,7 +44,10 @@ import StatusSelector from "@/components/learning/StatusSelector";
 import BookmarkButton from "@/components/learning/BookmarkButton";
 import { fetchUserAssetStates as fetchUserAssetStatesFromApi, updateUserAssetState } from "@/api/user";
 import { fetchCourseDetail, fetchCourseCurriculum, fetchInstructors } from "@/api/courses";
+import { fetchDifficultyCounts } from "@/api/problems";
+import CourseDashboardView from "@/components/learning/CourseDashboardView";
 import ReadMoreHTML from "@/components/common/ReadMoreHTML";
+import { getAuthHeaders } from "@/functions/auth";
 
 // Animation variants for curriculum accordion
 const accordionVariants = {
@@ -79,6 +82,7 @@ interface CourseDetail {
   id: string;
   slug: string;
   title: string;
+  category?: string;
   description: string;
   instructors: Instructor[];
   sections: CourseSection[];
@@ -91,13 +95,36 @@ export default function LearnPage() {
   const rawCourseSlug = params?.slug as string;
   const courseSlug = rawCourseSlug === "data-structures-algorithms-mastery-program" ? "dsa" : rawCourseSlug;
 
-  const { user, isLoggedIn, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoggedIn, isPro, isLoading: isAuthLoading } = useAuth();
   const firstName = user?.full_name ? user.full_name.split(" ")[0] : "";
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
+
+  // Access checking
+  const isEnrolled = Boolean(
+    isLoggedIn && (
+      user?.roles?.includes("admin") ||
+      user?.is_pro_active ||
+      isPro ||
+      user?.enrolled_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id || c.course_name === courseSlug) ||
+      user?.pro_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id || c.course_name === courseSlug) ||
+      user?.purchased_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id || c.course_name === courseSlug)
+    )
+  );
+
+  // Immediate redirect if not enrolled (DO NOT fetch course or classroom data for non-enrolled users)
+  useEffect(() => {
+    if (isAuthLoading) return;
+
+    if (!isEnrolled && courseSlug) {
+      const targetSlug = course?.slug || courseSlug;
+      router.replace(`/course/${targetSlug}`);
+    }
+  }, [isAuthLoading, isEnrolled, courseSlug, course?.slug, router]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [instructorsList, setInstructorsList] = useState<any[]>([]);
+  const [practiceProblemsCount, setPracticeProblemsCount] = useState<number>(1000);
 
   // Classroom Player states
   const [activeItem, setActiveItem] = useState<CourseSectionItem | null>(null);
@@ -215,14 +242,32 @@ export default function LearnPage() {
         (courseData.instructor_ids || []).includes(i.id)
       );
 
+      const finalInstructors = matchedInstructors.length > 0
+        ? matchedInstructors
+        : (courseData.instructors && courseData.instructors.length > 0)
+        ? courseData.instructors.map((ins: any) => {
+            const found = (instructorsData?.items || []).find((i: any) => i.name === ins.name);
+            return found || ins;
+          })
+        : (instructorsData?.items || []);
+
       setCourse({
         id: courseData.id,
         slug: courseData.slug,
         title: courseData.title,
+        category: (courseData as any).category || "DSA COURSE",
         description: courseData.description,
-        instructors: matchedInstructors,
+        instructors: finalInstructors,
         sections: curriculumData || [],
       });
+
+      // Also fetch dynamic practice problems count
+      try {
+        const diffCounts = await fetchDifficultyCounts();
+        if (diffCounts?.total) {
+          setPracticeProblemsCount(diffCounts.total);
+        }
+      } catch {}
 
       // Identify starting item
       const sections = curriculumData || [];
@@ -247,14 +292,16 @@ export default function LearnPage() {
   };
 
   useEffect(() => {
+    if (isAuthLoading) return;
+    if (!isEnrolled) return;
     if (courseSlug) {
       fetchCourseDetails();
     }
-  }, [courseSlug]);
+  }, [isAuthLoading, isEnrolled, courseSlug]);
 
   // Resolve asset UUIDs dynamically to their URL or Slug
   useEffect(() => {
-    if (!activeItem) {
+    if (!activeItem || !isEnrolled) {
       setResolvedAsset({ urlOrSlug: "", loading: false, error: false });
       return;
     }
@@ -279,14 +326,17 @@ export default function LearnPage() {
         const backendUrl = BACKEND_URL;
         let endpoint = "";
         if (type === "video") {
-          endpoint = `/api/v1/video-lectures/${assetId}`;
+          endpoint = `/api/v1/video-lectures/${assetId}?item_id=${activeItem.id}&course_slug=${courseSlug}`;
         } else if (type === "problem") {
           endpoint = `/api/v1/practice-problems/${assetId}`;
         } else if (type === "article") {
           endpoint = `/api/v1/articles/${assetId}`;
         }
 
-        const res = await fetch(`${backendUrl}${endpoint}`);
+        const authHeaders = await getAuthHeaders();
+        const res = await fetch(`${backendUrl}${endpoint}`, {
+          headers: authHeaders,
+        });
         if (!res.ok) {
           throw new Error(`Server returned status: ${res.status}`);
         }
@@ -361,12 +411,12 @@ export default function LearnPage() {
   };
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && isEnrolled) {
       loadUserAssetStates();
     } else {
       setItemStates({});
     }
-  }, [isLoggedIn, courseSlug]);
+  }, [isLoggedIn, isEnrolled, courseSlug]);
 
   // Update item progress status in DB
   const handleUpdateStatus = async (assetId: string, assetType: string, newStatus: "pending" | "done" | "revision") => {
@@ -435,33 +485,14 @@ export default function LearnPage() {
     }
   };
 
-  // Access checking
-  const isEnrolled = Boolean(
-    isLoggedIn && (
-      user?.roles?.includes("admin") ||
-      user?.is_pro_active ||
-      user?.enrolled_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id) ||
-      user?.pro_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id) ||
-      user?.purchased_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id)
-    )
-  );
-
-  // If user is not enrolled in the course, redirect directly to the course details page
-  useEffect(() => {
-    if (!loading && !isAuthLoading && !isEnrolled && courseSlug) {
-      const targetSlug = course?.slug || courseSlug;
-      router.replace(`/course/${targetSlug}`);
-    }
-  }, [loading, isAuthLoading, isEnrolled, courseSlug, course?.slug, router]);
-
   const canAccessActiveItem = isEnrolled || (activeItem && activeItem.is_free);
 
-  if (loading || isAuthLoading || !isEnrolled) {
+  if (isAuthLoading || !isEnrolled || loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 space-y-4">
         <div className="h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
         <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
-          {!isEnrolled && !isAuthLoading && !loading
+          {!isEnrolled && !isAuthLoading
             ? "Redirecting to course details..."
             : "Loading your customized classroom workspace..."}
         </p>
@@ -557,7 +588,7 @@ export default function LearnPage() {
       
       {/* Immersive Left Sidebar: Syllabus & Navigation Drawer */}
       <AnimatePresence initial={false}>
-        {isSidebarOpen && (
+        {isSidebarOpen && activeItem !== null && (
           <motion.div
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 350, opacity: 1 }}
@@ -627,7 +658,7 @@ export default function LearnPage() {
         <div className="shrink-0 z-40 relative">
           <AppHeader 
             onToggleSidebar={() => handleToggleCourseSidebar()} 
-            isSidebarOpen={isSidebarOpen} 
+            isSidebarOpen={isSidebarOpen && activeItem !== null} 
           />
         </div>
 
@@ -652,7 +683,7 @@ export default function LearnPage() {
         )}
 
         {/* Central Focus Stage Wrapper */}
-        <main className="flex-1 w-full max-w-5xl mx-auto p-4 sm:p-6 md:p-8 space-y-8 pb-20">
+        <main className={`flex-1 w-full ${activeItem === null ? "max-w-7xl px-4 sm:px-6 lg:px-8 py-8" : "max-w-5xl p-4 sm:p-6 md:p-8"} mx-auto space-y-8 pb-20`}>
           
           {/* Dashboard Home - Rendered when activeItem is null */}
           {activeItem === null ? (
@@ -660,452 +691,19 @@ export default function LearnPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className="max-w-5xl mx-auto w-full space-y-8 select-none"
+              className="w-full"
             >
-              
-              {/* Premium Dashboard Header Banner */}
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-gray-900 via-slate-800 to-slate-900 dark:from-black dark:via-gray-950 dark:to-zinc-900 border border-slate-800 p-8 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl -translate-y-12" />
-                <div className="absolute bottom-0 right-1/4 w-60 h-60 bg-sky-500/10 rounded-full blur-3xl translate-y-12" />
-                
-                <div className="relative z-10 space-y-2">
-                  <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">
-                    {firstName ? `Welcome back, ${firstName}! 👋` : "Welcome to your Classroom! 🚀"}
-                  </h1>
-                  <p className="text-slate-400 text-xs sm:text-sm font-medium max-w-xl leading-relaxed">
-                    {progressPercent === 100 
-                      ? "Congratulations! You have completed all lessons in this course. You are ready to crush your tech interviews!"
-                      : `You have completed ${progressPercent}% of the curriculum. Keep up the high momentum to build solid algorithmic foundations.`}
-                  </p>
-                </div>
-                
-                {/* Circular Progress Badge */}
-                <div className="relative z-10 shrink-0 self-start md:self-auto flex items-center gap-4 bg-white/5 dark:bg-black/20 backdrop-blur-md border border-white/10 px-5 py-4 rounded-2xl">
-                  <div className="relative h-14 w-14 flex items-center justify-center">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle cx="28" cy="28" r="24" className="stroke-white/10" strokeWidth="4" fill="transparent" />
-                      <circle cx="28" cy="28" r="24" className="stroke-blue-500 transition-all duration-1000 ease-out" strokeWidth="4" fill="transparent"
-                        strokeDasharray={`${2 * Math.PI * 24}`}
-                        strokeDashoffset={`${2 * Math.PI * 24 * (1 - progressPercent / 100)}`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <span className="absolute text-xs font-black text-white">{progressPercent}%</span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block leading-none">Course Completed</span>
-                    <span className="text-sm font-black text-white mt-1 block">
-                      {completedCourseItems} <span className="text-xs text-slate-400 font-medium">/ {totalSyllabusItems} lessons</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Two Column Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                {/* Left/Main Column */}
-                <div className="lg:col-span-2 space-y-8">
-                  
-                  {/* Premium Continue Learning Card */}
-                  {continueTarget && (
-                    <div className="group relative rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-xs hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col justify-between min-h-[200px]">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-1.5">
-                            {progressPercent === 100 ? (
-                              <>
-                                <Sparkles size={12} className="fill-amber-500 stroke-amber-500 text-amber-500 animate-pulse" />
-                                Course Fully Completed
-                              </>
-                            ) : progressPercent === 0 ? (
-                              <>
-                                <Rocket size={12} className="text-blue-500" />
-                                Start Your Learning Journey
-                              </>
-                            ) : (
-                              <>
-                                <Zap size={12} className="fill-blue-500 stroke-blue-500 text-blue-500" />
-                                Continue Where You Left Off
-                              </>
-                            )}
-                          </span>
-                          
-                          {progressPercent !== 100 && (
-                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border ${
-                              continueTarget.type === "video"
-                                ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20"
-                                : continueTarget.type === "problem"
-                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
-                                : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-500/20"
-                            }`}>
-                              {continueTarget.type}
-                            </span>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white tracking-tight leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                            {progressPercent === 100 
-                              ? `Congratulations, ${firstName || "Learner"}! 🎉` 
-                              : progressPercent === 0
-                              ? `Ready to start? Let's begin: ${continueTarget.title}`
-                              : continueTarget.title
-                            }
-                          </h3>
-                          <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed">
-                            {progressPercent === 100 
-                              ? `You have successfully completed all ${totalSyllabusItems} items in this course! You've mastered these DSA patterns and are ready to ace your interviews.`
-                              : progressPercent === 0
-                              ? "Kick off your prep path by launching the first pattern lecture or challenge."
-                              : `Resume your learning path. Next up: "${continueTarget.title}"`
-                            }
-                          </p>
-                          {progressPercent !== 100 && (
-                            <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider pt-1">
-                              <span className="flex items-center gap-1">
-                                <BookOpen size={12} className="text-blue-500" />
-                                {continueTarget.duration_label} Remaining
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6 flex items-center gap-3">
-                        <button
-                          onClick={() => handleSelectItem(progressPercent === 100 ? flatSyllabusItems[0] : continueTarget)}
-                          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 text-xs transition-all shadow-md shadow-blue-500/20 cursor-pointer active:scale-95 group-hover:scale-[1.02]"
-                        >
-                          {progressPercent === 100 ? (
-                            <RotateCcw size={14} />
-                          ) : continueTarget.type === "video" ? (
-                            <PlayCircle size={14} />
-                          ) : continueTarget.type === "problem" ? (
-                            <Code2 size={14} />
-                          ) : (
-                            <FileText size={14} />
-                          )}
-                          <span>
-                            {progressPercent === 100 
-                              ? "Review from Beginning" 
-                              : progressPercent === 0
-                              ? "Start Lesson"
-                              : "Resume Lesson"
-                            }
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Dynamic Accordion Syllabus List */}
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                      <BookOpen size={14} className="text-blue-500" />
-                      Full Course Syllabus
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      {course.sections.map((section, sectionIndex) => {
-                        const sectionItemsCount = getSectionItemsCount(section);
-                        const sectionCompleted = getSectionCompletedCount(section, completedItemIds);
-                        const sectionProgress = sectionItemsCount > 0 ? Math.round((sectionCompleted / sectionItemsCount) * 100) : 0;
-                        
-                        const isExpanded = dashboardExpandedSections[section.id] ?? (
-                          continueTarget 
-                            ? (section.items?.some(it => it.id === continueTarget.id) || section.subsections?.some(sub => sub.items.some(it => it.id === continueTarget.id)))
-                            : (sectionIndex === 0)
-                        );
-
-                        return (
-                          <div
-                            key={section.id}
-                            className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xs overflow-hidden"
-                          >
-                            <button
-                              onClick={() => {
-                                setDashboardExpandedSections(prev => ({
-                                  ...prev,
-                                  [section.id]: !isExpanded
-                                }));
-                              }}
-                              className="w-full p-5 text-left cursor-pointer select-none bg-transparent hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors"
-                            >
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="space-y-1.5 flex-1">
-                                  <h4 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    {section.title}
-                                  </h4>
-                                  
-                                  <div className="flex items-center gap-3 text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">
-                                    <span>{sectionCompleted} / {sectionItemsCount} Completed</span>
-                                    <span>•</span>
-                                    <span>{sectionProgress}% Done</span>
-                                  </div>
-                                  
-                                  <div className="h-1 w-32 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mt-2">
-                                    <div 
-                                      className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
-                                      style={{ width: `${sectionProgress}%` }}
-                                    />
-                                  </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-2">
-                                  <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
-                                    sectionCompleted === sectionItemsCount && sectionItemsCount > 0
-                                      ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                                      : "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20"
-                                  }`}>
-                                    {sectionCompleted === sectionItemsCount && sectionItemsCount > 0 ? "Completed" : "In Progress"}
-                                  </span>
-                                  
-                                  <div className="text-gray-400 dark:text-gray-500">
-                                    <ChevronDown size={18} className={`transform transition-transform duration-250 ${isExpanded ? "rotate-180" : ""}`} />
-                                  </div>
-                                </div>
-                              </div>
-                            </button>
-                            
-                            <AnimatePresence initial={false}>
-                              {isExpanded && (
-                                <motion.div
-                                  key={`section-dashboard-content-${section.id}`}
-                                  variants={accordionVariants}
-                                  initial="collapsed"
-                                  animate="expanded"
-                                  exit="collapsed"
-                                  className="overflow-hidden"
-                                >
-                                  <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-800 pt-4 space-y-4">
-                                    {section.description && (
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        {section.description}
-                                      </p>
-                                    )}
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                                      {section.items?.map((item) => {
-                                        const isCompleted = completedItemIds.includes(item.id);
-                                        const isRevision = revisionItemIds.includes(item.id);
-                                        const TypeIcon = item.type === "video" ? PlayCircle : item.type === "problem" ? Code2 : FileText;
-                                        return (
-                                          <button
-                                            key={item.id}
-                                            onClick={() => handleSelectItem(item)}
-                                            className={`flex items-center justify-between p-3.5 rounded-xl border bg-gray-50/40 hover:bg-gray-50 dark:bg-gray-850/30 dark:hover:bg-gray-800/40 transition-all text-left cursor-pointer group ${
-                                              isCompleted
-                                                ? "border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/10 dark:bg-emerald-500/5"
-                                                : isRevision
-                                                ? "border-amber-200 dark:border-amber-500/20 bg-amber-50/10 dark:bg-amber-500/5"
-                                                : "border-gray-200 dark:border-gray-800"
-                                            }`}
-                                          >
-                                            <span className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate pr-2">
-                                              <TypeIcon size={14} className={`shrink-0 ${
-                                                isCompleted ? "text-emerald-500" : isRevision ? "text-amber-500" : "text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400"
-                                              } transition-colors`} />
-                                              <span className="truncate">{item.title}</span>
-                                            </span>
-                                            <div className="flex items-center gap-1.5 shrink-0">
-                                              {item.is_free && (
-                                                <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                  Free
-                                                </span>
-                                              )}
-                                              <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
-                                                isCompleted
-                                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                                                  : isRevision
-                                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                                                  : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700"
-                                              }`}>
-                                                {isCompleted ? "Completed" : isRevision ? "Revision" : "Start"}
-                                              </span>
-                                            </div>
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
-                                    
-                                    {section.subsections?.map((sub) => (
-                                      <div key={sub.id} className="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                                        <span className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none block">
-                                          {sub.title}
-                                        </span>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                          {sub.items.map((item) => {
-                                            const isCompleted = completedItemIds.includes(item.id);
-                                            const isRevision = revisionItemIds.includes(item.id);
-                                            const TypeIcon = item.type === "video" ? PlayCircle : item.type === "problem" ? Code2 : FileText;
-                                            return (
-                                              <button
-                                                key={item.id}
-                                                onClick={() => handleSelectItem(item)}
-                                                className={`flex items-center justify-between p-3.5 rounded-xl border bg-gray-50/40 hover:bg-gray-50 dark:bg-gray-850/30 dark:hover:bg-gray-800/40 transition-all text-left cursor-pointer group ${
-                                                  isCompleted
-                                                    ? "border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/10 dark:bg-emerald-500/5"
-                                                    : isRevision
-                                                    ? "border-amber-200 dark:border-amber-500/20 bg-amber-50/10 dark:bg-amber-500/5"
-                                                    : "border-gray-200 dark:border-gray-800"
-                                                }`}
-                                              >
-                                                <span className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate pr-2">
-                                                  <TypeIcon size={14} className={`shrink-0 ${
-                                                    isCompleted ? "text-emerald-500" : isRevision ? "text-amber-500" : "text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400"
-                                                  } transition-colors`} />
-                                                  <span className="truncate">{item.title}</span>
-                                                </span>
-                                                <div className="flex items-center gap-1.5 shrink-0">
-                                                  {item.is_free && (
-                                                    <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                      Free
-                                                    </span>
-                                                  )}
-                                                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
-                                                    isCompleted
-                                                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                                                      : isRevision
-                                                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                                                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700"
-                                                  }`}>
-                                                    {isCompleted ? "Completed" : isRevision ? "Revision" : "Start"}
-                                                  </span>
-                                                </div>
-                                              </button>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    ))}
-                                    
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Right/Sidebar Column */}
-                <div className="space-y-6">
-                  
-                  {/* Overall Statistics Breakdown Card */}
-                  <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 space-y-6 shadow-xs">
-                    <h4 className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                      Learning Statistics
-                    </h4>
-                    
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
-                        <span className="text-2xl font-black text-gray-900 dark:text-white">{progressPercent}%</span>
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                          {completedCourseItems} / {totalSyllabusItems} Completed
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-3.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                            <PlayCircle size={14} className="text-blue-500" />
-                            Videos Watched
-                          </span>
-                          <span className="text-xs font-black text-gray-800 dark:text-gray-200">
-                            {completedVideos.length} / {videoItems.length}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                            <Code2 size={14} className="text-amber-500" />
-                            Problems Solved
-                          </span>
-                          <span className="text-xs font-black text-gray-800 dark:text-gray-200">
-                            {completedProblems.length} / {problemItems.length}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                            <FileText size={14} className="text-purple-500" />
-                            Notes Read
-                          </span>
-                          <span className="text-xs font-black text-gray-800 dark:text-gray-200">
-                            {completedArticles.length} / {articleItems.length}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Course Stats Widget */}
-                  <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 space-y-5 shadow-xs relative overflow-hidden group">
-                    <h4 className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest flex items-center gap-1.5 relative z-10">
-                      <Activity size={14} className="text-blue-500" />
-                      Course Highlights
-                    </h4>
-                    
-                    <div className="grid grid-cols-2 gap-3 relative z-10">
-                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 flex flex-col gap-1.5 items-center justify-center text-center">
-                        <span className="text-2xl font-black text-gray-900 dark:text-white">{flatSyllabusItems.filter(i => i.type === "video").length}</span>
-                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Video Lessons</span>
-                      </div>
-                      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 flex flex-col gap-1.5 items-center justify-center text-center">
-                        <span className="text-2xl font-black text-gray-900 dark:text-white">{flatSyllabusItems.filter(i => i.type === "problem").length}</span>
-                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Coding Problems</span>
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-blue-100 dark:border-blue-900/50 bg-blue-50/60 dark:bg-blue-950/30 p-3.5 text-xs text-blue-900 dark:text-blue-300">
-                      <div className="font-bold flex items-center gap-1.5 mb-1">
-                        <Zap className="size-3.5 text-blue-600 dark:text-blue-400" />
-                        <span>Live Weekly Classes</span>
-                      </div>
-                      <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-relaxed">
-                        Interactive problem-solving & doubt-clearing sessions included every week with your enrollment.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Instructor Spotlight Card */}
-                  {course.instructors && course.instructors.length > 0 && (
-                    <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 space-y-5 shadow-xs relative overflow-hidden group">
-                      <h4 className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest flex items-center gap-1.5 relative z-10">
-                        <Award size={14} className="text-blue-500" />
-                        Instructor Spotlight
-                      </h4>
-                      
-                      <div className="space-y-4 relative z-10">
-                        {course.instructors.map(instructor => (
-                          <div key={instructor.id} className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/40 p-3 rounded-2xl border border-gray-100 dark:border-gray-800/60 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60">
-                            {instructor.profile_image_url ? (
-                              <img src={instructor.profile_image_url} alt={instructor.name} className="h-12 w-12 shrink-0 rounded-2xl object-cover shadow-xs border border-gray-200 dark:border-gray-700" />
-                            ) : (
-                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-sm shadow-xs">
-                                {instructor.name.split(" ").map((w) => w[0]).join("").substring(0, 2)}
-                              </div>
-                            )}
-                            <div className="space-y-1">
-                              <h5 className="text-sm font-bold text-gray-900 dark:text-white leading-none">
-                                {instructor.name}
-                              </h5>
-                              <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
-                                {instructor.role} {instructor.company ? `@ ${instructor.company}` : ""}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-
-              </div>
-
+              <CourseDashboardView
+                course={course}
+                courseSlug={courseSlug}
+                flatSyllabusItems={flatSyllabusItems}
+                completedItemIds={completedItemIds}
+                revisionItemIds={revisionItemIds}
+                continueTarget={continueTarget}
+                onSelectItem={handleSelectItem}
+                instructor={course.instructors && course.instructors.length > 0 ? course.instructors[0] : (instructorsList.length > 0 ? instructorsList[0] : null)}
+                practiceProblemsCount={practiceProblemsCount}
+              />
             </motion.div>
           ) : (
             <>

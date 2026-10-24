@@ -80,6 +80,17 @@ export async function fetchCompaniesSummary(): Promise<CompanySummary[]> {
 }
 
 /**
+ * Fetches lightweight aggregated difficulty counts (total, easy, medium, hard).
+ */
+export async function fetchDifficultyCounts(): Promise<{ total: number; easy: number; medium: number; hard: number }> {
+  const res = await fetch(`${BACKEND_URL}/api/v1/practice-problems/difficulty-counts`, {
+    headers: await getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Unable to fetch difficulty counts.");
+  return res.json();
+}
+
+/**
  * Alias for fetchProblems
  */
 export const fetchPracticeProblems = fetchProblems;

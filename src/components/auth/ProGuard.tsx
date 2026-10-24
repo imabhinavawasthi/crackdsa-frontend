@@ -9,8 +9,6 @@ import Link from "next/link";
 // List of routes that require Pro subscription
 export const PRO_ROUTES = [
   "/pro/dashboard",
-  "/live-classes",
-  "/live-sessions",
   "/roadmap/onboarding",
 ];
 

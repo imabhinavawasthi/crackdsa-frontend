@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import AspectRatioImage from "@/components/common/AspectRatioImage";
-import { Play, Pause, RotateCcw, Volume2, Maximize, Settings, FastForward, AlertCircle, ExternalLink } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, Maximize, Settings, FastForward, AlertCircle, Loader2 } from "lucide-react";
+import { decryptMediaUrl } from "@/functions/mediaSecurity";
 
 import type { VideoSource } from "@/types/course";
 export type { VideoSource } from "@/types/course";
@@ -76,11 +76,32 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onPlayerRefReady,
   onEnded
 }) => {
-  const source = detectVideoSource(url);
+  const [decryptedUrl, setDecryptedUrl] = useState<string>(() => (url && url.startsWith("enc:v1:") ? "" : url));
+  const [isDecrypting, setIsDecrypting] = useState<boolean>(() => Boolean(url && url.startsWith("enc:v1:")));
+
+  useEffect(() => {
+    let isMounted = true;
+    if (url && url.startsWith("enc:v1:")) {
+      setIsDecrypting(true);
+      decryptMediaUrl(url).then((decrypted) => {
+        if (isMounted) {
+          setDecryptedUrl(decrypted);
+          setIsDecrypting(false);
+        }
+      });
+    } else {
+      setDecryptedUrl(url || "");
+      setIsDecrypting(false);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [url]);
+
+  const activeUrl = decryptedUrl || (url && !url.startsWith("enc:v1:") ? url : "");
+  const source = detectVideoSource(activeUrl);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [imgError, setImgError] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
@@ -89,13 +110,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
 
-  // Reset playhead/load state when source url changes
-  useEffect(() => {
-    setHasStarted(false);
+  const [prevUrl, setPrevUrl] = useState(url);
+  if (prevUrl !== url) {
+    setPrevUrl(url);
     setIsPlaying(false);
-    setImgError(false);
     setCurrentTime(0);
-  }, [url]);
+  }
 
   // Expose control API to parent component (e.g. jump to timestamp)
   useEffect(() => {
@@ -104,15 +124,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setCurrentTime: (time: number) => {
           if (source.type === "html5" && videoRef.current) {
             videoRef.current.currentTime = time;
-          } else {
-            // For iframe embeds, jump behavior requires complex SDKs. 
-            // We ensure we load the video properly first.
-            setHasStarted(true);
           }
         }
       });
     }
-  }, [url, source.type, source.idOrUrl, onPlayerRefReady]);
+  }, [url, source.type, onPlayerRefReady]);
 
   // Handle native HTML5 video events
   const handlePlayPause = () => {
@@ -219,21 +235,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (source.type === "gdrive") {
       return (
         <div 
-          className="w-full h-full aspect-video relative"
+          className="w-full h-full aspect-video relative select-none"
           onContextMenu={(e) => e.preventDefault()}
         >
           <iframe
             id="classroom-iframe"
             src={`https://drive.google.com/file/d/${source.idOrUrl}/preview`}
             title={title}
+            sandbox="allow-scripts allow-same-origin allow-presentation"
             allow="autoplay; encrypted-media"
             allowFullScreen
-            className="w-full h-full border-0"
+            className="w-full h-full border-0 pointer-events-auto"
           ></iframe>
           {/* Invisible overlay over the top bar to block the "Pop-out" button and title */}
           <div 
-            className="absolute top-0 left-0 right-0 h-16 bg-transparent z-10"
-            title="Video Title"
+            className="absolute top-0 left-0 right-0 h-16 bg-transparent z-20 pointer-events-auto cursor-default"
+            title=""
+            onClick={(e) => e.stopPropagation()}
+            onContextMenu={(e) => e.preventDefault()}
           />
         </div>
       );
@@ -272,11 +291,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return null;
   };
 
-  // 1. Error state (Mock or empty URL)
+  // 1. Decrypting state
+  if (isDecrypting) {
+    return (
+      <div className="relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl aspect-video flex flex-col items-center justify-center p-8 text-center space-y-3 select-none">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <p className="text-xs text-gray-400 font-semibold">Initializing secure media stream...</p>
+      </div>
+    );
+  }
+
+  // 2. Error state (Mock or empty URL)
   if (source.type === "mock") {
     return (
       <div 
-        className={`relative w-full overflow-hidden rounded-3xl bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl aspect-video flex flex-col items-center justify-center p-8 text-center space-y-3`}
+        className="relative w-full overflow-hidden rounded-3xl bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl aspect-video flex flex-col items-center justify-center p-8 text-center space-y-3"
       >
         <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/10">
           <AlertCircle size={20} />
@@ -289,64 +318,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
-  // 2. Poster Preview State (if video has not been started yet)
-  const effectiveThumbnail =
-    !imgError && (
-      thumbnailUrl ||
-      (source.type === "youtube"
-        ? `https://img.youtube.com/vi/${source.idOrUrl}/hqdefault.jpg`
-        : undefined)
-    );
-
-  if (!hasStarted && source.type !== "html5") {
-    return (
-      <div 
-        className="relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl aspect-video group/player flex items-center justify-center select-none"
-      >
-        {effectiveThumbnail ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={effectiveThumbnail}
-            alt={title}
-            onError={() => setImgError(true)}
-            className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover/player:scale-105 transition-transform duration-700"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#060E2E] via-[#0b1740] to-[#040817]">
-            <div className="absolute w-72 h-72 bg-blue-600/20 rounded-full blur-3xl pointer-events-none -top-12 -right-12" />
-            <div className="absolute w-64 h-64 bg-indigo-600/15 rounded-full blur-2xl pointer-events-none -bottom-8 -left-8" />
-            <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:20px_20px]" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] transition-colors duration-300 group-hover/player:bg-black/30" />
-        
-        {/* Dead-Center Play Button */}
-        <button
-          onClick={() => {
-            setHasStarted(true);
-            setIsPlaying(true);
-          }}
-          className="relative z-10 size-16 sm:size-20 rounded-full bg-blue-600/95 hover:bg-blue-600 border border-blue-400/40 text-white flex items-center justify-center shadow-xl transition-all duration-300 transform group-hover/player:scale-110 hover:shadow-[0_0_35px_rgba(37,99,235,0.7)] cursor-pointer"
-          aria-label="Play video"
-        >
-          <Play fill="white" size={28} className="translate-x-0.5 text-white" />
-        </button>
-        
-        <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
-          <span className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/10 uppercase tracking-wide truncate max-w-[85%]">
-            {title}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. standard play mode
+  // 3. Standard play mode (Embeds like Google Drive/YouTube are mounted directly for instant 1-click playback)
   return (
     <div 
-      className={`relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl group/player ${
+      className={`relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl group/player select-none ${
         isTheaterMode ? "max-h-[80vh] aspect-[21/9]" : "aspect-video"
       }`}
+      onContextMenu={(e) => e.preventDefault()}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >

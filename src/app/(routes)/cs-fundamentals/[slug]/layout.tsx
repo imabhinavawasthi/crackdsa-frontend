@@ -1,5 +1,12 @@
 import { Metadata } from "next";
 import JsonLd from "@/components/common/JsonLd";
+import { CS_FUNDAMENTALS_TOPICS } from "@/config/cs-fundamentals.config";
+
+export async function generateStaticParams() {
+  return CS_FUNDAMENTALS_TOPICS.map((topic) => ({
+    slug: topic.slug,
+  }));
+}
 
 type Props = { params: Promise<{ slug: string }> };
 

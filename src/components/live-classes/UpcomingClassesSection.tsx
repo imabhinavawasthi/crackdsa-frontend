@@ -11,7 +11,8 @@ import {
   CalendarPlus, 
   User, 
   Sparkles,
-  Video
+  Video,
+  Lock
 } from "lucide-react";
 import { LiveClass } from "@/types/live-class";
 import { formatClassDateTime, createGoogleCalendarUrl } from "./calendarUtils";
@@ -93,6 +94,17 @@ export function UpcomingClassesSection({
                         UPCOMING
                       </span>
                     )}
+
+                    {item.visibility === "free" ? (
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+                        FREE
+                      </span>
+                    ) : item.is_locked ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-wider border border-amber-200/50">
+                        <Lock size={10} />
+                        PRO
+                      </span>
+                    ) : null}
 
                     {item.class_topic && (
                       <span className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-wider">

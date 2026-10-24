@@ -10,10 +10,11 @@ import type { CourseSectionItem, VideoLectureDetail } from '@/types/course';
 
 type Props = {
   item: CourseSectionItem | null;
+  courseSlug?: string;
   onClose: () => void;
 };
 
-const FreeVideoPreviewDialog = ({ item, onClose }: Props) => {
+const FreeVideoPreviewDialog = ({ item, courseSlug, onClose }: Props) => {
   const [video, setVideo] = useState<VideoLectureDetail | null>(null);
   const [error, setError] = useState(false);
 
@@ -22,13 +23,13 @@ const FreeVideoPreviewDialog = ({ item, onClose }: Props) => {
     let active = true;
     setVideo(null);
     setError(false);
-    fetchVideoDetails(item.asset_id)
+    fetchVideoDetails(item.asset_id, { itemId: item.id, courseSlug })
       .then((data) => active && setVideo(data))
       .catch(() => active && setError(true));
     return () => {
       active = false;
     };
-  }, [item]);
+  }, [item, courseSlug]);
 
   return (
     <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>

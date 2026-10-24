@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -19,13 +20,24 @@ interface CourseCurriculumProps {
 }
 
 export default function CourseCurriculum({ curriculum }: CourseCurriculumProps) {
+  const params = useParams();
+  const courseSlug = params?.slug as string;
   // Default to first section open as seen in mockup
   const [openSections, setOpenSections] = useState<Set<string>>(
     () => new Set(curriculum[0] ? [curriculum[0].id] : [])
   );
   const [previewItem, setPreviewItem] = useState<CourseSectionItem | null>(null);
 
-  if (curriculum.length === 0) return null;
+  if (curriculum.length === 0) {
+    return (
+      <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/60 p-8 text-center space-y-1.5">
+        <h3 className="text-base font-bold text-gray-900 dark:text-white">Curriculum Coming Soon</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          The detailed roadmap and lecture modules for this upcoming course will be published shortly.
+        </p>
+      </div>
+    );
+  }
 
   const allOpen = openSections.size === curriculum.length;
 
@@ -218,7 +230,7 @@ export default function CourseCurriculum({ curriculum }: CourseCurriculumProps) 
         })}
       </div>
 
-      <FreeVideoPreviewDialog item={previewItem} onClose={() => setPreviewItem(null)} />
+      <FreeVideoPreviewDialog item={previewItem} courseSlug={courseSlug} onClose={() => setPreviewItem(null)} />
     </div>
   );
 }

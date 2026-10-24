@@ -13,7 +13,10 @@ import {
   ExternalLink, 
   BookOpen,
   Activity,
-  FolderDown
+  FolderDown,
+  Lock,
+  Sparkles,
+  ArrowRight
 } from "lucide-react";
 import { LiveClass } from "@/types/live-class";
 import { fetchLiveClassDetail } from "@/api/live-classes";
@@ -22,6 +25,7 @@ import VideoPlayer from "@/components/learning/VideoPlayer";
 import StatusSelector from "@/components/learning/StatusSelector";
 import BookmarkButton from "@/components/learning/BookmarkButton";
 import NotesTab from "@/components/learning/NotesTab";
+import { decryptMediaUrl } from "@/functions/mediaSecurity";
 
 function formatDuration(mins?: number | null): string {
   if (!mins || mins <= 0) return "60 mins";
@@ -42,6 +46,21 @@ export default function LiveClassDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [activeTab, setActiveTab] = useState<StudyTabType>("overview");
+  const [decryptedClassLink, setDecryptedClassLink] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    if (classItem?.class_link && classItem.class_link.startsWith("enc:v1:")) {
+      decryptMediaUrl(classItem.class_link).then((dec) => {
+        if (active) setDecryptedClassLink(dec);
+      });
+    }
+    return () => {
+      active = false;
+    };
+  }, [classItem?.class_link]);
+
+  const activeClassLink = decryptedClassLink || (classItem?.class_link && !classItem.class_link.startsWith("enc:v1:") ? classItem.class_link : "");
 
   useEffect(() => {
     if (!id) return;
@@ -111,12 +130,14 @@ export default function LiveClassDetailPage() {
     classItem.class_time_epoch ?? undefined,
     classItem.class_duration ?? 60,
     classItem.class_name,
-    classItem.class_link || "CrackDSA Live"
+    activeClassLink || "CrackDSA Live"
   );
 
   const isLive = classItem.status === "live";
   const isUpcoming = classItem.status === "upcoming";
   const isCompleted = classItem.status === "completed";
+  const isLocked = Boolean(classItem.is_locked);
+  const isFree = classItem.visibility === "free";
   const subtopics = classItem.class_subtopics || [];
 
   return (
@@ -148,7 +169,18 @@ export default function LiveClassDetailPage() {
         </div>
 
         {/* Live session status badge & title */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {isFree ? (
+            <span className="px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 text-[10px] font-black uppercase tracking-wider">
+              FREE SESSION
+            </span>
+          ) : isLocked ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60 text-[10px] font-black uppercase tracking-wider">
+              <Lock size={10} />
+              PRO REQUIRED
+            </span>
+          ) : null}
+
           {isLive && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-600 text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
@@ -180,7 +212,44 @@ export default function LiveClassDetailPage() {
 
       {/* 3. Main Visual Media Player Stage (Course VideoPlayer Container) */}
       <div className="relative rounded-3xl overflow-hidden bg-gray-50 dark:bg-gray-800/10 p-0 sm:p-2 border border-gray-200 dark:border-gray-800/60 shadow-inner">
-        {classItem.class_recording ? (
+        {isLocked ? (
+          <div className="w-full aspect-video rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 border border-amber-500/20 flex flex-col items-center justify-center p-6 sm:p-10 space-y-4 text-center relative overflow-hidden shadow-2xl">
+            {/* Ambient glows */}
+            <div className="absolute -top-16 -right-16 size-48 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -left-16 size-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+
+            <div className="relative size-14 sm:size-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/10">
+              <Lock size={28} />
+            </div>
+
+            <div className="space-y-1.5 max-w-md relative z-10">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-black tracking-wider uppercase">
+                <Sparkles size={11} />
+                <span>CrackDSA Pro Exclusive</span>
+              </div>
+              <h3 className="text-lg sm:text-2xl font-black text-white tracking-tight">
+                Pro Membership Required
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                This session recording, source code, and comprehensive lecture notes are reserved for CrackDSA Pro members.
+              </p>
+            </div>
+
+            <div className="pt-2 relative z-10 flex flex-col sm:flex-row items-center gap-3">
+              <Link
+                href="/pro"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs sm:text-sm font-black shadow-lg shadow-amber-500/25 hover:shadow-amber-500/35 transition-all cursor-pointer"
+              >
+                <Lock size={14} />
+                <span>Unlock Recording with Pro</span>
+                <ArrowRight size={14} />
+              </Link>
+              <span className="text-[11px] text-slate-400 font-medium">
+                Less than ₹10/day • 1-click cancel
+              </span>
+            </div>
+          </div>
+        ) : classItem.class_recording ? (
           <VideoPlayer
             url={classItem.class_recording}
             title={classItem.class_name}
@@ -361,7 +430,29 @@ export default function LiveClassDetailPage() {
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Official Notes / Docs */}
-                  {classItem.class_notes ? (
+                  {isLocked ? (
+                    <div className="p-5 rounded-2xl bg-slate-50 dark:bg-gray-800/40 border border-slate-150 dark:border-gray-800 flex flex-col justify-between space-y-3">
+                      <div className="space-y-1.5">
+                        <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
+                          <Lock size={18} />
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                          Official Class Notes &amp; Code
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Handout notes, problem lists, and code templates are exclusively available for CrackDSA Pro members.
+                        </p>
+                      </div>
+
+                      <Link
+                        href="/pro"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 transition-colors shadow-xs cursor-pointer"
+                      >
+                        <Lock size={13} />
+                        <span>Unlock Notes with Pro</span>
+                      </Link>
+                    </div>
+                  ) : classItem.class_notes ? (
                     <div className="p-5 rounded-2xl bg-slate-50 dark:bg-gray-800/40 border border-slate-150 dark:border-gray-800 flex flex-col justify-between space-y-3">
                       <div className="space-y-1.5">
                         <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
@@ -405,9 +496,17 @@ export default function LiveClassDetailPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {classItem.class_link && (
+                        {isLocked ? (
+                          <Link
+                            href="/pro"
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 transition-colors shadow-xs cursor-pointer"
+                          >
+                            <Lock size={12} />
+                            <span>Join Live (Pro Only)</span>
+                          </Link>
+                        ) : activeClassLink ? (
                           <a
-                            href={classItem.class_link}
+                            href={activeClassLink}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-xs cursor-pointer"
@@ -415,7 +514,7 @@ export default function LiveClassDetailPage() {
                             <span>Join Meeting</span>
                             <ExternalLink size={12} />
                           </a>
-                        )}
+                        ) : null}
                         <a
                           href={googleCalUrl}
                           target="_blank"
@@ -428,7 +527,7 @@ export default function LiveClassDetailPage() {
                     </div>
                   )}
 
-                  {!classItem.class_notes && isCompleted && (
+                  {!classItem.class_notes && !isLocked && isCompleted && (
                     <div className="col-span-full py-8 text-center text-xs text-slate-400">
                       No additional downloadable resources attached to this recorded session.
                     </div>

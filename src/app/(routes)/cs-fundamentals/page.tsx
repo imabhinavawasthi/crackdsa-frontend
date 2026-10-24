@@ -108,9 +108,6 @@ export default function CSFundamentalsPage() {
 
                   {/* Highlights Pill */}
                   <div className="pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs">
-                    <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">
-                      {topic.topicsCovered.length} Core Areas
-                    </span>
                     <span className="font-bold text-brand-600 dark:text-brand-400 group-hover:underline">
                       {isReady ? "View Notes →" : "Preview →"}
                     </span>

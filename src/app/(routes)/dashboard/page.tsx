@@ -3,13 +3,15 @@
 import { useMemo, useEffect, useState } from "react";
 import { Loader2, Flame } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { fetchLiveClasses } from "@/api/live-classes";
-import { fetchCourses } from "@/api/courses";
+import { fetchFeaturedLiveClass } from "@/api/live-classes";
 import { fetchContests } from "@/api/contests";
-import { fetchUserAssetStates } from "@/api/user";
+import { fetchUserActivitySummary } from "@/api/user";
+import { fetchSheets } from "@/api/sheets";
+import { fetchCourses } from "@/api/courses";
 import { LiveClass } from "@/types/live-class";
-import { CourseSummary } from "@/types/course";
 import { ContestSummary } from "@/types/contest";
+import { DSASheet } from "@/types/dsa-sheet";
+import { CourseSummary } from "@/types/course";
 
 import {
   DashboardGreeting,
@@ -17,8 +19,9 @@ import {
   DashboardLiveClasses,
   DashboardContinueLearning,
   DashboardEditorials,
-  DashboardDSASheets,
-  DashboardCSAndMock,
+  DashboardTopSheets,
+  DashboardTopCourses,
+  DashboardTopCSFundamentals,
   DashboardPopularTopics,
 } from "@/components/dashboard";
 
@@ -28,10 +31,12 @@ export default function DashboardPage() {
 
   // State
   const [loading, setLoading] = useState(true);
+  const [featuredClass, setFeaturedClass] = useState<LiveClass | null>(null);
   const [upcomingClass, setUpcomingClass] = useState<LiveClass | null>(null);
   const [lastClass, setLastClass] = useState<LiveClass | null>(null);
-  const [courses, setCourses] = useState<CourseSummary[]>([]);
   const [contests, setContests] = useState<ContestSummary[]>([]);
+  const [sheets, setSheets] = useState<DSASheet[]>([]);
+  const [courses, setCourses] = useState<CourseSummary[]>([]);
   const [completedLessonsCount, setCompletedLessonsCount] = useState(0);
   const [cpSolvedCount, setCpSolvedCount] = useState(0);
   const [activityDates, setActivityDates] = useState<string[]>([]);
@@ -57,90 +62,89 @@ export default function DashboardPage() {
       try {
         setLoading(true);
 
-        // Fetch Live Classes, Courses, and Contests in parallel
-        const [liveClassesRes, coursesRes, contestsRes] = await Promise.all([
-          fetchLiveClasses({ limit: 10 }).catch(() => null),
-          fetchCourses().catch(() => []),
-          fetchContests().catch(() => []),
+        // Fetch Live Class, Contests, Activity Summary, Sheets, and Courses in parallel
+        const [featuredClassRes, contestsRes, activitySummaryRes, sheetsRes, coursesRes] = await Promise.all([
+          fetchFeaturedLiveClass().catch(() => null),
+          fetchContests(undefined, undefined, 3).catch(() => []),
+          isLoggedIn ? fetchUserActivitySummary().catch(() => null) : Promise.resolve(null),
+          fetchSheets(3).catch(() => []),
+          fetchCourses(3).catch(() => []),
         ]);
 
         if (!isMounted) return;
 
-        // 1. Process Live Classes
-        if (liveClassesRes && liveClassesRes.items) {
-          const items = liveClassesRes.items;
-          const upcoming = items.find((c) => c.status === "live" || c.status === "upcoming") || null;
-          const completed = items.find((c) => c.status === "completed") || null;
-          setUpcomingClass(upcoming);
-          setLastClass(completed);
+        // 1. Process Live Class
+        if (featuredClassRes) {
+          setFeaturedClass(featuredClassRes);
+          if (featuredClassRes.status === "live" || featuredClassRes.status === "upcoming") {
+            setUpcomingClass(featuredClassRes);
+            setLastClass(null);
+          } else {
+            setUpcomingClass(null);
+            setLastClass(featuredClassRes);
+          }
+        } else {
+          setFeaturedClass(null);
+          setUpcomingClass(null);
+          setLastClass(null);
         }
 
-        // 2. Process Courses
-        if (coursesRes) {
-          setCourses(coursesRes);
-        }
-
-        // 3. Process Contests
+        // 2. Process Contests
         if (contestsRes) {
           setContests(contestsRes);
         }
 
-        // 4. Process User Progress & Streak Metrics
-        let assetStates: any[] = [];
-        if (isLoggedIn) {
-          assetStates = await fetchUserAssetStates().catch(() => []);
+        // 3. Process Sheets & Courses
+        if (sheetsRes) {
+          setSheets(sheetsRes);
+        }
+        if (coursesRes) {
+          setCourses(coursesRes);
         }
 
-        // Videos completed in DSA
-        const videosDone = assetStates.filter(
-          (a) => a.asset_type === "video" && a.status === "done"
-        ).length;
-        setCompletedLessonsCount(videosDone);
+        // 4. Process Activity & Streak Metrics
+        if (activitySummaryRes) {
+          setCurrentStreak(activitySummaryRes.current_streak || 0);
+          setMaxStreak(activitySummaryRes.max_streak || 0);
+          setActivityDates(activitySummaryRes.month_active_dates || []);
+          setCompletedLessonsCount(activitySummaryRes.completed_lessons_count || 0);
 
-        // CP Sheet Solved Count
-        const cpDoneFromApi = assetStates.filter(
-          (a) => a.asset_id && a.asset_id.startsWith("cp:") && a.status === "done"
-        ).length;
-
-        let totalCpDone = cpDoneFromApi;
-        if (typeof window !== "undefined" && totalCpDone === 0) {
-          const localCp = localStorage.getItem("crackdsa_cp_sheet_states");
-          if (localCp) {
-            try {
-              const parsed = JSON.parse(localCp);
-              totalCpDone = Object.values(parsed).filter((v: any) => v.status === "done").length;
-            } catch {}
+          let cpCount = activitySummaryRes.cp_solved_count || 0;
+          if (typeof window !== "undefined" && cpCount === 0) {
+            const localCp = localStorage.getItem("crackdsa_cp_sheet_states");
+            if (localCp) {
+              try {
+                const parsed = JSON.parse(localCp);
+                cpCount = Object.values(parsed).filter((v: any) => v.status === "done").length;
+              } catch {}
+            }
           }
+          setCpSolvedCount(cpCount);
+        } else {
+          // Fallback to local storage for guests
+          let localDates: string[] = [];
+          if (typeof window !== "undefined") {
+            const localSolved = localStorage.getItem("crackdsa_solved_problems");
+            if (localSolved) {
+              try {
+                const solvedIds = JSON.parse(localSolved);
+                if (solvedIds.length > 0) localDates.push(new Date().toLocaleDateString("en-CA"));
+              } catch {}
+            }
+            const localCp = localStorage.getItem("crackdsa_cp_sheet_states");
+            if (localCp) {
+              try {
+                const parsed = JSON.parse(localCp);
+                const cpCount = Object.values(parsed).filter((v: any) => v.status === "done").length;
+                setCpSolvedCount(cpCount);
+              } catch {}
+            }
+          }
+          const { currentStreak: cStreak, maxStreak: mStreak, uniqueDates } = computeStreak(localDates);
+          setActivityDates(uniqueDates);
+          setCurrentStreak(cStreak);
+          setMaxStreak(mStreak);
         }
-        setCpSolvedCount(totalCpDone);
-
-        // Extract dates for Activity Heatmap
-        const dates: string[] = [];
-        assetStates.forEach((a) => {
-          if (a.updated_at) {
-            dates.push(a.updated_at.slice(0, 10));
-          }
-        });
-
-        // Add dates from local storage if available
-        if (typeof window !== "undefined") {
-          const localSolved = localStorage.getItem("crackdsa_solved_problems");
-          if (localSolved && dates.length === 0) {
-            try {
-              const solvedIds = JSON.parse(localSolved);
-              if (solvedIds.length > 0) {
-                // If user has solved problems locally, add today as active
-                dates.push(new Date().toLocaleDateString("en-CA"));
-              }
-            } catch {}
-          }
-        }
-
-        // Compute Streak Metrics
-        const { currentStreak: cStreak, maxStreak: mStreak, uniqueDates } = computeStreak(dates);
-        setActivityDates(uniqueDates);
-        setCurrentStreak(cStreak);
-        setMaxStreak(mStreak);
 
       } catch (err) {
         console.error("Dashboard data load error:", err);
@@ -164,9 +168,10 @@ export default function DashboardPage() {
       {/* ─── 1. FULL WIDTH MOUNTAIN HEADER ──────────────────────────── */}
       <DashboardGreeting firstName={firstName} />
 
-      {/* ─── 2. SECTION NEXT TO HEADER: LIVE CLASSES, EDITORIALS & STREAK ─── */}
+      {/* ─── 2. SECTION 1: LIVE CLASSES, EDITORIALS & STREAK ──────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
         <DashboardLiveClasses
+          featuredClass={featuredClass}
           upcomingClass={upcomingClass}
           lastClass={lastClass}
           loading={loading}
@@ -193,10 +198,17 @@ export default function DashboardPage() {
         cpTotalCount={175}
       />
 
-      {/* ─── 4. DSA SHEETS & CS FUNDAMENTALS ─────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        <DashboardDSASheets cpSolvedCount={cpSolvedCount} cpTotalCount={175} />
-        <DashboardCSAndMock />
+      {/* ─── 4. SECTION 2: DSA SHEETS, COURSES & CS FUNDAMENTALS ────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+        <DashboardTopSheets
+          sheets={sheets}
+          loading={loading}
+        />
+        <DashboardTopCourses
+          courses={courses}
+          loading={loading}
+        />
+        <DashboardTopCSFundamentals />
       </div>
 
       {/* ─── 5. POPULAR TOPICS SHORTCUTS ──────────────────────────────── */}

@@ -16,7 +16,7 @@ import { ProMembershipPromoCard } from "@/components/courses/ProMembershipPromoC
 
 export default function LiveSessionsPage() {
   const [classes, setClasses] = useState<LiveClass[]>([]);
-  const [counts, setCounts] = useState<LiveClassCounts>({ all: 0, live: 0, upcoming: 0, completed: 0 });
+  const [counts, setCounts] = useState<LiveClassCounts>({ all: 0, live: 0, upcoming: 0, completed: 0, free: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -53,7 +53,7 @@ export default function LiveSessionsPage() {
       setClasses(data.items || []);
       setTotalCount(data.total_count || 0);
       setTotalPages(data.total_pages || 1);
-      setCounts(data.counts || { all: 0, live: 0, upcoming: 0, completed: 0 });
+      setCounts(data.counts || { all: 0, live: 0, upcoming: 0, completed: 0, free: 0 });
 
       // Populate topics directly from backend across all public videos
       if (data.available_topics && data.available_topics.length > 0) {

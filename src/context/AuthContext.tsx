@@ -20,6 +20,7 @@ type AuthState = {
   user: User | null;
   isLoading: boolean;
   isLoggedIn: boolean;
+  isPro: boolean;
   logout: () => Promise<void>;
   refetch: () => Promise<User | null>;
   sessionExpired: boolean;
@@ -133,12 +134,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSessionExpired(false);
   }, []);
 
+  const isPro = Boolean(
+    user && (
+      user.is_pro_active === true ||
+      user.roles?.includes("admin") ||
+      user.pro_subscription?.is_active === true ||
+      (typeof user.pro_subscription?.subscription_active_till_epoch === "number" &&
+        (user.pro_subscription.subscription_active_till_epoch === -1 ||
+          user.pro_subscription.subscription_active_till_epoch > Math.floor(Date.now() / 1000)))
+    )
+  );
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoading,
         isLoggedIn: user !== null,
+        isPro,
         logout,
         refetch: initialLoad,
         sessionExpired,

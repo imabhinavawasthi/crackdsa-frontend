@@ -4,14 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { 
   Award, 
+  CheckCircle2, 
   CheckSquare, 
   ChevronRight, 
   Clock, 
   Crown, 
-  FileText, 
   Monitor, 
   PlayCircle, 
-  RefreshCw, 
   ShieldCheck, 
   Sparkles,
   Zap
@@ -29,14 +28,68 @@ interface CourseDetailCardBodyProps {
 
 export default function CourseDetailCardBody({ course }: CourseDetailCardBodyProps) {
   const [activeTab, setActiveTab] = useState<Tab>('individual');
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, isPro } = useAuth();
 
-  const isEnrolled = Boolean(
+  // Check if user is enrolled via individual purchase, pro courses, or enrolled courses
+  const isEnrolledInCourse = Boolean(
     isLoggedIn &&
       (user?.enrolled_courses?.some((c: any) => c.course_id === course.slug || c.course_id === course.id) ||
-        user?.pro_courses?.some((c: any) => c.course_id === course.slug || c.course_id === course.id))
+        user?.pro_courses?.some((c: any) => c.course_id === course.slug || c.course_id === course.id) ||
+        user?.purchased_courses?.some((c: any) => c.course_id === course.slug || c.course_id === course.id))
   );
 
+  // User has full access if they bought the course OR have active Pro membership
+  const hasAccess = Boolean(isLoggedIn && (isPro || isEnrolledInCourse));
+
+  // ─── Enrolled / Pro User View: Clean Classroom CTA with no sales/pricing ─────
+  if (hasAccess) {
+    return (
+      <div className="bg-white dark:bg-gray-900 p-5 sm:p-6 space-y-4 transition-colors">
+        {/* Enrolled Status Banner */}
+        <div className="rounded-2xl border border-emerald-200/90 dark:border-emerald-800/60 bg-emerald-50/80 dark:bg-emerald-950/30 p-4 sm:p-5">
+          <div className="flex items-start gap-3.5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="size-5.5" />
+            </div>
+            <div className="space-y-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
+                  You are enrolled in this course
+                </span>
+                {isPro && !isEnrolledInCourse && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900/60 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:text-blue-300">
+                    <Sparkles className="size-2.5" /> Pro Pass
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                You have full access to all video lectures, course curriculum, and practice problems.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Classroom Action */}
+        <div>
+          {course.status === 'upcoming' ? (
+            <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 py-3.5 px-6 text-center text-sm sm:text-base font-bold text-amber-700 dark:text-amber-300">
+              <span>Upcoming Course • Starts Soon</span>
+            </div>
+          ) : (
+            <Link
+              href={`/course/${course.slug}/learn`}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 py-3.5 px-6 text-center text-sm sm:text-base font-bold text-white shadow-lg shadow-blue-500/25 transition-all active:scale-[0.99] cursor-pointer"
+            >
+              <span>Go to Classroom</span>
+              <ChevronRight className="size-4" />
+            </Link>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Non-Enrolled View: Pricing, Purchase & Pro Options ────────────────────────
   const discount = getDiscountPercent(course.price, course.original_price);
   const totalVideos = course.total_videos || 0;
 
@@ -94,14 +147,10 @@ export default function CourseDetailCardBody({ course }: CourseDetailCardBodyPro
 
             {/* Main CTA */}
             <div className="mt-4">
-              {isEnrolled ? (
-                <Link
-                  href={`/course/${course.slug}/learn`}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 px-6 text-center text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition-all hover:bg-emerald-700 active:scale-[0.99]"
-                >
-                  <span>Go to Classroom</span>
-                  <ChevronRight className="size-4" />
-                </Link>
+              {course.status === 'upcoming' ? (
+                <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 py-3.5 px-6 text-center text-base font-bold text-amber-700 dark:text-amber-300">
+                  <span>Upcoming Course</span>
+                </div>
               ) : (
                 <Link
                   href={`/checkout/course/${course.slug}`}
@@ -215,4 +264,3 @@ export default function CourseDetailCardBody({ course }: CourseDetailCardBodyPro
     </div>
   );
 }
-

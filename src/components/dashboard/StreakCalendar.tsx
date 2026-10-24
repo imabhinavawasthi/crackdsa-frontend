@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Flame, Zap, Calendar as CalendarIcon } from "lucide-react";
+import React, { useMemo } from "react";
+import Link from "next/link";
+import { Flame, Zap, Calendar as CalendarIcon, ArrowRight } from "lucide-react";
 
 interface StreakCalendarProps {
   activityDates: string[]; // YYYY-MM-DD strings
@@ -24,12 +25,12 @@ export default function StreakCalendar({
   loading = false,
 }: StreakCalendarProps) {
   const today = useMemo(() => new Date(), []);
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(today.getMonth());
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const currentMonthIndex = today.getMonth();
+  const currentYear = today.getFullYear();
 
   const activeDaysSet = useMemo(() => new Set(activityDates), [activityDates]);
 
-  // Compute calendar days for currentMonthIndex and currentYear
+  // Compute calendar days for the current month
   const calendarData = useMemo(() => {
     const firstDay = new Date(currentYear, currentMonthIndex, 1);
     // Convert Sunday=0, Monday=1... to Monday=0, Sunday=6
@@ -76,24 +77,6 @@ export default function StreakCalendar({
     return cells;
   }, [currentYear, currentMonthIndex, activeDaysSet, today]);
 
-  const handlePrevMonth = () => {
-    if (currentMonthIndex === 0) {
-      setCurrentMonthIndex(11);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonthIndex((m) => m - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (currentMonthIndex === 11) {
-      setCurrentMonthIndex(0);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonthIndex((m) => m + 1);
-    }
-  };
-
   // Month active days count
   const monthActiveCount = useMemo(() => {
     return calendarData.filter((c) => c.isActive).length;
@@ -103,11 +86,15 @@ export default function StreakCalendar({
     <div className="rounded-2xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6 shadow-xs transition-colors select-none flex flex-col justify-between h-full">
       <div>
         {/* ─── Top Header: Daily Streak & Active Streak Badge ────────── */}
-        <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-gray-100 dark:border-gray-800">
-          <h2 className="text-base sm:text-lg font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Flame size={18} className="text-orange-500 fill-orange-500/20" />
-            <span>Daily Streak</span>
-          </h2>
+        <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-gray-100 dark:border-gray-800/80">
+          <div className="flex items-center gap-2">
+            <div className="flex size-7 items-center justify-center rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">
+              <Flame size={15} className="fill-orange-500/20" />
+            </div>
+            <h2 className="text-base sm:text-lg font-black text-gray-900 dark:text-white tracking-tight">
+              Daily Streak
+            </h2>
+          </div>
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
             <Flame size={11} className="fill-orange-500 text-orange-500" />
             {currentStreak}d Streak
@@ -129,7 +116,7 @@ export default function StreakCalendar({
           </div>
         ) : (
           <>
-            {/* ─── Month & Navigation ───────────────────────────────── */}
+            {/* ─── Month & Link to Progress ───────────────────────── */}
             <div className="flex items-center justify-between pb-2 mb-2">
               <div className="flex items-center gap-1.5">
                 <div className="flex size-6 items-center justify-center rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">
@@ -140,24 +127,13 @@ export default function StreakCalendar({
                 </span>
               </div>
 
-              <div className="flex items-center gap-0.5">
-                <button
-                  type="button"
-                  onClick={handlePrevMonth}
-                  aria-label="Previous Month"
-                  className="flex size-6 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                >
-                  <ChevronLeft size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNextMonth}
-                  aria-label="Next Month"
-                  className="flex size-6 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                >
-                  <ChevronRight size={14} />
-                </button>
-              </div>
+              <Link
+                href="/progress"
+                className="group inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+              >
+                <span>Full Progress</span>
+                <ArrowRight size={11} className="group-hover:translate-x-0.5 transition-transform" />
+              </Link>
             </div>
 
             {/* ─── Weekdays Header Row ──────────────────────────────── */}

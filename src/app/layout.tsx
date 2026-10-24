@@ -58,6 +58,10 @@ export const metadata: Metadata = {
     description: 'The ultimate platform to master Data Structures, Algorithms, and System Design.',
     images: ['/crackdsa-og-image.png'],
   },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({

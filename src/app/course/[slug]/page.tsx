@@ -29,7 +29,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
 
   const [course, curriculum] = await Promise.all([
     fetchCourseDetail(slug).catch(() => null),
-    fetchCourseCurriculum(slug),
+    fetchCourseCurriculum(slug).catch(() => []),
   ]);
 
   if (!course) notFound();

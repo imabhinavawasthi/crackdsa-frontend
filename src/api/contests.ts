@@ -1,6 +1,12 @@
 import { BACKEND_URL } from "@/config/api";
 import { getAuthHeaders } from "@/functions/auth";
-import { ContestSummary, ContestDetail, ContestSuggestionPayload, ContestProblem } from "@/types/contest";
+import { 
+  ContestSummary, 
+  ContestDetail, 
+  ContestSuggestionPayload, 
+  ContestProblem,
+  ContestPaginatedResponse 
+} from "@/types/contest";
 
 export interface SiblingProblem {
   id: string;
@@ -33,16 +39,71 @@ export interface ContestProblemEditorialResponse {
   siblings: SiblingProblem[];
 }
 
+export interface FetchPaginatedContestsParams {
+  platform?: string;
+  search?: string;
+  sortBy?: string;
+  page?: number;
+  limit?: number;
+}
+
 /**
- * Fetches all contest summaries with optional platform and search filtering.
+ * Fetches paginated contest summaries with complete metadata, total counts, and platform distributions.
  */
-export async function fetchContests(platform?: string, search?: string): Promise<ContestSummary[]> {
+export async function fetchPaginatedContests(
+  params?: FetchPaginatedContestsParams
+): Promise<ContestPaginatedResponse> {
+  const query = new URLSearchParams();
+  if (params?.platform && params.platform.toLowerCase() !== "all") {
+    query.set("platform", params.platform.toLowerCase());
+  }
+  if (params?.search && params.search.trim()) {
+    query.set("search", params.search.trim());
+  }
+  if (params?.sortBy) {
+    query.set("sort_by", params.sortBy);
+  }
+  if (params?.page && params.page > 0) {
+    query.set("page", params.page.toString());
+  }
+  if (params?.limit && params.limit > 0) {
+    query.set("limit", params.limit.toString());
+  }
+
+  const queryString = query.toString() ? `?${query.toString()}` : "";
+  const res = await fetch(`${BACKEND_URL}/api/v1/contests/paginated${queryString}`, {
+    headers: await getAuthHeaders(),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch paginated contest editorials.");
+  }
+
+  return res.json();
+}
+
+/**
+ * Fetches contest summaries with optional platform, search, limit, and pagination filtering.
+ */
+export async function fetchContests(
+  platform?: string, 
+  search?: string,
+  limit?: number,
+  page?: number
+): Promise<ContestSummary[]> {
   const params = new URLSearchParams();
   if (platform && platform.toLowerCase() !== "all") {
     params.set("platform", platform.toLowerCase());
   }
   if (search && search.trim()) {
     params.set("search", search.trim());
+  }
+  if (limit && limit > 0) {
+    params.set("limit", limit.toString());
+  }
+  if (page && page > 0) {
+    params.set("page", page.toString());
   }
 
   const queryString = params.toString() ? `?${params.toString()}` : "";

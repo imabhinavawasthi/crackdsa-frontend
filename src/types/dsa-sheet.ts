@@ -45,5 +45,6 @@ export interface DSASheet {
   sheet_json?: SheetJSON;
   total_topics?: number;
   total_problems?: number;
+  solved_problems?: number;
   thumbnail_url?: string | null;
 }

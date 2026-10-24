@@ -138,18 +138,30 @@ export default function CourseDetailHero({ course, curriculum = [], card }: Cour
         <div className={card ? 'lg:max-w-[calc(100%-420px)] xl:max-w-[calc(100%-450px)]' : ''}>
           {/* Badges row */}
           <div className="mb-3.5 flex flex-wrap items-center gap-2.5">
-            {course.is_popular && (
-              <span className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm">
-                BESTSELLER
+            {course.status === 'upcoming' ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-amber-300 backdrop-blur-xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+                </span>
+                Upcoming Course
               </span>
+            ) : (
+              <>
+                {course.is_popular && (
+                  <span className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm">
+                    BESTSELLER
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-300 backdrop-blur-xs">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                  </span>
+                  Live Weekly Classes Included
+                </span>
+              </>
             )}
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-300 backdrop-blur-xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-              </span>
-              Live Weekly Classes Included
-            </span>
           </div>
 
         {/* Course Title */}

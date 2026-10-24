@@ -5,8 +5,9 @@ import { DSASheet, DetailedProblem } from "@/types/dsa-sheet";
 /**
  * Fetches the public DSA sheets library.
  */
-export async function fetchSheets(): Promise<DSASheet[]> {
-  const res = await fetch(`${BACKEND_URL}/api/v1/dsa-sheets`, {
+export async function fetchSheets(limit?: number): Promise<DSASheet[]> {
+  const query = limit ? `?limit=${limit}` : "";
+  const res = await fetch(`${BACKEND_URL}/api/v1/dsa-sheets${query}`, {
     headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch DSA sheets.");

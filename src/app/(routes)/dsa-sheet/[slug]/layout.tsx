@@ -1,6 +1,20 @@
 import { Metadata } from "next";
 import JsonLd from "@/components/common/JsonLd";
 
+const TOP_DSA_SHEET_SLUGS = [
+  "pattern-mastery",
+  "crackdsa-revision-sprint",
+  "0-to-hero-dsa",
+  "sde-sheet-180",
+  "blind-75"
+];
+
+export async function generateStaticParams() {
+  return TOP_DSA_SHEET_SLUGS.map((slug) => ({ slug }));
+}
+
+export const dynamicParams = true;
+
 type Props = { params: Promise<{ slug: string }> | { slug: string } };
 
 export async function generateMetadata(props: Props): Promise<Metadata> {

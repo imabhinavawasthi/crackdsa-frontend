@@ -2,9 +2,18 @@
 
 import React from "react";
 import Link from "next/link";
-import { Crown, CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export function ProMembershipPromoCard() {
+  const { isPro, isLoading } = useAuth();
+
+  // Hide the promo card if the user already has an active Pro subscription,
+  // or while the central auth state is initially loading.
+  if (isLoading || isPro) {
+    return null;
+  }
+
   const perks = [
     "All Video Courses & Roadmaps",
     "All Live Classes & Archive Recordings",
@@ -17,7 +26,6 @@ export function ProMembershipPromoCard() {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         {/* Left Side: Badge, Title, Description & Perks */}
         <div className="space-y-3 flex-1 min-w-0">
-
           <div className="space-y-1">
             <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
               Unlock All Courses, Live Classes &amp; Complete DSA Resources

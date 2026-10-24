@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Sparkles, 
-  ArrowRight, 
   Dumbbell, 
   Zap, 
   CheckCircle2,
@@ -13,104 +12,39 @@ import {
   Video,
   Bookmark,
   Notebook,
-  Loader2
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { getStoredToken } from "@/functions/auth";
-import { calculateActiveStreak } from "@/utils/streak";
-import { BACKEND_URL } from "@/config/api";
-import { fetchPracticeProblems } from "@/api/problems";
-import { fetchUserAssetStates } from "@/api/user";
+import { fetchUserProgressSummary, UserProgressSummary } from "@/api/user";
 import LoginRequired from "@/components/common/LoginRequired";
 import ActivityHeatmap from "@/components/common/ActivityHeatmap";
 import ErrorState from "@/components/common/ErrorState";
-
-// Normalizes a date to YYYY-MM-DD string
-const formatDateKey = (date: Date): string => {
-  return date.toLocaleDateString("en-CA"); // YYYY-MM-DD format
-};
 
 export default function ProgressPage() {
   const { isLoggedIn, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [problems, setProblems] = useState<any[]>([]);
-  const [userStates, setUserStates] = useState<any[]>([]);
+  const [summary, setSummary] = useState<UserProgressSummary | null>(null);
 
   // Heatmap State
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
 
-  const backendUrl = BACKEND_URL;
   const firstName = user?.full_name?.split(" ")[0] || "Learner";
 
-  // Fetch all problems & user states on mount
+  // Fetch unified progress summary on mount (Zero calls to fetch all problems!)
   useEffect(() => {
+    if (!isLoggedIn) {
+      setLoading(false);
+      return;
+    }
+
     const loadProgressData = async () => {
       try {
         setLoading(true);
         setError(null);
-
-        const token = getStoredToken();
-        const headers = token ? { "Authorization": `Bearer ${token}` } : undefined;
-
-        // 1. Fetch practice problems
-        const problemsList = await fetchPracticeProblems();
-        setProblems(Array.isArray(problemsList) ? problemsList : []);
-
-        // 2. Fetch User progress states
-        if (isLoggedIn) {
-          const statesData = await fetchUserAssetStates();
-          setUserStates(statesData || []);
-        } else {
-          // Guest Fallback
-          const states: any[] = [];
-          const storedSolved = localStorage.getItem("crackdsa_solved_problems");
-          const solvedIds = storedSolved ? JSON.parse(storedSolved) : [];
-          const storedBookmarks = localStorage.getItem("crackdsa_bookmarked_problems");
-          const bookmarkedIds = storedBookmarks ? JSON.parse(storedBookmarks) : [];
-          const storedStatusMap = localStorage.getItem("crackdsa_problem_status_map");
-          const statusMap = storedStatusMap ? JSON.parse(storedStatusMap) : {};
-
-          solvedIds.forEach((id: string) => {
-            if (!statusMap[id]) statusMap[id] = "done";
-          });
-
-          const todayIso = new Date().toISOString();
-          const interactedProblemIds = new Set([...solvedIds, ...bookmarkedIds, ...Object.keys(statusMap)]);
-
-          interactedProblemIds.forEach((id) => {
-            const problemObj = problemsList.find((p: any) => p.id === id);
-            const statusVal = statusMap[id] || "pending";
-            const isBookmarked = bookmarkedIds.includes(id);
-
-            let notesArr: any[] = [];
-            if (problemObj?.slug) {
-              const notesKey = `notes-dsa-bootcamp-recordings-problem-${problemObj.slug}`;
-              const savedNotes = localStorage.getItem(notesKey);
-              if (savedNotes) {
-                try {
-                  notesArr = JSON.parse(savedNotes);
-                } catch (e) {
-                  console.error("Failed to parse notes for ", problemObj.slug, e);
-                }
-              }
-            }
-
-            states.push({
-              asset_id: id,
-              asset_type: "problem",
-              status: statusVal,
-              is_bookmarked: isBookmarked,
-              notes: notesArr,
-              last_interacted_at: todayIso,
-              updated_at: todayIso
-            });
-          });
-
-          setUserStates(states);
-        }
+        const data = await fetchUserProgressSummary();
+        setSummary(data);
       } catch (err: any) {
         console.error("Error loading progress data:", err);
         setError("Unable to sync progress details. Please try again later.");
@@ -120,74 +54,7 @@ export default function ProgressPage() {
     };
 
     loadProgressData();
-  }, [isLoggedIn, backendUrl]);
-
-  // Aggregate user statistics
-  const stats = useMemo(() => {
-    const solvedProblemIds = userStates
-      .filter(state => state.asset_type === "problem" && state.status === "done")
-      .map(state => state.asset_id);
-    const problemsSolved = solvedProblemIds.length;
-
-    const articlesRead = userStates
-      .filter(state => state.asset_type === "article" && state.status === "done")
-      .length;
-
-    const lecturesCompleted = userStates
-      .filter(state => state.asset_type === "video" && state.status === "done")
-      .length;
-
-    const bookmarkedItems = userStates
-      .filter(state => state.is_bookmarked)
-      .sort((a, b) => new Date(b.updated_at || b.last_interacted_at || 0).getTime() - new Date(a.updated_at || a.last_interacted_at || 0).getTime());
-    const bookmarkedCount = bookmarkedItems.length;
-
-    const interactionDates = userStates
-      .map(state => state.updated_at || state.last_interacted_at)
-      .filter(Boolean);
-
-    const streak = calculateActiveStreak(interactionDates);
-
-    const easyTotal = problems.filter(p => p.difficulty === "Easy").length;
-    const easySolved = problems.filter(p => p.difficulty === "Easy" && solvedProblemIds.includes(p.id)).length;
-    const mediumTotal = problems.filter(p => p.difficulty === "Medium").length;
-    const mediumSolved = problems.filter(p => p.difficulty === "Medium" && solvedProblemIds.includes(p.id)).length;
-    const hardTotal = problems.filter(p => p.difficulty === "Hard").length;
-    const hardSolved = problems.filter(p => p.difficulty === "Hard" && solvedProblemIds.includes(p.id)).length;
-
-    const allNotes: any[] = [];
-    userStates.forEach(state => {
-      if (state.notes && Array.isArray(state.notes)) {
-        state.notes.forEach((note: any) => {
-          allNotes.push({ ...note, asset_id: state.asset_id, asset_type: state.asset_type });
-        });
-      }
-    });
-    allNotes.sort((a, b) => new Date(b.createdAt || b.created_at).getTime() - new Date(a.createdAt || a.created_at).getTime());
-
-    const heatmapActivity: Record<string, number> = {};
-    interactionDates.forEach(dateStr => {
-      const key = formatDateKey(new Date(dateStr));
-      heatmapActivity[key] = (heatmapActivity[key] || 0) + 1;
-    });
-
-    return {
-      problemsSolved,
-      articlesRead,
-      lecturesCompleted,
-      bookmarkedCount,
-      bookmarkedItems,
-      streak,
-      easyTotal,
-      easySolved,
-      mediumTotal,
-      mediumSolved,
-      hardTotal,
-      hardSolved,
-      recentNotes: allNotes.slice(0, 3),
-      heatmapActivity
-    };
-  }, [userStates, problems]);
+  }, [isLoggedIn]);
 
   // Generates days for the selected Month and Year
   const calendarDays = useMemo(() => {
@@ -210,81 +77,6 @@ export default function ProgressPage() {
     }
     return days;
   }, [selectedYear, selectedMonth]);
-
-
-
-  const getBookmarkDetails = (state: any) => {
-    if (state.asset_type === "problem") {
-      if (state.asset_id && state.asset_id.startsWith("cp:")) {
-        return {
-          title: state.metadata?.problem_name || state.metadata?.title || "CP Sheet Problem",
-          subtitle: "CP Sheet",
-          href: "/cp/newbie-to-expert",
-          icon: <Dumbbell size={12} />,
-          iconColor: "bg-blue-500/10 text-blue-500",
-          diffColor: "text-blue-500",
-        };
-      }
-      const problem = problems.find((p) => p.id === state.asset_id || p.slug === state.asset_id);
-      return {
-        title: problem?.title || "Practice Problem",
-        subtitle: problem?.difficulty || "Problem",
-        href: problem?.slug ? `/problem/${problem.slug}` : "/practice",
-        icon: <Dumbbell size={12} />,
-        iconColor: "bg-brand-500/10 text-brand-500",
-        diffColor:
-          problem?.difficulty === "Easy"
-            ? "text-emerald-500"
-            : problem?.difficulty === "Hard"
-            ? "text-rose-500"
-            : "text-amber-500",
-      };
-    }
-    if (state.asset_type === "video") {
-      return {
-        title: state.asset_id || "Video Lesson",
-        subtitle: "Video",
-        href: `/profile/bookmarks`,
-        icon: <Video size={12} />,
-        iconColor: "bg-blue-500/10 text-blue-500",
-        diffColor: "text-blue-500",
-      };
-    }
-    return {
-      title: state.asset_id || "Article",
-      subtitle: "Article",
-      href: `/profile/bookmarks`,
-      icon: <BookOpen size={12} />,
-      iconColor: "bg-purple-500/10 text-purple-500",
-      diffColor: "text-purple-500",
-    };
-  };
-
-  const getNoteTargetInfo = (note: any) => {
-    if (note.asset_type === "problem") {
-      const problem = problems.find((p) => p.id === note.asset_id);
-      return {
-        title: problem?.title || "Unknown Problem",
-        type: "Problem",
-        icon: <Dumbbell size={10} className="text-brand-500" />,
-        iconBg: "bg-brand-500/10",
-      };
-    }
-    if (note.asset_type === "video") {
-      return {
-        title: note.asset_id || "Video Lesson",
-        type: "Video",
-        icon: <Video size={10} className="text-blue-500" />,
-        iconBg: "bg-blue-500/10",
-      };
-    }
-    return {
-      title: note.asset_id || "Article",
-      type: "Article",
-      icon: <BookOpen size={10} className="text-purple-500" />,
-      iconBg: "bg-purple-500/10",
-    };
-  };
 
   if (loading) {
     return (
@@ -317,17 +109,29 @@ export default function ProgressPage() {
     );
   }
 
-  if (error) {
+  if (error || !summary) {
     return (
       <div className="max-w-6xl mx-auto py-12 px-4">
         <ErrorState 
           title="Error Loading Progress"
-          message={error}
+          message={error || "Failed to load progress summary"}
           onRetry={() => window.location.reload()}
         />
       </div>
     );
   }
+
+  const {
+    problems_solved,
+    total_problems,
+    articles_read,
+    lectures_completed,
+    bookmarked_count,
+    streak,
+    recent_bookmarks,
+    recent_notes,
+    heatmap_activity,
+  } = summary;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12 select-none">
@@ -350,17 +154,17 @@ export default function ProgressPage() {
         <div className="flex items-center gap-4 bg-gray-50/60 dark:bg-gray-900/30 border border-gray-200/60 dark:border-gray-800/50 rounded-2xl px-5 py-2.5 shadow-xs">
           <div className="text-center">
             <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest block">Easy</span>
-            <span className="text-sm font-black text-gray-900 dark:text-white leading-none">{stats.easySolved}</span>
+            <span className="text-sm font-black text-gray-900 dark:text-white leading-none">{problems_solved.easy}</span>
           </div>
           <div className="w-px h-6 bg-gray-200 dark:bg-gray-850" />
           <div className="text-center">
             <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block">Medium</span>
-            <span className="text-sm font-black text-gray-900 dark:text-white leading-none">{stats.mediumSolved}</span>
+            <span className="text-sm font-black text-gray-900 dark:text-white leading-none">{problems_solved.medium}</span>
           </div>
           <div className="w-px h-6 bg-gray-200 dark:bg-gray-850" />
           <div className="text-center">
             <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest block">Hard</span>
-            <span className="text-sm font-black text-gray-900 dark:text-white leading-none">{stats.hardSolved}</span>
+            <span className="text-sm font-black text-gray-900 dark:text-white leading-none">{problems_solved.hard}</span>
           </div>
         </div>
       </div>
@@ -368,10 +172,10 @@ export default function ProgressPage() {
       {/* 2. Real-Time Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Problems Solved", value: stats.problemsSolved, icon: <CheckCircle2 size={16} className="text-emerald-500" />, colorClass: "bg-emerald-500/5 text-emerald-500 border-emerald-500/10" },
-          { label: "Active Streak", value: `${stats.streak} Days`, icon: <Zap size={16} className="text-amber-500" />, colorClass: "bg-amber-500/5 text-amber-500 border-amber-500/10" },
-          { label: "Lectures Watched", value: stats.lecturesCompleted, icon: <Video size={16} className="text-blue-500" />, colorClass: "bg-blue-500/5 text-blue-500 border-blue-500/10" },
-          { label: "Articles Read", value: stats.articlesRead, icon: <BookOpen size={16} className="text-purple-500" />, colorClass: "bg-purple-500/5 text-purple-500 border-purple-500/10" },
+          { label: "Problems Solved", value: problems_solved.total, icon: <CheckCircle2 size={16} className="text-emerald-500" />, colorClass: "bg-emerald-500/5 text-emerald-500 border-emerald-500/10" },
+          { label: "Active Streak", value: `${streak} Days`, icon: <Zap size={16} className="text-amber-500" />, colorClass: "bg-amber-500/5 text-amber-500 border-amber-500/10" },
+          { label: "Lectures Watched", value: lectures_completed, icon: <Video size={16} className="text-blue-500" />, colorClass: "bg-blue-500/5 text-blue-500 border-blue-500/10" },
+          { label: "Articles Read", value: articles_read, icon: <BookOpen size={16} className="text-purple-500" />, colorClass: "bg-purple-500/5 text-purple-500 border-purple-500/10" },
         ].map((stat) => (
           <div key={stat.label} className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-950">
             <div className="flex items-center justify-between mb-3">
@@ -385,22 +189,21 @@ export default function ProgressPage() {
         ))}
       </div>
 
-      {/* 3. Heatmap & Difficulty Overview Grid */}
       {/* 3. Interactive Contribution Heatmap (Full Width) */}
       <ActivityHeatmap
         calendarDays={calendarDays}
-        heatmapActivity={stats.heatmapActivity}
+        heatmapActivity={heatmap_activity}
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
         selectedMonth={selectedMonth}
         setSelectedMonth={setSelectedMonth}
       />
 
-      {/* 4. Details Grid (3 columns on lg, 1 column on mobile) */}
+      {/* 4. Details Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Solved Problem Difficulty Breakdown */}
-        <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 flex flex-col justify-between gap-5 shadow-sm">
+        <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 flex flex-col justify-between gap-5 shadow-xs">
           <div className="space-y-1">
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
               <Dumbbell size={14} className="text-brand-500" />
@@ -415,14 +218,14 @@ export default function ProgressPage() {
               <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
                 <span className="text-emerald-500">Easy Category</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-550 dark:text-gray-400">{stats.easySolved} / {stats.easyTotal || 20}</span>
+                  <span className="text-gray-550 dark:text-gray-400">{problems_solved.easy} / {total_problems.easy || 20}</span>
                   <span className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
-                    {stats.easyTotal > 0 ? Math.round((stats.easySolved / stats.easyTotal) * 100) : 0}%
+                    {total_problems.easy > 0 ? Math.round((problems_solved.easy / total_problems.easy) * 100) : 0}%
                   </span>
                 </div>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-900 h-2 rounded-full overflow-hidden border border-gray-200/50 dark:border-gray-800/50 p-[1px]">
-                <div className="bg-emerald-500 h-full rounded-full transition-all duration-700" style={{ width: `${stats.easyTotal > 0 ? (stats.easySolved / stats.easyTotal) * 100 : 0}%` }} />
+                <div className="bg-emerald-500 h-full rounded-full transition-all duration-700" style={{ width: `${total_problems.easy > 0 ? (problems_solved.easy / total_problems.easy) * 100 : 0}%` }} />
               </div>
             </div>
 
@@ -431,14 +234,14 @@ export default function ProgressPage() {
               <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
                 <span className="text-amber-500">Medium Category</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-550 dark:text-gray-400">{stats.mediumSolved} / {stats.mediumTotal || 35}</span>
+                  <span className="text-gray-550 dark:text-gray-400">{problems_solved.medium} / {total_problems.medium || 35}</span>
                   <span className="text-[9px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
-                    {stats.mediumTotal > 0 ? Math.round((stats.mediumSolved / stats.mediumTotal) * 100) : 0}%
+                    {total_problems.medium > 0 ? Math.round((problems_solved.medium / total_problems.medium) * 100) : 0}%
                   </span>
                 </div>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-900 h-2 rounded-full overflow-hidden border border-gray-200/50 dark:border-gray-800/50 p-[1px]">
-                <div className="bg-amber-500 h-full rounded-full transition-all duration-700" style={{ width: `${stats.mediumTotal > 0 ? (stats.mediumSolved / stats.mediumTotal) * 100 : 0}%` }} />
+                <div className="bg-amber-500 h-full rounded-full transition-all duration-700" style={{ width: `${total_problems.medium > 0 ? (problems_solved.medium / total_problems.medium) * 100 : 0}%` }} />
               </div>
             </div>
 
@@ -447,63 +250,65 @@ export default function ProgressPage() {
               <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
                 <span className="text-rose-500">Hard Category</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-550 dark:text-gray-400">{stats.hardSolved} / {stats.hardTotal || 15}</span>
+                  <span className="text-gray-550 dark:text-gray-400">{problems_solved.hard} / {total_problems.hard || 15}</span>
                   <span className="text-[9px] font-bold text-rose-600 bg-rose-500/10 px-1.5 py-0.5 rounded-md">
-                    {stats.hardTotal > 0 ? Math.round((stats.hardSolved / stats.hardTotal) * 100) : 0}%
+                    {total_problems.hard > 0 ? Math.round((problems_solved.hard / total_problems.hard) * 100) : 0}%
                   </span>
                 </div>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-900 h-2 rounded-full overflow-hidden border border-gray-200/50 dark:border-gray-800/50 p-[1px]">
-                <div className="bg-rose-500 h-full rounded-full transition-all duration-700" style={{ width: `${stats.hardTotal > 0 ? (stats.hardSolved / stats.hardTotal) * 100 : 0}%` }} />
+                <div className="bg-rose-500 h-full rounded-full transition-all duration-700" style={{ width: `${total_problems.hard > 0 ? (problems_solved.hard / total_problems.hard) * 100 : 0}%` }} />
               </div>
             </div>
           </div>
 
           <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center border-t border-gray-100 dark:border-gray-900 pt-3 shrink-0">
-            Total Problems Solved: {stats.problemsSolved}
+            Total Problems Solved: {problems_solved.total}
           </div>
         </div>
 
         {/* Bookmarked Library Panel */}
-        <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 space-y-4 shadow-sm flex flex-col justify-between h-full">
+        <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 space-y-4 shadow-xs flex flex-col justify-between h-full">
           <div className="space-y-1 shrink-0">
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
               <Bookmark size={14} className="text-brand-500" />
-              <span>Bookmarked Library ({stats.bookmarkedCount})</span>
+              <span>Bookmarked Library ({bookmarked_count})</span>
             </h3>
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Quick-access saved practice items</p>
           </div>
 
           <div className="flex-grow py-2">
-            {stats.bookmarkedCount === 0 ? (
+            {recent_bookmarks.length === 0 ? (
               <div className="h-full flex items-center justify-center border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl py-10 text-center">
                 <p className="text-xs text-gray-400 dark:text-gray-550 font-medium">No bookmarked items yet. Bookmark items to view them here.</p>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {stats.bookmarkedItems.slice(0, 3).map((state: any) => {
-                  const details = getBookmarkDetails(state);
+                {recent_bookmarks.map((item) => {
+                  const isProblem = item.asset_type === "problem";
+                  const isCp = item.asset_id.startsWith("cp:");
+                  const isVideo = item.asset_type === "video";
                   return (
-                    <div key={`${state.asset_type}-${state.asset_id}`} className="group flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-900 bg-gray-50/50 dark:bg-gray-900/10 hover:bg-gray-100/30 dark:hover:bg-gray-900/20 transition-all select-none animate-fadeIn">
+                    <div key={`${item.asset_type}-${item.asset_id}`} className="group flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-900 bg-gray-50/50 dark:bg-gray-900/10 hover:bg-gray-100/30 dark:hover:bg-gray-900/20 transition-all select-none animate-fadeIn">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${details.iconColor}`}>
-                          {details.icon}
+                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isProblem ? (isCp ? "bg-blue-500/10 text-blue-500" : "bg-brand-500/10 text-brand-500") : isVideo ? "bg-blue-500/10 text-blue-500" : "bg-purple-500/10 text-purple-500"}`}>
+                          {isProblem ? (isCp ? <Trophy size={12} /> : <Dumbbell size={12} />) : isVideo ? <Video size={12} /> : <BookOpen size={12} />}
                         </div>
                         <div className="min-w-0 space-y-0.5">
-                          <Link href={details.href} className="text-xs font-bold text-gray-850 dark:text-gray-200 hover:text-brand-500 truncate block cursor-pointer">
-                            {details.title}
+                          <Link href={item.href} className="text-xs font-bold text-gray-850 dark:text-gray-200 hover:text-brand-500 truncate block cursor-pointer">
+                            {item.title}
                           </Link>
                           <div className="flex items-center gap-2">
-                            <span className={`text-[9px] font-bold uppercase tracking-widest ${details.diffColor}`}>
-                              {details.subtitle}
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-amber-500">
+                              {item.subtitle}
                             </span>
                             <span className="text-[9px] font-bold uppercase tracking-widest text-gray-400 bg-gray-150 dark:bg-gray-900 px-1.5 py-0.2 rounded-md">
-                              {state.asset_type}
+                              {item.asset_type}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <Link href={details.href} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-500/5 transition-all cursor-pointer">
+                      <Link href={item.href} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-500/5 transition-all cursor-pointer">
                         <ChevronRight size={14} />
                       </Link>
                     </div>
@@ -522,37 +327,38 @@ export default function ProgressPage() {
         </div>
 
         {/* Recent Notepad Summary Feed */}
-        <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 space-y-4 shadow-sm flex flex-col justify-between h-full">
+        <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 space-y-4 shadow-xs flex flex-col justify-between h-full">
           <div className="space-y-1 shrink-0">
             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
               <Notebook size={14} className="text-brand-500" />
-              <span>Recent Notepad Entries ({stats.recentNotes.length})</span>
+              <span>Recent Notepad Entries ({recent_notes.length})</span>
             </h3>
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Overview of your comments and notations</p>
           </div>
 
           <div className="flex-grow py-2">
-            {stats.recentNotes.length === 0 ? (
+            {recent_notes.length === 0 ? (
               <div className="h-full flex items-center justify-center border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl py-10 text-center">
                 <p className="text-xs text-gray-400 dark:text-gray-550 font-medium">No notebook comments recorded. Write notes inside workspaces to view them.</p>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {stats.recentNotes.map((note) => {
-                  const targetInfo = getNoteTargetInfo(note);
+                {recent_notes.map((note) => {
+                  const isProblem = note.asset_type === "problem";
+                  const isVideo = note.asset_type === "video";
                   return (
-                    <div key={note.id} className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-900 bg-gray-50/50 dark:bg-gray-900/10 space-y-2 select-none hover:shadow-xs transition-all animate-fadeIn">
+                    <div key={note.id} className="p-3.5 rounded-xl border border-gray-100 dark:border-gray-900 bg-gray-50/50 dark:bg-gray-900/10 space-y-2 select-none hover:shadow-2xs transition-all animate-fadeIn">
                       <div className="flex items-center justify-between text-[9px] font-bold text-gray-400 uppercase tracking-wider">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className={`p-1 rounded ${targetInfo.iconBg}`}>
-                            {targetInfo.icon}
+                          <span className={`p-1 rounded ${isProblem ? "bg-brand-500/10" : isVideo ? "bg-blue-500/10" : "bg-purple-500/10"}`}>
+                            {isProblem ? <Dumbbell size={10} className="text-brand-500" /> : isVideo ? <Video size={10} className="text-blue-500" /> : <BookOpen size={10} className="text-purple-500" />}
                           </span>
-                          <span className="truncate max-w-[130px]">{targetInfo.title}</span>
+                          <span className="truncate max-w-[130px]">{note.title}</span>
                           <span className="text-[8px] font-extrabold uppercase px-1 py-0.2 rounded-sm bg-gray-250/20 dark:bg-gray-800/40 text-gray-450 shrink-0">
-                            {targetInfo.type}
+                            {note.subtitle}
                           </span>
                         </div>
-                        <span className="shrink-0">{note.createdAt || note.created_at}</span>
+                        <span className="shrink-0">{note.created_at ? note.created_at.slice(0, 10) : ""}</span>
                       </div>
                       <p className="text-xs font-semibold text-gray-750 dark:text-gray-300 line-clamp-2 leading-relaxed">
                         {note.text}

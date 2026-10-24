@@ -1,16 +1,24 @@
-"use client";
-
 import React from "react";
-import AppFooter from "@/layout/AppFooter";
+import dynamic from "next/dynamic";
 import { AnnouncementBanner } from "./announcement-banner";
 import { LandingNavbar } from "./landing-navbar";
 import { HeroSection } from "./hero-section";
 import { FeaturesBento } from "./features-bento";
-import { SheetsShowcase } from "./sheets-showcase";
-import { ProHighlightBanner } from "./pro-highlight-banner";
-import { LandingTestimonials } from "./landing-testimonials";
-import { LandingFAQ } from "./landing-faq";
-import { FinalCta } from "./final-cta";
+
+// Dynamically import below-the-fold sections to streamline initial page load & hydration
+const SheetsShowcase = dynamic(
+  () => import("./sheets-showcase").then((mod) => mod.SheetsShowcase)
+);
+const ProHighlightBanner = dynamic(
+  () => import("./pro-highlight-banner").then((mod) => mod.ProHighlightBanner)
+);
+const LandingTestimonials = dynamic(
+  () => import("./landing-testimonials").then((mod) => mod.LandingTestimonials)
+);
+const LandingFAQ = dynamic(
+  () => import("./landing-faq").then((mod) => mod.LandingFAQ)
+);
+const AppFooter = dynamic(() => import("@/layout/AppFooter"));
 
 export default function LandingPage() {
   return (

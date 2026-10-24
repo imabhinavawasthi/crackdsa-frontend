@@ -19,10 +19,19 @@ export async function fetchVideoLectures(): Promise<VideoLectureDetail[]> {
  * Fetches the details of a single video lecture by its ID.
  * Automatically injects the user's bearer token if logged in.
  */
-export async function fetchVideoDetails(videoId: string): Promise<VideoLectureDetail> {
+export async function fetchVideoDetails(
+  videoId: string,
+  options?: { itemId?: string; courseSlug?: string }
+): Promise<VideoLectureDetail> {
   const headers = await getAuthHeaders();
 
-  const res = await fetch(`${BACKEND_URL}/api/v1/video-lectures/${videoId}`, { headers });
+  const queryParams = new URLSearchParams();
+  if (options?.itemId) queryParams.set("item_id", options.itemId);
+  if (options?.courseSlug) queryParams.set("course_slug", options.courseSlug);
+  const qs = queryParams.toString();
+  const url = `${BACKEND_URL}/api/v1/video-lectures/${videoId}${qs ? `?${qs}` : ""}`;
+
+  const res = await fetch(url, { headers });
   if (!res.ok) {
     if (res.status === 404) {
       throw new Error("Video lecture not found");

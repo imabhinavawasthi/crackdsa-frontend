@@ -38,7 +38,7 @@ export default function CourseDetailCard({ course, curriculum = [] }: CourseDeta
         <CourseDetailCardBody course={course} />
       </div>
 
-      <FreeVideoPreviewDialog item={previewItem} onClose={() => setPreviewItem(null)} />
+      <FreeVideoPreviewDialog item={previewItem} courseSlug={course.slug} onClose={() => setPreviewItem(null)} />
     </>
   );
 }

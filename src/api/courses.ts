@@ -20,10 +20,11 @@ export interface BatchTopicResponse {
 }
 
 /**
- * Fetches all courses.
+ * Fetches all courses with optional limit.
  */
-export async function fetchCourses(): Promise<CourseSummary[]> {
-  const res = await fetch(`${BACKEND_URL}/api/v1/courses`, {
+export async function fetchCourses(limit?: number): Promise<CourseSummary[]> {
+  const query = limit ? `?limit=${limit}` : "";
+  const res = await fetch(`${BACKEND_URL}/api/v1/courses${query}`, {
     headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch courses catalog.");

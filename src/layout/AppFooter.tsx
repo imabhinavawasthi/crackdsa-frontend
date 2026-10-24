@@ -54,7 +54,7 @@ const PRACTICE_LINKS = [
   { label: "Newbie to Expert Sheet", href: "/cp/newbie-to-expert", badge: "Popular" },
   { label: "Topicwise", href: "/practice/topics" },
   { label: "Companywise", href: "/practice/companies" },
-  { label: "Contest Editorials", href: "/contests" },
+  { label: "Contest Editorials", href: "/contests/editorials" },
 ];
 
 const COMPANY_LINKS = [
@@ -225,7 +225,7 @@ const AppFooter: React.FC = () => {
               <div>
                 <p className="font-semibold text-gray-900 dark:text-gray-200">Regional Office</p>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                  Indiranagar, Bangalore - 208021
+                  Indiranagar, Bangalore - 560008
                 </p>
               </div>
             </div>
@@ -249,7 +249,7 @@ const AppFooter: React.FC = () => {
               © 2026 crackDSA™ • A part of Maa Lalita Edtech Private Limited. All rights reserved.
             </p>
             <p className="text-[11px] text-gray-400 dark:text-gray-500">
-              Handcrafted for engineers preparing for FAANG, Top Tier-1 Tech &amp; Global Product Companies.
+              Handcrafted for engineers preparing for FAANG, Top Tier-1 Tech &amp; Product Based Companies.
             </p>
           </div>
 

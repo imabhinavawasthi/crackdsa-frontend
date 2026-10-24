@@ -80,7 +80,7 @@ export default function UserDropdown() {
             <Image
               width={40}
               height={40}
-              src={user?.avatar_url ?? "/images/user/owner.jpg"}
+              src={user?.avatar_url || "/images/user/owner.jpg"}
               alt={user?.full_name ?? "User"}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
@@ -133,7 +133,7 @@ export default function UserDropdown() {
                     <Image
                       width={40}
                       height={40}
-                      src={user?.avatar_url ?? "/images/user/owner.jpg"}
+                      src={user?.avatar_url || "/images/user/owner.jpg"}
                       alt={user?.full_name ?? "User"}
                       className="h-full w-full object-cover"
                     />
