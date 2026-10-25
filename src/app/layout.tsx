@@ -1,12 +1,21 @@
-import { Onest } from 'next/font/google';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Metadata } from 'next';
 import './globals.css';
 import ClientLayout, { ThemeScript } from './ClientLayout';
 import { Analytics } from "@vercel/analytics/next";
 
-const onest = Onest({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-onest",
+  display: "swap",
+  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-mono",
+  weight: ["400", "500", "600", "700"],
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === 'production' ? 'https://crackdsa.com' : 'http://localhost:3000');
@@ -70,13 +79,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={onest.variable}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
         <ThemeScript />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${onest.className} dark:bg-gray-900 transition-colors duration-300`}>
+      <body className={`${inter.className} font-sans dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 antialiased selection:bg-brand-500/20 selection:text-brand-700 dark:selection:text-brand-300`}>
         <ClientLayout>{children}</ClientLayout>
         <Analytics />
       </body>

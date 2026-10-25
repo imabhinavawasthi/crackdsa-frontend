@@ -95,6 +95,24 @@ export default function CourseCurriculumBuilder({
   const [itemFormDuration, setItemFormDuration] = useState("");
   const [itemFormIsFree, setItemFormIsFree] = useState(false);
 
+  // Available articles for quick picker
+  const [availableArticles, setAvailableArticles] = useState<any[]>([]);
+  const [loadingArticles, setLoadingArticles] = useState(false);
+
+  React.useEffect(() => {
+    if (itemModalOpen && itemFormType === "article" && availableArticles.length === 0) {
+      setLoadingArticles(true);
+      fetch(`${backendUrl}/api/v1/articles`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) setAvailableArticles(data);
+          else if (data && Array.isArray(data.items)) setAvailableArticles(data.items);
+        })
+        .catch(() => {})
+        .finally(() => setLoadingArticles(false));
+    }
+  }, [itemModalOpen, itemFormType, availableArticles.length, backendUrl]);
+
   // Modal State for Raw JSON
   const [jsonModalOpen, setJsonModalOpen] = useState(false);
   const [rawJsonText, setRawJsonText] = useState("");
@@ -358,7 +376,7 @@ export default function CourseCurriculumBuilder({
     <div className="space-y-6">
 
       {/* Stats Ribbon */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4">
           <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">Modules</div>
           <div className="text-xl font-black text-gray-900 dark:text-white mt-1">{stats.totalSections}</div>
@@ -372,10 +390,14 @@ export default function CourseCurriculumBuilder({
           <div className="text-xl font-black text-gray-900 dark:text-white mt-1">{stats.problems}</div>
         </div>
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4">
+          <div className="text-[10px] font-black uppercase tracking-wider text-amber-500">Articles / Notes</div>
+          <div className="text-xl font-black text-gray-900 dark:text-white mt-1">{stats.articles}</div>
+        </div>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4">
           <div className="text-[10px] font-black uppercase tracking-wider text-emerald-500">Free Previews</div>
           <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{stats.freeItems}</div>
         </div>
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 col-span-2 sm:col-span-1">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4">
           <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">Total Assets</div>
           <div className="text-xl font-black text-gray-900 dark:text-white mt-1">{stats.totalItems}</div>
         </div>
@@ -747,6 +769,63 @@ export default function CourseCurriculumBuilder({
                   ))}
                 </div>
               </div>
+
+              {/* If Article is selected, show Quick Picker from Library */}
+              {itemFormType === "article" && (
+                <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+                      <FileText size={13} />
+                      <span>Select Article from Library</span>
+                    </Label>
+                    <a
+                      href="/admin/articles/add"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-0.5"
+                    >
+                      <span>+ Create Article</span>
+                      <ExternalLink size={9} />
+                    </a>
+                  </div>
+
+                  {loadingArticles ? (
+                    <div className="flex items-center gap-2 text-xs text-purple-500 py-1">
+                      <Loader2 size={12} className="animate-spin" />
+                      <span>Loading articles...</span>
+                    </div>
+                  ) : availableArticles.length > 0 ? (
+                    <select
+                      onChange={(e) => {
+                        const selected = availableArticles.find(
+                          (a) => a.id === e.target.value || a.slug === e.target.value
+                        );
+                        if (selected) {
+                          setItemFormTitle(selected.title);
+                          setItemFormAssetId(selected.slug || selected.id);
+                          setItemFormDuration(`${selected.read_time_minutes || 5} min read`);
+                        }
+                      }}
+                      className="w-full text-xs p-2 rounded-xl bg-white dark:bg-gray-800 border border-purple-300/80 dark:border-purple-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-purple-500 font-medium cursor-pointer"
+                    >
+                      <option value="">-- Choose an article to auto-fill --</option>
+                      {availableArticles.map((art) => (
+                        <option key={art.id} value={art.slug || art.id}>
+                          {art.title} ({art.category} · {art.read_time_minutes || 5}m)
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                      No published articles found yet. You can create one in the{" "}
+                      <a href="/admin/articles/add" target="_blank" className="underline font-bold text-purple-500">
+                        Articles Admin
+                      </a>{" "}
+                      or enter a custom slug below.
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="itemTitle" className="text-xs font-bold uppercase tracking-wider text-gray-500">

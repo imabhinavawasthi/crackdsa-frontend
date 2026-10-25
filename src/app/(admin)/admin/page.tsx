@@ -303,8 +303,8 @@ export default function AdminDashboardPage() {
             </div>
           </Link>
  
-          {/* Blogs Manager Direct Card */}
-          <Link href="/admin/blogs" className="group block bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800/60 rounded-3xl p-6.5 hover:border-emerald-500/40 dark:hover:border-emerald-400/40 hover:shadow-lg transition-all space-y-4">
+          {/* Articles & Notes Manager Direct Card */}
+          <Link href="/admin/articles" className="group block bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800/60 rounded-3xl p-6.5 hover:border-emerald-500/40 dark:hover:border-emerald-400/40 hover:shadow-lg transition-all space-y-4">
             <div className="flex items-center justify-between">
               <div className="p-3 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/10 rounded-2xl">
                 <FileText size={22} />
@@ -314,9 +314,9 @@ export default function AdminDashboardPage() {
               </span>
             </div>
             <div className="space-y-1">
-              <h4 className="font-black text-base text-gray-900 dark:text-white leading-tight">Articles / Blogs</h4>
+              <h4 className="font-black text-base text-gray-900 dark:text-white leading-tight">Articles & Course Notes</h4>
               <p className="text-xs text-gray-500 leading-relaxed">
-                Write conceptual DSA summaries, system design insights, platform tips, company patterns, and student announcements.
+                Write conceptual DSA summaries, syllabus reading guides, system design insights, and course articles.
               </p>
             </div>
           </Link>

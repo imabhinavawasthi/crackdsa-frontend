@@ -82,7 +82,7 @@ export default function ProblemDetailPage() {
 
   if (error || (!loading && !problem)) {
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4 select-none">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4">
         <Breadcrumbs
           listClassName="text-xs font-medium"
           items={breadcrumbItems}
@@ -104,14 +104,14 @@ export default function ProblemDetailPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4 select-none">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4">
       <Breadcrumbs
         listClassName="text-xs font-medium"
         items={breadcrumbItems}
       />
 
       {/* Card shell wraps everything */}
-      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div className="rounded-3xl bg-white dark:bg-gray-900 border border-gray-200/90 dark:border-gray-800 shadow-sm overflow-hidden">
         {loading ? (
           <ProblemDetailSkeleton />
         ) : (

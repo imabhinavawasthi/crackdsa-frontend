@@ -73,7 +73,7 @@ function getTopicVisual(slug: string, title: string) {
 }
 
 export default function DashboardTopCSFundamentals() {
-  const topics = CS_FUNDAMENTALS_TOPICS.slice(0, 4);
+  const topics = CS_FUNDAMENTALS_TOPICS.slice(0, 3);
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sm:p-6 shadow-xs transition-all flex flex-col justify-between h-full group/card">
@@ -102,7 +102,7 @@ export default function DashboardTopCSFundamentals() {
         </div>
 
         {/* ─── 2x2 Square Cards Grid ──────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {topics.map((topic) => {
             const visual = getTopicVisual(topic.slug, topic.title);
             const IconComponent = visual.icon;

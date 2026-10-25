@@ -246,8 +246,8 @@ export const adminNavItems: NavItem[] = [
   },
   {
     icon: <FileText size={20} />,
-    name: "Articles / Blogs",
-    path: "/admin/blogs",
+    name: "Articles & Notes",
+    path: "/admin/articles",
   },
   {
     icon: <BookOpen size={20} />,

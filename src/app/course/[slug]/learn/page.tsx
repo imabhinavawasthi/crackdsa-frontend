@@ -25,7 +25,8 @@ import {
   ChevronDown,
   Rocket,
   Lock,
-  ExternalLink
+  ExternalLink,
+  ArrowRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BACKEND_URL } from "@/config/api";
@@ -866,7 +867,127 @@ export default function LearnPage() {
                     />
                   )}
                   {activeItem?.type === "article" && (
-                    <ArticleReader slug={resolvedAsset.urlOrSlug} articleData={resolvedAsset.data} />
+                    <div className="flex flex-col gap-5">
+                      {/* Article Action Bar */}
+                      <div className="flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 shadow-xs z-20 relative">
+                        <div className="flex items-center gap-3">
+                          <StatusSelector
+                            assetId={activeItem.id}
+                            assetType={activeItem.type}
+                            onStateChange={(state) => {
+                              setItemStates((prev) => ({
+                                ...prev,
+                                [activeItem.id]: {
+                                  ...(prev[activeItem.id] || {
+                                    asset_id: activeItem.id,
+                                    asset_type: activeItem.type,
+                                    is_bookmarked: false,
+                                    notes: []
+                                  }),
+                                  status: state.status
+                                } as any
+                              }));
+                            }}
+                            disabledTitle="Log in to track progress"
+                          />
+                          <BookmarkButton
+                            assetId={activeItem.id}
+                            assetType={activeItem.type}
+                            onStateChange={(state) => {
+                              setItemStates((prev) => ({
+                                ...prev,
+                                [activeItem.id]: {
+                                  ...(prev[activeItem.id] || {
+                                    asset_id: activeItem.id,
+                                    asset_type: activeItem.type,
+                                    status: "pending",
+                                    notes: []
+                                  }),
+                                  is_bookmarked: state.is_bookmarked
+                                } as any
+                              }));
+                            }}
+                            disabledTitle="Log in to bookmark"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/60 dark:border-purple-800/60">
+                            <FileText size={12} />
+                            <span>Reading Module</span>
+                          </span>
+                          {activeItem.duration_label && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium hidden sm:inline">
+                              · {activeItem.duration_label}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Main Article Content */}
+                      <ArticleReader slug={resolvedAsset.urlOrSlug} articleData={resolvedAsset.data} />
+
+                      {/* Bottom Completion & Next Lesson Navigation */}
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xs">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                            completedItemIds.includes(activeItem.id)
+                              ? "bg-emerald-500/10 text-emerald-500"
+                              : "bg-purple-500/10 text-purple-500"
+                          }`}>
+                            {completedItemIds.includes(activeItem.id) ? (
+                              <CheckCircle2 size={20} />
+                            ) : (
+                              <BookOpen size={20} />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+                              {completedItemIds.includes(activeItem.id) ? "Article Completed" : "Finished reading this module?"}
+                            </h4>
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                              {completedItemIds.includes(activeItem.id)
+                                ? "Your progress has been recorded."
+                                : "Mark as completed to update your course progress."}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          {!completedItemIds.includes(activeItem.id) && (
+                            <button
+                              onClick={() => handleToggleComplete(activeItem.id, activeItem.type)}
+                              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                            >
+                              <CheckCircle2 size={14} />
+                              <span>Mark as Completed</span>
+                            </button>
+                          )}
+
+                          {(() => {
+                            if (!course) return null;
+                            const flatItems = getFlattenedItems(course.sections);
+                            const currentIndex = flatItems.findIndex((it) => it.id === activeItem.id);
+                            const next = currentIndex !== -1 && currentIndex < flatItems.length - 1 ? flatItems[currentIndex + 1] : null;
+                            if (!next) return null;
+
+                            return (
+                              <button
+                                onClick={() => {
+                                  if (!completedItemIds.includes(activeItem.id)) {
+                                    handleToggleComplete(activeItem.id, activeItem.type);
+                                  }
+                                  handleSelectItem(next);
+                                }}
+                                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
+                              >
+                                <span>Next Lesson</span>
+                                <ArrowRight size={14} />
+                              </button>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </>
               )}

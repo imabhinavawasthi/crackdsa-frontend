@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
 import { BookOpen, Clock, Calendar, CheckSquare, Sparkles } from "lucide-react";
+import ArticleMarkdownRenderer from "./ArticleMarkdownRenderer";
 
 interface ArticleDetail {
   title: string;
@@ -307,14 +308,15 @@ const ArticleReader: React.FC<ArticleReaderProps> = ({ slug, articleData }) => {
         </motion.div>
       </motion.div>
 
-      {/* Article HTML Content */}
+      {/* Article Content with Code & Terminal Output blocks */}
       <motion.div
-        className="mt-8 text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed font-medium prose dark:prose-invert max-w-none"
-        dangerouslySetInnerHTML={{ __html: article.content }}
+        className="mt-8 text-gray-700 dark:text-gray-300 leading-relaxed font-sans max-w-none"
         variants={contentVariants}
         initial="hidden"
         animate="visible"
-      />
+      >
+        <ArticleMarkdownRenderer content={article.content} />
+      </motion.div>
 
     </motion.article>
   );

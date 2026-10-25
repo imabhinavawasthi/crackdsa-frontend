@@ -9,9 +9,9 @@ import { FeaturesBento } from "./features-bento";
 const SheetsShowcase = dynamic(
   () => import("./sheets-showcase").then((mod) => mod.SheetsShowcase)
 );
-const ProHighlightBanner = dynamic(
-  () => import("./pro-highlight-banner").then((mod) => mod.ProHighlightBanner)
-);
+// const ProHighlightBanner = dynamic(
+//   () => import("./pro-highlight-banner").then((mod) => mod.ProHighlightBanner)
+// );
 const LandingTestimonials = dynamic(
   () => import("./landing-testimonials").then((mod) => mod.LandingTestimonials)
 );
@@ -40,7 +40,7 @@ export default function LandingPage() {
         <SheetsShowcase />
 
         {/* 7. CrackDSA Pro Spotlight Banner (< ₹10/day, Live Classes & Doubts by Abhinav) */}
-        <ProHighlightBanner />
+        {/* <ProHighlightBanner /> */}
 
         {/* 8. Verified Student Placement Wins (Microsoft, ServiceNow, GFG, Juspay, etc.) */}
         <LandingTestimonials />
