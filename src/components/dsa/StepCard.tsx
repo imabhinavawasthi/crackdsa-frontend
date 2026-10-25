@@ -56,9 +56,12 @@ export const StepCard: React.FC<StepCardProps> = ({
             <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider shrink-0">
               Step {index + 1}
             </span>
-            <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">
-              {step.title}
-            </h3>
+            {
+              !step.title.includes("Step") &&
+              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">
+                {step.title}
+              </h3>
+            }
           </div>
           {step.pattern_id && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400 shrink-0 w-fit">
@@ -82,15 +85,15 @@ export const StepCard: React.FC<StepCardProps> = ({
                   const isBookmarked = bookmarkedProblemIds.includes(pid);
 
                   return (
-                    <ProblemTableRow 
-                      key={problem.problem_id} 
+                    <ProblemTableRow
+                      key={problem.problem_id}
                       prob={pData}
                       isSolved={isSolved}
                       isBookmarked={isBookmarked}
                       status={status}
                       isLoggedIn={isLoggedIn}
-                      onToggleSolved={onToggleSolved || (() => {})}
-                      onToggleBookmark={onToggleBookmark || (() => {})}
+                      onToggleSolved={onToggleSolved || (() => { })}
+                      onToggleBookmark={onToggleBookmark || (() => { })}
                       onOpenProblem={(slug) => {
                         window.open(`/problem/${slug}`, '_blank');
                       }}

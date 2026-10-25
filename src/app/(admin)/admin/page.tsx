@@ -14,7 +14,8 @@ import {
   Activity,
   Table,
   FileText,
-  BookOpen
+  BookOpen,
+  Zap
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -316,6 +317,24 @@ export default function AdminDashboardPage() {
               <h4 className="font-black text-base text-gray-900 dark:text-white leading-tight">Articles / Blogs</h4>
               <p className="text-xs text-gray-500 leading-relaxed">
                 Write conceptual DSA summaries, system design insights, platform tips, company patterns, and student announcements.
+              </p>
+            </div>
+          </Link>
+
+          {/* In-Memory Cache Control Card */}
+          <Link href="/admin/cache" className="group block bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800/60 rounded-3xl p-6.5 hover:border-amber-500/40 dark:hover:border-amber-400/40 hover:shadow-lg transition-all space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="p-3 bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/10 rounded-2xl">
+                <Zap size={22} />
+              </div>
+              <span className="text-xs font-bold text-amber-500 flex items-center gap-1 group-hover:translate-x-1.5 transition-transform">
+                Cache Cockpit <ArrowRight size={13} />
+              </span>
+            </div>
+            <div className="space-y-1">
+              <h4 className="font-black text-base text-gray-900 dark:text-white leading-tight">In-Memory Cache</h4>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Monitor live RAM cache hits and selectively flush cached namespaces across courses, classes, problems, sheets, and contests.
               </p>
             </div>
           </Link>

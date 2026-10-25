@@ -268,6 +268,11 @@ export const adminNavItems: NavItem[] = [
 
 export const adminOthersItems: NavItem[] = [
   {
+    icon: <Zap size={20} />,
+    name: "Cache Control",
+    path: "/admin/cache",
+  },
+  {
     icon: <Tag size={20} />,
     name: "Coupons",
     path: "/admin/coupons",
