@@ -45,19 +45,12 @@ function AuthCallbackPageContent() {
         // 4. Force a profile refetch in AuthContext to fetch /me and ensure public.users entry
         const u = await refetch();
         
-        // 5. Check localStorage for persistent redirect path
+        // 5. Navigate directly to user's intended destination (or dashboard), skipping onboarding
         const redirectTo = localStorage.getItem("crackdsa_login_redirect") || "/";
         localStorage.removeItem("crackdsa_login_redirect"); // Cleanup
         
-        // 6. If user needs onboarding, redirect to /onboarding preserving return destination
-        if (u?.needs_onboarding) {
-          const onboardingUrl = redirectTo && redirectTo !== "/"
-            ? `/onboarding?redirect_to=${encodeURIComponent(redirectTo)}`
-            : "/onboarding";
-          router.replace(onboardingUrl);
-        } else {
-          router.replace(redirectTo);
-        }
+        const destination = redirectTo === "/" ? "/dashboard" : redirectTo;
+        router.replace(destination);
       } else {
         // No token found, redirect to login with error
         console.error("No access_token found in callback URL");

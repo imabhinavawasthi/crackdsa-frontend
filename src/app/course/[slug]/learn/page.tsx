@@ -96,36 +96,58 @@ export default function LearnPage() {
   const rawCourseSlug = params?.slug as string;
   const courseSlug = rawCourseSlug === "data-structures-algorithms-mastery-program" ? "dsa" : rawCourseSlug;
 
-  const { user, isLoggedIn, isPro, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoggedIn, isPro, isLoading: isAuthLoading, sessionExpired } = useAuth();
   const firstName = user?.full_name ? user.full_name.split(" ")[0] : "";
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
-
-  // Access checking
-  const isEnrolled = Boolean(
-    isLoggedIn && (
-      user?.roles?.includes("admin") ||
-      user?.is_pro_active ||
-      isPro ||
-      user?.enrolled_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id || c.course_name === courseSlug) ||
-      user?.pro_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id || c.course_name === courseSlug) ||
-      user?.purchased_courses?.some((c: any) => c.course_id === courseSlug || c.course_id === course?.id || c.course_name === courseSlug)
-    )
-  );
-
-  // Immediate redirect if not enrolled (DO NOT fetch course or classroom data for non-enrolled users)
-  useEffect(() => {
-    if (isAuthLoading) return;
-
-    if (!isEnrolled && courseSlug) {
-      const targetSlug = course?.slug || courseSlug;
-      router.replace(`/course/${targetSlug}`);
-    }
-  }, [isAuthLoading, isEnrolled, courseSlug, course?.slug, router]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [instructorsList, setInstructorsList] = useState<any[]>([]);
   const [practiceProblemsCount, setPracticeProblemsCount] = useState<number>(1000);
+
+  // Access checking: strictly verify Pro subscription or course purchase
+  const isEnrolled = Boolean(
+    isLoggedIn && (
+      user?.is_pro_active ||
+      isPro ||
+      user?.enrolled_courses?.some((c: any) =>
+        c.course_id === courseSlug ||
+        c.course_slug === courseSlug ||
+        (course?.id && (c.course_id === course.id || c.course_slug === course.id)) ||
+        c.course_name === courseSlug ||
+        (courseSlug === "dsa" && (c.course_id === "data-structures-algorithms-mastery-program" || c.course_slug === "data-structures-algorithms-mastery-program"))
+      ) ||
+      user?.pro_courses?.some((c: any) =>
+        c.course_id === courseSlug ||
+        c.course_slug === courseSlug ||
+        (course?.id && (c.course_id === course.id || c.course_slug === course.id)) ||
+        c.course_name === courseSlug
+      ) ||
+      user?.purchased_courses?.some((c: any) =>
+        c.course_id === courseSlug ||
+        c.course_slug === courseSlug ||
+        (course?.id && (c.course_id === course.id || c.course_slug === course.id)) ||
+        c.course_name === courseSlug ||
+        (courseSlug === "dsa" && (c.course_id === "data-structures-algorithms-mastery-program" || c.course_slug === "data-structures-algorithms-mastery-program"))
+      )
+    )
+  );
+
+  // Immediate redirect if session expired, not logged in, or not enrolled after loading
+  useEffect(() => {
+    if (isAuthLoading) return;
+
+    if (!isLoggedIn || sessionExpired) {
+      router.replace(`/login?redirect=${encodeURIComponent(`/course/${courseSlug}/learn`)}`);
+      return;
+    }
+
+    // Only redirect if course details have finished loading and user is not enrolled
+    if (!loading && course && !isEnrolled) {
+      const targetSlug = course.slug || courseSlug;
+      router.replace(`/course/${targetSlug}`);
+    }
+  }, [isAuthLoading, isLoggedIn, sessionExpired, loading, course, isEnrolled, courseSlug, router]);
 
   // Classroom Player states
   const [activeItem, setActiveItem] = useState<CourseSectionItem | null>(null);
@@ -294,11 +316,11 @@ export default function LearnPage() {
 
   useEffect(() => {
     if (isAuthLoading) return;
-    if (!isEnrolled) return;
+    if (!isLoggedIn) return;
     if (courseSlug) {
       fetchCourseDetails();
     }
-  }, [isAuthLoading, isEnrolled, courseSlug]);
+  }, [isAuthLoading, isLoggedIn, courseSlug]);
 
   // Resolve asset UUIDs dynamically to their URL or Slug
   useEffect(() => {
@@ -391,6 +413,11 @@ export default function LearnPage() {
     setActiveItem(item);
     setCurrentTime(0);
     
+    // Auto-dismiss sidebar drawer on mobile upon lecture selection
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+
     const newUrl = `${window.location.pathname}?item=${item.id}`;
     window.history.pushState({ path: newUrl }, "", newUrl);
   };
@@ -488,14 +515,45 @@ export default function LearnPage() {
 
   const canAccessActiveItem = isEnrolled || (activeItem && activeItem.is_free);
 
-  if (isAuthLoading || !isEnrolled || loading) {
+  if (isAuthLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 space-y-4">
         <div className="h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
         <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
-          {!isEnrolled && !isAuthLoading
-            ? "Redirecting to course details..."
-            : "Loading your customized classroom workspace..."}
+          Checking your authentication & enrollment...
+        </p>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn || sessionExpired) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 space-y-4">
+        <div className="h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+          Redirecting to login...
+        </p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 space-y-4">
+        <div className="h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+          Loading your classroom workspace...
+        </p>
+      </div>
+    );
+  }
+
+  if (!isEnrolled) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 space-y-4">
+        <div className="h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+          Redirecting to course details...
         </p>
       </div>
     );
@@ -587,65 +645,87 @@ export default function LearnPage() {
   return (
     <div className="h-screen w-screen flex bg-gray-50 dark:bg-[#070B14] text-gray-900 dark:text-gray-100 overflow-hidden font-sans">
       
-      {/* Immersive Left Sidebar: Syllabus & Navigation Drawer */}
+      {/* Immersive Left Sidebar: Syllabus & Navigation Drawer (Available on Dashboard & Player) */}
       <AnimatePresence initial={false}>
-        {isSidebarOpen && activeItem !== null && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 350, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="h-full flex flex-col shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-hidden z-20"
-          >
-            {/* Integrated Sidebar Navigation Header */}
-            <div className="p-5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0 flex flex-col gap-3">
-              <Link 
-                href={`/course/${courseSlug}`}
-                className="inline-flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors uppercase tracking-wider"
-              >
-                <ArrowLeft size={13} />
-                <span>Back to Course Page</span>
-              </Link>
-              
-              <div className="space-y-1">
-                <h2 className="text-sm font-bold text-gray-900 dark:text-white leading-snug tracking-tight line-clamp-2">
-                  {course.title}
-                </h2>
+        {isSidebarOpen && (
+          <>
+            {/* Backdrop overlay on mobile */}
+            <div
+              className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-xs"
+              onClick={() => handleToggleCourseSidebar(false)}
+            />
+
+            <motion.div
+              initial={{ x: -350, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -350, opacity: 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="fixed inset-y-0 left-0 z-50 lg:relative lg:z-20 w-[320px] sm:w-[350px] lg:w-[350px] h-full flex flex-col shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-hidden shadow-2xl lg:shadow-none"
+            >
+              {/* Integrated Sidebar Navigation Header */}
+              <div className="p-5 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <Link 
+                    href={`/course/${courseSlug}`}
+                    className="inline-flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors uppercase tracking-wider"
+                  >
+                    <ArrowLeft size={13} />
+                    <span>Back to Course Page</span>
+                  </Link>
+
+                  {/* Close button on mobile screens */}
+                  <button
+                    onClick={() => handleToggleCourseSidebar(false)}
+                    className="lg:hidden p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    aria-label="Close sidebar"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                
+                <div className="space-y-1">
+                  <h2 className="text-sm font-bold text-gray-900 dark:text-white leading-snug tracking-tight line-clamp-2">
+                    {course.title}
+                  </h2>
+                </div>
+
+                {/* Classroom Dashboard Home Trigger */}
+                <button
+                  onClick={() => {
+                    setActiveItem(null);
+                    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                      setIsSidebarOpen(false);
+                    }
+                    const newUrl = window.location.pathname;
+                    window.history.pushState({ path: newUrl }, "", newUrl);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border text-left cursor-pointer select-none ${
+                    activeItem === null
+                      ? "bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                      : "bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/60 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400"
+                  }`}
+                >
+                  <Activity size={14} className="shrink-0 stroke-[2.5] text-blue-600 dark:text-blue-400" />
+                  <span>Course Dashboard</span>
+                </button>
               </div>
 
-              {/* Classroom Dashboard Home Trigger */}
-              <button
-                onClick={() => {
-                  setActiveItem(null);
-                  const newUrl = window.location.pathname;
-                  window.history.pushState({ path: newUrl }, "", newUrl);
-                }}
-                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border text-left cursor-pointer select-none ${
-                  activeItem === null
-                    ? "bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 shadow-xs"
-                    : "bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/60 dark:hover:bg-gray-800 border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400"
-                }`}
-              >
-                <Activity size={14} className="shrink-0 stroke-[2.5] text-blue-600 dark:text-blue-400" />
-                <span>Course Dashboard</span>
-              </button>
-            </div>
-
-            {/* Syllabus Component Scroll Pane */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-gray-900">
-              <CourseSidebar
-                sections={course.sections}
-                activeItemId={activeItem?.id || ""}
-                completedItemIds={completedItemIds}
-                revisionItemIds={revisionItemIds}
-                bookmarkedItemIds={bookmarkedItemIds}
-                isLoggedIn={isLoggedIn}
-                onSelectItem={handleSelectItem}
-                onToggleComplete={handleToggleComplete}
-                onCloseSidebar={() => handleToggleCourseSidebar(false)}
-              />
-            </div>
-          </motion.div>
+              {/* Syllabus Component Scroll Pane */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-gray-900">
+                <CourseSidebar
+                  sections={course.sections}
+                  activeItemId={activeItem?.id || ""}
+                  completedItemIds={completedItemIds}
+                  revisionItemIds={revisionItemIds}
+                  bookmarkedItemIds={bookmarkedItemIds}
+                  isLoggedIn={isLoggedIn}
+                  onSelectItem={handleSelectItem}
+                  onToggleComplete={handleToggleComplete}
+                  onCloseSidebar={() => handleToggleCourseSidebar(false)}
+                />
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
@@ -659,7 +739,7 @@ export default function LearnPage() {
         <div className="shrink-0 z-40 relative">
           <AppHeader 
             onToggleSidebar={() => handleToggleCourseSidebar()} 
-            isSidebarOpen={isSidebarOpen && activeItem !== null} 
+            isSidebarOpen={isSidebarOpen} 
           />
         </div>
 

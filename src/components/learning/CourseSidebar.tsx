@@ -165,8 +165,9 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
     searchInputRef.current?.focus();
   }, { metaKey: true });
 
-  // Auto-expand sections and subsections containing the active item
+  // Auto-expand sections and subsections containing the active item, or first section if on dashboard
   useEffect(() => {
+    let foundActive = false;
     sections.forEach((sec) => {
       const hasActiveDirect = sec.items?.some((item) => item.id === activeItemId);
       let hasActiveSub = false;
@@ -181,9 +182,15 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
       }
 
       if (hasActiveDirect || hasActiveSub) {
+        foundActive = true;
         setExpandedSections((prev) => ({ ...prev, [sec.id]: true }));
       }
     });
+
+    // When on course dashboard or no active item selected, auto-expand first section by default
+    if (!foundActive && !activeItemId && sections.length > 0 && sections[0]?.id) {
+      setExpandedSections((prev) => ({ ...prev, [sections[0].id]: true }));
+    }
   }, [sections, activeItemId]);
 
   const toggleSection = (sectionId: string) => {

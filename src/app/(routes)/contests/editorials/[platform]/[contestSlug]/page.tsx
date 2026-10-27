@@ -254,19 +254,20 @@ export default function ContestDetailPage() {
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search bar */}
           <div className="relative flex-1 max-w-md">
-            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter by problem name or topic tag..."
-              className="w-full pl-9 pr-8 py-2 rounded-xl text-xs bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-750 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40"
+              className="w-full pl-9 pr-8 py-2 rounded-xl text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1"
+                aria-label="Clear problem filter"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-md transition-colors"
               >
                 <X size={12} />
               </button>
@@ -277,11 +278,11 @@ export default function ContestDetailPage() {
           <div className="flex items-center gap-2.5 flex-wrap">
             {/* Topic Tag Filter */}
             <div className="relative flex items-center gap-1.5">
-              <Tag size={13} className="text-gray-400" />
+              <Tag size={13} className="text-gray-400 dark:text-gray-500 shrink-0" />
               <select
                 value={selectedTopic}
                 onChange={(e) => setSelectedTopic(e.target.value)}
-                className="py-2 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-750 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+                className="py-2 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer shadow-2xs"
               >
                 <option value="all">All Topics ({contest.problems.length})</option>
                 {uniqueTopicTags.map((tag) => (
@@ -294,11 +295,11 @@ export default function ContestDetailPage() {
 
             {/* Difficulty Filter */}
             <div className="flex items-center gap-1.5">
-              <Filter size={13} className="text-gray-400" />
+              <Filter size={13} className="text-gray-400 dark:text-gray-500 shrink-0" />
               <select
                 value={selectedDifficulty}
                 onChange={(e) => setSelectedDifficulty(e.target.value)}
-                className="py-2 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-750 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+                className="py-2 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer shadow-2xs"
               >
                 <option value="all">All Difficulties</option>
                 <option value="Easy">Easy</option>
@@ -312,7 +313,7 @@ export default function ContestDetailPage() {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="inline-flex items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 border border-rose-500/20 transition-colors cursor-pointer"
               >
                 <X size={12} />
                 <span>Reset</span>
@@ -410,7 +411,7 @@ export default function ContestDetailPage() {
                   return (
                     <tr
                       key={prob.id}
-                      className="group hover:bg-gray-50/70 dark:hover:bg-gray-850/50 transition-colors"
+                      className="group hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition-colors"
                     >
                       {/* 1. Problem Title */}
                       <td className="py-4 px-5">
@@ -490,7 +491,7 @@ export default function ContestDetailPage() {
                               href={prob.problem_link}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-750 transition-colors inline-flex items-center gap-1"
+                              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 border border-transparent dark:border-gray-700/60 transition-colors inline-flex items-center gap-1"
                               title={`Solve on ${platformTitle}`}
                             >
                               <ExternalLink size={13} />

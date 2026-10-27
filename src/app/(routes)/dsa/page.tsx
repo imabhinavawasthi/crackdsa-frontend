@@ -112,7 +112,7 @@ export default function DsaPage() {
             placeholder="Search Data Structures, Algorithms, or topics (e.g., Binary Trees, DP, Arrays)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-[#121722] backdrop-blur-sm pl-11 pr-10 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-brand-500 dark:focus:border-brand-500 transition-colors shadow-2xs"
+            className="w-full rounded-2xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 backdrop-blur-sm pl-11 pr-10 py-3 text-sm font-medium text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-brand-500 dark:focus:border-brand-500 transition-colors shadow-2xs"
           />
           {searchQuery && (
             <button

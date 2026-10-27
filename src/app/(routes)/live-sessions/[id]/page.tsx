@@ -225,13 +225,13 @@ export default function LiveClassDetailPage() {
             <div className="space-y-1.5 max-w-md relative z-10">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-black tracking-wider uppercase">
                 <Sparkles size={11} />
-                <span>CrackDSA Pro Exclusive</span>
+                <span>Pro &amp; DSA Course Access</span>
               </div>
               <h3 className="text-lg sm:text-2xl font-black text-white tracking-tight">
-                Pro Membership Required
+                Pro or DSA Course Required
               </h3>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                This session recording, source code, and comprehensive lecture notes are reserved for CrackDSA Pro members.
+                This live session, full recording, and lecture notes are available for CrackDSA Pro members and DSA Course students (1 Year Live Access included).
               </p>
             </div>
 
@@ -241,12 +241,15 @@ export default function LiveClassDetailPage() {
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs sm:text-sm font-black shadow-lg shadow-amber-500/25 hover:shadow-amber-500/35 transition-all cursor-pointer"
               >
                 <Lock size={14} />
-                <span>Unlock Recording with Pro</span>
+                <span>Unlock with Pro Pass</span>
                 <ArrowRight size={14} />
               </Link>
-              <span className="text-[11px] text-slate-400 font-medium">
-                Less than ₹10/day • 1-click cancel
-              </span>
+              <Link
+                href="/course/dsa"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/20 hover:bg-white/10 text-white text-xs sm:text-sm font-bold transition-all cursor-pointer"
+              >
+                <span>Enroll in DSA Course</span>
+              </Link>
             </div>
           </div>
         ) : classItem.class_recording ? (

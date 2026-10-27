@@ -22,11 +22,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const savedTheme = localStorage.getItem("theme") as Theme | null;
-    if (savedTheme) {
+    if (savedTheme === "light" || savedTheme === "dark") {
       return savedTheme;
     }
 
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    // Default to light theme
+    return "light";
   });
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

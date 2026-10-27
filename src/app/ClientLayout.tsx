@@ -18,8 +18,7 @@ export const ThemeScript = () => {
           (function() {
             try {
               var theme = localStorage.getItem('theme');
-              var supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
-              if (!theme && supportDarkMode) theme = 'dark';
+              // Default to light theme unless explicitly saved as 'dark'
               if (theme === 'dark') {
                 document.documentElement.classList.add('dark');
               } else {

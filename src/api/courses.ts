@@ -35,7 +35,8 @@ export async function fetchCourses(limit?: number): Promise<CourseSummary[]> {
  * Fetches course details by slug or ID.
  */
 export async function fetchCourseDetail(slug: string): Promise<CourseSummary> {
-  const res = await fetch(`${BACKEND_URL}/api/v1/courses/${slug}`, {
+  const normalizedSlug = slug === "data-structures-algorithms-mastery-program" ? "dsa" : slug;
+  const res = await fetch(`${BACKEND_URL}/api/v1/courses/${normalizedSlug}`, {
     headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch course details.");
@@ -46,8 +47,9 @@ export async function fetchCourseDetail(slug: string): Promise<CourseSummary> {
  * Fetches full course curriculum section tree by slug or ID.
  */
 export async function fetchCourseCurriculum(slug: string): Promise<CourseSection[]> {
+  const normalizedSlug = slug === "data-structures-algorithms-mastery-program" ? "dsa" : slug;
   try {
-    const res = await fetch(`${BACKEND_URL}/api/v1/courses/${slug}/curriculum`, {
+    const res = await fetch(`${BACKEND_URL}/api/v1/courses/${normalizedSlug}/curriculum`, {
       headers: await getAuthHeaders(),
     });
     if (!res.ok) return [];

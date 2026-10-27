@@ -33,6 +33,7 @@ import {
   verifyPayment,
   loadRazorpaySDK,
 } from "@/functions/checkout";
+import PaymentProcessingOverlay, { PaymentStage } from "@/components/checkout/PaymentProcessingOverlay";
 
 function CourseCheckoutContent() {
   const params = useParams();
@@ -41,7 +42,7 @@ function CourseCheckoutContent() {
   const slug = params?.slug as string;
   const initialCoupon = searchParams.get("coupon") || "";
 
-  const { user, isLoggedIn, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoggedIn, isLoading: isAuthLoading, refetch } = useAuth();
 
   const [course, setCourse] = useState<CourseSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +61,7 @@ function CourseCheckoutContent() {
 
   // Payment processing state
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStage, setPaymentStage] = useState<PaymentStage>("idle");
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // 1. Fetch Course Data
@@ -191,6 +193,7 @@ function CourseCheckoutContent() {
           ? undefined
           : orderData.order_id,
         handler: async function (response: any) {
+          setPaymentStage("verifying");
           try {
             await verifyPayment({
               transaction_id: orderData.transaction_id,
@@ -199,14 +202,26 @@ function CourseCheckoutContent() {
               razorpay_signature: response.razorpay_signature,
             });
 
-            // Redirect to classroom on verification
-            router.push(`/course/${slug}/learn?enrolled=true`);
+            try {
+              await refetch();
+            } catch (authErr) {
+              console.warn("Post-purchase auth refetch warning:", authErr);
+            }
+
+            setPaymentStage("success");
+
+            // Redirect user to the course page with access unlocked
+            setTimeout(() => {
+              const targetSlug = course.slug || slug;
+              router.push(`/course/${targetSlug}?enrolled=true`);
+            }, 1200);
           } catch (verifyErr: any) {
             console.error("Payment verification failed:", verifyErr);
             setPaymentError(
               verifyErr.message ||
                 "Payment was processed, but verification failed. Please contact WhatsApp support with your payment receipt."
             );
+            setPaymentStage("error");
             setIsProcessingPayment(false);
           }
         },
@@ -225,12 +240,14 @@ function CourseCheckoutContent() {
         modal: {
           ondismiss: function () {
             setIsProcessingPayment(false);
+            setPaymentStage("idle");
           },
         },
       };
 
       // Mock test mode fallback if local mock order ID is returned
       if (orderData.order_id?.startsWith("order_mock_")) {
+        setPaymentStage("awaiting_payment");
         const confirmMock = window.confirm(
           `[TEST MODE SIMULATION]\n\nRazorpay test order initialized for ₹${orderData.amount}.\nClick OK to simulate successful test payment, or Cancel to abort.`
         );
@@ -243,20 +260,24 @@ function CourseCheckoutContent() {
           return;
         } else {
           setIsProcessingPayment(false);
+          setPaymentStage("idle");
           return;
         }
       }
 
+      setPaymentStage("awaiting_payment");
       const rzp = new (window as any).Razorpay(options);
       rzp.on("payment.failed", function (response: any) {
         console.error("Payment failed:", response.error);
         setPaymentError(response.error.description || "Payment failed. Please try again or reach out on WhatsApp.");
+        setPaymentStage("error");
         setIsProcessingPayment(false);
       });
       rzp.open();
     } catch (err: any) {
       console.error("Order creation failed:", err);
       setPaymentError(err.message || "Failed to initialize payment gateway. Please try again.");
+      setPaymentStage("error");
       setIsProcessingPayment(false);
     }
   }
@@ -613,6 +634,20 @@ function CourseCheckoutContent() {
           </div>
         </div>
       </main>
+
+      {/* Fullscreen Payment Waiting & Processing Overlay */}
+      <PaymentProcessingOverlay
+        isOpen={paymentStage !== "idle"}
+        stage={paymentStage}
+        itemName={course.title}
+        amount={finalPrice}
+        errorMessage={paymentError}
+        onRetry={handleProceedToPayment}
+        onCancel={() => {
+          setPaymentStage("idle");
+          setIsProcessingPayment(false);
+        }}
+      />
     </div>
   );
 }

@@ -137,7 +137,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isPro = Boolean(
     user && (
       user.is_pro_active === true ||
-      user.roles?.includes("admin") ||
       user.pro_subscription?.is_active === true ||
       (typeof user.pro_subscription?.subscription_active_till_epoch === "number" &&
         (user.pro_subscription.subscription_active_till_epoch === -1 ||

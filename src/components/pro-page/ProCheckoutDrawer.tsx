@@ -24,6 +24,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { PRO_PRICING_CONFIG, ProPricingTier } from "@/config/pro-pricing";
 import { applyCoupon, createOrder, verifyPayment, loadRazorpaySDK } from "@/functions/checkout";
+import PaymentProcessingOverlay, { PaymentStage } from "@/components/checkout/PaymentProcessingOverlay";
 
 interface ProCheckoutDrawerProps {
   isOpen: boolean;
@@ -61,6 +62,7 @@ export function ProCheckoutDrawer({
 
   // Payment processing state
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStage, setPaymentStage] = useState<PaymentStage>("idle");
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // Sync initialPlanId when changed from parent
@@ -187,6 +189,7 @@ export function ProCheckoutDrawer({
           ? undefined
           : orderData.order_id,
         handler: async function (response: any) {
+          setPaymentStage("verifying");
           try {
             await verifyPayment({
               transaction_id: orderData.transaction_id,
@@ -201,14 +204,19 @@ export function ProCheckoutDrawer({
               console.warn("Post-payment auth refetch error:", authErr);
             }
 
-            onClose();
-            router.push(`/profile/subscription?status=success&plan=${selectedPlanId}`);
+            setPaymentStage("success");
+
+            setTimeout(() => {
+              onClose();
+              router.push(`/profile/subscription?status=success&plan=${selectedPlanId}`);
+            }, 1200);
           } catch (verifyErr: any) {
             console.error("Payment verification failed:", verifyErr);
             setPaymentError(
               verifyErr.message ||
                 "Payment was processed, but verification failed. Please contact WhatsApp support with your payment receipt."
             );
+            setPaymentStage("error");
             setIsProcessingPayment(false);
           }
         },
@@ -226,12 +234,14 @@ export function ProCheckoutDrawer({
         modal: {
           ondismiss: function () {
             setIsProcessingPayment(false);
+            setPaymentStage("idle");
           },
         },
       };
 
       // Mock test mode fallback if local mock order ID is returned
       if (orderData.order_id?.startsWith("order_mock_")) {
+        setPaymentStage("awaiting_payment");
         const confirmMock = window.confirm(
           `[TEST MODE SIMULATION]\n\nRazorpay test order initialized for ₹${orderData.amount}.\nClick OK to simulate successful test payment, or Cancel to abort.`
         );
@@ -244,10 +254,12 @@ export function ProCheckoutDrawer({
           return;
         } else {
           setIsProcessingPayment(false);
+          setPaymentStage("idle");
           return;
         }
       }
 
+      setPaymentStage("awaiting_payment");
       const rzp = new (window as any).Razorpay(options);
       rzp.on("payment.failed", function (response: any) {
         console.error("Payment failed:", response.error);
@@ -255,12 +267,14 @@ export function ProCheckoutDrawer({
           response.error.description ||
             "Payment failed. Please try again or reach out on WhatsApp."
         );
+        setPaymentStage("error");
         setIsProcessingPayment(false);
       });
       rzp.open();
     } catch (err: any) {
       console.error("Order creation failed:", err);
       setPaymentError(err.message || "Failed to initialize payment gateway. Please try again.");
+      setPaymentStage("error");
       setIsProcessingPayment(false);
     }
   }
@@ -578,6 +592,20 @@ export function ProCheckoutDrawer({
               </div>
             </motion.div>
           </div>
+
+          {/* Fullscreen Payment Waiting & Processing Overlay */}
+          <PaymentProcessingOverlay
+            isOpen={paymentStage !== "idle"}
+            stage={paymentStage}
+            itemName={`CrackDSA Pro (${plan.name})`}
+            amount={finalPrice}
+            errorMessage={paymentError}
+            onRetry={handleProceedToPayment}
+            onCancel={() => {
+              setPaymentStage("idle");
+              setIsProcessingPayment(false);
+            }}
+          />
         </div>
       )}
     </AnimatePresence>

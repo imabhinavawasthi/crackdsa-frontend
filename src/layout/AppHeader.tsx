@@ -70,7 +70,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     { name: "Courses", href: "/courses", icon: <BookOpen size={18} /> },
     { name: "Live Classes", href: "/live-sessions", icon: <Video size={18} /> },
     // { name: "Masterclasses", href: "/masterclasses", icon: <Sparkles size={18} /> },
-    { name: "Community", href: "/community", icon: <Users size={18} /> },
+    // { name: "Community", href: "/community", icon: <Users size={18} /> },
   ];
 
   return (
@@ -149,17 +149,19 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             ))}
           </div>
 
-          <div className="flex items-center justify-between w-full lg:w-auto lg:gap-3">
-            <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-between w-full lg:w-auto lg:gap-3 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0">
               {(
                 <>
-                  <Link href="/pro">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-linear-to-r from-amber-500 to-orange-500 text-white rounded-lg text-xs font-extrabold uppercase tracking-widest hover:opacity-90 transition-opacity shadow-sm dark:from-amber-600 dark:to-orange-600">
-                      <Sparkles size={14} className="text-amber-100" />
-                      <span>{isLoggedIn && user?.is_pro_active ? "PRO" : "Subscribe to Pro"}</span>
+                  <Link href="/pro" className="hidden sm:inline-flex shrink-0">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-xs font-extrabold uppercase tracking-wider hover:opacity-95 transition-opacity shadow-sm dark:from-amber-600 dark:to-orange-600 whitespace-nowrap shrink-0">
+                      <Sparkles size={14} className="text-amber-100 shrink-0" />
+                      <span className="whitespace-nowrap">{isLoggedIn && user?.is_pro_active ? "PRO" : "Subscribe to Pro"}</span>
                     </div>
                   </Link>
-                  <Separator />
+                  <div className="hidden sm:block shrink-0">
+                    <Separator />
+                  </div>
                 </>
               )}
               <ReferEarnButton />

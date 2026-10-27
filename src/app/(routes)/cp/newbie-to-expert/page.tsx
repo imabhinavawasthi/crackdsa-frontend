@@ -545,13 +545,14 @@ export default function NewbieToExpertPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search problems by name, rating (e.g. 1200), tags (e.g. dp, graphs)..."
-              className="w-full pl-10 pr-8 py-2.5 rounded-xl text-xs bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-750 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40"
+              className="w-full pl-10 pr-8 py-2.5 rounded-xl text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-0.5 rounded-md transition-colors"
               >
                 <X size={13} />
               </button>
@@ -564,7 +565,7 @@ export default function NewbieToExpertPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-750 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+              className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer shadow-2xs"
             >
               <option value="all">All Status</option>
               <option value="done">Solved</option>
@@ -577,7 +578,7 @@ export default function NewbieToExpertPage() {
             <select
               value={tagFilter}
               onChange={(e) => setTagFilter(e.target.value)}
-              className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-750 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+              className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer shadow-2xs"
             >
               {ALL_AVAILABLE_TAGS.map((tag) => (
                 <option key={tag} value={tag === "All Tags" ? "all" : tag}>
@@ -590,7 +591,7 @@ export default function NewbieToExpertPage() {
             <select
               value={difficultyFilter}
               onChange={(e) => setDifficultyFilter(e.target.value)}
-              className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-750 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+              className="py-2.5 px-3 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500/40 cursor-pointer shadow-2xs"
             >
               <option value="all">All Difficulty</option>
               <option value="easy">Easy</option>
@@ -631,7 +632,7 @@ export default function NewbieToExpertPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="py-1.5 px-2.5 rounded-lg text-xs font-semibold bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-750 text-gray-700 dark:text-gray-200 focus:outline-hidden cursor-pointer"
+                className="py-1.5 px-2.5 rounded-lg text-xs font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 focus:outline-hidden cursor-pointer shadow-2xs"
               >
                 <option value="default">Default</option>
                 <option value="rating-asc">Rating: Low to High</option>
@@ -641,7 +642,7 @@ export default function NewbieToExpertPage() {
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center p-0.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-850">
+            <div className="flex items-center p-0.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
               <button
                 type="button"
                 onClick={() => setViewMode("table")}

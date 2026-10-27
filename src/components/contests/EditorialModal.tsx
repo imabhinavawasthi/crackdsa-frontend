@@ -190,7 +190,7 @@ export function EditorialModal({ problem, contestSlug, onClose }: EditorialModal
             <div className="space-y-4">
               {problem.editorial ? (
                 <div 
-                  className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed font-normal"
+                  className="problem-description prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed font-normal"
                   dangerouslySetInnerHTML={{ __html: problem.editorial }}
                 />
               ) : (
@@ -207,7 +207,7 @@ export function EditorialModal({ problem, contestSlug, onClose }: EditorialModal
             <div className="space-y-4">
               {problem.problem_description ? (
                 <div 
-                  className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed font-normal"
+                  className="problem-description prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed font-normal"
                   dangerouslySetInnerHTML={{ __html: problem.problem_description }}
                 />
               ) : (

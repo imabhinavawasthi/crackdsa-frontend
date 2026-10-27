@@ -4,7 +4,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { 
   Search, 
   ArrowRight,
-  MessageSquare
+  MessageSquare,
+  X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchSheets } from "@/api/sheets";
@@ -177,14 +178,24 @@ export default function DSASheetsPage() {
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         {/* Search Input */}
         <div className="relative w-full lg:max-w-md">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
           <input
             type="text"
             placeholder="Search sheets by title, topic or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 rounded-xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 pl-10 pr-4 text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all focus:outline-none shadow-2xs"
+            className="w-full h-11 rounded-xl border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 pl-10 pr-9 text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all focus:outline-none shadow-2xs"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear sheet search"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         {/* Category Filter Pills */}

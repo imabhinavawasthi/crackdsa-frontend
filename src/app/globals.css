@@ -106,15 +106,22 @@
   --color-gray-25: #fcfcfd;
   --color-gray-50: #f9fafb;
   --color-gray-100: #f2f4f7;
+  --color-gray-150: #ebeef2;
   --color-gray-200: #e4e7ec;
+  --color-gray-250: #dadfe7;
   --color-gray-300: #d0d5dd;
   --color-gray-400: #98a2b3;
+  --color-gray-450: #718096;
   --color-gray-500: #667085;
   --color-gray-600: #475467;
+  --color-gray-650: #3e4b5e;
   --color-gray-700: #344054;
+  --color-gray-750: #252f40;
   --color-gray-800: #1d2939;
+  --color-gray-850: #141b26;
   --color-gray-900: #101828;
   --color-gray-950: #0c111d;
+  --color-gray-955: #090d16;
   --color-gray-dark: #1a2231;
 
   --color-orange-25: #fffaf5;
@@ -231,9 +238,16 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
+  html.dark {
+    color-scheme: dark;
+  }
   body {
-    @apply relative font-normal font-sans z-1 bg-gray-50 text-gray-900 dark:text-gray-100 antialiased;
+    @apply relative font-normal font-sans z-1 bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased;
     letter-spacing: -0.011em;
+  }
+  .dark select option {
+    background-color: #101828;
+    color: #f2f4f7;
   }
 }
 

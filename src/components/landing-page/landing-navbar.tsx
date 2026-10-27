@@ -276,10 +276,10 @@ export function LandingNavbar() {
             <span>Start Learning for Free</span>
           </Link>}
 
-          {/* CrackDSA Pro High-Conversion Pill */}
+          {/* CrackDSA Pro High-Conversion Pill (hidden on mobile, visible on sm and up) */}
           <Link
             href={isPro ? "/dashboard" : "/pro"}
-            className="group relative inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:via-orange-400 hover:to-amber-500 shadow-md shadow-amber-500/20 hover:shadow-lg hover:shadow-amber-500/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all overflow-hidden shrink-0"
+            className="group relative hidden sm:inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:via-orange-400 hover:to-amber-500 shadow-md shadow-amber-500/20 hover:shadow-lg hover:shadow-amber-500/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all overflow-hidden shrink-0"
           >
             <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out pointer-events-none" />
             <Sparkles className="w-3.5 h-3.5 text-amber-100 group-hover:rotate-12 transition-transform shrink-0" />

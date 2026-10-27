@@ -308,7 +308,7 @@ export default function ContestProblemPage() {
 
             {problem.editorial ? (
               <div 
-                className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed font-normal"
+                className="problem-description prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed font-normal"
                 dangerouslySetInnerHTML={{ __html: problem.editorial }}
               />
             ) : (
@@ -362,7 +362,7 @@ export default function ContestProblemPage() {
 
             {problem.problem_description ? (
               <div 
-                className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed text-xs overflow-x-auto max-h-[600px] overflow-y-auto pr-1"
+                className="problem-description prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed text-xs overflow-x-auto max-h-[600px] overflow-y-auto pr-1"
                 dangerouslySetInnerHTML={{ __html: problem.problem_description }}
               />
             ) : (

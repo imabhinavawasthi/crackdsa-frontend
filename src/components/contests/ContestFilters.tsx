@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, ArrowUpDown } from "lucide-react";
+import { Search, ArrowUpDown, X } from "lucide-react";
 
 export interface PlatformFilterItem {
   id: string;
@@ -77,14 +77,24 @@ export function ContestFilters({
         <div className="flex items-center gap-3 shrink-0">
           {/* Search Input */}
           <div className="relative w-full sm:w-64">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
             <input
               type="text"
               placeholder="Search contests..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full h-9 pl-9 pr-3.5 rounded-xl text-xs font-medium border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+              className="w-full h-9 pl-9 pr-8 rounded-xl text-xs font-medium border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-2xs"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => onSearchChange("")}
+                aria-label="Clear contest search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+              >
+                <X size={13} />
+              </button>
+            )}
           </div>
 
           {/* Sort Dropdown */}
@@ -92,7 +102,7 @@ export function ContestFilters({
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value)}
-              className="h-9 pl-3 pr-8 rounded-xl text-xs font-semibold border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 text-gray-700 dark:text-gray-200 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
+              className="h-9 pl-3 pr-8 rounded-xl text-xs font-semibold border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer shadow-2xs"
             >
               <option value="latest">Sort by: Latest</option>
               <option value="oldest">Sort by: Oldest</option>

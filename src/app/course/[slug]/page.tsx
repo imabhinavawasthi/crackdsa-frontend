@@ -1,5 +1,5 @@
 import { Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import CourseDetailPage from '@/components/CourseDetailPage/CourseDetailPage';
 import { fetchCourseDetail, fetchCourseCurriculum } from '@/api/courses';
@@ -26,6 +26,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
   const { slug } = await params;
+
+  if (slug === "data-structures-algorithms-mastery-program") {
+    redirect("/course/dsa");
+  }
 
   const [course, curriculum] = await Promise.all([
     fetchCourseDetail(slug).catch(() => null),

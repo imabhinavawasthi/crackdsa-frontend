@@ -33,9 +33,27 @@ export default function CourseDetailCardBody({ course }: CourseDetailCardBodyPro
   // Check if user is enrolled via individual purchase, pro courses, or enrolled courses
   const isEnrolledInCourse = Boolean(
     isLoggedIn &&
-      (user?.enrolled_courses?.some((c: any) => c.course_id === course.slug || c.course_id === course.id) ||
-        user?.pro_courses?.some((c: any) => c.course_id === course.slug || c.course_id === course.id) ||
-        user?.purchased_courses?.some((c: any) => c.course_id === course.slug || c.course_id === course.id))
+      (user?.enrolled_courses?.some((c: any) =>
+        c.course_id === course.slug ||
+        c.course_id === course.id ||
+        c.course_slug === course.slug ||
+        c.course_slug === course.id ||
+        (course.slug === "dsa" && (c.course_id === "data-structures-algorithms-mastery-program" || c.course_slug === "data-structures-algorithms-mastery-program"))
+      ) ||
+      user?.pro_courses?.some((c: any) =>
+        c.course_id === course.slug ||
+        c.course_id === course.id ||
+        c.course_slug === course.slug ||
+        c.course_slug === course.id ||
+        (course.slug === "dsa" && (c.course_id === "data-structures-algorithms-mastery-program" || c.course_slug === "data-structures-algorithms-mastery-program"))
+      ) ||
+      user?.purchased_courses?.some((c: any) =>
+        c.course_id === course.slug ||
+        c.course_id === course.id ||
+        c.course_slug === course.slug ||
+        c.course_slug === course.id ||
+        (course.slug === "dsa" && (c.course_id === "data-structures-algorithms-mastery-program" || c.course_slug === "data-structures-algorithms-mastery-program"))
+      ))
   );
 
   // User has full access if they bought the course OR have active Pro membership
