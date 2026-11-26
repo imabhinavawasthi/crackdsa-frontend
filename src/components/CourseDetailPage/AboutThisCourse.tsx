@@ -79,30 +79,32 @@ export default function AboutThisCourse({ course }: AboutThisCourseProps) {
         })}
       </div>
 
-      {/* Live Weekly Classes Banner */}
-      <div className="mt-7 rounded-2xl border border-blue-200/80 dark:border-blue-900/60 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-transparent dark:from-blue-950/40 dark:via-indigo-950/20 dark:to-transparent p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-3.5">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 mt-0.5 sm:mt-0">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-200 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-            </span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm font-extrabold text-gray-900 dark:text-white">
-                Live Weekly Classes Included with Course
-              </h4>
-              <span className="inline-flex items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">
-                Free Included
+      {/* Live Weekly Classes Banner - Show for DSA course only */}
+      {(course.slug === 'dsa' || course.slug === 'data-structures-algorithms-mastery-program' || course.metadata?.has_live_classes === true) && (
+        <div className="mt-7 rounded-2xl border border-blue-200/80 dark:border-blue-900/60 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-transparent dark:from-blue-950/40 dark:via-indigo-950/20 dark:to-transparent p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 mt-0.5 sm:mt-0">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-200 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
               </span>
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">
-              Every week, join live interactive problem-solving breakdowns, interview pattern masterclasses, and dedicated 1-on-1 doubt clearing sessions directly with Abhinav Awasthi.
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-extrabold text-gray-900 dark:text-white">
+                  Live Weekly Classes Included with Course
+                </h4>
+                <span className="inline-flex items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider">
+                  Free Included
+                </span>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">
+                Every week, join live interactive problem-solving breakdowns, interview pattern masterclasses, and dedicated 1-on-1 doubt clearing sessions directly with Abhinav Awasthi.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

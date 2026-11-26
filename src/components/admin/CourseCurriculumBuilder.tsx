@@ -95,10 +95,17 @@ export default function CourseCurriculumBuilder({
   const [itemFormDuration, setItemFormDuration] = useState("");
   const [itemFormIsFree, setItemFormIsFree] = useState(false);
 
-  // Available articles for quick picker
+  // Available library assets for quick picker
   const [availableArticles, setAvailableArticles] = useState<any[]>([]);
   const [loadingArticles, setLoadingArticles] = useState(false);
 
+  const [availableVideos, setAvailableVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+
+  const [availableProblems, setAvailableProblems] = useState<any[]>([]);
+  const [loadingProblems, setLoadingProblems] = useState(false);
+
+  // Fetch articles on demand
   React.useEffect(() => {
     if (itemModalOpen && itemFormType === "article" && availableArticles.length === 0) {
       setLoadingArticles(true);
@@ -112,6 +119,36 @@ export default function CourseCurriculumBuilder({
         .finally(() => setLoadingArticles(false));
     }
   }, [itemModalOpen, itemFormType, availableArticles.length, backendUrl]);
+
+  // Fetch videos on demand
+  React.useEffect(() => {
+    if (itemModalOpen && itemFormType === "video" && availableVideos.length === 0) {
+      setLoadingVideos(true);
+      fetch(`${backendUrl}/api/v1/video-lectures`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) setAvailableVideos(data);
+          else if (data && Array.isArray(data.items)) setAvailableVideos(data.items);
+        })
+        .catch(() => {})
+        .finally(() => setLoadingVideos(false));
+    }
+  }, [itemModalOpen, itemFormType, availableVideos.length, backendUrl]);
+
+  // Fetch problems on demand
+  React.useEffect(() => {
+    if (itemModalOpen && itemFormType === "problem" && availableProblems.length === 0) {
+      setLoadingProblems(true);
+      fetch(`${backendUrl}/api/v1/practice-problems`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) setAvailableProblems(data);
+          else if (data && Array.isArray(data.items)) setAvailableProblems(data.items);
+        })
+        .catch(() => {})
+        .finally(() => setLoadingProblems(false));
+    }
+  }, [itemModalOpen, itemFormType, availableProblems.length, backendUrl]);
 
   // Modal State for Raw JSON
   const [jsonModalOpen, setJsonModalOpen] = useState(false);
@@ -769,6 +806,119 @@ export default function CourseCurriculumBuilder({
                   ))}
                 </div>
               </div>
+
+              {/* If Video is selected, show Quick Picker from Video Library */}
+              {itemFormType === "video" && (
+                <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
+                      <Video size={13} />
+                      <span>Select Video from Library</span>
+                    </Label>
+                    <a
+                      href="/admin/videos/add"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5"
+                    >
+                      <span>+ Create Video</span>
+                      <ExternalLink size={9} />
+                    </a>
+                  </div>
+
+                  {loadingVideos ? (
+                    <div className="flex items-center gap-2 text-xs text-blue-500 py-1">
+                      <Loader2 size={12} className="animate-spin" />
+                      <span>Loading videos...</span>
+                    </div>
+                  ) : availableVideos.length > 0 ? (
+                    <select
+                      onChange={(e) => {
+                        const selected = availableVideos.find(
+                          (v) => v.id === e.target.value
+                        );
+                        if (selected) {
+                          setItemFormTitle(selected.title);
+                          setItemFormAssetId(selected.id);
+                          const mins = Math.round((selected.duration_seconds || 0) / 60);
+                          setItemFormDuration(mins > 0 ? `${mins} mins` : "Video");
+                          if (selected.is_free !== undefined) {
+                            setItemFormIsFree(Boolean(selected.is_free));
+                          }
+                        }
+                      }}
+                      className="w-full text-xs p-2 rounded-xl bg-white dark:bg-gray-800 border border-blue-300/80 dark:border-blue-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium cursor-pointer"
+                    >
+                      <option value="">-- Choose a video to auto-fill --</option>
+                      {availableVideos.map((vid) => {
+                        const mins = Math.round((vid.duration_seconds || 0) / 60);
+                        return (
+                          <option key={vid.id} value={vid.id}>
+                            {vid.title} {mins > 0 ? `(${mins}m)` : ""}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  ) : (
+                    <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                      No video lectures found in the database. Enter a video UUID manually below.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* If Problem is selected, show Quick Picker from Problem Library */}
+              {itemFormType === "problem" && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                      <HelpCircle size={13} />
+                      <span>Select Problem from Library</span>
+                    </Label>
+                    <a
+                      href="/admin/practice-problems/add"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5"
+                    >
+                      <span>+ Create Problem</span>
+                      <ExternalLink size={9} />
+                    </a>
+                  </div>
+
+                  {loadingProblems ? (
+                    <div className="flex items-center gap-2 text-xs text-amber-500 py-1">
+                      <Loader2 size={12} className="animate-spin" />
+                      <span>Loading practice problems...</span>
+                    </div>
+                  ) : availableProblems.length > 0 ? (
+                    <select
+                      onChange={(e) => {
+                        const selected = availableProblems.find(
+                          (p) => p.slug === e.target.value || p.id === e.target.value
+                        );
+                        if (selected) {
+                          setItemFormTitle(selected.title);
+                          setItemFormAssetId(selected.slug || selected.id);
+                          setItemFormDuration(selected.difficulty || "Problem");
+                        }
+                      }}
+                      className="w-full text-xs p-2 rounded-xl bg-white dark:bg-gray-800 border border-amber-300/80 dark:border-amber-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium cursor-pointer"
+                    >
+                      <option value="">-- Choose a problem to auto-fill --</option>
+                      {availableProblems.map((prob) => (
+                        <option key={prob.id} value={prob.slug || prob.id}>
+                          {prob.title} [{prob.difficulty || "Practice"}]
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                      No problems found in library. Enter a problem slug manually below.
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* If Article is selected, show Quick Picker from Library */}
               {itemFormType === "article" && (

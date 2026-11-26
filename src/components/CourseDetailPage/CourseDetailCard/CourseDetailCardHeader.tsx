@@ -32,17 +32,21 @@ const CourseDetailCardHeader = ({ course, onPreview }: CourseDetailCardHeaderPro
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[0.5px] transition-colors duration-300 group-hover/header:bg-black/20" />
 
       {/* Dead-center Glowing Play Button */}
-      <div className="relative z-10 flex size-14 sm:size-16 shrink-0 items-center justify-center rounded-full bg-white text-blue-600 shadow-[0_0_25px_rgba(37,99,235,0.4)] transition-all duration-300 group-hover/header:scale-110 group-hover/header:shadow-[0_0_35px_rgba(255,255,255,0.6)]">
-        <Play className="size-6 sm:size-7 fill-blue-600 text-blue-600 translate-x-0.5" />
-      </div>
+      {onPreview && (
+        <div className="relative z-10 flex size-14 sm:size-16 shrink-0 items-center justify-center rounded-full bg-white text-blue-600 shadow-[0_0_25px_rgba(37,99,235,0.4)] transition-all duration-300 group-hover/header:scale-110 group-hover/header:shadow-[0_0_35px_rgba(255,255,255,0.6)]">
+          <Play className="size-6 sm:size-7 fill-blue-600 text-blue-600 translate-x-0.5" />
+        </div>
+      )}
 
       {/* Bottom pill matching mockup */}
-      <div className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-center justify-start pointer-events-none">
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md border border-white/20 shadow-sm">
-          <PlayIcon className="size-3 fill-white text-white" />
-          <span>Preview this course</span>
+      {onPreview && (
+        <div className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-center justify-start pointer-events-none">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md border border-white/20 shadow-sm">
+            <PlayIcon className="size-3 fill-white text-white" />
+            <span>Preview this course</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

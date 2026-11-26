@@ -96,3 +96,25 @@ export async function fetchInstructors(): Promise<any> {
   if (!res.ok) return { items: [] };
   return res.json();
 }
+
+/**
+ * Enrolls the authenticated user into a free course.
+ */
+export async function enrollInFreeCourse(
+  courseSlugOrId: string
+): Promise<{ status: string; message: string; enrolled: boolean; course_slug?: string }> {
+  const normalizedSlug = courseSlugOrId === "data-structures-algorithms-mastery-program" ? "dsa" : courseSlugOrId;
+  const authHeaders = await getAuthHeaders();
+  const res = await fetch(`${BACKEND_URL}/api/v1/courses/${normalizedSlug}/enroll`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to enroll in free course.");
+  }
+  return res.json();
+}

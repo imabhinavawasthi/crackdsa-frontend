@@ -50,7 +50,7 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
   const [slug, setSlug] = useState(initialData?.slug || "");
   const [category, setCategory] = useState(initialData?.category || "core-dsa");
   const [difficulty, setDifficulty] = useState(initialData?.metadata?.difficulty || "Intermediate");
-  const [language, setLanguage] = useState(initialData?.language || "English / Hinglish");
+  const [language, setLanguage] = useState(initialData?.metadata?.language || initialData?.language || "English / Hinglish");
   const [status, setStatus] = useState<"draft" | "active" | "upcoming">(initialData?.status || "draft");
 
   // Pricing & Pro state
@@ -60,25 +60,68 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
   const [isPopular, setIsPopular] = useState<boolean>(initialData?.is_popular ?? false);
 
   // Descriptions & Media
-  const [shortDescription, setShortDescription] = useState(initialData?.short_description || "");
+  const [shortDescription, setShortDescription] = useState(initialData?.metadata?.short_description || initialData?.short_description || "");
   const [description, setDescription] = useState(initialData?.description || "");
   const [thumbnailUrl, setThumbnailUrl] = useState(initialData?.metadata?.thumbnail_url || initialData?.thumbnail_url || "");
-  const [coverImageUrl, setCoverImageUrl] = useState(initialData?.cover_image_url || "");
-  const [promoVideoUrl, setPromoVideoUrl] = useState(initialData?.promo_video_url || "");
+  const [coverImageUrl, setCoverImageUrl] = useState(initialData?.metadata?.cover_image_url || initialData?.cover_image_url || "");
+  const [promoVideoUrl, setPromoVideoUrl] = useState(initialData?.metadata?.promo_video_url || initialData?.promo_video_url || "");
 
-  // Tags & Bullets
+  // Bullets & Highlights
   const [tagsInput, setTagsInput] = useState<string>(
     Array.isArray(initialData?.tags) ? initialData.tags.join(", ") : ""
   );
   const [features, setFeatures] = useState<string[]>(
     Array.isArray(initialData?.features) && initialData.features.length > 0 
       ? initialData.features 
+      : (Array.isArray(initialData?.metadata?.features) && initialData.metadata.features.length > 0)
+      ? initialData.metadata.features
       : ["Complete Syllabus with Live Sessions", "150+ Curated Interview Problems", "Lifetime Access & Certificate"]
   );
   const [requirements, setRequirements] = useState<string[]>(
     Array.isArray(initialData?.requirements) && initialData.requirements.length > 0 
       ? initialData.requirements 
+      : (Array.isArray(initialData?.metadata?.requirements) && initialData.metadata.requirements.length > 0)
+      ? initialData.metadata.requirements
       : ["Basic syntax in C++, Java, or Python"]
+  );
+  const [learningOutcomes, setLearningOutcomes] = useState<string[]>(
+    Array.isArray(initialData?.metadata?.learning_outcomes) && initialData.metadata.learning_outcomes.length > 0
+      ? initialData.metadata.learning_outcomes
+      : [
+          "Master core algorithmic thinking and patterns",
+          "Solve curated problems asked in top tech companies",
+          "Improve coding speed and analytical reasoning",
+          "Prepare effectively for product and service engineering interviews"
+        ]
+  );
+  const [prerequisites, setPrerequisites] = useState<string[]>(
+    Array.isArray(initialData?.metadata?.prerequisites) && initialData.metadata.prerequisites.length > 0
+      ? initialData.metadata.prerequisites
+      : [
+          "Basic programming knowledge in any language (C++, Java, Python, JavaScript, etc.)",
+          "Familiarity with variables, loops, and functions",
+          "No prior DSA knowledge required"
+        ]
+  );
+  const [hasLiveClasses, setHasLiveClasses] = useState<boolean>(
+    initialData?.metadata?.has_live_classes ?? (initialData?.slug === "dsa" || initialData?.slug === "data-structures-algorithms-mastery-program")
+  );
+  const [durationHours, setDurationHours] = useState<number>(initialData?.metadata?.duration_hours ?? 40);
+  const [durationWeeks, setDurationWeeks] = useState<number>(initialData?.metadata?.duration_weeks ?? 4);
+
+  // Ratings, Students & Student Feedbacks State
+  const [rating, setRating] = useState<number>(initialData?.metadata?.rating ?? 4.9);
+  const [reviewsCount, setReviewsCount] = useState<number>(initialData?.metadata?.reviews ?? 0);
+  const [numberOfStudents, setNumberOfStudents] = useState<number>(initialData?.metadata?.number_of_students ?? 0);
+  const [feedbacks, setFeedbacks] = useState<Array<{
+    name: string;
+    role?: string;
+    company?: string;
+    rating?: number;
+    avatar?: string;
+    content: string;
+  }>>(
+    Array.isArray(initialData?.metadata?.feedbacks) ? initialData.metadata.feedbacks : []
   );
 
   // Instructors Multi-select
@@ -92,6 +135,70 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Synchronize state whenever initialData updates
+  useEffect(() => {
+    if (!initialData) return;
+    setTitle(initialData.title || "");
+    setSlug(initialData.slug || "");
+    setCategory(initialData.category || "core-dsa");
+    setDifficulty(initialData.metadata?.difficulty || "Intermediate");
+    setLanguage(initialData.metadata?.language || initialData.language || "English / Hinglish");
+    setStatus(initialData.status || "draft");
+    setPrice(initialData.price ?? 2999);
+    setOriginalPrice(initialData.original_price ?? 5999);
+    setIsPro(initialData.is_pro ?? true);
+    setIsPopular(initialData.is_popular ?? false);
+    setShortDescription(initialData.metadata?.short_description || initialData.short_description || "");
+    setDescription(initialData.description || "");
+    setThumbnailUrl(initialData.metadata?.thumbnail_url || initialData.thumbnail_url || "");
+    setCoverImageUrl(initialData.metadata?.cover_image_url || initialData.cover_image_url || "");
+    setPromoVideoUrl(initialData.metadata?.promo_video_url || initialData.promo_video_url || "");
+    
+    if (Array.isArray(initialData.tags)) {
+      setTagsInput(initialData.tags.join(", "));
+    }
+    if (Array.isArray(initialData.metadata?.features) && initialData.metadata.features.length > 0) {
+      setFeatures(initialData.metadata.features);
+    } else if (Array.isArray(initialData.features) && initialData.features.length > 0) {
+      setFeatures(initialData.features);
+    }
+    if (Array.isArray(initialData.metadata?.requirements) && initialData.metadata.requirements.length > 0) {
+      setRequirements(initialData.metadata.requirements);
+    } else if (Array.isArray(initialData.requirements) && initialData.requirements.length > 0) {
+      setRequirements(initialData.requirements);
+    }
+    if (Array.isArray(initialData.metadata?.learning_outcomes) && initialData.metadata.learning_outcomes.length > 0) {
+      setLearningOutcomes(initialData.metadata.learning_outcomes);
+    }
+    if (Array.isArray(initialData.metadata?.prerequisites) && initialData.metadata.prerequisites.length > 0) {
+      setPrerequisites(initialData.metadata.prerequisites);
+    }
+    if (initialData.metadata?.has_live_classes !== undefined) {
+      setHasLiveClasses(Boolean(initialData.metadata.has_live_classes));
+    }
+    if (initialData.metadata?.duration_hours !== undefined) {
+      setDurationHours(Number(initialData.metadata.duration_hours));
+    }
+    if (initialData.metadata?.duration_weeks !== undefined) {
+      setDurationWeeks(Number(initialData.metadata.duration_weeks));
+    }
+    if (initialData.metadata?.rating !== undefined) {
+      setRating(Number(initialData.metadata.rating));
+    }
+    if (initialData.metadata?.reviews !== undefined) {
+      setReviewsCount(Number(initialData.metadata.reviews));
+    }
+    if (initialData.metadata?.number_of_students !== undefined) {
+      setNumberOfStudents(Number(initialData.metadata.number_of_students));
+    }
+    if (Array.isArray(initialData.metadata?.feedbacks)) {
+      setFeedbacks(initialData.metadata.feedbacks);
+    }
+    if (Array.isArray(initialData.instructor_ids)) {
+      setSelectedInstructorIds(initialData.instructor_ids);
+    }
+  }, [initialData]);
 
   // Fetch available instructors
   useEffect(() => {
@@ -152,6 +259,51 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
     setRequirements(requirements.filter((_, i) => i !== idx));
   };
 
+  const handleAddOutcome = () => setLearningOutcomes([...learningOutcomes, ""]);
+  const handleUpdateOutcome = (idx: number, val: string) => {
+    const next = [...learningOutcomes];
+    next[idx] = val;
+    setLearningOutcomes(next);
+  };
+  const handleRemoveOutcome = (idx: number) => {
+    setLearningOutcomes(learningOutcomes.filter((_, i) => i !== idx));
+  };
+
+  const handleAddPrerequisite = () => setPrerequisites([...prerequisites, ""]);
+  const handleUpdatePrerequisite = (idx: number, val: string) => {
+    const next = [...prerequisites];
+    next[idx] = val;
+    setPrerequisites(next);
+  };
+  const handleRemovePrerequisite = (idx: number) => {
+    setPrerequisites(prerequisites.filter((_, i) => i !== idx));
+  };
+
+  // Feedback Handlers
+  const handleAddFeedback = () => {
+    setFeedbacks([
+      ...feedbacks,
+      {
+        name: "",
+        role: "Software Engineer",
+        company: "",
+        rating: 5,
+        avatar: "",
+        content: ""
+      }
+    ]);
+  };
+
+  const handleUpdateFeedback = (idx: number, field: string, val: any) => {
+    const next = [...feedbacks];
+    next[idx] = { ...next[idx], [field]: val };
+    setFeedbacks(next);
+  };
+
+  const handleRemoveFeedback = (idx: number) => {
+    setFeedbacks(feedbacks.filter((_, i) => i !== idx));
+  };
+
   // Submit Handler
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,11 +347,20 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
         ...(initialData?.metadata || {}),
         difficulty: difficulty,
         language: language,
+        duration_hours: Number(durationHours) || 0,
+        duration_weeks: Number(durationWeeks) || 0,
+        has_live_classes: Boolean(hasLiveClasses),
         thumbnail_url: thumbnailUrl.trim() || undefined,
         cover_image_url: coverImageUrl.trim() || undefined,
         promo_video_url: promoVideoUrl.trim() || undefined,
         features: features.filter(f => f.trim().length > 0),
         requirements: requirements.filter(r => r.trim().length > 0),
+        learning_outcomes: learningOutcomes.filter(o => o.trim().length > 0),
+        prerequisites: prerequisites.filter(p => p.trim().length > 0),
+        rating: Number(rating) || 5.0,
+        reviews: Number(reviewsCount) || feedbacks.length,
+        number_of_students: Number(numberOfStudents) || 0,
+        feedbacks: feedbacks.filter(f => f.name && f.name.trim().length > 0 && f.content && f.content.trim().length > 0),
       }
     };
 
@@ -358,7 +519,7 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-1">
                 <div>
                   <Label htmlFor="difficulty" className="text-xs font-bold uppercase tracking-wider text-gray-500">
                     Difficulty Level
@@ -384,6 +545,21 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
                     placeholder="English / Hinglish"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="duration_hours" className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Duration (Hours)
+                  </Label>
+                  <Input
+                    id="duration_hours"
+                    type="number"
+                    min="0"
+                    value={durationHours}
+                    onChange={(e) => setDurationHours(Number(e.target.value))}
+                    placeholder="40"
                     className="mt-1"
                   />
                 </div>
@@ -492,6 +668,24 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
                     </div>
                     <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
                       Highlights course card with a "Trending" badge in student catalogs.
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/50 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={hasLiveClasses}
+                    onChange={(e) => setHasLiveClasses(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                  />
+                  <div>
+                    <div className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                      Live Weekly Classes Included
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-black">LIVE</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                      Enables the Live Weekly Classes banner and badge on the course details page.
                     </p>
                   </div>
                 </label>
@@ -607,29 +801,242 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
                   </Label>
                   <button
                     type="button"
-                    onClick={handleAddRequirement}
+                    onClick={handleAddPrerequisite}
                     className="text-xs text-brand-500 font-bold hover:underline inline-flex items-center gap-1"
                   >
-                    <Plus size={13} /> Add Requirement
+                    <Plus size={13} /> Add Prerequisite
                   </button>
                 </div>
-                {requirements.map((req, idx) => (
+                {prerequisites.map((prereq, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <Input
-                      value={req}
-                      onChange={(e) => handleUpdateRequirement(idx, e.target.value)}
-                      placeholder="e.g. Basic understanding of conditionals and loops in any language"
+                      value={prereq}
+                      onChange={(e) => handleUpdatePrerequisite(idx, e.target.value)}
+                      placeholder="e.g. Basic programming knowledge in any language"
                       className="text-xs"
                     />
                     <button
                       type="button"
-                      onClick={() => handleRemoveRequirement(idx)}
+                      onClick={() => handleRemovePrerequisite(idx)}
                       className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
                 ))}
+              </div>
+
+              {/* What You'll Learn (Learning Outcomes) */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    What You'll Learn (Learning Outcomes)
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={handleAddOutcome}
+                    className="text-xs text-brand-500 font-bold hover:underline inline-flex items-center gap-1"
+                  >
+                    <Plus size={13} /> Add Outcome
+                  </button>
+                </div>
+                {learningOutcomes.map((outcome, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      value={outcome}
+                      onChange={(e) => handleUpdateOutcome(idx, e.target.value)}
+                      placeholder="e.g. Master the most important patterns used in coding interviews"
+                      className="text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveOutcome(idx)}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 5. Ratings, Stats & Student Reviews / Feedbacks */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BookOpen size={18} className="text-amber-500" />
+                  <span>Student Reviews & Course Stats</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddFeedback}
+                  className="text-xs text-brand-500 font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus size={13} /> Add Review
+                </button>
+              </CardTitle>
+              <CardDescription>
+                Configure metrics shown in course banners and manage verified student testimonials.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Numerical Metrics: Rating, Review Count, Students Enrolled */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-2 border-b border-gray-100 dark:border-gray-800">
+                <div>
+                  <Label htmlFor="rating" className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Average Rating (★)
+                  </Label>
+                  <Input
+                    id="rating"
+                    type="number"
+                    step="0.05"
+                    min="1"
+                    max="5"
+                    value={rating}
+                    onChange={(e) => setRating(Number(e.target.value))}
+                    placeholder="4.9"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="reviewsCount" className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Total Ratings Count
+                  </Label>
+                  <Input
+                    id="reviewsCount"
+                    type="number"
+                    min="0"
+                    value={reviewsCount}
+                    onChange={(e) => setReviewsCount(Number(e.target.value))}
+                    placeholder="348"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="numberOfStudents" className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Enrolled Students Count
+                  </Label>
+                  <Input
+                    id="numberOfStudents"
+                    type="number"
+                    min="0"
+                    value={numberOfStudents}
+                    onChange={(e) => setNumberOfStudents(Number(e.target.value))}
+                    placeholder="1280"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              {/* Feedbacks List Editor */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Verified Student Testimonials ({feedbacks.length})
+                  </Label>
+                  <span className="text-[11px] text-gray-400">
+                    Shown on the course landing page. If empty, the reviews section is omitted.
+                  </span>
+                </div>
+
+                {feedbacks.length === 0 ? (
+                  <div className="text-xs text-gray-400 py-6 text-center border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
+                    No testimonials configured for this course yet. Click &quot;+ Add Review&quot; above to create one.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {feedbacks.map((fb, idx) => (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/40 space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                            Review #{idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFeedback(idx)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                          <div className="sm:col-span-2">
+                            <Label className="text-[11px] font-bold text-gray-500">Student Name *</Label>
+                            <Input
+                              value={fb.name}
+                              onChange={(e) => handleUpdateFeedback(idx, "name", e.target.value)}
+                              placeholder="e.g. Jatin Pal"
+                              className="mt-0.5 text-xs font-semibold"
+                            />
+                          </div>
+
+                          <div>
+                            <Label className="text-[11px] font-bold text-gray-500">Role / Designation</Label>
+                            <Input
+                              value={fb.role || ""}
+                              onChange={(e) => handleUpdateFeedback(idx, "role", e.target.value)}
+                              placeholder="e.g. SWE Intern"
+                              className="mt-0.5 text-xs"
+                            />
+                          </div>
+
+                          <div>
+                            <Label className="text-[11px] font-bold text-gray-500">Company</Label>
+                            <Input
+                              value={fb.company || ""}
+                              onChange={(e) => handleUpdateFeedback(idx, "company", e.target.value)}
+                              placeholder="e.g. Microsoft"
+                              className="mt-0.5 text-xs font-semibold"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <Label className="text-[11px] font-bold text-gray-500">Rating (1 to 5)</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="5"
+                              value={fb.rating || 5}
+                              onChange={(e) => handleUpdateFeedback(idx, "rating", Number(e.target.value))}
+                              className="mt-0.5 text-xs"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <Label className="text-[11px] font-bold text-gray-500">Avatar Image URL (Optional)</Label>
+                            <Input
+                              value={fb.avatar || ""}
+                              onChange={(e) => handleUpdateFeedback(idx, "avatar", e.target.value)}
+                              placeholder="https://i.pravatar.cc/150?u=..."
+                              className="mt-0.5 text-xs"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="text-[11px] font-bold text-gray-500">Testimonial Quote *</Label>
+                          <textarea
+                            rows={3}
+                            value={fb.content}
+                            onChange={(e) => handleUpdateFeedback(idx, "content", e.target.value)}
+                            placeholder="Share the student's learning experience, placement outcome, or mentoring review..."
+                            className="mt-0.5 flex w-full rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-3 py-2 text-xs text-gray-900 dark:text-white leading-relaxed"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -685,16 +1092,31 @@ export default function CourseDetailsEditor({ mode, initialData }: CourseDetails
               </div>
 
               <div>
-                <Label htmlFor="promo" className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Promo Teaser Video URL
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="promo" className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Promo Teaser Video URL
+                  </Label>
+                  {promoVideoUrl && (
+                    <a
+                      href={promoVideoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Test Video Link ↗
+                    </a>
+                  )}
+                </div>
                 <Input
                   id="promo"
                   value={promoVideoUrl}
                   onChange={(e) => setPromoVideoUrl(e.target.value)}
-                  placeholder="https://youtube.com/watch?v=..."
+                  placeholder="https://youtube.com/watch?v=... or https://youtu.be/..."
                   className="mt-1 text-xs"
                 />
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Powers the &ldquo;Preview this course&rdquo; video modal on the public course details page.
+                </p>
               </div>
             </CardContent>
           </Card>

@@ -7,6 +7,7 @@ import CourseInstructors from './CourseInstructors';
 import WhatWillYouLearn from './WhatWillYouLearn';
 import AboutThisCourse from './AboutThisCourse';
 import CoursePrerequisites from './CoursePrerequisites';
+import CourseReviews from './CourseReviews';
 import { getCourseIncludes, toStringList } from './courseDetailUtils';
 
 interface CourseDetailPageProps {
@@ -86,8 +87,19 @@ export default function CourseDetailPage({ course, curriculum }: CourseDetailPag
         </div>
       </div>
 
-      {/* 4. Bottom Section: Certificate & Instructors */}
+      {/* 4. Bottom Section: Reviews, Certificate & Instructors */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 space-y-10">
+        {course.metadata?.feedbacks && course.metadata.feedbacks.length > 0 && (
+          <>
+            <Divider />
+            <CourseReviews
+              feedbacks={course.metadata.feedbacks}
+              rating={course.metadata.rating}
+              reviewsCount={course.metadata.reviews}
+            />
+          </>
+        )}
+
         <Divider />
         <CourseCertificate />
 

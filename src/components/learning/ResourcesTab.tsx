@@ -1,11 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ExternalLink, Dumbbell, BookOpen, Link2, Loader2 } from "lucide-react";
-import { fetchPracticeProblems } from "@/api/problems";
-import { fetchArticles } from "@/api/articles";
+import { fetchProblemDetail } from "@/api/problems";
+import { fetchArticleDetail } from "@/api/articles";
+
+// In-memory caches to avoid refetching identical resources across tab switches
+const problemCache = new Map<string, any>();
+const articleCache = new Map<string, any>();
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 const sectionContainerVariants = {
   hidden: { opacity: 0 },
@@ -53,37 +64,186 @@ interface ResourcesTabProps {
 }
 
 const ResourcesTab: React.FC<ResourcesTabProps> = ({ itemId, backendResources }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [problemsData, setProblemsData] = useState<any[]>([]);
   const [articlesData, setArticlesData] = useState<any[]>([]);
 
+  const resources = backendResources || {};
+  const problemsSlugs: any[] = useMemo(() => {
+    return Array.isArray(resources.problems) ? resources.problems : [];
+  }, [resources.problems]);
+
+  const articlesSlugs: any[] = useMemo(() => {
+    return Array.isArray(resources.articles)
+      ? resources.articles
+      : (Array.isArray(resources.blogs) ? resources.blogs : []);
+  }, [resources.articles, resources.blogs]);
+
+  const externalLinks: { title: string; url: string }[] = useMemo(() => {
+    return Array.isArray(resources.external_links) ? resources.external_links : [];
+  }, [resources.external_links]);
+
   useEffect(() => {
-    const fetchAssets = async () => {
+    let isCancelled = false;
+
+    // If no problems and no articles are linked, avoid any network calls completely!
+    if (problemsSlugs.length === 0 && articlesSlugs.length === 0) {
+      setProblemsData([]);
+      setArticlesData([]);
+      setLoading(false);
+      return;
+    }
+
+    const fetchLinkedAssets = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const [probs, arts] = await Promise.all([
-          fetchPracticeProblems(),
-          fetchArticles()
+        // 1. Fetch only the specifically linked problems
+        const problemPromises = problemsSlugs.map(async (rawItem) => {
+          if (!rawItem) return null;
+          if (typeof rawItem === "object" && rawItem.title && (rawItem.slug || rawItem.id)) {
+            return {
+              title: rawItem.title,
+              slug: rawItem.slug || rawItem.id,
+              difficulty: rawItem.difficulty || "Medium"
+            };
+          }
+
+          const rawStr = String(rawItem).trim();
+          if (!rawStr) return null;
+
+          if (problemCache.has(rawStr)) {
+            return problemCache.get(rawStr);
+          }
+
+          try {
+            const data = await fetchProblemDetail(rawStr);
+            if (data) {
+              const res = {
+                title: data.title || rawStr,
+                slug: data.slug || rawStr,
+                difficulty: data.difficulty || "Medium"
+              };
+              problemCache.set(rawStr, res);
+              return res;
+            }
+          } catch {
+            const normalized = slugify(rawStr);
+            if (normalized && normalized !== rawStr) {
+              if (problemCache.has(normalized)) {
+                return problemCache.get(normalized);
+              }
+              try {
+                const data = await fetchProblemDetail(normalized);
+                if (data) {
+                  const res = {
+                    title: data.title || rawStr,
+                    slug: data.slug || normalized,
+                    difficulty: data.difficulty || "Medium"
+                  };
+                  problemCache.set(rawStr, res);
+                  problemCache.set(normalized, res);
+                  return res;
+                }
+              } catch {
+                // fall through
+              }
+            }
+          }
+
+          const fallback = {
+            title: rawStr,
+            slug: slugify(rawStr) || rawStr,
+            difficulty: "Medium"
+          };
+          problemCache.set(rawStr, fallback);
+          return fallback;
+        });
+
+        // 2. Fetch only the specifically linked articles
+        const articlePromises = articlesSlugs.map(async (rawItem) => {
+          if (!rawItem) return null;
+          if (typeof rawItem === "object" && rawItem.title && (rawItem.slug || rawItem.id)) {
+            return {
+              title: rawItem.title,
+              slug: rawItem.slug || rawItem.id
+            };
+          }
+
+          const rawStr = String(rawItem).trim();
+          if (!rawStr) return null;
+
+          if (articleCache.has(rawStr)) {
+            return articleCache.get(rawStr);
+          }
+
+          try {
+            const data = await fetchArticleDetail(rawStr);
+            if (data) {
+              const res = {
+                title: data.title || rawStr,
+                slug: data.slug || rawStr
+              };
+              articleCache.set(rawStr, res);
+              return res;
+            }
+          } catch {
+            const normalized = slugify(rawStr);
+            if (normalized && normalized !== rawStr) {
+              if (articleCache.has(normalized)) {
+                return articleCache.get(normalized);
+              }
+              try {
+                const data = await fetchArticleDetail(normalized);
+                if (data) {
+                  const res = {
+                    title: data.title || rawStr,
+                    slug: data.slug || normalized
+                  };
+                  articleCache.set(rawStr, res);
+                  articleCache.set(normalized, res);
+                  return res;
+                }
+              } catch {
+                // fall through
+              }
+            }
+          }
+
+          const fallback = {
+            title: rawStr,
+            slug: slugify(rawStr) || rawStr
+          };
+          articleCache.set(rawStr, fallback);
+          return fallback;
+        });
+
+        const [resolvedProblems, resolvedArticles] = await Promise.all([
+          Promise.all(problemPromises),
+          Promise.all(articlePromises)
         ]);
 
-        setProblemsData(Array.isArray(probs) ? probs : []);
-        setArticlesData(Array.isArray(arts) ? arts : []);
-      } catch (e) {
-        console.error("Error fetching assets for resources tab", e);
+        if (!isCancelled) {
+          setProblemsData(resolvedProblems.filter(Boolean));
+          setArticlesData(resolvedArticles.filter(Boolean));
+        }
+      } catch (err) {
+        console.error("Error fetching linked resources:", err);
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
-    fetchAssets();
-  }, []);
 
-  const resources = backendResources || {};
-  const problemsSlugs: string[] = resources.problems || [];
-  const articlesSlugs: string[] = resources.articles || resources.blogs || [];
-  const externalLinks: { title: string; url: string }[] = resources.external_links || [];
+    fetchLinkedAssets();
 
-  const mappedProblems = problemsSlugs.map(slug => problemsData.find(p => p.slug === slug || p.id === slug)).filter(Boolean);
-  const mappedArticles = articlesSlugs.map(slug => articlesData.find(a => a.slug === slug || a.id === slug)).filter(Boolean);
+    return () => {
+      isCancelled = true;
+    };
+  }, [itemId, problemsSlugs, articlesSlugs]);
+
+  const mappedProblems = problemsData;
+  const mappedArticles = articlesData;
 
   const hasAnyResources = mappedProblems.length > 0 || mappedArticles.length > 0 || externalLinks.length > 0;
 

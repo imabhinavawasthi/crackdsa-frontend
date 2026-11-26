@@ -91,10 +91,10 @@ export default function CoursesPage() {
       );
     }
 
-    // 2. Sort courses
+    // 2. Sort courses (free courses first if sorting by price, or per user sort preference)
     result.sort((a, b) => {
       if (sortBy === "popularity") {
-        // DSA primary program first
+        // DSA primary program first among paid
         const aIsDsa = (a.slug || "").includes("data-structure") || (a.slug || "").includes("dsa");
         const bIsDsa = (b.slug || "").includes("data-structure") || (b.slug || "").includes("dsa");
         if (aIsDsa && !bIsDsa) return -1;
@@ -108,7 +108,7 @@ export default function CoursesPage() {
         if (a.status === "active" && b.status !== "active") return -1;
         if (a.status !== "active" && b.status === "active") return 1;
 
-        return 0;
+        return (a.price || 0) - (b.price || 0);
       }
 
       if (sortBy === "price-asc") {
@@ -123,7 +123,7 @@ export default function CoursesPage() {
         return (a.title || "").localeCompare(b.title || "");
       }
 
-      return 0;
+      return (a.price || 0) - (b.price || 0);
     });
 
     return result;

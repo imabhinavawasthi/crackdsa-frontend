@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Award, 
   CheckCircle2, 
@@ -9,6 +10,7 @@ import {
   ChevronRight, 
   Clock, 
   Crown, 
+  Loader2,
   Monitor, 
   PlayCircle, 
   ShieldCheck, 
@@ -19,6 +21,7 @@ import {
 import type { CourseSummary } from '@/types/course';
 import { formatPrice, getDiscountPercent } from '../courseDetailUtils';
 import { useAuth } from '@/context/AuthContext';
+import { enrollInFreeCourse } from '@/api/courses';
 
 type Tab = 'individual' | 'pro';
 
@@ -27,8 +30,12 @@ interface CourseDetailCardBodyProps {
 }
 
 export default function CourseDetailCardBody({ course }: CourseDetailCardBodyProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('individual');
-  const { user, isLoggedIn, isPro } = useAuth();
+  const [enrolling, setEnrolling] = useState(false);
+  const { user, isLoggedIn, isPro, refetch } = useAuth();
+
+  const isFree = course.price === 0 || course.price <= 0;
 
   // Check if user is enrolled via individual purchase, pro courses, or enrolled courses
   const isEnrolledInCourse = Boolean(
@@ -56,8 +63,28 @@ export default function CourseDetailCardBody({ course }: CourseDetailCardBodyPro
       ))
   );
 
-  // User has full access if they bought the course OR have active Pro membership
+  // User has full access if they bought the course, have active Pro membership, or if it is a free course and user is enrolled
   const hasAccess = Boolean(isLoggedIn && (isPro || isEnrolledInCourse));
+
+  const handleFreeEnroll = async () => {
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(`/course/${course.slug}/learn`)}`);
+      return;
+    }
+
+    try {
+      setEnrolling(true);
+      await enrollInFreeCourse(course.slug);
+      await refetch();
+      router.push(`/course/${course.slug}/learn`);
+    } catch (err) {
+      console.error("Free enrollment error:", err);
+      // Fallback: navigate directly to classroom
+      router.push(`/course/${course.slug}/learn`);
+    } finally {
+      setEnrolling(false);
+    }
+  };
 
   // ─── Enrolled / Pro User View: Clean Classroom CTA with no sales/pricing ─────
   if (hasAccess) {
@@ -102,6 +129,83 @@ export default function CourseDetailCardBody({ course }: CourseDetailCardBodyPro
               <ChevronRight className="size-4" />
             </Link>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Free Course View: Direct Free Enrollment CTA ──────────────────────────────
+  if (isFree) {
+    return (
+      <div className="bg-white dark:bg-gray-900 p-5 sm:p-6 space-y-5 transition-colors">
+        {/* Free Badge & Pricing */}
+        <div>
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300 mb-3">
+            <Sparkles className="size-3.5" />
+            <span>100% Free Course</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+              Free
+            </span>
+            {course.original_price > 0 && (
+              <span className="text-base font-normal text-gray-400 dark:text-gray-500 line-through">
+                {formatPrice(course.original_price)}
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Full lifetime access with zero payment required
+          </p>
+        </div>
+
+        {/* Free Enroll Button */}
+        <div>
+          {course.status === 'upcoming' ? (
+            <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 py-3.5 px-6 text-center text-base font-bold text-amber-700 dark:text-amber-300">
+              <span>Upcoming Course • Starts Soon</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              disabled={enrolling}
+              onClick={handleFreeEnroll}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3.5 px-6 text-center text-base font-bold text-white shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.99] cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {enrolling ? (
+                <>
+                  <Loader2 className="size-4.5 animate-spin" />
+                  <span>Enrolling...</span>
+                </>
+              ) : (
+                <>
+                  <span>Enroll for Free</span>
+                  <ChevronRight className="size-4" />
+                </>
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Course Features */}
+        <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-3">
+          <p className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+            What is included:
+          </p>
+          <ul className="space-y-2.5 text-xs text-gray-600 dark:text-gray-400">
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+              <span>Complete structured syllabus from scratch</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+              <span>In-depth concept articles and video lectures</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+              <span>Self-paced learning with progress tracking</span>
+            </li>
+          </ul>
         </div>
       </div>
     );

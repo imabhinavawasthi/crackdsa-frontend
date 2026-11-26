@@ -122,7 +122,7 @@ export default function EditCoursePage() {
       <CourseAdminHeader course={courseData} />
 
       {/* Dedicated Course Details Editor */}
-      <CourseDetailsEditor mode="edit" initialData={courseData} />
+      <CourseDetailsEditor key={courseData?.id || courseData?.slug || "loaded"} mode="edit" initialData={courseData} />
     </div>
   );
 }

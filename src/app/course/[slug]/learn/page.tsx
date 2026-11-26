@@ -44,7 +44,7 @@ import { useAuth } from "@/context/AuthContext";
 import StatusSelector from "@/components/learning/StatusSelector";
 import BookmarkButton from "@/components/learning/BookmarkButton";
 import { fetchUserAssetStates as fetchUserAssetStatesFromApi, updateUserAssetState } from "@/api/user";
-import { fetchCourseDetail, fetchCourseCurriculum, fetchInstructors } from "@/api/courses";
+import { fetchCourseDetail, fetchCourseCurriculum, fetchInstructors, enrollInFreeCourse } from "@/api/courses";
 import { fetchDifficultyCounts } from "@/api/problems";
 import CourseDashboardView from "@/components/learning/CourseDashboardView";
 import ReadMoreHTML from "@/components/common/ReadMoreHTML";
@@ -87,6 +87,7 @@ interface CourseDetail {
   description: string;
   instructors: Instructor[];
   sections: CourseSection[];
+  price?: number;
 }
 
 export default function LearnPage() {
@@ -96,7 +97,7 @@ export default function LearnPage() {
   const rawCourseSlug = params?.slug as string;
   const courseSlug = rawCourseSlug === "data-structures-algorithms-mastery-program" ? "dsa" : rawCourseSlug;
 
-  const { user, isLoggedIn, isPro, isLoading: isAuthLoading, sessionExpired } = useAuth();
+  const { user, isLoggedIn, isPro, isLoading: isAuthLoading, sessionExpired, refetch } = useAuth();
   const firstName = user?.full_name ? user.full_name.split(" ")[0] : "";
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
@@ -105,7 +106,7 @@ export default function LearnPage() {
   const [instructorsList, setInstructorsList] = useState<any[]>([]);
   const [practiceProblemsCount, setPracticeProblemsCount] = useState<number>(1000);
 
-  // Access checking: strictly verify Pro subscription or course purchase
+  // Access checking: strictly verify Pro subscription, course purchase, or free course
   const isEnrolled = Boolean(
     isLoggedIn && (
       user?.is_pro_active ||
@@ -133,7 +134,31 @@ export default function LearnPage() {
     )
   );
 
-  // Immediate redirect if session expired, not logged in, or not enrolled after loading
+  const isFreeCourse = Boolean(course && (course.price === 0 || (course.price ?? 0) <= 0));
+  const hasCourseAccess = isEnrolled || isFreeCourse;
+
+  // Auto-enroll if user is logged in and course is free, but not yet recorded in user profile
+  useEffect(() => {
+    if (!isLoggedIn || !course || !isFreeCourse) return;
+    if (isEnrolled) return;
+
+    let isMounted = true;
+    enrollInFreeCourse(course.slug || courseSlug)
+      .then(() => {
+        if (isMounted) {
+          refetch();
+        }
+      })
+      .catch((err) => {
+        console.error("Auto-enrollment error for free course:", err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn, course, isFreeCourse, isEnrolled, courseSlug, refetch]);
+
+  // Immediate redirect if session expired, not logged in, or not permitted after loading
   useEffect(() => {
     if (isAuthLoading) return;
 
@@ -142,12 +167,12 @@ export default function LearnPage() {
       return;
     }
 
-    // Only redirect if course details have finished loading and user is not enrolled
-    if (!loading && course && !isEnrolled) {
+    // Only redirect if course details have finished loading and user has NO access
+    if (!loading && course && !hasCourseAccess) {
       const targetSlug = course.slug || courseSlug;
       router.replace(`/course/${targetSlug}`);
     }
-  }, [isAuthLoading, isLoggedIn, sessionExpired, loading, course, isEnrolled, courseSlug, router]);
+  }, [isAuthLoading, isLoggedIn, sessionExpired, loading, course, hasCourseAccess, courseSlug, router]);
 
   // Classroom Player states
   const [activeItem, setActiveItem] = useState<CourseSectionItem | null>(null);
@@ -282,6 +307,7 @@ export default function LearnPage() {
         description: courseData.description,
         instructors: finalInstructors,
         sections: curriculumData || [],
+        price: courseData.price ?? 0,
       });
 
       // Also fetch dynamic practice problems count
