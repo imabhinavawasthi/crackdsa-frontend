@@ -1,19 +1,31 @@
-import { getStoredToken } from "@/functions/auth";
+import { getAuthHeaders } from "@/functions/auth";
 import { BACKEND_URL } from "@/config/api";
-import { CourseSummary } from "@/types/course";
+import { CourseSummary, CourseSection } from "@/types/course";
 
-/** Shared helper — builds auth headers if a token exists. */
-function authHeaders(): HeadersInit {
-  const token = getStoredToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+export interface BatchTopicDetailItem {
+  title: string;
+  found: boolean;
+  section_id?: string;
+  chapters_count: number;
+  items_count: number;
+  videos_count: number;
+  problems_count: number;
+  articles_count: number;
+  is_upcoming: boolean;
+}
+
+export interface BatchTopicResponse {
+  course_slug: string;
+  matched_topics: Record<string, BatchTopicDetailItem>;
 }
 
 /**
- * Fetches all courses.
+ * Fetches all courses with optional limit.
  */
-export async function fetchCourses(): Promise<CourseSummary[]> {
-  const res = await fetch(`${BACKEND_URL}/api/v1/courses`, {
-    headers: authHeaders(),
+export async function fetchCourses(limit?: number): Promise<CourseSummary[]> {
+  const query = limit ? `?limit=${limit}` : "";
+  const res = await fetch(`${BACKEND_URL}/api/v1/courses${query}`, {
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch courses catalog.");
   return res.json();
@@ -23,9 +35,86 @@ export async function fetchCourses(): Promise<CourseSummary[]> {
  * Fetches course details by slug or ID.
  */
 export async function fetchCourseDetail(slug: string): Promise<CourseSummary> {
-  const res = await fetch(`${BACKEND_URL}/api/v1/courses/${slug}`, {
-    headers: authHeaders(),
+  const normalizedSlug = slug === "data-structures-algorithms-mastery-program" ? "dsa" : slug;
+  const res = await fetch(`${BACKEND_URL}/api/v1/courses/${normalizedSlug}`, {
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch course details.");
+  return res.json();
+}
+
+/**
+ * Fetches full course curriculum section tree by slug or ID.
+ */
+export async function fetchCourseCurriculum(slug: string): Promise<CourseSection[]> {
+  const normalizedSlug = slug === "data-structures-algorithms-mastery-program" ? "dsa" : slug;
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/v1/courses/${normalizedSlug}/curriculum`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch (err) {
+    console.error("Error fetching course curriculum:", err);
+    return [];
+  }
+}
+
+/**
+ * Fetches dynamic details for multiple topics in a single batch call.
+ */
+export async function fetchBatchTopicDetails(
+  courseIdOrSlug: string,
+  topics: string[]
+): Promise<BatchTopicResponse | null> {
+  try {
+    const authHeaders = await getAuthHeaders();
+    const res = await fetch(
+      `${BACKEND_URL}/api/v1/courses/${courseIdOrSlug}/batch-topic-details`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders,
+        },
+        body: JSON.stringify({ topics }),
+      }
+    );
+    if (!res.ok) return null;
+    return res.json();
+  } catch (error) {
+    console.error("Error fetching batch topic details:", error);
+    return null;
+  }
+}
+
+/**
+ * Fetches instructors list.
+ */
+export async function fetchInstructors(): Promise<any> {
+  const res = await fetch(`${BACKEND_URL}/api/v1/instructors`);
+  if (!res.ok) return { items: [] };
+  return res.json();
+}
+
+/**
+ * Enrolls the authenticated user into a free course.
+ */
+export async function enrollInFreeCourse(
+  courseSlugOrId: string
+): Promise<{ status: string; message: string; enrolled: boolean; course_slug?: string }> {
+  const normalizedSlug = courseSlugOrId === "data-structures-algorithms-mastery-program" ? "dsa" : courseSlugOrId;
+  const authHeaders = await getAuthHeaders();
+  const res = await fetch(`${BACKEND_URL}/api/v1/courses/${normalizedSlug}/enroll`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to enroll in free course.");
+  }
   return res.json();
 }

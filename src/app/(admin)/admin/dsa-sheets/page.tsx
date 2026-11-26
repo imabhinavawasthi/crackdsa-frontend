@@ -67,7 +67,7 @@ export default function AdminDSASheetsList() {
             placeholder="Search sheets by title or ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none transition-all"
           />
         </div>
       </div>
@@ -103,10 +103,10 @@ export default function AdminDSASheetsList() {
                 </tr>
               ) : (
                 filteredSheets.map((sheet) => {
-                  const numTopics = sheet.sheet_json?.topics?.length || 0;
-                  const numProblems = sheet.sheet_json?.topics?.reduce((acc, topic) => 
+                  const numTopics = sheet.total_topics ?? (sheet.sheet_json?.topics?.length || 0);
+                  const numProblems = sheet.total_problems ?? (sheet.sheet_json?.topics?.reduce((acc, topic) => 
                     acc + topic.steps.reduce((sAcc, step) => sAcc + (step.problems?.length || 0), 0)
-                  , 0) || 0;
+                  , 0) || 0);
 
                   return (
                     <tr key={sheet.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors">

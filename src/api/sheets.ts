@@ -1,19 +1,23 @@
-import { getStoredToken } from "@/functions/auth";
+import { getAuthHeaders } from "@/functions/auth";
 import { BACKEND_URL } from "@/config/api";
 import { DSASheet, DetailedProblem } from "@/types/dsa-sheet";
 
-/** Shared helper — builds auth headers if a token exists. */
-function authHeaders(): HeadersInit {
-  const token = getStoredToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+const sheetDetailCache = new Map<string, { data: DSASheet; timestamp: number }>();
+const sheetProblemsCache = new Map<string, { data: DetailedProblem[]; timestamp: number }>();
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+export function clearSheetClientCache(): void {
+  sheetDetailCache.clear();
+  sheetProblemsCache.clear();
 }
 
 /**
  * Fetches the public DSA sheets library.
  */
-export async function fetchSheets(): Promise<DSASheet[]> {
-  const res = await fetch(`${BACKEND_URL}/api/v1/dsa-sheets`, {
-    headers: authHeaders(),
+export async function fetchSheets(limit?: number): Promise<DSASheet[]> {
+  const query = limit ? `?limit=${limit}` : "";
+  const res = await fetch(`${BACKEND_URL}/api/v1/dsa-sheets${query}`, {
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch DSA sheets.");
   return res.json();
@@ -22,27 +26,45 @@ export async function fetchSheets(): Promise<DSASheet[]> {
 /**
  * Fetches a single DSA sheet by its ID/slug.
  */
-export async function fetchSheetDetail(id: string): Promise<DSASheet> {
+export async function fetchSheetDetail(id: string, forceRefresh: boolean = false): Promise<DSASheet> {
+  if (!forceRefresh) {
+    const cached = sheetDetailCache.get(id);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data;
+    }
+  }
+
   const res = await fetch(`${BACKEND_URL}/api/v1/dsa-sheets/${id}`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) {
     throw new Error(res.status === 404 ? "Sheet not found" : "Failed to load sheet details");
   }
-  return res.json();
+  const data = await res.json();
+  sheetDetailCache.set(id, { data, timestamp: Date.now() });
+  return data;
 }
 
 /**
  * Fetches all detailed problems for a single DSA sheet.
  */
-export async function fetchSheetProblems(id: string): Promise<DetailedProblem[]> {
+export async function fetchSheetProblems(id: string, forceRefresh: boolean = false): Promise<DetailedProblem[]> {
+  if (!forceRefresh) {
+    const cached = sheetProblemsCache.get(id);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data;
+    }
+  }
+
   const res = await fetch(`${BACKEND_URL}/api/v1/dsa-sheets/${id}/problems`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) {
     throw new Error(res.status === 404 ? "Sheet not found" : "Failed to load sheet problems");
   }
-  return res.json();
+  const data = await res.json();
+  sheetProblemsCache.set(id, { data, timestamp: Date.now() });
+  return data;
 }
 
 /**
@@ -50,7 +72,7 @@ export async function fetchSheetProblems(id: string): Promise<DetailedProblem[]>
  */
 export async function fetchAdminSheets(): Promise<DSASheet[]> {
   const res = await fetch(`${BACKEND_URL}/api/v1/admin/dsa-sheets`, {
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Unable to fetch admin DSA sheets.");
   return res.json();
@@ -60,10 +82,11 @@ export async function fetchAdminSheets(): Promise<DSASheet[]> {
  * [ADMIN] Creates a new DSA sheet.
  */
 export async function createSheet(data: Partial<DSASheet>): Promise<DSASheet> {
+  const authHeaders = await getAuthHeaders();
   const res = await fetch(`${BACKEND_URL}/api/v1/admin/dsa-sheets`, {
     method: "POST",
     headers: {
-      ...authHeaders(),
+      ...authHeaders,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
@@ -72,6 +95,7 @@ export async function createSheet(data: Partial<DSASheet>): Promise<DSASheet> {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to create DSA sheet.");
   }
+  clearSheetClientCache();
   return res.json();
 }
 
@@ -79,10 +103,11 @@ export async function createSheet(data: Partial<DSASheet>): Promise<DSASheet> {
  * [ADMIN] Updates an existing DSA sheet.
  */
 export async function updateSheet(id: string, data: Partial<DSASheet>): Promise<DSASheet> {
+  const authHeaders = await getAuthHeaders();
   const res = await fetch(`${BACKEND_URL}/api/v1/admin/dsa-sheets/${id}`, {
     method: "PUT",
     headers: {
-      ...authHeaders(),
+      ...authHeaders,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
@@ -91,6 +116,7 @@ export async function updateSheet(id: string, data: Partial<DSASheet>): Promise<
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to update DSA sheet.");
   }
+  clearSheetClientCache();
   return res.json();
 }
 
@@ -100,11 +126,12 @@ export async function updateSheet(id: string, data: Partial<DSASheet>): Promise<
 export async function deleteSheet(id: string): Promise<void> {
   const res = await fetch(`${BACKEND_URL}/api/v1/admin/dsa-sheets/${id}`, {
     method: "DELETE",
-    headers: authHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || "Failed to delete DSA sheet.");
   }
+  clearSheetClientCache();
 }
 

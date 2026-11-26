@@ -42,5 +42,9 @@ export interface DSASheet {
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
-  sheet_json: SheetJSON;
+  sheet_json?: SheetJSON;
+  total_topics?: number;
+  total_problems?: number;
+  solved_problems?: number;
+  thumbnail_url?: string | null;
 }

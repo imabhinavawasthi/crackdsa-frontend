@@ -11,28 +11,22 @@ import {
   Dumbbell,
   Loader2,
   ArrowLeft,
-  Filter,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { getStoredToken } from "@/functions/auth";
 import LoginRequired from "@/components/common/LoginRequired";
 import ErrorState from "@/components/common/ErrorState";
-import { BACKEND_URL } from "@/config/api";
+import { fetchUserBookmarks, UserBookmarkItem } from "@/api/user";
 
 type AssetType = "all" | "problem" | "video" | "article";
 
 export default function BookmarksPage() {
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [problems, setProblems] = useState<any[]>([]);
-  const [videos, setVideos] = useState<any[]>([]);
-  const [articles, setArticles] = useState<any[]>([]);
-  const [userStates, setUserStates] = useState<any[]>([]);
+  const [bookmarks, setBookmarks] = useState<UserBookmarkItem[]>([]);
   const [filterType, setFilterType] = useState<AssetType>("all");
-
-  const backendUrl = BACKEND_URL;
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -43,28 +37,10 @@ export default function BookmarksPage() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const token = getStoredToken();
-        const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
-        const [problemsRes, videosRes, articlesRes, statesRes] = await Promise.all([
-          fetch(`${backendUrl}/api/v1/practice-problems`, { headers }),
-          fetch(`${backendUrl}/api/v1/video-lectures`, { headers }),
-          fetch(`${backendUrl}/api/v1/articles`, { headers }),
-          fetch(`${backendUrl}/api/v1/user/assets/states`, { headers }),
-        ]);
-
-        if (problemsRes.ok) setProblems(await problemsRes.json());
-        if (videosRes.ok) {
-          const vData = await videosRes.json();
-          setVideos(Array.isArray(vData) ? vData : (vData.items || []));
-        }
-        if (articlesRes.ok) {
-          const aData = await articlesRes.json();
-          setArticles(Array.isArray(aData) ? aData : (aData.items || []));
-        }
-        if (statesRes.ok) {
-          setUserStates((await statesRes.json()) || []);
-        }
+        setError(null);
+        // Single unified call: backend directly resolves all metadata
+        const data = await fetchUserBookmarks();
+        setBookmarks(data || []);
       } catch (err) {
         console.error("Error loading bookmarks:", err);
         setError("Unable to sync your bookmarks. Please try again later.");
@@ -74,78 +50,46 @@ export default function BookmarksPage() {
     };
 
     loadData();
-  }, [isLoggedIn, backendUrl]);
+  }, [isLoggedIn]);
 
-  const bookmarkedStates = useMemo(() => {
-    return userStates
-      .filter((s) => s.is_bookmarked)
-      .filter((s) => filterType === "all" || s.asset_type === filterType)
-      .sort(
-        (a, b) =>
-          new Date(b.updated_at || b.last_interacted_at).getTime() -
-          new Date(a.updated_at || a.last_interacted_at).getTime()
-      );
-  }, [userStates, filterType]);
+  const filteredBookmarks = useMemo(() => {
+    return bookmarks.filter((b) => filterType === "all" || b.asset_type === filterType);
+  }, [bookmarks, filterType]);
 
   const counts = useMemo(() => {
-    const all = userStates.filter((s) => s.is_bookmarked);
     return {
-      all: all.length,
-      problem: all.filter((s) => s.asset_type === "problem").length,
-      video: all.filter((s) => s.asset_type === "video").length,
-      article: all.filter((s) => s.asset_type === "article").length,
+      all: bookmarks.length,
+      problem: bookmarks.filter((b) => b.asset_type === "problem").length,
+      video: bookmarks.filter((b) => b.asset_type === "video").length,
+      article: bookmarks.filter((b) => b.asset_type === "article").length,
     };
-  }, [userStates]);
+  }, [bookmarks]);
 
-  const getAssetDetails = (state: any) => {
-    if (state.asset_type === "problem") {
-      const problem = problems.find((p) => p.id === state.asset_id);
+  const getItemVisuals = (item: UserBookmarkItem) => {
+    if (item.asset_type === "problem") {
+      const isCp = item.asset_id.startsWith("cp:");
       return {
-        title: problem?.title || "Unknown Problem",
-        subtitle: problem?.difficulty || "",
-        href: problem?.slug ? `/problem/${problem.slug}` : "#",
-        icon: <Dumbbell size={16} />,
-        iconColor: "bg-brand-500/10 text-brand-500",
+        icon: isCp ? <Trophy size={16} /> : <Dumbbell size={16} />,
+        iconColor: isCp ? "bg-blue-500/10 text-blue-500" : "bg-brand-500/10 text-brand-500",
         diffColor:
-          problem?.difficulty === "Easy"
+          item.difficulty === "Easy"
             ? "text-emerald-500"
-            : problem?.difficulty === "Hard"
+            : item.difficulty === "Hard"
             ? "text-rose-500"
             : "text-amber-500",
-        tags: problem?.tags || [],
-      };
-    } else if (state.asset_type === "video") {
-      const video = videos.find((v) => v.id === state.asset_id);
-      return {
-        title: video?.title || "Unknown Video",
-        subtitle: "Video",
-        href: "#", // Can't open directly easily without course context
-        icon: <Video size={16} />,
-        iconColor: "bg-blue-500/10 text-blue-500",
-        diffColor: "text-gray-500",
-        tags: [],
-      };
-    } else if (state.asset_type === "article") {
-      const article = articles.find((a) => a.id === state.asset_id);
-      return {
-        title: article?.title || "Unknown Article",
-        subtitle: "Article",
-        href: "#", // Can't open directly easily
-        icon: <BookOpen size={16} />,
-        iconColor: "bg-purple-500/10 text-purple-500",
-        diffColor: "text-gray-500",
-        tags: [],
       };
     }
-    
+    if (item.asset_type === "video") {
+      return {
+        icon: <Video size={16} />,
+        iconColor: "bg-blue-500/10 text-blue-500",
+        diffColor: "text-blue-500",
+      };
+    }
     return {
-      title: state.asset_id,
-      subtitle: state.asset_type,
-      href: "#",
       icon: <BookOpen size={16} />,
-      iconColor: "bg-gray-500/10 text-gray-500",
-      diffColor: "text-gray-500",
-      tags: [],
+      iconColor: "bg-purple-500/10 text-purple-500",
+      diffColor: "text-purple-500",
     };
   };
 
@@ -217,8 +161,7 @@ export default function BookmarksPage() {
               My Bookmarks
             </h1>
             <p className="text-sm text-gray-500 font-medium">
-              {counts.all} saved item{counts.all !== 1 ? "s" : ""} across all
-              categories
+              {counts.all} saved item{counts.all !== 1 ? "s" : ""} across all categories
             </p>
           </div>
         </div>
@@ -230,9 +173,9 @@ export default function BookmarksPage() {
           <button
             key={tab.key}
             onClick={() => setFilterType(tab.key)}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               filterType === tab.key
-                ? "bg-white dark:bg-gray-800 text-brand-500 shadow-sm border border-gray-200 dark:border-gray-700"
+                ? "bg-white dark:bg-gray-800 text-brand-500 shadow-xs border border-gray-200 dark:border-gray-700"
                 : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
@@ -243,7 +186,7 @@ export default function BookmarksPage() {
       </div>
 
       {/* Bookmarked Items List */}
-      {bookmarkedStates.length === 0 ? (
+      {filteredBookmarks.length === 0 ? (
         <div className="flex flex-col items-center justify-center border border-dashed border-gray-200 dark:border-gray-800 rounded-3xl py-16 text-center space-y-4">
           <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900">
             <Bookmark size={32} className="text-gray-300 dark:text-gray-600" />
@@ -253,8 +196,7 @@ export default function BookmarksPage() {
               No bookmarks found
             </p>
             <p className="text-xs text-gray-400 max-w-xs">
-              Bookmark problems, videos, and articles while studying to save
-              them here for quick access.
+              Bookmark problems, videos, and articles while studying to save them here for quick access.
             </p>
           </div>
           <Link
@@ -266,47 +208,47 @@ export default function BookmarksPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {bookmarkedStates.map((state) => {
-            const details = getAssetDetails(state);
+          {filteredBookmarks.map((item) => {
+            const visuals = getItemVisuals(item);
             return (
               <motion.div
-                key={`${state.asset_type}-${state.asset_id}`}
+                key={`${item.asset_type}-${item.asset_id}`}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="group flex items-center justify-between p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-700 transition-all"
               >
                 <div className="flex items-center gap-4 min-w-0">
                   <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${details.iconColor}`}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${visuals.iconColor}`}
                   >
-                    {details.icon}
+                    {visuals.icon}
                   </div>
                   <div className="min-w-0 space-y-1">
                     <Link
-                      href={details.href}
+                      href={item.href}
                       className="text-sm font-bold text-gray-900 dark:text-white hover:text-brand-500 truncate block"
                     >
-                      {details.title}
+                      {item.title}
                     </Link>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-widest ${details.diffColor}`}
+                        className={`text-[10px] font-bold uppercase tracking-widest ${visuals.diffColor}`}
                       >
-                        {details.subtitle}
+                        {item.subtitle}
                       </span>
                       <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 bg-gray-100 dark:bg-gray-900 px-2 py-0.5 rounded-md">
-                        {state.asset_type}
+                        {item.asset_type}
                       </span>
-                      {state.status === "done" && (
+                      {item.status === "done" && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-emerald-500">
-                          <CheckCircle2 size={10} /> {state.asset_type === "video" ? "Watched" : state.asset_type === "article" ? "Read" : "Solved"}
+                          <CheckCircle2 size={10} /> {item.asset_type === "video" ? "Watched" : item.asset_type === "article" ? "Read" : "Solved"}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
                 <Link
-                  href={details.href}
+                  href={item.href}
                   className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-500/5 transition-all shrink-0"
                 >
                   <ChevronRight size={16} />

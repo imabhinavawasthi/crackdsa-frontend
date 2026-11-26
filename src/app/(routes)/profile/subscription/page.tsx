@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
   Sparkles,
@@ -10,45 +11,67 @@ import {
   Zap,
   BookOpen,
   Calendar,
-  CreditCard
+  CreditCard,
+  Crown,
+  Lock,
+  ShoppingBag,
+  RefreshCw,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import WhatsAppSupportButton from "@/components/common/WhatsAppSupportButton";
 import { motion } from "framer-motion";
 import LoginRequired from "@/components/common/LoginRequired";
-import { BACKEND_URL } from "@/config/api";
+import { fetchSubscriptionDetails } from "@/api/user";
 
-export default function SubscriptionPage() {
-  const { isLoggedIn, user, isLoading: isAuthLoading } = useAuth();
-  const [subscriptionDetails, setSubscriptionDetails] = React.useState<any>(null);
-  const [isDetailsLoading, setIsDetailsLoading] = React.useState(true);
+function SubscriptionContent() {
+  const { isLoggedIn, user, isLoading: isAuthLoading, refetch } = useAuth();
+  const searchParams = useSearchParams();
+  const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  React.useEffect(() => {
+  const fetchDetails = useCallback(async () => {
+    try {
+      const data = await fetchSubscriptionDetails();
+      if (data) {
+        setSubscriptionDetails(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch subscription details:", e);
+    } finally {
+      setIsDetailsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!isLoggedIn) {
       setIsDetailsLoading(false);
       return;
     }
-    
-    async function fetchDetails() {
-      try {
-        const token = localStorage.getItem("crackdsa_access_token");
-        const res = await fetch(`${BACKEND_URL}/api/v1/auth/subscription-details`, {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setSubscriptionDetails(data);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsDetailsLoading(false);
-      }
-    }
+
+    // Always fetch details and sync auth user state
     fetchDetails();
-  }, [isLoggedIn]);
+    refetch().catch(() => {});
+
+    // If coming with status=success (post-checkout), trigger follow-up sync to guarantee DB consistency
+    if (searchParams.get("status") === "success") {
+      const timer = setTimeout(() => {
+        fetchDetails();
+        refetch().catch(() => {});
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoggedIn, searchParams, fetchDetails, refetch]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.allSettled([fetchDetails(), refetch()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (isAuthLoading || isDetailsLoading) {
     return (
@@ -78,25 +101,35 @@ export default function SubscriptionPage() {
     );
   }
 
-  const isPro = user?.is_pro_active || false;
-  
   const proSub = subscriptionDetails?.pro_subscription || {};
   const purchasedCourses = subscriptionDetails?.purchased_courses || {};
+
+  // Instant evaluation: active if user.is_pro_active OR database pro_subscription is active
+  const nowEpoch = Math.floor(Date.now() / 1000);
+  const isProFromSub = Boolean(
+    proSub?.subscription_active_till_epoch === -1 ||
+      (typeof proSub?.subscription_active_till_epoch === "number" &&
+        proSub.subscription_active_till_epoch > nowEpoch) ||
+      proSub?.is_active === true
+  );
+
+  const isPro = Boolean(user?.is_pro_active || isProFromSub);
+  
+  const proSubscriptionCourses = user?.pro_courses || [];
   
   // Backwards compatibility for courses
-  let coursesList: any[] = [];
+  let individualPurchasesList: any[] = [];
   if (purchasedCourses.courses) {
-    coursesList = purchasedCourses.courses;
+    individualPurchasesList = purchasedCourses.courses;
   } else {
     // Legacy support
-    coursesList = Object.entries(purchasedCourses).map(([id, detail]: [string, any]) => ({
+    individualPurchasesList = Object.entries(purchasedCourses).map(([id, detail]: [string, any]) => ({
       course_id: id,
       course_name: detail.target_name || id,
       valid_till_epoch: detail.end_time === -1 || detail.end_time === "-1" ? -1 : new Date(detail.end_time).getTime() / 1000,
       transaction_id: detail.transaction_id
     }));
   }
-  const courseCount = coursesList.length;
 
   // Backwards compatibility for PRO
   let proHistory: any[] = [];
@@ -134,7 +167,25 @@ export default function SubscriptionPage() {
           Back to Profile
         </Link>
 
-        <div className="flex items-center justify-between">
+        {/* Post-Payment Celebration Banner */}
+        {searchParams.get("status") === "success" && (
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-xs font-bold">
+              <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+              <span>Payment Verified! Your CrackDSA Pro membership is active. Welcome aboard 🎉</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleManualRefresh}
+              className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+            >
+              <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
+              <span>Sync</span>
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="space-y-1">
             <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
               <span className="p-2 rounded-xl bg-violet-500/10 text-violet-500">
@@ -146,6 +197,16 @@ export default function SubscriptionPage() {
               Manage your active subscription, premium benefits, and course enrollments.
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 text-xs font-bold text-gray-700 dark:text-gray-200 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={isRefreshing ? "animate-spin" : ""} />
+            <span>{isRefreshing ? "Syncing..." : "Sync Status"}</span>
+          </button>
         </div>
       </div>
 
@@ -235,33 +296,93 @@ export default function SubscriptionPage() {
             )}
           </div>
 
-          {/* Active Courses Enrollment Card */}
+          {/* Pro Subscription Courses Card */}
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-gray-900/50">
             <h2 className="text-sm font-extrabold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-1.5">
-              <BookOpen size={14} />
-              <span>Active Course Purchases ({courseCount})</span>
+              <Crown size={14} className="text-amber-500" />
+              <span>Pro Subscription Courses ({isPro ? proSubscriptionCourses.length : 0})</span>
             </h2>
 
-            {courseCount === 0 ? (
-              <div className="border border-dashed border-gray-250/70 dark:border-gray-800 rounded-2xl p-8 text-center">
-                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No enrollments yet</p>
-                <p className="text-xs text-gray-400 mt-1">Explore courses catalog to subscribe to curriculum paths.</p>
+            {!isPro ? (
+              <div className="border border-dashed border-gray-250/70 dark:border-gray-800 rounded-2xl p-8 text-center bg-gray-50/50 dark:bg-gray-950/20">
+                <Lock size={20} className="mx-auto text-gray-400 mb-2" />
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Subscription Courses Locked</p>
+                <p className="text-xs text-gray-400 mt-1">Upgrade to PRO to instantly unlock all premium curriculum tracks.</p>
                 <Link
-                  href="/courses"
-                  className="mt-3 inline-flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 font-bold uppercase tracking-wider"
+                  href="/checkout/pro"
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs text-amber-500 hover:text-amber-600 font-bold uppercase tracking-wider"
                 >
-                  Browse Courses <ArrowLeft size={12} className="rotate-180" />
+                  Unlock with PRO <Zap size={10} className="fill-amber-500" />
                 </Link>
+              </div>
+            ) : proSubscriptionCourses.length === 0 ? (
+              <div className="border border-dashed border-gray-250/70 dark:border-gray-800 rounded-2xl p-8 text-center">
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No subscription courses</p>
+                <p className="text-xs text-gray-400 mt-1">There are currently no courses marked for Pro subscription.</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {coursesList.map((detail: any) => (
+                {proSubscriptionCourses.map((detail: any) => (
                   <div
                     key={detail.course_id}
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50 dark:border-white/5 dark:bg-white/[0.01]"
                   >
                     <div className="min-w-0 space-y-1">
-                      <span className="text-xs font-extrabold uppercase tracking-wider text-brand-500 block">Course</span>
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-amber-500 block">Pro Subscription</span>
+                      <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 capitalize">
+                        {detail.course_name}
+                      </h4>
+                    </div>
+
+                    <div className="mt-2 sm:mt-0 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left sm:text-right flex flex-col sm:items-end gap-2">
+                      <div>
+                        {currentExpiryEpoch === -1 ? (
+                          <span>Lifetime Access</span>
+                        ) : (
+                          <span>Access Expires: {currentExpiryEpoch ? new Date(currentExpiryEpoch * 1000).toLocaleDateString() : "Lifetime"}</span>
+                        )}
+                        <span className="block mt-0.5 opacity-55">Included with PRO Tier</span>
+                      </div>
+                      <Link 
+                        href={`/courses/${detail.course_id}`}
+                        className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-700 transition-colors"
+                      >
+                        Go to Course <ArrowLeft size={10} className="rotate-180" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Individual Course Purchases Card */}
+          <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/5 dark:bg-gray-900/50">
+            <h2 className="text-sm font-extrabold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-1.5">
+              <ShoppingBag size={14} className="text-brand-500" />
+              <span>Individual Purchases ({individualPurchasesList.length})</span>
+            </h2>
+
+            {individualPurchasesList.length === 0 ? (
+              <div className="border border-dashed border-gray-250/70 dark:border-gray-800 rounded-2xl p-8 text-center bg-gray-50/20 dark:bg-gray-950/10">
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">No individual purchases</p>
+                <p className="text-xs text-gray-400 mt-1">You haven't bought any specific courses individually.</p>
+                <Link
+                  href="/courses"
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs text-brand-500 hover:text-brand-600 font-bold uppercase tracking-wider"
+                >
+                  Browse Course Catalog <ArrowLeft size={12} className="rotate-180" />
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {individualPurchasesList.map((detail: any) => (
+                  <div
+                    key={detail.course_id}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50 dark:border-white/5 dark:bg-white/[0.01]"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-brand-500 block">Course Purchase</span>
                       <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 capitalize">
                         {detail.course_name}
                       </h4>
@@ -289,7 +410,7 @@ export default function SubscriptionPage() {
                 ))}
               </div>
             )}
-            
+
             {/* Support Section */}
             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-xs text-gray-500 font-medium">
@@ -325,5 +446,19 @@ export default function SubscriptionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SubscriptionPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-4xl mx-auto py-12 px-4 flex items-center justify-center min-h-[60vh]">
+          <Loader2 size={24} className="animate-spin text-brand-500" />
+        </div>
+      }
+    >
+      <SubscriptionContent />
+    </Suspense>
   );
 }

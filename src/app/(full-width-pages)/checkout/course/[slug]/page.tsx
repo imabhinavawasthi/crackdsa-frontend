@@ -1,396 +1,667 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, CheckCircle2, ShieldCheck, PlayCircle, BookOpen, Tag, Loader2, CreditCard } from "lucide-react";
-import { motion } from "framer-motion";
-import { useRazorpay } from "react-razorpay";
+import {
+  ChevronLeft,
+  ShieldCheck,
+  CheckCircle2,
+  Tag,
+  ArrowRight,
+  Lock,
+  Loader2,
+  Sparkles,
+  Star,
+  Check,
+  Shield,
+  Video,
+  BookOpen,
+  MessageCircle,
+  AlertCircle,
+  Crown,
+} from "lucide-react";
 import { CourseSummary } from "@/types/course";
+import { PRO_PRICING_CONFIG } from "@/config/pro-pricing";
 import { fetchCourseDetail } from "@/api/courses";
-import { applyCoupon, createOrder, fetchEligibleCoupons } from "@/functions/checkout";
 import { useAuth } from "@/context/AuthContext";
-import ExitIntentModal from "@/components/common/ExitIntentModal";
+import Logo from "@/components/common/Logo";
+import {
+  applyCoupon,
+  createOrder,
+  verifyPayment,
+  loadRazorpaySDK,
+} from "@/functions/checkout";
+import PaymentProcessingOverlay, { PaymentStage } from "@/components/checkout/PaymentProcessingOverlay";
 
-export default function CourseCheckoutPage() {
-  const router = useRouter();
+function CourseCheckoutContent() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const slug = params?.slug as string;
-  const { user, refetch } = useAuth();
-  const { Razorpay } = useRazorpay();
-  
+  const initialCoupon = searchParams.get("coupon") || "";
+
+  const { user, isLoggedIn, isLoading: isAuthLoading, refetch } = useAuth();
+
   const [course, setCourse] = useState<CourseSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Coupon State
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{code: string, type: string, value: number} | null>(null);
-  const [couponError, setCouponError] = useState("");
-  const [isApplying, setIsApplying] = useState(false);
-  const [eligibleCoupons, setEligibleCoupons] = useState<any[]>([]);
-  
-  // Exit Intent State
-  const [showExitModal, setShowExitModal] = useState(false);
-  const [hasShownExitModal, setHasShownExitModal] = useState(false);
-  
-  // Payment State
-  const [isProcessing, setIsProcessing] = useState(false);
+  // Coupon state
+  const [couponCodeInput, setCouponCodeInput] = useState(initialCoupon);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount_type: "percentage" | "fixed";
+    discount_value: number;
+    discount_amount: number;
+  } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponSuccess, setCouponSuccess] = useState<string | null>(null);
 
+  // Payment processing state
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStage, setPaymentStage] = useState<PaymentStage>("idle");
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  // 1. Fetch Course Data
   useEffect(() => {
-    async function fetchCourse() {
+    async function loadCourse() {
       if (!slug) return;
       try {
         const data = await fetchCourseDetail(slug);
         setCourse(data);
-        const couponsData = await fetchEligibleCoupons("course", data.id);
-        setEligibleCoupons(couponsData.coupons || []);
       } catch (err) {
-        console.error("Failed to fetch course", err);
+        console.error("Failed to load course details", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchCourse();
+    loadCourse();
   }, [slug]);
 
-  // Exit Intent logic
+  // 2. Auto-apply coupon from URL if passed
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!hasShownExitModal && !isProcessing) {
-        e.preventDefault();
-        e.returnValue = ''; // Standard way to trigger browser's native exit warning
-      }
-    };
-    
-    const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && !hasShownExitModal && !isProcessing) {
-        setShowExitModal(true);
-        setHasShownExitModal(true);
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    document.addEventListener("mouseleave", handleMouseLeave);
-    
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      document.removeEventListener("mouseleave", handleMouseLeave);
-    };
-  }, [hasShownExitModal, isProcessing]);
-
-  const handleBackClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!hasShownExitModal) {
-      setShowExitModal(true);
-      setHasShownExitModal(true);
-    } else {
-      router.push(`/courses/${course?.slug}`);
+    if (course && initialCoupon && !appliedCoupon) {
+      handleApplyCoupon(initialCoupon);
     }
-  };
+  }, [course, initialCoupon]);
 
-  const handleAcceptExitOffer = () => {
-    setShowExitModal(false);
-    applySpecificCoupon("SPECIAL20");
-  };
-
-  const originalPrice = course?.original_price || 0;
-  const platformDiscount = Math.max(0, originalPrice - (course?.price || 0));
   const basePrice = course?.price || 0;
-  
-  const finalPrice = useMemo(() => {
-    if (!appliedCoupon) return basePrice;
-    if (appliedCoupon.type === "percentage") {
-      return basePrice - (basePrice * appliedCoupon.value) / 100;
+  const originalPrice = course?.original_price || basePrice * 1.5;
+
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discount_type === "percentage") {
+      discountAmount = Math.round((basePrice * appliedCoupon.discount_value) / 100);
+    } else {
+      discountAmount = appliedCoupon.discount_value;
     }
-    return Math.max(0, basePrice - appliedCoupon.value);
-  }, [basePrice, appliedCoupon]);
+  }
+  const finalPrice = Math.max(1, basePrice - discountAmount);
+
+  // Coupon Application Handler
+  async function handleApplyCoupon(codeToApply?: string) {
+    if (!course) return;
+    const code = (codeToApply || couponCodeInput).trim().toUpperCase();
+    if (!code) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError(null);
+    setCouponSuccess(null);
+
+    try {
+      const res = await applyCoupon(code, "course", course.id);
+
+      if (res.valid && res.discount_value) {
+        let calcDiscount = 0;
+        if (res.discount_type === "percentage") {
+          calcDiscount = Math.round((basePrice * res.discount_value) / 100);
+        } else {
+          calcDiscount = res.discount_value;
+        }
+
+        setAppliedCoupon({
+          code: code,
+          discount_type: res.discount_type,
+          discount_value: res.discount_value,
+          discount_amount: calcDiscount,
+        });
+        setCouponCodeInput(code);
+        setCouponSuccess(`Coupon ${code} applied! Saved ₹${calcDiscount.toLocaleString("en-IN")}`);
+      } else {
+        setCouponError(res.message || "Invalid coupon code");
+      }
+    } catch (err: any) {
+      setCouponError(err.message || "Failed to validate coupon");
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
+  function handleRemoveCoupon() {
+    setAppliedCoupon(null);
+    setCouponCodeInput("");
+    setCouponError(null);
+    setCouponSuccess(null);
+  }
+
+  // Payment Execution via Razorpay
+  async function handleProceedToPayment() {
+    if (!course) return;
+    setPaymentError(null);
+
+    if (!isLoggedIn) {
+      const currentUrl = `/checkout/course/${slug}${appliedCoupon ? `?coupon=${appliedCoupon.code}` : ""}`;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("crackdsa_login_redirect", currentUrl);
+      }
+      router.push(`/login?redirect_to=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    try {
+      const isLoaded = await loadRazorpaySDK();
+      if (!isLoaded && !(window as any).Razorpay) {
+        throw new Error(
+          "Unable to load Razorpay payment gateway. Please check your internet connection and try again."
+        );
+      }
+
+      const orderData = await createOrder(
+        "course",
+        course.id,
+        appliedCoupon?.code,
+        course.title
+      );
+
+      const razorpayKey = orderData.razorpay_key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+      const options = {
+        key: razorpayKey,
+        amount: Math.round(orderData.amount * 100),
+        currency: orderData.currency || "INR",
+        name: "CrackDSA",
+        description: course.title,
+        image: "/images/logo/logo-icon.png",
+        order_id: orderData.order_id?.startsWith("order_mock_")
+          ? undefined
+          : orderData.order_id,
+        handler: async function (response: any) {
+          setPaymentStage("verifying");
+          try {
+            await verifyPayment({
+              transaction_id: orderData.transaction_id,
+              razorpay_order_id: response.razorpay_order_id || orderData.order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            try {
+              await refetch();
+            } catch (authErr) {
+              console.warn("Post-purchase auth refetch warning:", authErr);
+            }
+
+            setPaymentStage("success");
+
+            // Redirect user to the course page with access unlocked
+            setTimeout(() => {
+              const targetSlug = course.slug || slug;
+              router.push(`/course/${targetSlug}?enrolled=true`);
+            }, 1200);
+          } catch (verifyErr: any) {
+            console.error("Payment verification failed:", verifyErr);
+            setPaymentError(
+              verifyErr.message ||
+                "Payment was processed, but verification failed. Please contact WhatsApp support with your payment receipt."
+            );
+            setPaymentStage("error");
+            setIsProcessingPayment(false);
+          }
+        },
+        prefill: {
+          name: user?.full_name || "",
+          email: user?.email || "",
+        },
+        notes: {
+          course_id: course.id,
+          slug: course.slug,
+          transaction_id: orderData.transaction_id,
+        },
+        theme: {
+          color: "#2563EB",
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessingPayment(false);
+            setPaymentStage("idle");
+          },
+        },
+      };
+
+      // Mock test mode fallback if local mock order ID is returned
+      if (orderData.order_id?.startsWith("order_mock_")) {
+        setPaymentStage("awaiting_payment");
+        const confirmMock = window.confirm(
+          `[TEST MODE SIMULATION]\n\nRazorpay test order initialized for ₹${orderData.amount}.\nClick OK to simulate successful test payment, or Cancel to abort.`
+        );
+        if (confirmMock) {
+          options.handler({
+            razorpay_order_id: orderData.order_id,
+            razorpay_payment_id: `pay_test_${Date.now()}`,
+            razorpay_signature: "mock_test_signature",
+          });
+          return;
+        } else {
+          setIsProcessingPayment(false);
+          setPaymentStage("idle");
+          return;
+        }
+      }
+
+      setPaymentStage("awaiting_payment");
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        console.error("Payment failed:", response.error);
+        setPaymentError(response.error.description || "Payment failed. Please try again or reach out on WhatsApp.");
+        setPaymentStage("error");
+        setIsProcessingPayment(false);
+      });
+      rzp.open();
+    } catch (err: any) {
+      console.error("Order creation failed:", err);
+      setPaymentError(err.message || "Failed to initialize payment gateway. Please try again.");
+      setPaymentStage("error");
+      setIsProcessingPayment(false);
+    }
+  }
 
   if (loading) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 dark:bg-[#0B0F19]">
-        <Loader2 className="animate-spin text-brand-500" size={48} />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#070B14]">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
       </div>
     );
   }
 
   if (!course) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0B0F19]">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Course not found</h1>
-        <Link href="/courses" className="text-brand-500 hover:underline">
-          Return to Courses
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-[#070B14] p-4 text-center">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Course Not Found</h1>
+        <p className="text-sm text-gray-500 mb-6">The course you are attempting to purchase does not exist.</p>
+        <Link
+          href="/courses"
+          className="px-6 py-3 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition-colors"
+        >
+          Browse All Courses
         </Link>
       </div>
     );
   }
 
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim() || !course) return;
-    setIsApplying(true);
-    setCouponError("");
-    
-    try {
-      // Pass the course ID to the backend validation
-      const res = await applyCoupon(couponCode, "course", course.id);
-      if (res.valid) {
-        setAppliedCoupon({ code: couponCode, type: res.discount_type, value: res.discount_value });
-      } else {
-        setCouponError(res.message || "Invalid coupon");
-        setAppliedCoupon(null);
-      }
-    } catch (err: any) {
-      setCouponError(err.message || "Error validating coupon");
-      setAppliedCoupon(null);
-    } finally {
-      setIsApplying(false);
-    }
-  };
-
-  const applySpecificCoupon = async (code: string) => {
-    setCouponCode(code);
-    if (!course) return;
-    setIsApplying(true);
-    setCouponError("");
-    try {
-      const res = await applyCoupon(code, "course", course.id);
-      if (res.valid) {
-        setAppliedCoupon({ code, type: res.discount_type, value: res.discount_value });
-      } else {
-        setCouponError(res.message || "Invalid coupon");
-        setAppliedCoupon(null);
-      }
-    } catch (err: any) {
-      setCouponError(err.message || "Error validating coupon");
-      setAppliedCoupon(null);
-    } finally {
-      setIsApplying(false);
-    }
-  };
-
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode("");
-    setCouponError("");
-  };
-
-  const handlePayment = async () => {
-    if (!user) {
-      alert("Please log in to purchase.");
-      return;
-    }
-    if (!course) return;
-    
-    setIsProcessing(true);
-    try {
-      const order = await createOrder("course", course.id, appliedCoupon?.code, course.title);
-      
-      // 2. Open Razorpay Modal
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "", 
-        amount: order.amount * 100, // paise
-        currency: order.currency,
-        order_id: order.razorpay_order_id,
-        name: "CrackDSA",
-        description: `Course - ${course.title}`,
-        handler: async function (response: any) {
-          setTimeout(async () => {
-            await refetch();
-            router.push(`/courses/${slug}/learn?payment=success`);
-          }, 2000);
-        },
-        prefill: {
-          name: user.full_name || user.email,
-          email: user.email,
-        },
-        theme: {
-          color: "#4f46e5", // brand-600
-        },
-      };
-
-      const rzp1 = new Razorpay(options);
-      
-      rzp1.on("payment.failed", function (response: any) {
-        alert("Payment failed. Please try again.");
-      });
-      
-      rzp1.open();
-      
-    } catch (err: any) {
-      alert("Failed to initiate payment: " + err.message);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  const discountPercent =
+    originalPrice > basePrice ? Math.round(((originalPrice - basePrice) / originalPrice) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0B0F19] py-12 px-4 relative flex items-center justify-center">
-      
-      {/* Background Glow */}
-      <div className="absolute top-0 right-1/2 translate-x-1/2 w-full max-w-3xl h-[500px] bg-brand-500/10 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Header Logo */}
-      <div className="absolute top-6 left-6 md:top-8 md:left-8 z-20">
-        <Image className="dark:hidden" src="/images/logo/logo.svg" alt="CrackDSA" width={140} height={35} />
-        <Image className="hidden dark:block" src="/images/logo/logo-dark.svg" alt="CrackDSA" width={140} height={35} />
-      </div>
-
-      <ExitIntentModal 
-        isOpen={showExitModal} 
-        onAccept={handleAcceptExitOffer}
-        onDecline={() => {
-          setShowExitModal(false);
-          router.push(`/courses/${course.slug}`);
-        }}
-      />
-
-      <div className="w-full max-w-6xl mx-auto mt-12 md:mt-8">
-        <button onClick={handleBackClick} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors mb-8 cursor-pointer">
-          <ChevronLeft size={20} />
-          <span className="text-sm font-bold">Back to Course Details</span>
-        </button>
-
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 relative z-10 items-stretch">
-          
-          {/* Left: Summary */}
-          <div className="flex-1 space-y-8">
-            <div>
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-black uppercase tracking-widest border border-brand-500/20 mb-4"
-              >
-                Standalone Purchase
-              </motion.div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-4 leading-tight">
-                {course.title}
-              </h1>
-              <div 
-                className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed line-clamp-3 prose prose-sm prose-gray dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: course.description }}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <PlayCircle className="text-brand-500 shrink-0" />
-                <span className="text-gray-700 dark:text-gray-300 font-medium">Full access to {course.total_videos || 0} lectures</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <BookOpen className="text-brand-500 shrink-0" />
-                <span className="text-gray-700 dark:text-gray-300 font-medium">{course.total_problems || 0} curated practice problems</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="text-brand-500 shrink-0" />
-                <span className="text-gray-700 dark:text-gray-300 font-medium">Lifetime access & future updates</span>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-[#070B14] text-gray-900 dark:text-gray-100 selection:bg-blue-500/20 selection:text-blue-600">
+      {/* ── Top Bar ──────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-30 w-full border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link
+              href={`/course/${course.slug}`}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors group"
+            >
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Back to Course</span>
+            </Link>
           </div>
 
-          {/* Right: Payment Form */}
-          <div className="w-full lg:w-[420px] shrink-0">
-            <div className="bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-white/10 rounded-[2rem] p-6 md:p-8 shadow-2xl shadow-gray-200/50 dark:shadow-none backdrop-blur-xl h-full flex flex-col">
-              
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Order Summary</h2>
+          <Logo href="/" />
 
-              <div className="mb-6 space-y-4">
-                <div className="flex justify-between items-center text-gray-500 dark:text-gray-400 text-sm">
-                  <span>Original Price</span>
-                  <span className="font-medium line-through">₹{originalPrice}</span>
+          <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+            <span className="hidden sm:inline">Secure</span>
+          </div>
+        </div>
+      </header>
+
+      {/* ── Top Urgency Notice ───────────────────────────────────────────── */}
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white text-xs font-bold py-2.5 px-4 text-center flex items-center justify-center gap-2 shadow-sm">
+        <Sparkles className="w-4 h-4 text-amber-300 shrink-0 animate-pulse" />
+        <span>Instant lifetime access unlocked upon enrollment • Self-paced HD video lectures & notes</span>
+      </div>
+
+      {/* ── Main Container ─────────────────────────────────────────────────── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="text-center space-y-2 mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-gray-900 dark:text-white">
+            Enroll in{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-600 dark:from-blue-400 dark:to-indigo-300">
+              {course.title}
+            </span>
+          </h1>
+        </div>
+
+        {/* ── 2-Column Layout ─────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column (7 cols): Course Overview, What's Included, Pro Banner, Policy */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* 1. Course Highlights Card */}
+            <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/70 p-6 sm:p-7 shadow-sm space-y-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+                <div>
+                  <span className="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 mb-1.5">
+                    {course.category || "Full Course"}
+                  </span>
+                  <h2 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white">
+                    {course.title}
+                  </h2>
                 </div>
-                
-                {platformDiscount > 0 && (
-                  <div className="flex justify-between items-center text-gray-900 dark:text-gray-200 text-sm">
-                    <span>Platform Discount</span>
-                    <span className="font-medium">-₹{platformDiscount}</span>
+                {course.metadata?.rating && (
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs shrink-0">
+                    <Star className="w-4 h-4 fill-amber-500" />
+                    <span>{course.metadata.rating} / 5.0</span>
                   </div>
                 )}
-                
-                {appliedCoupon && (
-                  <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400 text-sm">
-                    <span className="flex items-center gap-1.5"><Tag size={14} /> Coupon ({appliedCoupon.code})</span>
-                    <span className="font-medium">-₹{basePrice - finalPrice}</span>
+              </div>
+
+              {/* Course deliverables */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="p-3.5 rounded-2xl border border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/20 space-y-1">
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-xs">
+                    <Video className="w-4 h-4" />
+                    <span>{course.total_videos || 150}+ Curated Lectures</span>
                   </div>
-                )}
-                
-                <div className="pt-4 border-t border-gray-100 dark:border-white/10 flex justify-between items-center">
-                  <span className="text-gray-900 dark:text-white font-bold">Total to pay</span>
-                  <span className="text-3xl font-black text-gray-900 dark:text-white">₹{finalPrice}</span>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                    High-definition whiteboard intuitions, algorithm patterns, and clean code.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl border border-indigo-500/20 bg-indigo-50/30 dark:bg-indigo-950/20 space-y-1">
+                  <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-xs">
+                    <BookOpen className="w-4 h-4" />
+                    <span>Complete Practice Problems</span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                    Interactive coding problems with automated testcases, runtime evaluation, and hints.
+                  </p>
                 </div>
               </div>
 
-              {/* Coupon Section */}
-              <div className="mb-8">
-                {!appliedCoupon ? (
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                          type="text"
-                          placeholder="Have a coupon?"
-                          value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                          className="w-full bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none uppercase placeholder:normal-case placeholder:font-medium transition-all"
-                        />
+              {/* Features list */}
+              {course.metadata?.features && (
+                <div className="pt-3 space-y-2">
+                  <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                    Included in this Course:
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {course.metadata.features.map((feat: string, i: number) => (
+                      <div key={i} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                        <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                        <span>{feat}</span>
                       </div>
-                      <button
-                        onClick={handleApplyCoupon}
-                        disabled={isApplying || !couponCode.trim()}
-                        className="px-5 py-3.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold rounded-xl disabled:opacity-50 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm"
-                      >
-                        {isApplying ? <Loader2 size={16} className="animate-spin" /> : "Apply"}
-                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. CrackDSA Pro Upsell Banner */}
+            <div className="rounded-3xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-purple-500/10 p-6 shadow-sm space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-5 h-5 text-amber-500" />
+                    <span className="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                      Recommendation: CrackDSA Pro
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-gray-900 dark:text-white">
+                    Want this course + Weekly Live Classes & 1:1 Doubt Solving?
+                  </h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                    CrackDSA Pro includes this complete course, all future courses, weekly live problem solving, CS fundamentals notes, and private community access starting at just ₹{PRO_PRICING_CONFIG.monthly.price}/month.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/checkout/pro?plan=yearly"
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>Explore Pro Pass</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <span className="text-[11px] text-gray-400 font-medium">
+                  (Or proceed below to buy only this single course)
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right Column (5 cols): Order Summary, Coupon, Razorpay Checkout */}
+          <div className="lg:col-span-5 sticky top-24 space-y-5">
+            <div className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 sm:p-7 shadow-xl shadow-gray-200/50 dark:shadow-none space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 dark:text-white">Order Summary</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Single Course Enrollment</p>
+                </div>
+                {discountPercent > 0 && (
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    {discountPercent}% Off Applied
+                  </span>
+                )}
+              </div>
+
+              {/* Coupon Code Section */}
+              <div className="space-y-2.5">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Have a Coupon Code?</span>
+                  </span>
+                  {appliedCoupon && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-[11px] text-red-500 hover:underline font-semibold cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </label>
+
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+                      <span>Code &lsquo;{appliedCoupon.code}&rsquo; Active</span>
                     </div>
-                    {couponError && <p className="text-xs font-semibold text-rose-500 pl-1">{couponError}</p>}
-                    
-                    {/* Eligible Coupons */}
-                    {eligibleCoupons.length > 0 && (
-                      <div className="pt-2 flex flex-wrap gap-2">
-                        {eligibleCoupons.map((c) => (
-                          <button
-                            key={c.code}
-                            onClick={() => applySpecificCoupon(c.code)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-500/20 bg-brand-500/5 hover:bg-brand-500/10 transition-colors text-xs font-bold text-brand-600 dark:text-brand-400 cursor-pointer"
-                          >
-                            <Tag size={12} /> {c.code}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    <span>-₹{appliedCoupon.discount_amount.toLocaleString("en-IN")}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl px-4 py-3.5">
-                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
-                      <CheckCircle2 size={16} />
-                      <span className="text-sm font-bold uppercase tracking-wide">'{appliedCoupon.code}' applied</span>
-                    </div>
-                    <button onClick={removeCoupon} className="text-xs font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white">
-                      Remove
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. WELCOME500"
+                      value={couponCodeInput}
+                      onChange={(e) => {
+                        setCouponCodeInput(e.target.value.toUpperCase());
+                        setCouponError(null);
+                        setCouponSuccess(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleApplyCoupon();
+                        }
+                      }}
+                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 text-xs uppercase font-mono font-bold tracking-wider text-gray-900 dark:text-white placeholder:normal-case placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                    />
+                    <button
+                      type="button"
+                      disabled={couponLoading || !couponCodeInput.trim()}
+                      onClick={() => handleApplyCoupon()}
+                      className="px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
                     </button>
                   </div>
                 )}
+
+                {couponError && (
+                  <p className="text-[11px] font-semibold text-rose-500 flex items-center gap-1.5 mt-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{couponError}</span>
+                  </p>
+                )}
+
+                {couponSuccess && (
+                  <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 mt-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>{couponSuccess}</span>
+                  </p>
+                )}
               </div>
 
-              <div className="mt-auto pt-4">
-                <button 
-                  onClick={handlePayment}
-                  disabled={isProcessing}
-                  className="w-full py-4 rounded-2xl flex items-center justify-center gap-2 bg-brand-600 text-white font-bold text-lg shadow-xl shadow-brand-500/20 hover:shadow-brand-500/40 hover:bg-brand-500 transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:pointer-events-none"
-                >
-                  {isProcessing ? <Loader2 size={20} className="animate-spin" /> : <><CreditCard size={20} /> Proceed to Pay</>}
-                </button>
+              {/* Price Breakdown */}
+              <div className="space-y-2.5 pt-4 border-t border-gray-100 dark:border-gray-800 text-xs">
+                {originalPrice > basePrice && (
+                  <div className="flex items-center justify-between text-gray-500 dark:text-gray-400">
+                    <span>Original Price</span>
+                    <span className="line-through font-mono">₹{originalPrice.toLocaleString("en-IN")}</span>
+                  </div>
+                )}
 
-                <div className="mt-5 flex items-center justify-center gap-2 text-[11px] text-gray-400 font-medium">
-                  <ShieldCheck size={14} />
-                  <span>Secure 256-bit SSL encryption by Razorpay</span>
+                <div className="flex items-center justify-between text-gray-700 dark:text-gray-300">
+                  <span>Course Price</span>
+                  <span className="font-mono font-semibold">₹{basePrice.toLocaleString("en-IN")}</span>
+                </div>
+
+                {appliedCoupon && (
+                  <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span>Coupon Discount ({appliedCoupon.code})</span>
+                    <span className="font-mono">-₹{appliedCoupon.discount_amount.toLocaleString("en-IN")}</span>
+                  </div>
+                )}
+
+                <div className="pt-3 border-t border-gray-200 dark:border-gray-800 flex items-baseline justify-between">
+                  <div>
+                    <span className="text-base font-black text-gray-900 dark:text-white">Total Payable</span>
+                    <p className="text-[10px] text-gray-400">Lifetime access • Taxes included</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-black text-gray-900 dark:text-white font-mono">
+                      ₹{finalPrice.toLocaleString("en-IN")}
+                    </span>
+                  </div>
                 </div>
               </div>
 
+              {/* Payment Error Alert */}
+              {paymentError && (
+                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs space-y-1">
+                  <div className="font-bold flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>Payment Alert</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed">{paymentError}</p>
+                </div>
+              )}
+
+              {/* CTA Button */}
+              <button
+                type="button"
+                disabled={isProcessingPayment}
+                onClick={handleProceedToPayment}
+                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-black text-sm tracking-wide shadow-lg shadow-blue-500/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Initializing Secure Gateway...</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4" />
+                    <span>
+                      {isLoggedIn
+                        ? `Pay ₹${finalPrice.toLocaleString("en-IN")}`
+                        : "Sign In to Proceed to Payment"}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+
+              {/* Trust & WhatsApp Fallback */}
+              <div className="pt-3 space-y-3 text-center border-t border-gray-100 dark:border-gray-800">
+                <div className="flex items-center justify-center gap-4 text-[11px] text-gray-400 font-medium">
+                  <span className="flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                    UPI / Card / NetBanking
+                  </span>
+                  <span>•</span>
+                  <span>Instant Activation</span>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-[11px] text-emerald-800 dark:text-emerald-300">
+                  <p className="font-semibold mb-1">Facing any payment failure or issue?</p>
+                  <a
+                    href={`https://wa.me/919956217210?text=${encodeURIComponent(
+                      `Hi CrackDSA team, I need help with payment for ${course.title} at ₹${finalPrice}.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>Chat on WhatsApp with Mentors (24/7 Support)</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
-
         </div>
-      </div>
+      </main>
+
+      {/* Fullscreen Payment Waiting & Processing Overlay */}
+      <PaymentProcessingOverlay
+        isOpen={paymentStage !== "idle"}
+        stage={paymentStage}
+        itemName={course.title}
+        amount={finalPrice}
+        errorMessage={paymentError}
+        onRetry={handleProceedToPayment}
+        onCancel={() => {
+          setPaymentStage("idle");
+          setIsProcessingPayment(false);
+        }}
+      />
     </div>
+  );
+}
+
+export default function CourseCheckoutPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#070B14]">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+        </div>
+      }
+    >
+      <CourseCheckoutContent />
+    </Suspense>
   );
 }

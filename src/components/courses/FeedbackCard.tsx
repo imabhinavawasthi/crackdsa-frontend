@@ -22,12 +22,13 @@ export function FeedbackCard({ testimonial }: { testimonial: Testimonial }) {
       <div className="relative flex-1 mb-8">
         <Quote className="absolute -top-3 -left-3 w-8 h-8 text-gray-100 dark:text-gray-800 rotate-180 -z-10" />
         <p className="text-gray-600 dark:text-gray-400 font-medium leading-relaxed z-10 relative">
-          "{testimonial.content}"
+          &ldquo;{testimonial.content}&rdquo;
         </p>
       </div>
 
       <div className="flex items-center gap-4 mt-auto border-t border-gray-100 dark:border-gray-800/80 pt-6">
         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={testimonial.avatar} alt={testimonial.name} className="w-full h-full object-cover" />
         </div>
         <div>

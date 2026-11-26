@@ -49,7 +49,11 @@ export default function DSASheetDynamicPage() {
         }
 
         if (isMounted) {
-          setSheetData(sheetResult.value);
+          const sheet = sheetResult.value;
+          setSheetData(sheet);
+          if (sheet?.title) {
+            document.title = `${sheet.title} | crackDSA`;
+          }
           
           const fetchedProblems = problemsResult.status === "fulfilled" ? problemsResult.value : [];
           setSheetProblems(fetchedProblems);

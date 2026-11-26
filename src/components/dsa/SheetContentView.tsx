@@ -8,7 +8,6 @@ import { SheetHeaderCard } from "./SheetHeaderCard";
 import { SheetProgressSection } from "./SheetProgressSection";
 import { SheetToolbar } from "./SheetToolbar";
 import { motion } from "framer-motion";
-import { generateSheetPDF } from "@/utils/pdfGenerator";
 
 interface SheetContentViewProps {
   sheet: DSASheet;
@@ -120,7 +119,8 @@ export const SheetContentView: React.FC<SheetContentViewProps> = ({
     setExpandToggleKey((prev) => prev + 1);
   }, []);
 
-  const handleDownloadPDF = useCallback(() => {
+  const handleDownloadPDF = useCallback(async () => {
+    const { generateSheetPDF } = await import("@/utils/pdfGenerator");
     generateSheetPDF(sheet, sheetProblems);
   }, [sheet, sheetProblems]);
 

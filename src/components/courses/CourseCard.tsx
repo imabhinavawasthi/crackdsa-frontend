@@ -1,125 +1,228 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowRight, Terminal, Cpu, Code2, Clock, Star, Users } from "lucide-react";
+import { ArrowRight, Clock, Play, FileCode, CheckCircle2, Crown, Sparkles } from "lucide-react";
 import { CourseSummary } from "@/types/course";
-import AspectRatioImage from "@/components/common/AspectRatioImage";
+import { CourseThumbnail } from "./CourseThumbnail";
 
-export function CourseCard({ course, index }: { course: CourseSummary; index: number }) {
-  // Pick an icon based on ID/category
-  let Icon = Code2;
-  if (course.id.includes("python") || course.slug.includes("python")) Icon = Terminal;
-  if (course.id.includes("os") || course.slug.includes("system-design")) Icon = Cpu;
+interface CourseCardProps {
+  course: CourseSummary;
+  isFeatured?: boolean;
+}
+
+/**
+ * Strips HTML tags and entities to output clean, readable plain text for card previews.
+ */
+function cleanDescription(html?: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Formats duration from real course metadata if non-zero.
+ */
+function formatDuration(meta?: CourseSummary["metadata"]): string | null {
+  if (!meta) return null;
+  if (meta.duration_hours && meta.duration_hours > 0) {
+    return `${meta.duration_hours}h`;
+  }
+  if (meta.duration_weeks && meta.duration_weeks > 0) {
+    return `${meta.duration_weeks}w`;
+  }
+  return null;
+}
+
+/**
+ * Normalizes category display label.
+ */
+function formatCategory(category?: string): string {
+  if (!category) return "GENERAL";
+  const cat = category.toLowerCase().trim();
+  if (cat === "core-dsa" || cat === "dsa") return "DSA";
+  if (cat === "interview-prep") return "INTERVIEW PREP";
+  if (cat === "programming") return "PROGRAMMING";
+  if (cat === "system-design") return "SYSTEM DESIGN";
+  return category.toUpperCase();
+}
+
+export function CourseCard({ course, isFeatured = false }: CourseCardProps) {
+  const isUpcoming = course.status === "upcoming";
+  const meta = course.metadata;
+  const duration = formatDuration(meta);
+  const plainDescription = cleanDescription(course.description);
+  const displayCategory = formatCategory(course.category);
+  const isCsCategory = displayCategory.includes("INTERVIEW") || displayCategory.includes("CS");
+
+  // Real pricing & discount calculation
+  const price = course.price ?? 0;
+  const originalPrice = course.original_price ?? 0;
+  const hasDiscount = Boolean(originalPrice && price && originalPrice > price);
+  const discountPercent = hasDiscount
+    ? Math.round(((originalPrice - price) / originalPrice) * 100)
+    : 0;
+
+  // Real data-driven badge
+  const badgeLabel = isUpcoming
+    ? "UPCOMING"
+    : course.is_popular
+    ? "BESTSELLER"
+    : null;
+
+  const isPrimaryAction = course.is_popular || isFeatured;
 
   return (
-    <Link href={`/courses/${course.slug}`} className="block focus:outline-none h-full">
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      whileHover={{ y: -6 }}
-      className="flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-brand-500/10 hover:border-brand-500/30 transition-all duration-300 group h-full cursor-pointer"
-    >
-      {/* Thumbnail Area (16:9 ratio) */}
-      <div className="w-full aspect-[16/9] relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 group">
-        {course.metadata?.thumbnail_url ? (
-          <AspectRatioImage
-            src={course.metadata.thumbnail_url}
-            alt={`${course.title} thumbnail`}
-            ratio="16/9"
-            className="group-hover:scale-105 transition-transform duration-500 w-full h-full"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center opacity-30 group-hover:opacity-50 group-hover:scale-110 transition-all duration-500">
-            <Icon className="w-16 h-16 text-gray-400 dark:text-gray-500" />
-          </div>
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-gray-700 transition-all duration-200">
+      {/* 1. Thumbnail Area with Badges */}
+      <div className="relative">
+        <CourseThumbnail course={course} />
+
+        {/* Real Badges: Left-pinned */}
+        {badgeLabel && (
+          <span
+            className={`absolute top-3 left-3 text-[10.5px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-xs select-none ${
+              badgeLabel === "BESTSELLER"
+                ? "bg-[#0f172a] text-white shadow-md"
+                : "bg-slate-900/80 backdrop-blur-xs text-white"
+            }`}
+          >
+            {badgeLabel}
+          </span>
+        )}
+
+        {/* Included in Pro Badge: Right-pinned */}
+        {course.is_pro && (
+          <span className="absolute top-3 right-3 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-xs select-none bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center gap-1">
+            <Crown size={11} className="fill-white" />
+            <span>Included in Pro</span>
+          </span>
         )}
       </div>
 
-      <div className="p-6 flex flex-col flex-1 relative">
-        <div className="flex items-start justify-between mb-5 relative z-10">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner shrink-0 ${
-            index % 3 === 0 ? "bg-blue-50 dark:bg-blue-500/10 text-blue-500" :
-            index % 3 === 1 ? "bg-amber-50 dark:bg-amber-500/10 text-amber-500" :
-            "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500"
-          }`}>
-            <Icon size={24} />
-          </div>
-          <div className="flex flex-col items-end gap-1.5">
-            <span className="rounded-lg bg-gray-100 dark:bg-gray-800 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
-              {course.metadata?.difficulty || "Beginner"}
-            </span>
-            {course.metadata?.duration_weeks ? (
-              <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                <Clock size={10} /> {course.metadata.duration_weeks} Weeks
-              </span>
-            ) : null}
-          </div>
-        </div>
+      {/* 2. Card Body */}
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        {/* Category Label */}
+        <span
+          className={`text-[11px] font-black tracking-wider uppercase mb-1.5 ${
+            isCsCategory
+              ? "text-emerald-500 dark:text-emerald-400"
+              : "text-[#2563eb] dark:text-blue-400"
+          }`}
+        >
+          {displayCategory}
+        </span>
 
-        <div className="space-y-2 mb-4 flex-1 relative z-10">
-          <h4 className="text-xl font-black text-gray-900 dark:text-white leading-tight">
-            {course.title}
-          </h4>
-          <div 
-            className="text-xs text-gray-500 dark:text-gray-400 font-medium line-clamp-2 leading-relaxed prose prose-sm prose-gray dark:prose-invert max-w-none mb-3"
-            dangerouslySetInnerHTML={{ __html: course.description }}
-          />
-          
-          {/* Stats Row */}
-          {(course.metadata?.rating || course.metadata?.number_of_students) && (
-            <div className="flex items-center gap-3 pt-2">
-              {course.metadata?.rating && (
-                <div className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-400">
-                  <Star size={14} className="text-amber-500 fill-amber-500" />
-                  <span>{course.metadata.rating}</span>
-                </div>
-              )}
-              {course.metadata?.rating && course.metadata?.number_of_students && (
-                <div className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
-              )}
-              {course.metadata?.number_of_students && (
-                <div className="flex items-center gap-1 text-xs font-bold text-gray-600 dark:text-gray-400">
-                  <Users size={14} className="text-brand-500" />
-                  <span>{course.metadata.number_of_students > 1000 ? `${(course.metadata.number_of_students / 1000).toFixed(1)}k` : course.metadata.number_of_students} Enrolled</span>
-                </div>
+        {/* Title */}
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-snug line-clamp-2 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          {course.title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-[13px] leading-relaxed text-slate-500 dark:text-slate-400 line-clamp-3 min-h-[58px] mb-4">
+          {plainDescription}
+        </p>
+
+        {/* Real Metadata Row - Displays ONLY fields that actually exist */}
+        {(Boolean(course.total_videos) || Boolean(course.total_problems) || duration || meta?.access_duration || course.is_pro) && (
+          <div className="pt-3.5 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium mb-4">
+            {Boolean(course.total_videos && course.total_videos > 0) && (
+              <div className="flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-xs bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                  <Play size={9} className="fill-slate-500 text-slate-500 translate-x-0.2" />
+                </span>
+                <span>{course.total_videos} lessons</span>
+              </div>
+            )}
+
+            {Boolean(course.total_problems && course.total_problems > 0) && (
+              <div className="flex items-center gap-1.5">
+                <FileCode size={13} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                <span>{course.total_problems} problems</span>
+              </div>
+            )}
+
+            {duration && (
+              <div className="flex items-center gap-1.5">
+                <Clock size={13} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                <span>{duration}</span>
+              </div>
+            )}
+
+            {(meta?.access_duration || course.is_pro) && (
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 size={13} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                <span>{meta?.access_duration || "Lifetime access"}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 3. Card Footer: Price & CTA Row */}
+        <div className="mt-auto pt-4 flex items-center justify-between gap-3">
+          {/* Real Pricing Section */}
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-1.5">
+              {price === 0 ? (
+                <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                  Free
+                </span>
+              ) : (
+                <>
+                  <span className="text-xl font-black text-slate-900 dark:text-white">
+                    ₹{price.toLocaleString("en-IN")}
+                  </span>
+                  {hasDiscount && (
+                    <span className="text-xs text-slate-400 line-through font-normal">
+                      ₹{originalPrice.toLocaleString("en-IN")}
+                    </span>
+                  )}
+                </>
               )}
             </div>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              {hasDiscount && (
+                <span className="text-xs font-bold text-[#2563eb] dark:text-blue-400">
+                  {discountPercent}% off
+                </span>
+              )}
+              {course.is_pro && (
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <Sparkles size={10} className="shrink-0" />
+                  Free with Pro
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Action CTA */}
+          {isUpcoming ? (
+            <span className="inline-flex items-center px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 select-none">
+              Coming Soon
+            </span>
+          ) : (
+            <Link
+              href={`/course/${course.slug}`}
+              className={`inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer ${
+                isPrimaryAction
+                  ? "bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-xs"
+                  : "bg-[#eff6ff] dark:bg-blue-950/40 hover:bg-[#2563eb] text-[#2563eb] hover:text-white dark:text-blue-400 dark:hover:text-white"
+              }`}
+            >
+              <span>View Course</span>
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+            </Link>
           )}
         </div>
-
-      <div className="border-t border-gray-100 dark:border-gray-800/80 pt-4 mt-auto flex items-center justify-between">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</span>
-            {course.is_pro && (
-              <span className="text-[8px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                PRO Included
-              </span>
-            )}
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            {course.price === 0 ? (
-              <span className="text-lg font-black text-emerald-500">Free</span>
-            ) : (
-              <>
-                <span className="text-lg font-black text-gray-900 dark:text-white">₹{course.price}</span>
-                {course.original_price > course.price && (
-                  <span className="text-xs font-bold text-gray-400 line-through">₹{course.original_price}</span>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-        
-        <div
-          className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 group-hover:bg-brand-500 group-hover:text-white transition-colors"
-        >
-          <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
-        </div>
       </div>
-      </div>
-    </motion.div>
-    </Link>
+    </article>
   );
 }

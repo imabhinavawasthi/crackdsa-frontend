@@ -2,9 +2,10 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Logo from "@/components/common/Logo";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
-import { MoreHorizontal, ChevronDown, User } from "lucide-react";
+import { MoreHorizontal, ChevronDown, User, ArrowRight, Crown, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
   NavItem,
@@ -19,161 +20,6 @@ const AppSidebar: React.FC = () => {
   const { isLoggedIn } = useAuth();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setMounted(true);
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, []);
-
-  const closeSidebarOnMobile = () => {
-    if (window.innerWidth < 1024) {
-      setIsMobileOpen(false);
-    }
-  };
-
-  const renderMenuItems = (
-    navItems: NavItem[],
-    menuType: string
-  ) => (
-    <ul className="flex flex-col gap-1">
-      {navItems.map((nav, index) => (
-        <li key={nav.name}>
-          {nav.subItems ? (
-            <Link
-              href={nav.path || "#"}
-              onClick={(e) => {
-                handleSubmenuToggle(index, menuType);
-                if (!nav.path || nav.path === "#") {
-                  e.preventDefault();
-                } else {
-                  closeSidebarOnMobile();
-                }
-              }}
-              className={`menu-item group  ${
-                openSubmenu?.type === menuType && openSubmenu?.index === index
-                  ? "menu-item-active"
-                  : "menu-item-inactive"
-              } cursor-pointer ${
-                !isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "lg:justify-start"
-              }`}
-            >
-              {(() => {
-                const isActive = openSubmenu?.type === menuType && openSubmenu?.index === index;
-                return (
-                  <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 ${
-                    isActive
-                      ? "bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
-                      : "bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10"
-                  }`}>
-                    {nav.icon}
-                  </span>
-                )
-              })()}
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <span className={`menu-item-text`}>{nav.name}</span>
-              )}
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDown
-                  className={`ml-auto w-5 h-5 transition-transform duration-200  ${
-                    openSubmenu?.type === menuType &&
-                    openSubmenu?.index === index
-                      ? "rotate-180 text-brand-500"
-                      : ""
-                  }`}
-                />
-              )}
-            </Link>
-          ) : (
-            nav.path && (
-              <Link
-                href={nav.path}
-                onClick={closeSidebarOnMobile}
-                className={`menu-item group ${
-                  isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                }`}
-              >
-                {(() => {
-                  const itemActive = isActive(nav.path!);
-                  return (
-                    <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 ${
-                      itemActive
-                        ? "bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
-                        : "bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10"
-                    }`}>
-                      {nav.icon}
-                    </span>
-                  )
-                })()}
-                {(isExpanded || isHovered || isMobileOpen) && (
-                  <span className={`menu-item-text`}>{nav.name}</span>
-                )}
-              </Link>
-            )
-          )}
-          {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
-            <div
-              ref={(el) => {
-                subMenuRefs.current[`${menuType}-${index}`] = el;
-              }}
-              className="overflow-hidden transition-all duration-300"
-              style={{
-                height:
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? `${subMenuHeight[`${menuType}-${index}`]}px`
-                    : "0px",
-              }}
-            >
-              <ul className="mt-1 space-y-0.5 ml-8">
-                {nav.subItems.map((subItem) => (
-                  <li key={subItem.name}>
-                    <Link
-                      href={subItem.path}
-                      onClick={closeSidebarOnMobile}
-                      className={`menu-dropdown-item ${
-                        isActive(subItem.path)
-                          ? "menu-dropdown-item-active"
-                          : "menu-dropdown-item-inactive"
-                      }`}
-                    >
-                      {subItem.icon && (
-                        <span
-                          className={`shrink-0 ${
-                            isActive(subItem.path)
-                              ? "menu-item-icon-active"
-                              : "menu-item-icon-inactive"
-                          }`}
-                        >
-                          {subItem.icon}
-                        </span>
-                      )}
-                      {subItem.name}
-                      <span className="flex items-center gap-1.5 ml-auto">
-                        {subItem.new && (
-                          <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded border bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
-                            NEW
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span className="px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded border bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">
-                            PRO
-                          </span>
-                        )}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
-  
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: string;
     index: number;
@@ -183,11 +29,9 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => path === pathname;
-   const isActive = useCallback((path: string) => path === pathname, [pathname]);
+  const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
-  useEffect(() => {
-    // Check if the current path matches any submenu item or its parent main path
+  const restoreActiveSubmenu = useCallback(() => {
     let submenuMatched = false;
     const sections = pathname.startsWith("/admin") ? adminSidebarSections : sidebarSections;
     sections.forEach((section) => {
@@ -207,15 +51,22 @@ const AppSidebar: React.FC = () => {
       });
     });
 
-    // If no submenu item matches, close the open submenu
     if (!submenuMatched) {
-      const timeoutId = window.setTimeout(() => {
       setOpenSubmenu(null);
+    }
+  }, [pathname, isActive]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setMounted(true);
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-    }
-  }, [pathname, isActive]);
+  }, []);
+
+  useEffect(() => {
+    restoreActiveSubmenu();
+  }, [restoreActiveSubmenu]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -230,6 +81,12 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
+  const closeSidebarOnMobile = () => {
+    if (window.innerWidth < 1024) {
+      setIsMobileOpen(false);
+    }
+  };
+
   const handleSubmenuToggle = (index: number, menuType: string) => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (
@@ -243,20 +100,212 @@ const AppSidebar: React.FC = () => {
     });
   };
 
+  const renderBadge = (item: any) => {
+    if (item.badge) {
+      return item.badge;
+    }
+
+    if (item.tag) {
+      const bgClass = item.tagBg || "bg-brand-500/10 text-brand-600 dark:text-brand-400 border-brand-500/20";
+      const colorClass = item.tagColor || "";
+      return (
+        <span className={`inline-flex items-center px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full border shadow-2xs select-none shrink-0 ${bgClass} ${colorClass}`}>
+          {item.tag}
+        </span>
+      );
+    }
+
+    if (item.new) {
+      return (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-2xs select-none shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          NEW
+        </span>
+      );
+    }
+
+    if (item.pro) {
+      return (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full border border-amber-500/25 bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 shadow-2xs select-none shrink-0">
+          <Crown className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
+          PRO
+        </span>
+      );
+    }
+
+    return null;
+  };
+
+  const renderMenuItems = (
+    navItems: NavItem[],
+    menuType: string
+  ) => (
+    <ul className="flex flex-col gap-0.5">
+      {navItems.map((nav, index) => (
+        <li 
+          key={nav.name}
+          onMouseEnter={() => {
+            if (nav.subItems && window.innerWidth >= 1024) {
+              setOpenSubmenu({ type: menuType, index });
+            }
+          }}
+          onMouseLeave={() => {
+            if (nav.subItems && window.innerWidth >= 1024) {
+              restoreActiveSubmenu();
+            }
+          }}
+        >
+          {nav.subItems ? (
+            <Link
+              href={nav.path || "#"}
+              title={nav.name}
+              onClick={(e) => {
+                handleSubmenuToggle(index, menuType);
+                if (!nav.path || nav.path === "#") {
+                  e.preventDefault();
+                } else {
+                  closeSidebarOnMobile();
+                }
+              }}
+              className={`menu-item group ${
+                openSubmenu?.type === menuType && openSubmenu?.index === index
+                  ? "menu-item-active"
+                  : "menu-item-inactive"
+              } cursor-pointer ${
+                !isExpanded && !isHovered
+                  ? "lg:justify-center"
+                  : "lg:justify-start"
+              }`}
+            >
+              {(() => {
+                const isItemOpen = openSubmenu?.type === menuType && openSubmenu?.index === index;
+                return (
+                  <span className={`flex items-center justify-center w-7 h-7 rounded-lg shrink-0 transition-colors duration-200 ${
+                    isItemOpen
+                      ? "bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
+                      : "bg-gray-100/80 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-200/70 dark:group-hover:bg-white/10"
+                  }`}>
+                    {nav.icon}
+                  </span>
+                )
+              })()}
+              {(isExpanded || isHovered || isMobileOpen) && (
+                <>
+                  <span className="menu-item-text">{nav.name}</span>
+                  <div className="ml-auto flex items-center gap-1.5 shrink-0 pl-1">
+                    {renderBadge(nav)}
+                    <ChevronDown
+                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                        openSubmenu?.type === menuType &&
+                        openSubmenu?.index === index
+                          ? "rotate-180 text-brand-500"
+                          : "group-hover:text-gray-600 dark:group-hover:text-gray-200"
+                      }`}
+                    />
+                  </div>
+                </>
+              )}
+            </Link>
+          ) : (
+            nav.path && (
+              <Link
+                href={nav.path}
+                title={nav.name}
+                onClick={closeSidebarOnMobile}
+                className={`menu-item group ${
+                  isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+                } ${
+                  !isExpanded && !isHovered
+                    ? "lg:justify-center"
+                    : "lg:justify-start"
+                }`}
+              >
+                {(() => {
+                  const itemActive = isActive(nav.path!);
+                  return (
+                    <span className={`flex items-center justify-center w-7 h-7 rounded-lg shrink-0 transition-colors duration-200 ${
+                      itemActive
+                        ? "bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
+                        : "bg-gray-100/80 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-200/70 dark:group-hover:bg-white/10"
+                    }`}>
+                      {nav.icon}
+                    </span>
+                  )
+                })()}
+                {(isExpanded || isHovered || isMobileOpen) && (
+                  <>
+                    <span className="menu-item-text">{nav.name}</span>
+                    {renderBadge(nav) && (
+                      <div className="ml-auto flex shrink-0 items-center pl-1">
+                        {renderBadge(nav)}
+                      </div>
+                    )}
+                  </>
+                )}
+              </Link>
+            )
+          )}
+          {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
+            <div
+              ref={(el) => {
+                subMenuRefs.current[`${menuType}-${index}`] = el;
+              }}
+              className="overflow-hidden transition-all duration-300"
+              style={{
+                height:
+                  openSubmenu?.type === menuType && openSubmenu?.index === index
+                    ? `${subMenuHeight[`${menuType}-${index}`]}px`
+                    : "0px",
+              }}
+            >
+              <ul className="mt-1 space-y-0.5 ml-7 pl-2 border-l border-gray-100 dark:border-white/5">
+                {nav.subItems.map((subItem) => (
+                  <li key={subItem.name}>
+                    <Link
+                      href={subItem.path}
+                      title={subItem.name}
+                      onClick={closeSidebarOnMobile}
+                      className={`menu-dropdown-item ${
+                        isActive(subItem.path)
+                          ? "menu-dropdown-item-active"
+                          : "menu-dropdown-item-inactive"
+                      }`}
+                    >
+                      {subItem.icon && (
+                        <span
+                          className={`shrink-0 ${
+                            isActive(subItem.path)
+                              ? "text-brand-500 dark:text-brand-400"
+                              : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
+                          }`}
+                        >
+                          {subItem.icon}
+                        </span>
+                      )}
+                      <span className="truncate whitespace-nowrap flex-1 text-left">{subItem.name}</span>
+                      {renderBadge(subItem) && (
+                        <div className="ml-auto flex items-center shrink-0 pl-1">
+                          {renderBadge(subItem)}
+                        </div>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+
   if (!mounted) {
     return (
       <aside
-        className="fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-4 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen border-r border-gray-200 w-18 lg:translate-x-0"
+        className="fixed pt-0 flex flex-col top-0 px-3 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen border-r border-gray-200 w-[72px] lg:translate-x-0"
       >
-        <div className="py-4 hidden lg:flex lg:justify-center">
-          <Link href="/">
-            <Image
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
-          </Link>
+        <div className="py-4 flex items-center justify-center w-full">
+          <Logo href="/" variant="icon" width={32} height={32} />
         </div>
       </aside>
     );
@@ -264,63 +313,53 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed pt-18.5 flex flex-col lg:pt-0 top-0 px-4 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed pt-0 flex flex-col top-0 px-3 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
         ${
           isExpanded || isMobileOpen
-            ? "w-65"
+            ? "w-[280px]"
             : isHovered
-            ? "w-65"
-            : "w-18"
+            ? "w-[280px]"
+            : "w-[72px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        if (window.innerWidth >= 1024) {
+          restoreActiveSubmenu();
+        }
+      }}
     >
-      <div
-        className={`py-4 hidden lg:flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-        }`}
-      >
-        <Link href="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <Image
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <Image
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
-            <Image
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
-          )}
-        </Link>
+      <div className="py-4 flex items-center justify-center relative w-full border-b border-gray-100 dark:border-gray-800/60 lg:border-none">
+        <Logo
+          href="/"
+          variant={isExpanded || isHovered || isMobileOpen ? "full" : "icon"}
+          width={isExpanded || isHovered || isMobileOpen ? 150 : 40}
+          height={isExpanded || isHovered || isMobileOpen ? 40 : 32}
+          onClick={closeSidebarOnMobile}
+        />
+        {isMobileOpen && (
+          <button
+            onClick={closeSidebarOnMobile}
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors lg:hidden cursor-pointer"
+            aria-label="Close Sidebar"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar text-[14px]">
         <nav className="mb-6">
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             {(() => {
               const sections = pathname.startsWith("/admin") ? adminSidebarSections : sidebarSections;
               return sections.map((section) => {
                 if (section.requireAuth && !isLoggedIn) {
                   return (
-                    <div key={section.key} className="">
+                    <div key={section.key} className="py-0.5">
                       <h2
-                        className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
+                        className={`mb-1 px-2.5 text-[11px] font-bold uppercase tracking-wider flex items-center leading-5 text-gray-400 dark:text-gray-500 select-none ${
                           !isExpanded && !isHovered
                             ? "lg:justify-center"
                             : "justify-start"
@@ -329,10 +368,10 @@ const AppSidebar: React.FC = () => {
                         {isExpanded || isHovered || isMobileOpen ? (
                           section.title
                         ) : (
-                          <MoreHorizontal size={20} />
+                          <MoreHorizontal size={18} />
                         )}
                       </h2>
-                      <ul className="flex flex-col gap-1">
+                      <ul className="flex flex-col gap-0.5">
                         <li>
                           <Link
                             href="/login"
@@ -341,11 +380,11 @@ const AppSidebar: React.FC = () => {
                               isActive("/login") ? "menu-item-active" : "menu-item-inactive"
                             }`}
                           >
-                            <span className={`flex items-center justify-center w-7.5 h-7.5 rounded-lg transition-colors duration-200 bg-gray-50 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-white/10`}>
+                            <span className={`flex items-center justify-center w-7 h-7 rounded-lg shrink-0 transition-colors duration-200 bg-gray-100/80 text-gray-500 dark:bg-white/5 dark:text-gray-400 group-hover:bg-gray-200/70 dark:group-hover:bg-white/10`}>
                               <User size={18} />
                             </span>
                             {(isExpanded || isHovered || isMobileOpen) && (
-                              <span className={`menu-item-text`}>Sign In</span>
+                              <span className="menu-item-text">Sign In</span>
                             )}
                           </Link>
                         </li>
@@ -355,9 +394,9 @@ const AppSidebar: React.FC = () => {
                 }
 
                 return (
-                  <div key={section.key} className="">
+                  <div key={section.key} className="py-0.5">
                     <h2
-                      className={`mb-2 text-xs uppercase flex leading-5 text-gray-400 ${
+                      className={`mb-1 px-2.5 text-[11px] font-bold uppercase tracking-wider flex items-center leading-5 text-gray-400 dark:text-gray-500 select-none ${
                         !isExpanded && !isHovered
                           ? "lg:justify-center"
                           : "justify-start"
@@ -366,7 +405,7 @@ const AppSidebar: React.FC = () => {
                       {isExpanded || isHovered || isMobileOpen ? (
                         section.title
                       ) : (
-                        <MoreHorizontal size={20} />
+                        <MoreHorizontal size={18} />
                       )}
                     </h2>
                     {renderMenuItems(section.items, section.key)}

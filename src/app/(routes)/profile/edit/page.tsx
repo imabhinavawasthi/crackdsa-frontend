@@ -22,6 +22,7 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { CollegeSelect } from "@/components/common/CollegeSelect";
 
 // Brand-accurate inline SVG Icons
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -177,7 +178,7 @@ export default function EditProfilePage() {
         <div className="relative z-10 flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-5">
             <div className="relative h-20 w-20 sm:h-24 sm:w-24 overflow-hidden rounded-full border-4 border-white bg-gray-100 dark:border-gray-950">
-              <Image src={user.avatar_url ?? "/images/user/owner.jpg"} alt={user.full_name} width={96} height={96} className="h-full w-full object-cover" />
+              <Image src={user.avatar_url || "/images/user/owner.jpg"} alt={user.full_name} width={96} height={96} className="h-full w-full object-cover" />
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white sm:text-3xl">Edit Profile</h1>
@@ -240,10 +241,11 @@ export default function EditProfilePage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 dark:text-gray-500">College / University</label>
-              <div className="relative">
-                <input type="text" value={form.college} onChange={(e) => handleFieldChange("college", e.target.value)} className="w-full rounded-xl border border-gray-200 bg-transparent px-4 py-2.5 pl-10 text-sm font-semibold text-gray-800 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-hidden dark:border-white/10 dark:text-white" placeholder="Search or type college/university" />
-                <Building size={16} className="absolute left-3.5 top-3.5 text-gray-400" />
-              </div>
+              <CollegeSelect
+                value={form.college}
+                onChange={(val) => handleFieldChange("college", val)}
+                placeholder="Search or select your college / university"
+              />
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">

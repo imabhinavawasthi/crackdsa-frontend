@@ -6,7 +6,7 @@ import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import AppFooter from "@/layout/AppFooter";
 import SessionExpiredBanner from "@/components/auth/SessionExpiredBanner";
-import CrackDSAAgent from "@/components/common/CrackDSAAgent";
+import { ProGuard } from "@/components/auth/ProGuard";
 import React from "react";
 
 export default function RoutesLayout({
@@ -19,7 +19,7 @@ export default function RoutesLayout({
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
-    ? "lg:ml-[260px]"
+    ? "lg:ml-[280px]"
     : "lg:ml-[72px]";
 
   return (
@@ -32,11 +32,10 @@ export default function RoutesLayout({
       >
         <AppHeader />
         <div className="flex-1 p-4 mx-auto w-full max-w-(--breakpoint-2xl) md:p-6">
-          {children}
+          <ProGuard>{children}</ProGuard>
         </div>
         <AppFooter />
       </div>
-      <CrackDSAAgent />
     </div>
   );
 }

@@ -36,7 +36,7 @@ export default function AdminLayout({
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
-    ? "lg:ml-[260px]"
+    ? "lg:ml-[280px]"
     : "lg:ml-[72px]";
 
   // Prevent flashing during verification or redirection phase

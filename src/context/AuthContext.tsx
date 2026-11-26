@@ -7,7 +7,12 @@ import React, {
   useState,
   useCallback,
 } from "react";
-import { fetchCurrentUser, logout as logoutApi, type User } from "@/functions/auth";
+import {
+  fetchCurrentUser,
+  getValidAccessToken,
+  logout as logoutApi,
+  type User,
+} from "@/functions/auth";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,8 +20,9 @@ type AuthState = {
   user: User | null;
   isLoading: boolean;
   isLoggedIn: boolean;
+  isPro: boolean;
   logout: () => Promise<void>;
-  refetch: () => Promise<void>;
+  refetch: () => Promise<User | null>;
   sessionExpired: boolean;
   dismissSessionExpired: () => void;
 };
@@ -39,24 +45,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [sessionExpired, setSessionExpired] = useState(false);
 
   // Initial load - shows loading spinner
-  const initialLoad = useCallback(async () => {
+  const initialLoad = useCallback(async (): Promise<User | null> => {
     setIsLoading(true);
     try {
       const u = await fetchCurrentUser();
       setUser(u);
+      return u;
     } catch (e) {
       console.error("[initialLoad] authentication error:", e);
-      // General network error - do not force a logout if token exists
+      return null;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Silent poll - no loading state, only reacts if user was logged in but session died
+  // Proactive token check - silently refreshes expiring tokens before any API call fails
+  const checkTokenFreshness = useCallback(async () => {
+    try {
+      const token = await getValidAccessToken();
+      if (!token) {
+        setUser((prev) => {
+          if (prev !== null) {
+            setSessionExpired(true);
+          }
+          return null;
+        });
+      }
+    } catch (err) {
+      console.warn("[checkTokenFreshness] error checking token:", err);
+    }
+  }, []);
+
+  // Silent poll - syncs user profile state every 10 minutes
   const silentPoll = useCallback(async () => {
     try {
       const u = await fetchCurrentUser();
       if (u) {
+        setUser(u);
       } else {
         // Server returned null - only flag session expired if user WAS logged in
         setUser((prev) => {
@@ -75,10 +100,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initialLoad();
 
-    // Poll silently every 15 minutes
-    const interval = setInterval(silentPoll, 900_000);
-    return () => clearInterval(interval);
-  }, [initialLoad, silentPoll]);
+    // Check and silently rotate expiring token every 60 seconds
+    const tokenInterval = setInterval(checkTokenFreshness, 60_000);
+
+    // Profile sync every 10 minutes
+    const pollInterval = setInterval(silentPoll, 600_000);
+
+    // Proactively refresh when tab becomes visible or window gains focus (e.g. computer woke up from sleep)
+    const handleVisibility = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        checkTokenFreshness();
+      }
+    };
+
+    window.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+
+    return () => {
+      clearInterval(tokenInterval);
+      clearInterval(pollInterval);
+      window.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+    };
+  }, [initialLoad, checkTokenFreshness, silentPoll]);
 
   const logout = useCallback(async () => {
     await logoutApi();
@@ -90,12 +134,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSessionExpired(false);
   }, []);
 
+  const isPro = Boolean(
+    user && (
+      user.is_pro_active === true ||
+      user.pro_subscription?.is_active === true ||
+      (typeof user.pro_subscription?.subscription_active_till_epoch === "number" &&
+        (user.pro_subscription.subscription_active_till_epoch === -1 ||
+          user.pro_subscription.subscription_active_till_epoch > Math.floor(Date.now() / 1000)))
+    )
+  );
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoading,
         isLoggedIn: user !== null,
+        isPro,
         logout,
         refetch: initialLoad,
         sessionExpired,

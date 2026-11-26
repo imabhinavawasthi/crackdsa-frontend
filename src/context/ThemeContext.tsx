@@ -22,27 +22,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const savedTheme = localStorage.getItem("theme") as Theme | null;
-    if (savedTheme) {
+    if (savedTheme === "light" || savedTheme === "dark") {
       return savedTheme;
     }
 
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    // Default to light theme
+    return "light";
   });
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Avoid synchronous setState inside effect to prevent cascading renders.
-    // Schedule initialization on the next animation frame.
-    const raf = requestAnimationFrame(() => setIsInitialized(true));
-
-    // Fade out loader after theme is applied, with a small delay for premium feel
-    const timeout = setTimeout(() => setIsLoading(false), 1000);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(timeout);
-    };
+    setIsInitialized(true);
   }, []);
 
   useEffect(() => {

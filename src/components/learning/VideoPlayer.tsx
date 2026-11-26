@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import AspectRatioImage from "@/components/common/AspectRatioImage";
-import { Play, Pause, RotateCcw, Volume2, Maximize, Settings, FastForward, AlertCircle, ExternalLink } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, Maximize, Settings, FastForward, AlertCircle, Loader2 } from "lucide-react";
+import { decryptMediaUrl } from "@/functions/mediaSecurity";
 
 import type { VideoSource } from "@/types/course";
 export type { VideoSource } from "@/types/course";
@@ -76,10 +76,32 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onPlayerRefReady,
   onEnded
 }) => {
-  const source = detectVideoSource(url);
+  const [decryptedUrl, setDecryptedUrl] = useState<string>(() => (url && url.startsWith("enc:v1:") ? "" : url));
+  const [isDecrypting, setIsDecrypting] = useState<boolean>(() => Boolean(url && url.startsWith("enc:v1:")));
+
+  useEffect(() => {
+    let isMounted = true;
+    if (url && url.startsWith("enc:v1:")) {
+      setIsDecrypting(true);
+      decryptMediaUrl(url).then((decrypted) => {
+        if (isMounted) {
+          setDecryptedUrl(decrypted);
+          setIsDecrypting(false);
+        }
+      });
+    } else {
+      setDecryptedUrl(url || "");
+      setIsDecrypting(false);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [url]);
+
+  const activeUrl = decryptedUrl || (url && !url.startsWith("enc:v1:") ? url : "");
+  const source = detectVideoSource(activeUrl);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
@@ -88,12 +110,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
 
-  // Reset playhead/load state when source url changes
-  useEffect(() => {
-    setHasStarted(false);
+  const [prevUrl, setPrevUrl] = useState(url);
+  if (prevUrl !== url) {
+    setPrevUrl(url);
     setIsPlaying(false);
     setCurrentTime(0);
-  }, [url]);
+  }
 
   // Expose control API to parent component (e.g. jump to timestamp)
   useEffect(() => {
@@ -102,15 +124,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setCurrentTime: (time: number) => {
           if (source.type === "html5" && videoRef.current) {
             videoRef.current.currentTime = time;
-          } else {
-            // For iframe embeds, jump behavior requires complex SDKs. 
-            // We ensure we load the video properly first.
-            setHasStarted(true);
           }
         }
       });
     }
-  }, [url, source.type, source.idOrUrl, onPlayerRefReady]);
+  }, [url, source.type, onPlayerRefReady]);
 
   // Handle native HTML5 video events
   const handlePlayPause = () => {
@@ -217,21 +235,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (source.type === "gdrive") {
       return (
         <div 
-          className="w-full h-full aspect-video relative"
+          className="w-full h-full aspect-video relative select-none"
           onContextMenu={(e) => e.preventDefault()}
         >
           <iframe
             id="classroom-iframe"
             src={`https://drive.google.com/file/d/${source.idOrUrl}/preview`}
             title={title}
+            sandbox="allow-scripts allow-same-origin allow-presentation"
             allow="autoplay; encrypted-media"
             allowFullScreen
-            className="w-full h-full border-0"
+            className="w-full h-full border-0 pointer-events-auto"
           ></iframe>
           {/* Invisible overlay over the top bar to block the "Pop-out" button and title */}
           <div 
-            className="absolute top-0 left-0 right-0 h-16 bg-transparent z-10"
-            title="Video Title"
+            className="absolute top-0 left-0 right-0 h-16 bg-transparent z-20 pointer-events-auto cursor-default"
+            title=""
+            onClick={(e) => e.stopPropagation()}
+            onContextMenu={(e) => e.preventDefault()}
           />
         </div>
       );
@@ -270,11 +291,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return null;
   };
 
-  // 1. Error state (Mock or empty URL)
+  // 1. Decrypting state
+  if (isDecrypting) {
+    return (
+      <div className="relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl aspect-video flex flex-col items-center justify-center p-8 text-center space-y-3 select-none">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <p className="text-xs text-gray-400 font-semibold">Initializing secure media stream...</p>
+      </div>
+    );
+  }
+
+  // 2. Error state (Mock or empty URL)
   if (source.type === "mock") {
     return (
       <div 
-        className={`relative w-full overflow-hidden rounded-3xl bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl aspect-video flex flex-col items-center justify-center p-8 text-center space-y-4`}
+        className="relative w-full overflow-hidden rounded-3xl bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl aspect-video flex flex-col items-center justify-center p-8 text-center space-y-3"
       >
         <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/10">
           <AlertCircle size={20} />
@@ -283,57 +314,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <h4 className="text-sm font-black text-red-600">Video Asset Not Available</h4>
           <p className="text-xs text-red-500/80 mt-1 font-semibold">The specified lecture video could not be resolved or is not configured.</p>
         </div>
-        {url && url !== "BasicsMemoryLayoutYouTubeId" && (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 transition-colors cursor-pointer"
-          >
-            <span>Open External Resource Link</span>
-            <ExternalLink size={12} />
-          </a>
-        )}
       </div>
     );
   }
 
-  // 2. Poster Preview State (if thumbnailUrl is provided and user hasn't clicked play)
-  if (thumbnailUrl && !hasStarted && source.type !== "html5") {
-    return (
-      <div 
-        className={`relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl aspect-video group/player flex items-center justify-center`}
-      >
-        <AspectRatioImage
-          src={thumbnailUrl}
-          alt={title}
-          ratio="16/9"
-          className="absolute inset-0 w-full h-full opacity-80 group-hover/player:scale-105 transition-transform duration-700"
-        />
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
-        
-        <button
-          onClick={() => setHasStarted(true)}
-          className="relative z-10 w-16 h-16 rounded-full bg-brand-500/90 border border-brand-400/30 text-white flex items-center justify-center shadow-lg transition-all duration-300 transform group-hover/player:scale-110 hover:bg-brand-500 hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] cursor-pointer"
-        >
-          <Play fill="white" size={26} className="ml-1 text-white" />
-        </button>
-        
-        <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between">
-          <span className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg text-[10px] font-bold text-white border border-white/10 uppercase tracking-wide">
-            Lecture Preview: {title}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. standard play mode
+  // 3. Standard play mode (Embeds like Google Drive/YouTube are mounted directly for instant 1-click playback)
   return (
     <div 
-      className={`relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl group/player ${
+      className={`relative w-full overflow-hidden rounded-3xl bg-black border border-gray-200 dark:border-gray-800 shadow-xl group/player select-none ${
         isTheaterMode ? "max-h-[80vh] aspect-[21/9]" : "aspect-video"
       }`}
+      onContextMenu={(e) => e.preventDefault()}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
@@ -353,11 +344,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             preload="metadata"
           />
 
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className={`p-5 rounded-full bg-brand-500/20 backdrop-blur-md border border-brand-500/40 text-white transition-all duration-300 scale-75 opacity-0 ${
-              !isPlaying && !showControls ? "scale-100 opacity-100" : ""
-            }`}>
-              <Play fill="white" size={32} className="ml-1" />
+          <div 
+            onClick={handlePlayPause}
+            className={`absolute inset-0 flex items-center justify-center cursor-pointer transition-opacity duration-300 ${
+              !isPlaying ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className="size-16 sm:size-20 rounded-full bg-blue-600/90 border border-blue-400/40 text-white flex items-center justify-center shadow-xl transition-transform duration-300 transform hover:scale-110">
+              <Play fill="white" size={28} className="translate-x-0.5 text-white" />
             </div>
           </div>
 

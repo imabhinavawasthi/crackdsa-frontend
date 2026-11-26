@@ -3,15 +3,15 @@
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import ReferEarnButton from "@/components/common/ReferEarnButton";
 import LoginButton from "@/components/common/LoginButton";
+import Logo from "@/components/common/Logo";
 import UserDropdown from "@/components/header/UserDropdown";
 import Separator from "@/components/ui/separator/separator";
 import { useSidebar } from "@/context/SidebarContext";
 import { useAuth } from "@/context/AuthContext";
-import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Compass, BookOpen, Users, PanelLeftOpen, PanelLeftClose, Flame, Sparkles } from "lucide-react";
+import { BookOpen, Users, PanelLeftOpen, PanelLeftClose, Flame, Sparkles, Video } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -23,15 +23,32 @@ import { useActiveStreak } from "@/hooks/useActiveStreak";
 interface AppHeaderProps {
   onToggleSidebar?: () => void;
   isSidebarOpen?: boolean;
+  hideSidebarToggle?: boolean;
+  isFixed?: boolean;
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen }) => {
+const AppHeader: React.FC<AppHeaderProps> = ({ 
+  onToggleSidebar, 
+  isSidebarOpen, 
+  hideSidebarToggle,
+  isFixed 
+}) => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const { user, isLoggedIn, isLoading } = useAuth();
   const activeStreak = useActiveStreak();
   const pathname = usePathname();
 
-  const { isExpanded, isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const { isExpanded, isHovered, isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+
+  const shouldBeFixed = isFixed ?? !onToggleSidebar;
+
+  const headerLeftOffset = hideSidebarToggle
+    ? "left-0"
+    : isMobileOpen
+    ? "left-0"
+    : isExpanded || isHovered
+    ? "left-0 lg:left-[280px]"
+    : "left-0 lg:left-[72px]";
 
   const handleToggle = () => {
     if (onToggleSidebar) {
@@ -50,16 +67,24 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen })
   };
 
   const navLinks = [
-    { name: "My Roadmap", href: "/roadmap", icon: <Compass size={18} /> },
-    { name: "Masterclasses", href: "/masterclasses", icon: <BookOpen size={18} /> },
-    { name: "Community", href: "/community", icon: <Users size={18} /> },
+    { name: "Courses", href: "/courses", icon: <BookOpen size={18} /> },
+    { name: "Live Classes", href: "/live-sessions", icon: <Video size={18} /> },
+    // { name: "Masterclasses", href: "/masterclasses", icon: <Sparkles size={18} /> },
+    // { name: "Community", href: "/community", icon: <Users size={18} /> },
   ];
 
   return (
-    <header className="sticky top-0 w-full z-99999 border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/80">
-      <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
+    <>
+      <header
+        className={`${
+          shouldBeFixed
+            ? `fixed top-0 left-0 right-0 ${headerLeftOffset} z-40 transition-[left] duration-300 ease-in-out`
+            : "sticky top-0 w-full z-40"
+        } border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/80`}
+      >
+        <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-1.5 sm:gap-4 lg:justify-normal lg:px-0 lg:py-2">
-          <button
+          {!hideSidebarToggle && <button
             className="flex items-center justify-center w-9 h-9 text-gray-500 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
             onClick={handleToggle}
             aria-label="Toggle Sidebar"
@@ -71,12 +96,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen })
             ) : (
               <PanelLeftOpen size={18} />
             )}
-          </button>
+          </button>}
 
-          <Link href="/" className="lg:hidden">
-            <Image width={154} height={32} className="dark:hidden" src="./images/logo/logo.svg" alt="Logo" />
-            <Image width={154} height={32} className="hidden dark:block" src="./images/logo/logo-dark.svg" alt="Logo" />
-          </Link>
+          <Logo href="/" className={hideSidebarToggle ? "" : "lg:hidden"} width={154} height={32} />
 
           <button
             onClick={toggleApplicationMenu}
@@ -91,64 +113,90 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onToggleSidebar, isSidebarOpen })
             <NavigationMenuList className="flex items-center gap-5">
               {navLinks.map((link) => (
                 <NavigationMenuItem key={link.name}>
-                  <Link href={link.href} passHref legacyBehavior>
-                    <NavigationMenuLink
-                      className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors bg-transparent hover:bg-transparent focus:bg-transparent ${pathname === link.href
-                          ? "text-brand-500 hover:text-brand-500"
-                          : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                        }`}
-                    >
-                      <span className="text-brand-500/50">{link.icon}</span>
-                      {link.name}
-                    </NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuLink
+                    render={<Link href={link.href} />}
+                    className={`flex items-center gap-1.5 text-[13px] font-semibold transition-colors bg-transparent hover:bg-transparent focus:bg-transparent ${pathname === link.href
+                        ? "text-brand-500 hover:text-brand-500"
+                        : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                      }`}
+                  >
+                    <span className="text-brand-500/50">{link.icon}</span>
+                    {link.name}
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>
           </NavigationMenu>
         </div>
 
-        <div className={`${isApplicationMenuOpen ? "flex" : "hidden"} items-center justify-between w-full gap-3 px-5 py-2 lg:flex lg:justify-end lg:px-0 lg:shadow-none`}>
-          <div className="flex items-center gap-2.5">
-            {isLoggedIn && user?.is_pro_active && (
-              <>
-                <Link href="/profile/subscription">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-linear-to-r from-amber-500 to-orange-500 text-white rounded-lg text-xs font-extrabold uppercase tracking-widest hover:opacity-90 transition-opacity shadow-sm dark:from-amber-600 dark:to-orange-600">
-                    <Sparkles size={14} className="text-amber-100" />
-                    <span>PRO</span>
+        <div className={`${isApplicationMenuOpen ? "flex flex-col" : "hidden"} w-full gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-800 lg:border-t-0 lg:flex lg:flex-row lg:items-center lg:justify-end lg:px-0 lg:py-0 lg:shadow-none`}>
+          {/* Mobile Navigation Links */}
+          <div className="flex flex-col gap-1 w-full lg:hidden pb-2 border-b border-gray-100 dark:border-gray-800">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={() => setApplicationMenuOpen(false)}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  pathname === link.href
+                    ? "text-brand-500 bg-brand-50 dark:bg-brand-500/10"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
+              >
+                <span className="text-brand-500">{link.icon}</span>
+                <span>{link.name}</span>
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between w-full lg:w-auto lg:gap-3 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0">
+              {(
+                <>
+                  <Link href="/pro" className="hidden sm:inline-flex shrink-0">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg text-xs font-extrabold uppercase tracking-wider hover:opacity-95 transition-opacity shadow-sm dark:from-amber-600 dark:to-orange-600 whitespace-nowrap shrink-0">
+                      <Sparkles size={14} className="text-amber-100 shrink-0" />
+                      <span className="whitespace-nowrap">{isLoggedIn && user?.is_pro_active ? "PRO" : "Subscribe to Pro"}</span>
+                    </div>
+                  </Link>
+                  <div className="hidden sm:block shrink-0">
+                    <Separator />
+                  </div>
+                </>
+              )}
+              <ReferEarnButton />
+              <Separator />
+              <ThemeToggleButton />
+            </div>
+
+            {isLoading ? (
+              <div className="h-7 w-20 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+            ) : isLoggedIn ? (
+              <div className="flex items-center gap-2.5">
+                <Link href="/progress" className="inline-flex">
+                  <div
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-full text-orange-600 dark:text-orange-400 transition-transform hover:scale-105 cursor-pointer"
+                    title={`${activeStreak} Day Streak`}
+                  >
+                    <Flame size={16} className={activeStreak > 0 ? "fill-orange-500 text-orange-500" : "text-orange-400/70"} />
+                    <span className="text-sm font-bold">{activeStreak}</span>
                   </div>
                 </Link>
                 <Separator />
-              </>
+                <UserDropdown />
+              </div>
+            ) : (
+              <LoginButton />
             )}
-            <ReferEarnButton />
-            <Separator />
-            <ThemeToggleButton />
           </div>
-
-          {isLoading ? (
-            <div className="h-7 w-20 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
-          ) : isLoggedIn ? (
-            <div className="flex items-center gap-2.5">
-              <Link href="/progress" className="hidden lg:inline-flex">
-                <div
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-full text-orange-600 dark:text-orange-400 transition-transform hover:scale-105 cursor-pointer"
-                  title={`${activeStreak} Day Streak`}
-                >
-                  <Flame size={16} className={activeStreak > 0 ? "fill-orange-500 text-orange-500" : "text-orange-400/70"} />
-                  <span className="text-sm font-bold">{activeStreak}</span>
-                </div>
-              </Link>
-              <Separator />
-              <UserDropdown />
-            </div>
-          ) : (
-            <LoginButton />
-          )}
         </div>
       </div>
     </header>
-  );
+    {shouldBeFixed && (
+      <div className="h-14 lg:h-16 w-full shrink-0" aria-hidden="true" />
+    )}
+  </>
+);
 };
 
 export default AppHeader;

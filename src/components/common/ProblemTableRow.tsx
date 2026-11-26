@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Check, Bookmark, ExternalLink, ChevronRight, Target, Flame, Sparkles } from "lucide-react";
 import { formatTag } from "@/utils/string";
 
@@ -14,6 +15,15 @@ export interface ProblemTableRowProps {
   hideTopics?: boolean;
 }
 
+export const getDifficultyConfig = (diff: "Easy" | "Medium" | "Hard" | string) => {
+  switch (diff) {
+    case "Easy": return { color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/8 border-emerald-500/15", barColor: "bg-emerald-500", icon: <Target size={13} /> };
+    case "Medium": return { color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/8 border-amber-500/15", barColor: "bg-amber-500", icon: <Flame size={13} /> };
+    case "Hard": return { color: "text-rose-600 dark:text-rose-400", bg: "bg-rose-500/8 border-rose-500/15", barColor: "bg-rose-500", icon: <Sparkles size={13} /> };
+    default: return { color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/8 border-amber-500/15", barColor: "bg-amber-500", icon: <Flame size={13} /> };
+  }
+};
+
 export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
   prob,
   isSolved,
@@ -25,15 +35,6 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
   onOpenProblem,
   hideTopics = false,
 }) => {
-  const getDifficultyConfig = (diff: "Easy" | "Medium" | "Hard" | string) => {
-    switch (diff) {
-      case "Easy": return { color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/8 border-emerald-500/15", barColor: "bg-emerald-500", icon: <Target size={13} /> };
-      case "Medium": return { color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/8 border-amber-500/15", barColor: "bg-amber-500", icon: <Flame size={13} /> };
-      case "Hard": return { color: "text-rose-600 dark:text-rose-400", bg: "bg-rose-500/8 border-rose-500/15", barColor: "bg-rose-500", icon: <Sparkles size={13} /> };
-      default: return { color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/8 border-amber-500/15", barColor: "bg-amber-500", icon: <Flame size={13} /> };
-    }
-  };
-
   const getPlatformConfig = (platform: string) => {
     if (!platform) return "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-800";
     const p = platform.toLowerCase();
@@ -68,12 +69,28 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           .join(" ")
       : "Unknown Problem");
 
+  const platformLower = (prob.platform || "").toLowerCase();
+  const isLeetCode = platformLower.includes("leetcode") || !prob.platform || platformLower === "internal";
+  const isCodeforces = platformLower.includes("codeforces") || platformLower === "cf";
+  const isCodechef = platformLower.includes("codechef") || platformLower === "cc";
+  const isGfg = platformLower.includes("geeksforgeeks") || platformLower === "gfg";
+
+  const externalUrl = prob.problem_url || (isLeetCode ? `https://leetcode.com/problems/${slug}/` : null);
+
+  const handleRowClick = () => {
+    if (externalUrl) {
+      window.open(externalUrl, "_blank", "noopener,noreferrer");
+    } else {
+      onOpenProblem(slug);
+    }
+  };
+
   return (
     <tr
-      onClick={() => onOpenProblem(slug)}
+      onClick={handleRowClick}
       className="group hover:bg-gray-50/45 dark:hover:bg-gray-900/30 cursor-pointer transition-all duration-200 border-l-2 border-l-transparent hover:border-l-brand-500"
     >
-      <td className="py-3 px-3 sm:px-5 text-center w-12 sm:w-16" onClick={(e) => e.stopPropagation()}>
+      <td className="py-3 px-2 sm:px-3 text-center w-14" onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           onClick={(e) => isLoggedIn && onToggleSolved(id, slug, e)}
@@ -106,7 +123,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           )}
         </button>
       </td>
-      <td className="py-3 px-2 sm:px-3 text-center w-10 sm:w-12" onClick={(e) => e.stopPropagation()}>
+      <td className="py-3 px-1 sm:px-2 text-center w-10" onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           onClick={(e) => isLoggedIn && onToggleBookmark(id, slug, e)}
@@ -136,7 +153,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           />
         </button>
       </td>
-      <td className="py-3 px-3 sm:px-5 w-auto">
+      <td className="py-3 px-3 sm:px-4 w-auto">
         <span
           className={`text-[13px] font-medium transition-colors ${
             isSolved
@@ -147,7 +164,7 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           {formattedTitle}
         </span>
       </td>
-      <td className="py-3 px-3 sm:px-5 w-24 sm:w-32">
+      <td className="py-3 px-2 sm:px-3 w-28 sm:w-32 text-center">
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold tracking-wide border uppercase ${diffConfig.bg} ${diffConfig.color}`}
         >
@@ -155,26 +172,53 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           {prob.difficulty || "Medium"}
         </span>
       </td>
-      <td className="py-3 px-3 sm:px-5 w-24 sm:w-32">
-        <div className="flex items-center gap-1.5">
+      <td className="py-3 px-2 sm:px-3 w-44 sm:w-48 text-center">
+        {externalUrl ? (
+          <a
+            href={externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 hover:border-amber-500/40 transition-all shadow-2xs group/btn shrink-0"
+            title={`Solve ${formattedTitle} on ${isLeetCode ? "LeetCode" : prob.platform || "Platform"}`}
+          >
+            {isLeetCode ? (
+              <Image
+                src="/logos/leetcode.png"
+                alt="LeetCode"
+                width={13}
+                height={13}
+                className="w-3.5 h-3.5 object-contain shrink-0"
+              />
+            ) : isCodeforces ? (
+              <Image
+                src="/logos/codeforces.svg"
+                alt="Codeforces"
+                width={13}
+                height={13}
+                className="w-3.5 h-3.5 object-contain shrink-0"
+              />
+            ) : isCodechef ? (
+              <Image
+                src="/logos/codechef.png"
+                alt="CodeChef"
+                width={13}
+                height={13}
+                className="w-3.5 h-3.5 object-contain shrink-0"
+              />
+            ) : (
+              <ExternalLink size={12} className="shrink-0" />
+            )}
+            <span>{isLeetCode ? "Solve on LeetCode" : `Solve on ${isGfg ? "GFG" : prob.platform || "Platform"}`}</span>
+            <ExternalLink size={10} className="opacity-60 group-hover/btn:opacity-100 transition-opacity shrink-0" />
+          </a>
+        ) : (
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${platformClass}`}
           >
             {prob.platform || "Internal"}
           </span>
-          {prob.problem_url && (
-            <a
-              href={prob.problem_url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="text-gray-300 dark:text-gray-650 hover:text-brand-500 transition-colors"
-              title={`Solve on ${prob.platform || "External"}`}
-            >
-              <ExternalLink size={11} />
-            </a>
-          )}
-        </div>
+        )}
       </td>
       {!hideTopics && (
         <td className="py-3 px-3 sm:px-5 w-32 sm:w-48 hidden md:table-cell">
@@ -202,11 +246,16 @@ export const ProblemTableRow: React.FC<ProblemTableRowProps> = ({
           </div>
         </td>
       )}
-      <td className="py-3 px-3 sm:px-5 text-right w-10 sm:w-14">
-        <ChevronRight
-          size={15}
-          className="inline-block text-gray-300 dark:text-gray-700 group-hover:text-brand-500 transform group-hover:translate-x-1 transition-all duration-300"
-        />
+      <td className="py-3 px-3 sm:px-4 text-right w-36 sm:w-44" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={() => onOpenProblem(slug)}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 border border-transparent hover:border-gray-200 dark:hover:border-gray-700/60 transition-all group/notes shrink-0"
+          title="View crackDSA Notes & Editorial"
+        >
+          <span>Notes / Editorial</span>
+          <ChevronRight size={13} className="text-gray-400 dark:text-gray-500 group-hover/notes:text-brand-500 transform group-hover/notes:translate-x-0.5 transition-transform" />
+        </button>
       </td>
     </tr>
   );

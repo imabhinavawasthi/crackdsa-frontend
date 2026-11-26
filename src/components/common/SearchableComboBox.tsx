@@ -107,7 +107,7 @@ const SearchableComboBox: React.FC<SearchableComboBoxProps> = ({
             className="relative w-full max-w-lg bg-white dark:bg-gray-950 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col max-h-[80vh]"
           >
             {/* Header / Search Input */}
-            <div className="flex items-center gap-3 p-4 border-b border-gray-100 dark:border-gray-850 bg-gray-50/50 dark:bg-gray-900/30">
+            <div className="flex items-center gap-3 p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/60">
               <Search size={18} className="text-gray-400 shrink-0" />
               <input
                 ref={inputRef}
@@ -194,7 +194,7 @@ const SearchableComboBox: React.FC<SearchableComboBoxProps> = ({
             </div>
             
             {/* Footer */}
-            <div className="p-3 border-t border-gray-100 dark:border-gray-850 bg-gray-50 dark:bg-gray-900/50 text-center">
+            <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 text-center">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                 {filteredOptions.length} assets available
               </span>

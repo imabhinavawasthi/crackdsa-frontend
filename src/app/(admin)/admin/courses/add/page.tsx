@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Lock, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import CourseEditor from "@/components/admin/CourseEditor";
+import CourseDetailsEditor from "@/components/admin/CourseDetailsEditor";
 
 export default function AddCoursePage() {
   const { user, isLoading: authLoading, isLoggedIn } = useAuth();
@@ -67,7 +67,7 @@ export default function AddCoursePage() {
         </div>
       </div>
 
-      <CourseEditor mode="create" />
+      <CourseDetailsEditor mode="create" />
     </div>
   );
 }

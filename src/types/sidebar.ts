@@ -5,6 +5,10 @@ export type NavSubItem = {
   path: string;
   pro?: boolean;
   new?: boolean;
+  tag?: string;
+  tagBg?: string;
+  tagColor?: string;
+  badge?: ReactNode;
   icon?: ReactNode;
 };
 
@@ -12,6 +16,12 @@ export type NavItem = {
   name: string;
   icon: ReactNode;
   path?: string;
+  pro?: boolean;
+  new?: boolean;
+  tag?: string;
+  tagBg?: string;
+  tagColor?: string;
+  badge?: ReactNode;
   subItems?: NavSubItem[];
 };
 

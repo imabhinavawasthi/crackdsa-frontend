@@ -15,7 +15,7 @@ import {
 
 export const platformFeatures = [
   {
-    title: "AI-Powered Roadmap",
+    title: "Personalized Roadmap",
     description: "Get a personalized learning path engineered by AI, tailored to your target companies and skill level.",
     icon: Compass,
     href: "/roadmap",
@@ -45,33 +45,49 @@ export const platformFeatures = [
 
 export const proFeatures = [
   {
-    title: "1:1 Mentorship",
-    description: "Personal guidance from engineers at top companies. Get your doubts resolved and career path reviewed.",
-    icon: MessageSquare,
-    gradient: "from-amber-400 to-orange-500",
-    href: "/pro/personalized",
-  },
-  {
-    title: "Mock Interviews",
-    description: "Practice with realistic interview simulations. Get detailed feedback on your problem-solving approach.",
-    icon: Mic,
-    gradient: "from-rose-400 to-pink-600",
-    href: "/pro/personalized",
-  },
-  {
-    title: "Live Classes",
-    description: "Interactive sessions with expert instructors. Ask questions in real-time and learn alongside peers.",
+    title: "Live Classes & Masterclasses",
+    description: "Interactive sessions with expert instructors, live problem solving, and system design masterclasses.",
     icon: Video,
     gradient: "from-emerald-400 to-teal-600",
     href: "/live-sessions",
   },
+  {
+    title: "Access to All Courses",
+    description: "Get complete access to all self-paced, premium video courses and upcoming preparation cohorts.",
+    icon: GraduationCap,
+    gradient: "from-purple-500 to-violet-600",
+    href: "/courses",
+  },
+  {
+    title: "Personalized Roadmap Builder",
+    description: "Unlock the AI custom planner to build tailored roadmap and DSA sheets matching your dream companies.",
+    icon: Compass,
+    gradient: "from-blue-500 to-indigo-600",
+    href: "/roadmap",
+  },
+  {
+    title: "All Handbooks & Resources",
+    description: "Download cheat sheets, interview notes, patterns handbooks, and structural review notes.",
+    icon: FileText,
+    gradient: "from-amber-400 to-orange-500",
+    href: "/resources",
+  },
 ];
 
-export const ecosystemLinks = [
+export interface EcosystemLink {
+  name: string;
+  href: string;
+  icon: any;
+  color: string;
+  bg: string;
+  pro?: boolean;
+}
+
+export const ecosystemLinks: EcosystemLink[] = [
   { name: "AI Roadmap", href: "/roadmap", icon: Compass, color: "text-blue-500", bg: "bg-blue-500/10" },
   { name: "DSA Sheets", href: "/dsa-sheet", icon: LayoutDashboard, color: "text-brand-500", bg: "bg-brand-500/10" },
   { name: "Topic Practice", href: "/practice/topics", icon: Layers, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { name: "Company Tags", href: "/practice/companies", icon: Building2, color: "text-orange-500", bg: "bg-orange-500/10", pro: true },
+  { name: "Company Tags", href: "/practice/companies", icon: Building2, color: "text-orange-500", bg: "bg-orange-500/10" },
   { name: "Problem Arena", href: "/practice", icon: Zap, color: "text-yellow-500", bg: "bg-yellow-500/10" },
   { name: "Masterclasses", href: "/masterclasses", icon: BookOpen, color: "text-purple-500", bg: "bg-purple-500/10" },
   { name: "Resume Builder", href: "/resume", icon: FileText, color: "text-rose-500", bg: "bg-rose-500/10" },
@@ -95,17 +111,17 @@ export const featuredDSASheets = [
     description: "Comprehensive DSA preparation from beginner to advanced concepts.",
     problemCount: 150,
     difficulty: "Mixed" as const,
-    image: "/images/sheets/striver-sde.png",
+    image: "/images/sheets/sde.png",
     color: "from-orange-500 to-rose-600",
     tag: "Comprehensive",
   },
   {
-    id: "blind-75",
-    title: "Blind 75",
-    description: "The classic curated set from Blind. Perfect for last-minute interview revision.",
+    id: "pattern-mastery",
+    title: "Pattern Mastery",
+    description: "Master the most important DSA patterns with curated problems and detailed explanations.",
     problemCount: 75,
     difficulty: "Medium" as const,
-    image: "/images/sheets/blind-75.png",
+    image: "/images/sheets/pattern-mastery.png",
     color: "from-emerald-500 to-teal-600",
     tag: "Classic",
   },

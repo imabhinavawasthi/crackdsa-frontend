@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchMyTransactions } from "@/functions/checkout";
-import { ArrowLeft, CreditCard, Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2, CheckCircle2, XCircle, Clock, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import LoginRequired from "@/components/common/LoginRequired";
 
@@ -13,19 +13,26 @@ export default function MyTransactionsPage() {
   const { isLoggedIn, isLoading, user } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loadingTx, setLoadingTx] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadTransactions = async (isManual = false) => {
+    if (isManual) setRefreshing(true);
+    else setLoadingTx(true);
+
+    try {
+      const res = await fetchMyTransactions();
+      setTransactions(res.items || []);
+    } catch (err) {
+      console.error("Failed to fetch transactions", err);
+    } finally {
+      setLoadingTx(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetchMyTransactions()
-        .then(res => {
-          setTransactions(res.items || []);
-        })
-        .catch(err => {
-          console.error("Failed to fetch transactions", err);
-        })
-        .finally(() => {
-          setLoadingTx(false);
-        });
+      loadTransactions();
     }
   }, [isLoggedIn]);
 
@@ -60,7 +67,7 @@ export default function MyTransactionsPage() {
           Back to Subscription
         </Link>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="space-y-1">
             <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
               <span className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
@@ -72,6 +79,16 @@ export default function MyTransactionsPage() {
               View your transaction history and payment details.
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => loadTransactions(true)}
+            disabled={refreshing || loadingTx}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 text-xs font-bold text-gray-700 dark:text-gray-200 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+            <span>{refreshing ? "Syncing..." : "Refresh"}</span>
+          </button>
         </div>
       </div>
 
@@ -98,54 +115,79 @@ export default function MyTransactionsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                {transactions.map(tx => (
-                  <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.01] transition-colors">
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
-                      {new Date(tx.created_at).toLocaleString("en-US", { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <p className="font-bold text-gray-900 dark:text-white capitalize">
-                        {tx.purchase_type.replace("_", " ")}
-                      </p>
-                      <p className="text-xs text-gray-500 capitalize">{tx.metadata?.target_name || tx.target_id?.replace(/-/g, " ")}</p>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">
-                      ₹{tx.amount}
-                    </td>
-                    <td className="px-6 py-4">
-                      {tx.status === "success" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider border border-emerald-500/20">
-                          <CheckCircle2 size={12} /> Success
-                        </span>
-                      )}
-                      {tx.status === "pending" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-wider border border-amber-500/20">
-                          <Clock size={12} /> Pending
-                        </span>
-                      )}
-                      {tx.status === "failed" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider border border-red-500/20">
-                          <XCircle size={12} /> Failed
-                        </span>
-                      )}
-                      {tx.failure_reason === "timeout" && (
-                        <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-bold">Timeout</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-xs font-mono text-gray-500">
-                      {tx.id}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {tx.status !== "success" && (
+                {transactions.map(tx => {
+                  const formattedDate = new Date(tx.created_at).toLocaleString("en-IN", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+                  const itemName =
+                    tx.metadata?.target_name ||
+                    tx.target_id?.replace(/-/g, " ") ||
+                    tx.purchase_type?.replace(/_/g, " ");
+
+                  const supportMessage =
+                    `Hi CrackDSA Support, I have a question regarding my transaction.\n\n` +
+                    `• Student Name: ${user?.full_name || "Student"}\n` +
+                    `• Email: ${user?.email || "N/A"}\n` +
+                    `• Transaction ID: ${tx.id}\n` +
+                    (tx.razorpay_order_id ? `• Order ID: ${tx.razorpay_order_id}\n` : "") +
+                    (tx.razorpay_payment_id ? `• Payment ID: ${tx.razorpay_payment_id}\n` : "") +
+                    `• Item: ${itemName}\n` +
+                    `• Amount: ₹${tx.amount}\n` +
+                    `• Status: ${tx.status.toUpperCase()}\n` +
+                    `• Date: ${formattedDate}\n\n` +
+                    `Please assist me.`;
+
+                  return (
+                    <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.01] transition-colors">
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-300 whitespace-nowrap">
+                        {formattedDate}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <p className="font-bold text-gray-900 dark:text-white capitalize">
+                          {tx.purchase_type?.replace("_", " ")}
+                        </p>
+                        <p className="text-xs text-gray-500 capitalize">{itemName}</p>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                        ₹{tx.amount}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {tx.status === "success" && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider border border-emerald-500/20">
+                            <CheckCircle2 size={12} /> Success
+                          </span>
+                        )}
+                        {tx.status === "pending" && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-wider border border-amber-500/20">
+                            <Clock size={12} /> Pending
+                          </span>
+                        )}
+                        {tx.status === "failed" && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider border border-red-500/20">
+                            <XCircle size={12} /> Failed
+                          </span>
+                        )}
+                        {tx.failure_reason === "timeout" && (
+                          <div className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-bold">Timeout</div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-xs font-mono text-gray-500 select-all">
+                        {tx.id}
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
                         <WhatsAppSupportButton 
-                          title="Need Help?"
-                          message={`Hi CrackDSA Support, I'm facing an issue with a transaction.\n\nEmail: ${user?.email}\nTransaction ID: ${tx.id}\nAmount: ₹${tx.amount}\nStatus: ${tx.status}\n\nPlease help me out.`}
-                          className="!py-1.5 !px-3 !text-xs !rounded-lg"
+                          title={tx.status === "failed" ? "Resolve Issue" : tx.status === "pending" ? "Check Status" : "Get Support"}
+                          message={supportMessage}
+                          className="!py-1.5 !px-3 !text-xs !rounded-xl whitespace-nowrap"
                         />
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

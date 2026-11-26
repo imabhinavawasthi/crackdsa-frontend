@@ -1,147 +1,387 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
-import { CheckCircle2, Flame, Loader2 } from "lucide-react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { fetchActiveRoadmapApi } from "@/api/roadmap";
-import { fetchUserAssetStates } from "@/api/user";
-import { fetchProblems } from "@/api/problems";
-import { RoadmapDBRecord } from "@/components/roadmap/types";
-import { useActiveStreak } from "@/hooks/useActiveStreak";
-import { DetailedProblem } from "@/types/dsa-sheet";
+import { fetchFeaturedLiveClass } from "@/api/live-classes";
+import { fetchContests } from "@/api/contests";
+import { fetchUserActivitySummary } from "@/api/user";
+import { fetchSheets } from "@/api/sheets";
+import { fetchCourses } from "@/api/courses";
+import { LiveClass } from "@/types/live-class";
+import { ContestSummary } from "@/types/contest";
+import { DSASheet } from "@/types/dsa-sheet";
+import { CourseSummary } from "@/types/course";
 
 import {
-  UserGreetingSection,
-  ActiveRoadmapSection,
-  FeatureShowcaseSection,
-  FeaturedDSASheetsSection,
-  ProFeaturesSection,
-  EnrolledCoursesSection,
-  ProExclusiveSection,
-  EcosystemSection,
-  UpgradeBanner,
+  DashboardGreeting,
+  StreakCalendar,
+  DashboardLiveClasses,
+  DashboardContinueLearning,
+  DashboardEditorials,
+  DashboardTopSheets,
+  DashboardTopCourses,
+  DashboardTopCSFundamentals,
+  DashboardPopularTopics,
 } from "@/components/dashboard";
 
-export default function DashboardPage() {
-  const { user, isLoggedIn, isLoading: authLoading } = useAuth();
-  const firstName = user?.full_name?.split(" ")[0] || "Welcome to crackDSA";
-  const isPro = user?.is_pro_active === true;
-  const streak = useActiveStreak();
-
-  // Data States
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeRoadmap, setActiveRoadmap] = useState<RoadmapDBRecord | null>(null);
-  const [problemsSolved, setProblemsSolved] = useState(0);
-  const [dailyProblem, setDailyProblem] = useState<DetailedProblem | null>(null);
+// ─── Custom Hook for Progressive Lazy In-View Detection ──────────────────────────
+function useLazyInView(rootMargin = "250px", idleFallbackMs = 2500) {
+  const [inView, setInView] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    async function loadDashboardData() {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        const [roadmap, assetStates] = await Promise.all([
-          fetchActiveRoadmapApi().catch(() => null),
-          fetchUserAssetStates().catch(() => []),
-        ]);
-
-        setActiveRoadmap(roadmap);
-
-        const solvedCount = assetStates.filter(
-          (asset: { asset_type: string; status: string }) => asset.asset_type === "problem" && asset.status === "done"
-        ).length;
-        setProblemsSolved(solvedCount);
-
-        // Fetch a date-stable daily problem using limit & offset pagination
-        const now = new Date();
-        const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
-        const offset = seed % 180;
-
-        let problems = await fetchProblems(1, offset).catch(() => []);
-        // Fallback to offset 0 if the generated offset exceeds the available problems
-        if (problems.length === 0 && offset > 0) {
-          problems = await fetchProblems(1, 0).catch(() => []);
-        }
-        if (problems.length > 0) {
-          const p = problems[0];
-          setDailyProblem({
-            id: p.id,
-            slug: p.slug,
-            title: p.title,
-            difficulty: p.difficulty as "Easy" | "Medium" | "Hard",
-            platform: p.platform,
-            problem_url: p.problem_url || undefined,
-          });
-        }
-      } catch (err) {
-        console.error("Dashboard data load error:", err);
-      } finally {
-        setIsLoading(false);
-      }
+    // If running in an environment without IntersectionObserver, show immediately
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      setInView(true);
+      return;
     }
-    loadDashboardData();
-  }, [user]);
 
-  const stats = useMemo(
-    () => [
-      { label: "Solved", value: isLoading ? "–" : problemsSolved.toString(), icon: CheckCircle2, color: "text-emerald-500" },
-      { label: "Streak", value: streak > 0 ? `${streak}d` : "–", icon: Flame, color: "text-orange-500" },
-    ],
-    [isLoading, problemsSolved, streak]
-  );
+    let timer: any = null;
+    if (idleFallbackMs > 0) {
+      timer = setTimeout(() => {
+        setInView(true);
+      }, idleFallbackMs);
+    }
 
-  // Show loading spinner while auth is resolving
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-brand-500" size={40} />
-      </div>
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          if (timer) clearTimeout(timer);
+          observer.disconnect();
+        }
+      },
+      { rootMargin }
     );
-  }
 
-  // ─── GUEST VIEW (not logged in) ──────────────────────────────────────────
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
 
-  if (!isLoggedIn) {
-    return (
-      <div className="mx-auto max-w-6xl space-y-10 pb-16 pt-6 px-4">
-        <UserGreetingSection firstName={firstName} isPro={false} />
-        <ActiveRoadmapSection isLoading={isLoading} activeRoadmap={null} isLoggedIn={false} isPro={false} />
-        <FeatureShowcaseSection isLoggedIn={false} />
-        <FeaturedDSASheetsSection />
-        <ProFeaturesSection isPro={false} />
-        <EcosystemSection />
-        <UpgradeBanner isLoggedIn={false} />
-      </div>
+    return () => {
+      if (timer) clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [rootMargin, idleFallbackMs]);
+
+  return { ref, inView };
+}
+
+export default function DashboardPage() {
+  const { user, isLoggedIn } = useAuth();
+  const firstName = user?.full_name?.split(" ")[0] || (isLoggedIn ? "Learner" : "Learner");
+
+  // ─── Section 1: Independent State per Card ─────────────────────────────────
+  const [liveClassLoading, setLiveClassLoading] = useState(true);
+  const [featuredClass, setFeaturedClass] = useState<LiveClass | null>(null);
+  const [upcomingClass, setUpcomingClass] = useState<LiveClass | null>(null);
+  const [lastClass, setLastClass] = useState<LiveClass | null>(null);
+
+  const [contestsLoading, setContestsLoading] = useState(true);
+  const [contests, setContests] = useState<ContestSummary[]>([]);
+
+  const [streakLoading, setStreakLoading] = useState(true);
+  const [completedLessonsCount, setCompletedLessonsCount] = useState(0);
+  const [cpSolvedCount, setCpSolvedCount] = useState(0);
+  const [activityDates, setActivityDates] = useState<string[]>([]);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [maxStreak, setMaxStreak] = useState(0);
+
+  // ─── Section 3: Lazy-Loaded Sheets & Courses ──────────────────────────────
+  const { ref: section3Ref, inView: section3InView } = useLazyInView("250px", 2200);
+  const [sheetsLoading, setSheetsLoading] = useState(true);
+  const [sheets, setSheets] = useState<DSASheet[]>([]);
+
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [courses, setCourses] = useState<CourseSummary[]>([]);
+
+  // ─── Section 4: Lazy-Loaded Popular Topics ────────────────────────────────
+  const { ref: section4Ref, inView: section4InView } = useLazyInView("200px", 3500);
+
+  // Check if enrolled in DSA course
+  const isEnrolledInDSA = useMemo(() => {
+    if (!isLoggedIn || !user) return false;
+    return Boolean(
+      user.roles?.includes("admin") ||
+      user.is_pro_active ||
+      user.enrolled_courses?.some((c: any) => c.course_id === "dsa" || c.course_id === "54b8ebac-66f4-498a-9b94-66a149866d3e") ||
+      user.pro_courses?.some((c: any) => c.course_id === "dsa" || c.course_id === "54b8ebac-66f4-498a-9b94-66a149866d3e") ||
+      user.purchased_courses?.some((c: any) => c.course_id === "dsa" || c.course_id === "54b8ebac-66f4-498a-9b94-66a149866d3e")
     );
-  }
+  }, [user, isLoggedIn]);
 
-  // ─── PRO VIEW ─────────────────────────────────────────────────────────────
+  // ─── 1. Load Live Classes independently ─────────────────────────────────────
+  useEffect(() => {
+    let isMounted = true;
+    fetchFeaturedLiveClass()
+      .then((res) => {
+        if (!isMounted) return;
+        if (res) {
+          setFeaturedClass(res);
+          if (res.status === "live" || res.status === "upcoming") {
+            setUpcomingClass(res);
+            setLastClass(null);
+          } else {
+            setUpcomingClass(null);
+            setLastClass(res);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Live classes load error:", err);
+      })
+      .finally(() => {
+        if (isMounted) setLiveClassLoading(false);
+      });
 
-  if (isPro) {
-    return (
-      <div className="mx-auto max-w-6xl space-y-10 pb-16 pt-6 px-4">
-        <UserGreetingSection firstName={firstName} isPro stats={stats} dailyProblem={dailyProblem} />
-        <ActiveRoadmapSection isLoading={isLoading} activeRoadmap={activeRoadmap} isLoggedIn isPro />
-        <EnrolledCoursesSection enrolledCourses={user?.enrolled_courses || []} />
-        <ProExclusiveSection />
-        <FeatureShowcaseSection isLoggedIn />
-        <EcosystemSection />
-      </div>
-    );
-  }
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  // ─── FREE USER VIEW ───────────────────────────────────────────────────────
+  // ─── 2. Load Contests independently ─────────────────────────────────────────
+  useEffect(() => {
+    let isMounted = true;
+    fetchContests(undefined, undefined, 3)
+      .then((res) => {
+        if (!isMounted) return;
+        if (res) setContests(res);
+      })
+      .catch((err) => {
+        console.error("Contests load error:", err);
+      })
+      .finally(() => {
+        if (isMounted) setContestsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // ─── 3. Load Activity & Streak Metrics independently ────────────────────────
+  useEffect(() => {
+    let isMounted = true;
+
+    if (isLoggedIn) {
+      fetchUserActivitySummary()
+        .then((res) => {
+          if (!isMounted) return;
+          if (res) {
+            setCurrentStreak(res.current_streak || 0);
+            setMaxStreak(res.max_streak || 0);
+            setActivityDates(res.month_active_dates || []);
+            setCompletedLessonsCount(res.completed_lessons_count || 0);
+
+            let cpCount = res.cp_solved_count || 0;
+            if (typeof window !== "undefined" && cpCount === 0) {
+              const localCp = localStorage.getItem("crackdsa_cp_sheet_states");
+              if (localCp) {
+                try {
+                  const parsed = JSON.parse(localCp);
+                  cpCount = Object.values(parsed).filter((v: any) => v.status === "done").length;
+                } catch {}
+              }
+            }
+            setCpSolvedCount(cpCount);
+          }
+        })
+        .catch((err) => {
+          console.error("Activity summary error:", err);
+        })
+        .finally(() => {
+          if (isMounted) setStreakLoading(false);
+        });
+    } else {
+      // Local storage fallback for guest
+      let localDates: string[] = [];
+      if (typeof window !== "undefined") {
+        const localSolved = localStorage.getItem("crackdsa_solved_problems");
+        if (localSolved) {
+          try {
+            const solvedIds = JSON.parse(localSolved);
+            if (solvedIds.length > 0) localDates.push(new Date().toLocaleDateString("en-CA"));
+          } catch {}
+        }
+        const localCp = localStorage.getItem("crackdsa_cp_sheet_states");
+        if (localCp) {
+          try {
+            const parsed = JSON.parse(localCp);
+            const cpCount = Object.values(parsed).filter((v: any) => v.status === "done").length;
+            setCpSolvedCount(cpCount);
+          } catch {}
+        }
+      }
+      const { currentStreak: cStreak, maxStreak: mStreak, uniqueDates } = computeStreak(localDates);
+      setActivityDates(uniqueDates);
+      setCurrentStreak(cStreak);
+      setMaxStreak(mStreak);
+      setStreakLoading(false);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn]);
+
+  // ─── 4. Lazy Load Section 3: Sheets & Courses (Triggered by Scroll/In-View) ──
+  useEffect(() => {
+    if (!section3InView) return;
+    let isMounted = true;
+
+    // Fetch Sheets
+    fetchSheets(3)
+      .then((res) => {
+        if (!isMounted) return;
+        if (res) setSheets(res);
+      })
+      .catch((err) => {
+        console.error("Sheets load error:", err);
+      })
+      .finally(() => {
+        if (isMounted) setSheetsLoading(false);
+      });
+
+    // Fetch Courses
+    fetchCourses(3)
+      .then((res) => {
+        if (!isMounted) return;
+        if (res) setCourses(res);
+      })
+      .catch((err) => {
+        console.error("Courses load error:", err);
+      })
+      .finally(() => {
+        if (isMounted) setCoursesLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [section3InView]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 pb-16 pt-6 px-4">
-      <UserGreetingSection firstName={firstName} isPro={false} stats={stats} dailyProblem={dailyProblem} />
-      <ActiveRoadmapSection isLoading={isLoading} activeRoadmap={activeRoadmap} isLoggedIn isPro={false} />
-      <FeatureShowcaseSection isLoggedIn />
-      <FeaturedDSASheetsSection />
-      <ProFeaturesSection isPro={false} />
-      <EcosystemSection />
-      <UpgradeBanner isLoggedIn />
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-10 pb-20">
+      {/* ─── 1. FULL WIDTH MOUNTAIN HEADER (Instant) ──────────────────── */}
+      <DashboardGreeting firstName={firstName} />
+
+      {/* ─── 2. SECTION 1: LIVE CLASSES, EDITORIALS & STREAK (Priority 1) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch animate-in fade-in duration-500">
+        <DashboardLiveClasses
+          featuredClass={featuredClass}
+          upcomingClass={upcomingClass}
+          lastClass={lastClass}
+          loading={liveClassLoading}
+        />
+        <DashboardEditorials
+          contests={contests}
+          loading={contestsLoading}
+        />
+        <StreakCalendar
+          activityDates={activityDates}
+          currentStreak={currentStreak}
+          maxStreak={maxStreak}
+          loading={streakLoading}
+        />
+      </div>
+
+      {/* ─── 3. CONTINUE LEARNING (Priority 2) ─────────────────────────── */}
+      <div className="animate-in fade-in duration-700">
+        <DashboardContinueLearning
+          isLoggedIn={isLoggedIn}
+          isEnrolledInDSA={isEnrolledInDSA}
+          completedLessonsCount={completedLessonsCount}
+          totalLessonsCount={206}
+          cpSolvedCount={cpSolvedCount}
+          cpTotalCount={175}
+        />
+      </div>
+
+      {/* ─── 4. SECTION 3: DSA SHEETS, COURSES & CS FUNDAMENTALS (Lazy-Loaded) */}
+      <div
+        ref={section3Ref}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch transition-opacity duration-700"
+      >
+        <DashboardTopSheets
+          sheets={sheets}
+          loading={sheetsLoading}
+        />
+        <DashboardTopCourses
+          courses={courses}
+          loading={coursesLoading}
+        />
+        <DashboardTopCSFundamentals />
+      </div>
+
+      {/* ─── 5. SECTION 4: POPULAR TOPICS (Deep Lazy-Loaded) ───────────── */}
+      <div ref={section4Ref} className="min-h-[140px]">
+        {section4InView ? (
+          <div className="animate-in fade-in slide-in-from-bottom-3 duration-500">
+            <DashboardPopularTopics />
+          </div>
+        ) : (
+          <div className="h-44 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/40 animate-pulse" />
+        )}
+      </div>
     </div>
   );
+}
+
+// ─── Utility: Compute Current & Max Streak ────────────────────────────────────
+function computeStreak(dateStrings: string[]) {
+  if (!dateStrings || dateStrings.length === 0) {
+    return { currentStreak: 0, maxStreak: 0, uniqueDates: [] };
+  }
+
+  const uniqueDates = Array.from(new Set(dateStrings.map((d) => d.slice(0, 10))))
+    .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+  if (uniqueDates.length === 0) {
+    return { currentStreak: 0, maxStreak: 0, uniqueDates: [] };
+  }
+
+  // Max streak
+  let maxStreak = 0;
+  let running = 0;
+  let prevDate: Date | null = null;
+
+  for (const dayStr of uniqueDates) {
+    const curDate = new Date(dayStr);
+    if (!prevDate) {
+      running = 1;
+    } else {
+      const diffDays = Math.round((curDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays === 1) {
+        running++;
+      } else if (diffDays > 1) {
+        running = 1;
+      }
+    }
+    if (running > maxStreak) maxStreak = running;
+    prevDate = curDate;
+  }
+
+  // Current streak (counting backwards from today or yesterday)
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const yesterdayStr = new Date(Date.now() - 86400000).toLocaleDateString("en-CA");
+  const revDays = [...uniqueDates].reverse();
+
+  let currentStreak = 0;
+  if (revDays[0] === todayStr || revDays[0] === yesterdayStr) {
+    currentStreak = 1;
+    let active = new Date(revDays[0]);
+    for (let i = 1; i < revDays.length; i++) {
+      const p = new Date(revDays[i]);
+      const diff = Math.round((active.getTime() - p.getTime()) / (1000 * 60 * 60 * 24));
+      if (diff === 1) {
+        currentStreak++;
+        active = p;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return { currentStreak, maxStreak, uniqueDates };
 }

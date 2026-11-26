@@ -106,7 +106,7 @@ export default function ProfilePage() {
             <div className="relative h-24 w-24 sm:h-28 sm:w-28">
               <div className="absolute -inset-1 animate-pulse rounded-full bg-linear-to-tr from-brand-500 via-violet-500 to-indigo-500 opacity-60 blur-[3px]" />
               <div className="relative h-full w-full overflow-hidden rounded-full border-4 border-white bg-gray-100 dark:border-gray-950">
-                <Image src={user.avatar_url ?? "/images/user/owner.jpg"} alt={user.full_name} width={112} height={112} className="h-full w-full object-cover" />
+                <Image src={user.avatar_url || "/images/user/owner.jpg"} alt={user.full_name} width={112} height={112} className="h-full w-full object-cover" />
               </div>
             </div>
 

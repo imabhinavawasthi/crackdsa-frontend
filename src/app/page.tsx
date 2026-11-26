@@ -1,37 +1,56 @@
-"use client";
+import { Metadata } from "next";
+import LandingPage from "@/components/landing-page/landing-page";
+import JsonLd from "@/components/common/JsonLd";
 
-import LandingNavbar from "@/components/landing/LandingNavbar";
-import HeroSection from "@/components/landing/HeroSection";
-import TrustBar from "@/components/landing/TrustBar";
-import ProblemSection from "@/components/landing/ProblemSection";
-import SolutionSection from "@/components/landing/SolutionSection";
-import ProSubscriptionSection from "@/components/landing/ProSubscriptionSection";
-import CoursesSection from "@/components/landing/CoursesSection";
-import PracticeSection from "@/components/landing/PracticeSection";
-import StatsBar from "@/components/landing/StatsBar";
-import TestimonialsSection from "@/components/landing/TestimonialsSection";
-import CommunitySection from "@/components/landing/CommunitySection";
-import FinalCTA from "@/components/landing/FinalCTA";
-import LandingFooter from "@/components/landing/LandingFooter";
+export const metadata: Metadata = {
+  title: "crackDSA - Master Data Structures, Algorithms & System Design",
+  description: "CrackDSA is the ultimate platform to master Data Structures, Algorithms, and System Design. Prepare for FAANG interviews with curated roadmaps, problems, and courses.",
+  alternates: {
+    canonical: "https://crackdsa.com",
+  },
+};
 
-export default function LandingPage() {
+const rootSchemas = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://crackdsa.com/#organization",
+      name: "CrackDSA",
+      url: "https://crackdsa.com",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://crackdsa.com/new-logos/crackdsa-logo-new-white-background.png",
+        caption: "CrackDSA Logo",
+      },
+      sameAs: [
+        "https://www.linkedin.com/company/crackdsa",
+        "https://twitter.com/crackdsa",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://crackdsa.com/#website",
+      url: "https://crackdsa.com",
+      name: "CrackDSA",
+      description: "Master Data Structures, Algorithms & System Design for FAANG and Top Tech Interviews",
+      publisher: {
+        "@id": "https://crackdsa.com/#organization",
+      },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: "https://crackdsa.com/dsa?search={search_term_string}",
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
+};
+
+export default function Home() {
   return (
-    <div className="relative bg-gray-950 text-white selection:bg-brand-500/30 selection:text-white">
-      <LandingNavbar />
-      <main>
-        <HeroSection />
-        <TrustBar />
-        <ProblemSection />
-        <SolutionSection />
-        <ProSubscriptionSection />
-        <CoursesSection />
-        <PracticeSection />
-        <StatsBar />
-        <TestimonialsSection />
-        <CommunitySection />
-        <FinalCTA />
-      </main>
-      <LandingFooter />
-    </div>
+    <>
+      <JsonLd schema={rootSchemas} />
+      <LandingPage />
+    </>
   );
 }

@@ -4,7 +4,10 @@
 
 @theme {
   --font-*: initial;
-  --font-inter: Inter, sans-serif;
+  --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-inter: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-onest: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-mono), 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -63,19 +66,62 @@
   --color-blue-light-800: #065986;
   --color-blue-light-900: #0b4a6f;
   --color-blue-light-950: #062c41;
+  
+ /* our color start  */
+
+  /* Blue (includes the navy shades) */
+  --color-blue-50:  #eff6ff;     /* tw pill & badge backgrounds */
+  --color-blue-100: #dbeafe;     /* tw · hero paragraph text, soft hover */
+  --color-blue-200: #bedbff;     /* tw · horizon glow in the hero */
+  --color-blue-300: #9db4ff;     /* links & blue text on navy, light illustration squares */
+  --color-blue-400: #5b7dfb;     /* hero gradient, orbs */
+  --color-blue-600: #2446f0;     /* BRAND · buttons, icons, badge text */
+  --color-blue-700: #1b36cb;     /* hover / pressed on blue */
+  --color-blue-800: #0f1a5c;     /* hero gradient, raised controls on navy */
+  --color-blue-900: #0b1134;     /* navy section background */
+  --color-blue-950: #060a22;     /* hero top, page frame */
+ 
+  /* Sky */
+  --color-sky-100: #dff2fe;      /* tw · bottom of the hero gradient */
+  --color-sky-300: #74d4ff;      /* tw · light-blue illustration accents */
+ 
+  /* Neutral (slate) */
+  --color-slate-100: #f1f5f9;    /* tw · wells inside cards */
+  --color-slate-200: #e2e8f0;    /* tw · light section background, lines inside cards */
+  --color-slate-300: #cad5e2;    /* tw · borders on light; muted text on navy */
+  --color-slate-600: #45556c;    /* tw · secondary text on light */
+  --color-slate-950: #020618;    /* tw · headlines and body text */
+ 
+  /* Accents (illustration only, small doses) */
+  --color-violet-200: #ddd6ff;   /* tw · lavender haze in hero corners */
+  --color-pink-300: #f2a3c3;     /* the single warm pop */
+  
+
+
+  /* our colors end */
+
+  --color-sky-50: #eaf0fc;
+  --color-sky-200: #bcd4f8;
 
   --color-gray-25: #fcfcfd;
   --color-gray-50: #f9fafb;
   --color-gray-100: #f2f4f7;
+  --color-gray-150: #ebeef2;
   --color-gray-200: #e4e7ec;
+  --color-gray-250: #dadfe7;
   --color-gray-300: #d0d5dd;
   --color-gray-400: #98a2b3;
+  --color-gray-450: #718096;
   --color-gray-500: #667085;
   --color-gray-600: #475467;
+  --color-gray-650: #3e4b5e;
   --color-gray-700: #344054;
+  --color-gray-750: #252f40;
   --color-gray-800: #1d2939;
+  --color-gray-850: #141b26;
   --color-gray-900: #101828;
   --color-gray-950: #0c111d;
+  --color-gray-955: #090d16;
   --color-gray-dark: #1a2231;
 
   --color-orange-25: #fffaf5;
@@ -187,13 +233,30 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
   body {
-    @apply relative font-normal font-inter z-1 bg-gray-50;
+    @apply relative font-normal font-sans z-1 bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased;
+    letter-spacing: -0.011em;
+  }
+  .dark select option {
+    background-color: #101828;
+    color: #f2f4f7;
   }
 }
 
 @utility menu-item {
-  @apply relative flex items-center w-full gap-3 px-3 py-1.25 font-medium rounded-lg text-[14px];
+  @apply relative flex items-center w-full gap-2.5 px-2.5 py-1.5 font-medium rounded-xl text-[13.5px] transition-colors duration-150;
+}
+
+@utility menu-item-text {
+  @apply truncate whitespace-nowrap flex-1 text-left font-medium tracking-tight;
 }
 
 @utility menu-item-active {
@@ -201,7 +264,7 @@
 }
 
 @utility menu-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white;
 }
 
 @utility menu-item-icon {
@@ -229,7 +292,7 @@
 }
 
 @utility menu-dropdown-item {
-  @apply relative flex items-center gap-3 rounded-lg px-3 py-1.5 text-[13.5px] leading-[20px] font-medium;
+  @apply relative flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-[13px] leading-5 font-medium transition-colors duration-150;
 }
 
 @utility menu-dropdown-item-active {
@@ -237,7 +300,7 @@
 }
 
 @utility menu-dropdown-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+  @apply text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200;
 }
 
 @utility menu-dropdown-badge {
@@ -292,41 +355,6 @@
   }
 }
 
-/* third-party libraries CSS */
-.apexcharts-legend-text {
-  @apply !text-gray-700 dark:!text-gray-400;
-}
-
-.apexcharts-text {
-  @apply !fill-gray-700 dark:!fill-gray-400;
-}
-
-.apexcharts-tooltip.apexcharts-theme-light {
-  @apply gap-1 !rounded-lg !border-gray-200 p-3 !shadow-theme-sm dark:!border-gray-800 dark:!bg-gray-900;
-}
-
-.apexcharts-legend-text {
-  @apply pl-5! !text-gray-700 dark:!text-gray-400;
-}
-.apexcharts-tooltip-series-group {
-  @apply !p-0;
-}
-.apexcharts-tooltip-y-group {
-  @apply !p-0;
-}
-.apexcharts-tooltip-title {
-  @apply !mb-0 !border-b-0 !bg-transparent !p-0 !text-[10px] !leading-4 !text-gray-800 dark:!text-white/90;
-}
-.apexcharts-tooltip-text {
-  @apply !text-theme-xs !text-gray-700 dark:!text-white/90;
-}
-.apexcharts-tooltip-text-y-value {
-  @apply !font-medium;
-}
-
-.apexcharts-gridline {
-  @apply !stroke-gray-100 dark:!stroke-gray-800;
-}
 
 .flatpickr-wrapper {
   @apply w-full;
@@ -708,22 +736,6 @@ span.flatpickr-weekday,
   @apply w-6.5 rounded-xl;
 }
 
-.jvectormap-container {
-  @apply !bg-gray-50 dark:!bg-gray-900;
-}
-.jvectormap-region.jvectormap-element {
-  @apply !fill-gray-300 hover:!fill-brand-500 dark:!fill-gray-700 dark:hover:!fill-brand-500;
-}
-.jvectormap-marker.jvectormap-element {
-  @apply !stroke-gray-200 dark:!stroke-gray-800;
-}
-.jvectormap-tip {
-  @apply !bg-brand-500 !border-none !px-2 !py-1;
-}
-.jvectormap-zoomin,
-.jvectormap-zoomout {
-  @apply !hidden;
-}
 
 .form-check-input:checked ~ span {
   @apply border-[6px] border-brand-500 bg-brand-500 dark:border-brand-500;
@@ -1087,4 +1099,181 @@ span.flatpickr-weekday,
 }
 .dark .problem-description a {
   color: var(--color-brand-400);
+}
+
+/* ==========================================
+   Modern Premium UI Design Utilities
+   ========================================== */
+
+.glass-panel {
+  @apply backdrop-blur-xl bg-white/80 border border-gray-200/80 shadow-xl dark:bg-gray-900/80 dark:border-gray-800/80;
+}
+
+.glass-pill {
+  @apply backdrop-blur-md bg-white/70 border border-gray-200/60 shadow-xs dark:bg-gray-900/60 dark:border-gray-800/60;
+}
+
+.glass-card-hover {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-500/10 hover:border-brand-500/30;
+}
+
+.text-gradient-brand {
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-indigo-600 to-brand-500 dark:from-brand-400 dark:via-indigo-400 dark:to-brand-400;
+}
+
+.text-gradient-gold {
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500;
+}
+
+.glow-brand {
+  box-shadow: 0 0 35px -5px rgba(70, 95, 255, 0.25);
+}
+
+.glow-gold {
+  box-shadow: 0 0 35px -5px rgba(245, 158, 11, 0.25);
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+/* code by dev */
+
+/* Horizon — gradients from the reference design (Tailwind CSS v4)
+   Built only from palette.css colours. Import after palette.css.
+   Every gradient is a utility class: <section class="bg-hero">… */
+
+/* 1. Hero background — night sky to daylight, top to bottom,
+      with lavender haze in both lower corners */
+@utility bg-hero {
+  background:
+    radial-gradient(40% 35% at 0% 88%, var(--color-violet-200) 0%, transparent 100%),
+    radial-gradient(40% 35% at 100% 88%, var(--color-violet-200) 0%, transparent 100%),
+    linear-gradient(180deg,
+      var(--color-blue-950) 0%,
+      var(--color-blue-800) 22%,
+      var(--color-blue-600) 50%,
+      var(--color-blue-400) 64%,
+      var(--color-blue-200) 82%,
+      var(--color-sky-100) 100%);
+}
+
+/* 2. Night section — navy with a faint lighter glow from the top */
+@utility bg-night {
+  background:
+    radial-gradient(70% 45% at 50% 0%, var(--color-blue-800) 0%, transparent 100%),
+    var(--color-blue-900);
+}
+
+/* 3. Progress / skill bar — the "Figma skills 100%" fill */
+@utility bg-meter {
+  background: linear-gradient(90deg,
+    var(--color-blue-800) 0%,
+    var(--color-blue-600) 45%,
+    var(--color-sky-300) 80%,
+    var(--color-pink-300) 100%);
+}
+
+/* 4. Colour strip — the small blue-to-pink bar floating in the hero */
+@utility bg-strip {
+  background: linear-gradient(90deg,
+    var(--color-blue-400) 0%,
+    var(--color-sky-300) 55%,
+    var(--color-pink-300) 100%);
+}
+
+/* 5. Orb — the glossy sphere (Figma logo circle, AI icon disc) */
+@utility bg-orb {
+  background: radial-gradient(circle at 30% 28%,
+    var(--color-sky-300) 0%,
+    var(--color-blue-400) 38%,
+    var(--color-blue-600) 72%,
+    var(--color-blue-700) 100%);
+}
+
+/* 6. Glass tile — the frosted blue squares (Figma tile in the hero, texture pack) */
+@utility bg-glass-tile {
+  background:
+    linear-gradient(160deg, rgb(255 255 255 / 0.45) 0%, transparent 45%),
+    linear-gradient(135deg, var(--color-blue-300) 0%, var(--color-blue-400) 45%, var(--color-blue-600) 100%);
+}
+
+/* 7. Glow ring — the blue-to-sky outline around the AI chip ("Ask AI", "Make it beautiful").
+      Put on a wrapper with p-[1.5px] rounded-full; the chip inside is bg-white. */
+@utility bg-glow-ring {
+  background: linear-gradient(90deg, var(--color-blue-600) 0%, var(--color-sky-300) 50%, var(--color-blue-400) 100%);
+}
+
+/* 8. Card rim — the blue-to-pink edge light on the hero's white card (right side) */
+@utility bg-rim {
+  background: linear-gradient(180deg, var(--color-blue-400) 0%, var(--color-pink-300) 100%);
+}
+
+/* 9. Card well — the soft panel behind each feature illustration */
+@utility bg-well {
+  background: radial-gradient(120% 90% at 50% 100%, var(--color-white) 0%, var(--color-slate-100) 60%);
+}
+
+/* 10. Grid squares — the swatches in "Working with Gradients"; mix these on small tiles */
+@utility bg-swatch-a { background: linear-gradient(135deg, var(--color-blue-300), var(--color-blue-600)); }
+@utility bg-swatch-b { background: linear-gradient(135deg, var(--color-sky-300), var(--color-blue-400)); }
+@utility bg-swatch-c { background: linear-gradient(135deg, var(--color-violet-200), var(--color-blue-400)); }
+
+/* ── Problem Description Typography & Code Highlighting ── */
+.problem-description pre {
+  background-color: #18181b;
+  color: #f4f4f5;
+  padding: 1rem 1.25rem;
+  border-radius: 0.875rem;
+  border: 1px solid #27272a;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.problem-description code:not(pre code) {
+  background-color: rgba(244, 244, 245, 0.95);
+  color: #0f172a;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.375rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+.dark .problem-description code:not(pre code) {
+  background-color: rgba(39, 39, 42, 0.7);
+  color: #fbbf24;
+  border-color: rgba(63, 63, 70, 0.8);
+}
+.problem-description strong.example,
+.problem-description p strong:first-child {
+  color: #0f172a;
+  font-weight: 700;
+}
+.dark .problem-description strong.example,
+.dark .problem-description p strong:first-child {
+  color: #ffffff;
+}
+.problem-description ul {
+  list-style-type: disc;
+  margin-left: 1.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.problem-description ol {
+  list-style-type: decimal;
+  margin-left: 1.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.problem-description li {
+  margin-top: 0.35rem;
+  margin-bottom: 0.35rem;
 }
